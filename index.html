@@ -232,7 +232,8 @@ function makeEnemy(x,y,hp,type='normal'){
 }
 function makeBoss(hp){
   const b = makeEnemy(W/2, ARENA.top+120, hp);
-  b.r=52; b.isBoss=true; b.pattern=0; b.patternT=90; b.wob=0; b.color='#e85d4d';
+  b.r=52; b.isBoss=true; b.pattern=0; b.patternT=75; b.wob=0; b.color='#e85d4d';
+  b.phase=1; b.telegraph=0; b.telegraphType=''; b.telegraphX=0; b.telegraphY=0; b.summonT=180; b.spinDir=1;
   return b;
 }
 // 엄폐물: 돌을 막아주는 상자 (내구도 있음)
@@ -446,30 +447,41 @@ function update(){
     // 넉백 적용
     if(en.kb>0){ en.x+=en.kbx; en.y+=en.kby; en.kbx*=0.8; en.kby*=0.8; en.kb--; }
     if(en.isBoss){
-      // 보스: 좌우로 크게 왕복 + 패턴 사격
-      en.wob+=0.03;
-      en.x = W/2 + Math.sin(en.wob)*140;
+      // 보스 v0.4: 3단계 페이즈 + 공격 예고
+      const hpRatio=en.hp/en.maxhp;
+      const newPhase=hpRatio<=0.33?3:(hpRatio<=0.66?2:1);
+      if(newPhase!==en.phase){
+        en.phase=newPhase; en.patternT=30; en.telegraph=25; en.telegraphType='phase';
+        burst(en.x,en.y,'#ffcf5a',28); addShake(10,14); SFX.boss();
+      }
+      en.wob += 0.025 + en.phase*0.008;
+      en.x = W/2 + Math.sin(en.wob)* (en.phase===3?165:145);
       en.x = clamp(en.x, ARENA.left+en.r, ARENA.right-en.r);
       en.patternT--;
-      if(en.patternT<=0){
-        const hpRatio = en.hp/en.maxhp;
-        if(hpRatio<0.5){
-          // 분노: 부채꼴 5발
-          for(let k=-2;k<=2;k++){
-            const a=Math.atan2(player.y-en.y,player.x-en.x)+k*0.28;
-            const s=3.4+stage*0.1;
-            rocks.push(makeRock(en.x,en.y+en.r,Math.cos(a)*s,Math.sin(a)*s,'enemy'));
+      if(en.telegraph>0) en.telegraph--;
+      if(en.summonT>0) en.summonT--;
+      if(en.patternT<=0 && en.telegraph<=0){
+        if(en.phase===1){
+          // 원형 탄막
+          for(let k=0;k<10;k++){ const a=k/10*Math.PI*2 + en.pattern*0.18; const r=makeRock(en.x,en.y,Math.cos(a)*3.1,Math.sin(a)*3.1,'enemy'); r.bossShot=true; rocks.push(r); }
+          en.pattern++; en.patternT=82; en.telegraph=24; en.telegraphType='ring';
+        } else if(en.phase===2){
+          // 플레이어 조준 5연발
+          const a=Math.atan2(player.y-en.y,player.x-en.x);
+          for(let k=-2;k<=2;k++){ const aa=a+k*0.13; const r=makeRock(en.x,en.y+en.r,Math.cos(aa)*5.0,Math.sin(aa)*5.0,'enemy'); r.bossShot=true; rocks.push(r); }
+          en.patternT=68; en.telegraph=22; en.telegraphType='fan';
+          if(en.summonT<=0){
+            const sx=clamp(en.x+rand(-90,90),ARENA.left+30,ARENA.right-30), sy=clamp(en.y+rand(80,150),ARENA.top+50,ARENA.bottom-80);
+            enemies.push(makeEnemy(sx,sy,Math.max(1,Math.floor(stage/2)),'fast'));
+            en.summonT=190;
           }
-          en.patternT=70;
         } else {
-          // 8방향 원형 탄
-          if(en.pattern%2===0){
-            for(let k=0;k<8;k++){ const a=k/8*Math.PI*2; rocks.push(makeRock(en.x,en.y,Math.cos(a)*3,Math.sin(a)*3,'enemy')); }
-          } else {
-            const a=Math.atan2(player.y-en.y,player.x-en.x);
-            for(let k=-1;k<=1;k++) rocks.push(makeRock(en.x,en.y+en.r,Math.cos(a+k*0.2)*4,Math.sin(a+k*0.2)*4,'enemy'));
-          }
-          en.pattern++; en.patternT=90;
+          // 광폭: 원형 + 추적탄 + 지면 경고
+          for(let k=0;k<12;k++){ const a=k/12*Math.PI*2 - en.pattern*0.12; const r=makeRock(en.x,en.y,Math.cos(a)*3.6,Math.sin(a)*3.6,'enemy'); r.bossShot=true; rocks.push(r); }
+          const a=Math.atan2(player.y-en.y,player.x-en.x);
+          const r=makeRock(en.x,en.y+en.r,Math.cos(a)*6.2,Math.sin(a)*6.2,'enemy'); r.r=12; r.bossShot=true; rocks.push(r);
+          hazards.push({x:clamp(player.x,ARENA.left+35,ARENA.right-35),y:clamp(player.y,ARENA.top+35,ARENA.bottom-35),w:72,h:72,damage:1,flash:38,bossWarn:true});
+          en.pattern++; en.patternT=58; en.telegraph=20; en.telegraphType='rage';
         }
         SFX.hit();
       }
@@ -1160,6 +1172,13 @@ function render(){
     }
     ctx.restore();
   }
+  // 보스 경고 장판
+  for(const hz of hazards){
+    if(hz.bossWarn){
+      ctx.save(); ctx.globalAlpha=0.28+0.16*Math.sin(Date.now()/70); ctx.strokeStyle='#ff5b3d'; ctx.lineWidth=4;
+      ctx.strokeRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h); ctx.fillStyle='#ff5b3d'; ctx.fillRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h); ctx.restore();
+    }
+  }
   // 엄폐물
   for(const o of obstacles) drawObstacle(o);
   // 아이템
@@ -1173,13 +1192,25 @@ function render(){
   // 적 / 보스
   for(const en of enemies){
     if(en.isBoss){
+      if(en.telegraph>0){
+        ctx.save();
+        ctx.globalAlpha=0.18+0.12*Math.sin(Date.now()/70);
+        ctx.strokeStyle='#ffdf5a'; ctx.lineWidth=5;
+        if(en.telegraphType==='ring' || en.telegraphType==='phase' || en.telegraphType==='rage'){
+          ctx.beginPath(); ctx.arc(en.x,en.y,en.r+18+Math.sin(Date.now()/100)*4,0,Math.PI*2); ctx.stroke();
+        } else if(en.telegraphType==='fan'){
+          const a=Math.atan2(player.y-en.y,player.x-en.x);
+          ctx.beginPath(); ctx.moveTo(en.x,en.y); ctx.lineTo(en.x+Math.cos(a-.32)*500,en.y+Math.sin(a-.32)*500); ctx.moveTo(en.x,en.y); ctx.lineTo(en.x+Math.cos(a+.32)*500,en.y+Math.sin(a+.32)*500); ctx.stroke();
+        }
+        ctx.restore();
+      }
       drawEnemyChar(en.x,en.y,en.r, en, en.flash);
       // 왕관
       ctx.font=(en.r*0.9)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
       ctx.fillText('👑', en.x, en.y-en.r*1.05);
       drawHP(en.x,en.y-en.r-18,90,en.hp,en.maxhp);
       ctx.fillStyle='#fff'; ctx.font='bold 14px sans-serif';
-      ctx.fillText('BOSS',en.x,en.y-en.r-24);
+      ctx.fillText('BOSS  PHASE '+en.phase,en.x,en.y-en.r-24);
     } else {
       drawEnemyChar(en.x,en.y,en.r, en, en.flash);
       drawHP(en.x,en.y-en.r-14,Math.max(40,en.r*1.8),en.hp,en.maxhp);
