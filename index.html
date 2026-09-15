@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대</title>
+<title>돌돌 특공대 v0.8</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; background:#111318; overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif; }
@@ -45,6 +45,14 @@
       <div id="weaponInfo">🪨 기본돌 Lv.1</div>
       <button id="weaponBtn" style="margin-top:8px;border:0;border-radius:12px;padding:8px 14px;font-weight:800">무기 변경</button>
     </div>
+    <div class="lobbyTabs">
+      <button class="lobbyTab active" data-panel="missionPanel">🎖️ 미션</button>
+      <button class="lobbyTab" data-panel="armoryPanel">🔧 무기고</button>
+      <button class="lobbyTab" data-panel="recordPanel">🏆 기록</button>
+    </div>
+    <div class="lobbyPanel active" id="missionPanel"><div id="missionInfo" style="width:100%;font-size:13px;text-align:left;"></div></div>
+    <div class="lobbyPanel" id="armoryPanel"><div id="armoryInfo" style="width:100%;font-size:13px;text-align:left;"></div></div>
+    <div class="lobbyPanel" id="recordPanel"><div id="recordInfo" style="width:100%;font-size:13px;text-align:left;"></div></div>
     <div class="hint">🕹️ 눌러서 끌면 이동 · 톡 치면 되받아치기(스페이스바) · 5스테이지마다 보스!</div>
     <button class="btn" id="startBtn">시작하기</button>
   </div>
@@ -59,6 +67,10 @@
         🛒 상점 <span style="opacity:.6">·</span> 🪙 <span id="shopCoins">0</span>
       </div>
       <div id="shopItems" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+    <div id="upgradeWrap" style="width:100%;max-width:340px;margin-top:2px;">
+      <div style="font-size:14px;opacity:.85;margin:10px 0 7px">🔧 무기 강화</div>
+      <div id="weaponUpgrade" class="upgradeBox"></div>
     </div>
     <button class="btn" id="shopNextBtn" style="margin-top:14px;padding:12px 34px;font-size:17px;">다음 스테이지 →</button>
   </div>
@@ -95,6 +107,20 @@
   .shopitem.bought{ opacity:.4; pointer-events:none; }
   .shopitem.poor{ opacity:.5; }
   .shopitem.poor .cost{ color:#ff8a8a; }
+  .upgradeBox{display:flex;align-items:center;gap:10px;text-align:left;background:rgba(255,212,94,.08);border:2px solid rgba(255,212,94,.22);border-radius:14px;padding:11px 12px;}
+  .upgradeBox .uicon{font-size:28px;width:36px;text-align:center;}
+  .upgradeBox .utx{flex:1}.upgradeBox b{display:block;color:#ffe08a;font-size:15px}.upgradeBox span{font-size:12px;opacity:.7;}
+  .upgradeBtn{border:0;border-radius:10px;padding:9px 11px;font-weight:900;background:#ffd45e;color:#5a2c00;white-space:nowrap;}
+  .upgradeBtn:disabled{opacity:.4;}
+
+  .lobbyTabs{display:flex;width:min(330px,90%);gap:6px;padding:5px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12)}
+  .lobbyTab{flex:1;border:0;border-radius:11px;padding:9px 5px;background:transparent;color:#fff;font-weight:800;font-size:12px;opacity:.65}
+  .lobbyTab.active{background:rgba(255,212,94,.18);color:#ffe08a;opacity:1}
+  .lobbyPanel{display:none;width:min(330px,90%);padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+  .lobbyPanel.active{display:block}
+  .statrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .statrow:last-child{border-bottom:0}
+  .weaponbar{height:8px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden;margin-top:8px}.weaponbar i{display:block;height:100%;background:#ffd45e}
 </style>
 
 <script>
@@ -127,11 +153,29 @@ let weaponType = localStorage.getItem('dr_weapon_type') || 'basic';
 let weaponLevel = Number(localStorage.getItem('dr_weapon_level') || 1);
 const WEAPONS={basic:{name:'기본돌',icon:'🪨',desc:'안정적인 기본 공격',color:'#9b7654'},fire:{name:'불돌',icon:'🔥',desc:'적중 시 지속 화상',color:'#ff7043'},bomb:{name:'폭발돌',icon:'💣',desc:'주변 적에게 추가 피해',color:'#e85d4d'},ice:{name:'얼음돌',icon:'🧊',desc:'적 이동속도 감소',color:'#65c9ef'},lightning:{name:'번개돌',icon:'⚡',desc:'주변 적에게 연쇄 피해',color:'#f4d35e'}};
 function saveWeapon(){localStorage.setItem('dr_weapon_type',weaponType);localStorage.setItem('dr_weapon_level',weaponLevel)}
-function weaponPower(){return 1+(weaponLevel-1)*0.22}
+function weaponPower(){return (1+(weaponLevel-1)*0.22) * (player ? player.dmg : 1)}
+function weaponUpgradeCost(){return 35 + weaponLevel*20;}
+function renderWeaponUpgrade(){
+ const el=document.getElementById('weaponUpgrade'); if(!el)return;
+ const w=WEAPONS[weaponType], cost=weaponUpgradeCost();
+ el.innerHTML=`<div class="uicon">${w.icon}</div><div class="utx"><b>${w.name} Lv.${weaponLevel}</b><span>강화하면 공격 위력 +22%</span></div><button class="upgradeBtn" ${coins<cost?'disabled':''}>🪙 ${cost}</button>`;
+ const b=el.querySelector('button'); if(b)b.onclick=()=>{if(coins<cost)return;coins-=cost;totalCoins=coins;weaponLevel++;saveWeapon();saveMeta();renderWeaponUpgrade();updateWeaponUI();SFX.item();};
+}
 
 let bestStage = 1;
 let totalCoins = 0;
 let totalKills = 0;
+let missionData = { parry:0, kills:0, bosses:0 };
+const MISSION_SAVE_KEY='doldol_missions_v07';
+function loadMissions(){ try{missionData=Object.assign(missionData,JSON.parse(localStorage.getItem(MISSION_SAVE_KEY)||'{}'));}catch(e){} updateMissionUI(); }
+function saveMissions(){ try{localStorage.setItem(MISSION_SAVE_KEY,JSON.stringify(missionData));}catch(e){} updateMissionUI(); }
+const MISSIONS=[
+ {k:'parry',icon:'🛡️',name:'받아치기 훈련',goal:30,reward:30},
+ {k:'kills',icon:'💥',name:'특공대 소탕 작전',goal:100,reward:50},
+ {k:'bosses',icon:'👑',name:'보스 사냥꾼',goal:5,reward:80}
+];
+function updateMissionUI(){const el=document.getElementById('missionInfo');if(!el)return;el.innerHTML='<b style="color:#ffe08a">🎖️ 특공 미션</b>'+MISSIONS.map(m=>{const v=Math.min(missionData[m.k]||0,m.goal);return `<div style="margin-top:6px;display:flex;justify-content:space-between;gap:8px"><span>${m.icon} ${m.name}</span><span style="opacity:.75">${v}/${m.goal}${v>=m.goal?' ✓':''}</span></div>`}).join('');}
+loadMissions();
 let player, enemies, rocks, particles, door, obstacles, items, hazards;
 let input = { active:false, x:0, y:0, ox:0, oy:0 }; // ox,oy = 조이스틱 원점
 let doorOpen = false;
@@ -652,6 +696,7 @@ function update(){
     if(enemies[i].hp<=0){
       const e=enemies[i];
       if(e.isBoss){
+        missionData.bosses++; saveMissions();
         burst(e.x,e.y,'#ffb84d',60); addShake(18,30); doHitstop(8); SFX.boss();
         for(let k=0;k<5;k++){
           const kinds=['rapid','triple','shield','heal'];
@@ -672,7 +717,7 @@ function update(){
       const reward = e.isBoss ? 25 : (e.type==='tank'?4 : e.type==='fast'?2 : 3);
       coins += reward; totalCoins=coins; totalKills++; saveMeta();
       gainXP(e.isBoss ? 5 : 1);
-      enemies.splice(i,1); killCount++;
+      enemies.splice(i,1); killCount++; missionData.kills++; saveMissions();
     }
   }
   // 파티클
@@ -1301,15 +1346,20 @@ const overScreen=document.getElementById('overScreen');
 function show(el){ el.classList.remove('hidden'); }
 function hide(el){ el.classList.add('hidden'); }
 
-function updateWeaponUI(){const e=document.getElementById('weaponInfo');if(e){const w=WEAPONS[weaponType];e.textContent=`${w.icon} ${w.name} Lv.${weaponLevel} · ${w.desc}`;}}
+function updateWeaponUI(){const e=document.getElementById('weaponInfo');if(e){const w=WEAPONS[weaponType];e.textContent=`${w.icon} ${w.name} Lv.${weaponLevel} · ${w.desc}`;}
+ const a=document.getElementById('armoryInfo'); if(a){ const w=WEAPONS[weaponType], pct=Math.min(100,weaponLevel*10); a.innerHTML=`<div style="font-size:22px">${w.icon} <b>${w.name}</b></div><div style="margin-top:5px;opacity:.75">${w.desc}</div><div class="weaponbar"><i style="width:${pct}%"></i></div><div style="margin-top:7px;display:flex;justify-content:space-between"><span>현재 레벨</span><b>Lv.${weaponLevel}</b></div><div class="statrow"><span>공격 배율</span><b>x${weaponPower().toFixed(2)}</b></div>`; }
+}
+function updateLobbyStats(){
+ const r=document.getElementById('recordInfo'); if(r) r.innerHTML=`<div class="statrow"><span>🏆 최고 스테이지</span><b>${bestStage}</b></div><div class="statrow"><span>🪙 보유 코인</span><b>${totalCoins}</b></div><div class="statrow"><span>💥 총 처치</span><b>${killCount}+</b></div><div class="statrow"><span>🎯 패링 성공</span><b>${missionData.parry||0}</b></div>`;
+}
 function cycleWeapon(){const ks=Object.keys(WEAPONS);weaponType=ks[(ks.indexOf(weaponType)+1)%ks.length];saveWeapon();updateWeaponUI();}
-setTimeout(()=>{updateWeaponUI();const b=document.getElementById('weaponBtn');if(b)b.onclick=cycleWeapon;},0);
+setTimeout(()=>{updateWeaponUI();updateLobbyStats();const b=document.getElementById('weaponBtn');if(b)b.onclick=cycleWeapon; document.querySelectorAll('.lobbyTab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.lobbyTab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.lobbyPanel').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById(t.dataset.panel).classList.add('active');updateWeaponUI();updateLobbyStats();});},0);
 document.getElementById('startBtn').onclick=()=>{
   initAudio();
-  stage=1; killCount=0; coins=totalCoins; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(startScreen); startStage();
+  stage=1; killCount=0; coins=totalCoins; xp=0; level=1; xpNeed=6; player=makePlayer(); updateWeaponUI(); updateLobbyStats(); hide(startScreen); startStage(); updateMissionUI();
 };
 document.getElementById('retryBtn').onclick=()=>{
-  stage=1; killCount=0; coins=totalCoins; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(overScreen); startStage();
+  stage=1; killCount=0; coins=totalCoins; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(overScreen); startStage(); updateMissionUI();
 };
 
 // ----- 로그라이크 스킬 풀 -----
@@ -1395,6 +1445,8 @@ function stageClear(){
     });
   }
   renderShop();
+  renderWeaponUpgrade();
+  updateMissionUI();
 
   nextBtn.onclick=()=>{
     if(!picked) return;
