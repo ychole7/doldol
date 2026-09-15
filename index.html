@@ -40,6 +40,11 @@
   <div class="overlay" id="startScreen">
     <div class="title">🪖 돌돌 특공대 🪨</div>
     <div class="sub">무기를 잃은 특공대! 이제 남은 건 <b>돌멩이</b>뿐.<br>끌어서 이동하며 적 특공대의 돌을 피하고, 자동으로 되받아 던져요.<br>💥 <b>화면을 톡 치면</b> 날아오는 돌을 <b>되받아쳐요!</b><br>피할까 받아칠까 — 타이밍이 관건이에요.</div>
+    <div id="metaInfo" style="font-size:13px;opacity:.75;line-height:1.7">최고 기록 STAGE 1 · 🪙 0</div>
+    <div style="padding:10px 14px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.07);width:min(330px,90%);font-size:14px">
+      <div id="weaponInfo">🪨 기본돌 Lv.1</div>
+      <button id="weaponBtn" style="margin-top:8px;border:0;border-radius:12px;padding:8px 14px;font-weight:800">무기 변경</button>
+    </div>
     <div class="hint">🕹️ 눌러서 끌면 이동 · 톡 치면 되받아치기(스페이스바) · 5스테이지마다 보스!</div>
     <button class="btn" id="startBtn">시작하기</button>
   </div>
@@ -117,6 +122,16 @@ resize();
 // ----- 게임 상태 -----
 let state = 'menu'; // menu, playing, stageclear, skillpick, gameover
 let stage = 1;
+// v0.6 무기 시스템
+let weaponType = localStorage.getItem('dr_weapon_type') || 'basic';
+let weaponLevel = Number(localStorage.getItem('dr_weapon_level') || 1);
+const WEAPONS={basic:{name:'기본돌',icon:'🪨',desc:'안정적인 기본 공격',color:'#9b7654'},fire:{name:'불돌',icon:'🔥',desc:'적중 시 지속 화상',color:'#ff7043'},bomb:{name:'폭발돌',icon:'💣',desc:'주변 적에게 추가 피해',color:'#e85d4d'},ice:{name:'얼음돌',icon:'🧊',desc:'적 이동속도 감소',color:'#65c9ef'},lightning:{name:'번개돌',icon:'⚡',desc:'주변 적에게 연쇄 피해',color:'#f4d35e'}};
+function saveWeapon(){localStorage.setItem('dr_weapon_type',weaponType);localStorage.setItem('dr_weapon_level',weaponLevel)}
+function weaponPower(){return 1+(weaponLevel-1)*0.22}
+
+let bestStage = 1;
+let totalCoins = 0;
+let totalKills = 0;
 let player, enemies, rocks, particles, door, obstacles, items, hazards;
 let input = { active:false, x:0, y:0, ox:0, oy:0 }; // ox,oy = 조이스틱 원점
 let doorOpen = false;
@@ -126,6 +141,19 @@ let boss = null;
 let coins = 0;
 let xp = 0, level = 1, xpNeed = 6;
 let levelupToast = 0;
+
+// ----- 메타 진행 저장 v0.5 -----
+const SAVE_KEY='doldol_special_force_save_v05';
+function loadMeta(){
+  try{ const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); bestStage=Math.max(1,d.bestStage||1); totalCoins=Math.max(0,d.totalCoins||0); totalKills=Math.max(0,d.totalKills||0); }catch(e){}
+  coins=totalCoins; updateMetaUI();
+}
+function saveMeta(){
+  try{ localStorage.setItem(SAVE_KEY,JSON.stringify({bestStage,totalCoins,totalKills})); }catch(e){}
+  updateMetaUI();
+}
+function updateMetaUI(){ const el=document.getElementById('metaInfo'); if(el) el.textContent='최고 기록 STAGE '+bestStage+' · 🪙 '+totalCoins+' · 💥 '+totalKills+' 처치'; }
+loadMeta();
 // ----- 패링 강화 v0.2 -----
 let slowT = 0;              // 성공 순간 짧은 슬로모션
 let combo = 0, comboT = 0;  // 연속 패링 콤보
@@ -228,7 +256,7 @@ function makeEnemy(x,y,hp,type='normal'){
   const thp=Math.max(1,Math.round(hp*t.hpMul));
   return { x, y, r:t.r, hp:thp, maxhp:thp, cool:rand(40,110),
     vx:rand(-.6,.6)*t.speed, driftT:rand(60,140), flash:0, alive:true, wob:rand(0,6),
-    kb:0, kbx:0, kby:0, isBoss:false, type, color:t.color, speed:t.speed, coolMul:t.coolMul, rockSpd:t.rockSpd };
+    kb:0, kbx:0, kby:0, isBoss:false, type, burn:0, burnDmg:0, slow:0, color:t.color, speed:t.speed, coolMul:t.coolMul, rockSpd:t.rockSpd };
 }
 function makeBoss(hp){
   const b = makeEnemy(W/2, ARENA.top+120, hp);
@@ -252,7 +280,7 @@ const ITEM_INFO = {
   heal:   { color:'#ff5b6e', icon:'♥',  label:'회복!' },
 };
 function makeRock(x,y,vx,vy,owner){
-  return { x, y, vx, vy, r:9, owner, spin:rand(0,6), spinV:rand(-.3,.3), pierce:0, big:false };
+  return { x, y, vx, vy, r:9, owner, spin:rand(0,6), spinV:rand(-.3,.3), pierce:0, big:false, weapon:owner==='player'?weaponType:null, damage:owner==='player'?weaponPower():1 };
 }
 function makeParticle(x,y,color){
   const a = rand(0,Math.PI*2), s = rand(1,4);
@@ -444,6 +472,8 @@ function update(){
 
   // 적 행동
   for(const en of enemies){
+    if(en.burn>0){ en.hp-=en.burnDmg||0.05; en.burn--; }
+    if(en.slow>0) en.slow--;
     // 넉백 적용
     if(en.kb>0){ en.x+=en.kbx; en.y+=en.kby; en.kbx*=0.8; en.kby*=0.8; en.kb--; }
     if(en.isBoss){
@@ -559,8 +589,13 @@ function update(){
       let consumed=false;
       for(const en of enemies){
         if(dist(rk.x,rk.y,en.x,en.y)<en.r+rk.r){
-          en.hp -= player.dmg * (rk.parried ? (rk.parryPower||1) : 1); en.flash=8;
-          burst(rk.x,rk.y,'#ffd45e',8);
+          const baseDmg=player.dmg*(rk.parried?(rk.parryPower||1):1)*(rk.damage||1);
+          en.hp-=baseDmg; en.flash=8;
+          if(rk.weapon==='fire'){en.burn=90;en.burnDmg=0.08*weaponPower();}
+          if(rk.weapon==='ice'){en.slow=110;}
+          if(rk.weapon==='bomb'){for(const q of enemies){if(q!==en&&dist(q.x,q.y,en.x,en.y)<78)q.hp-=0.65*weaponPower();}burst(rk.x,rk.y,'#ff9b4a',18);addShake(4,5);}
+          if(rk.weapon==='lightning'){const near=enemies.filter(q=>q!==en&&dist(q.x,q.y,en.x,en.y)<100).slice(0,2);near.forEach(q=>{q.hp-=0.55*weaponPower();q.flash=8;});burst(rk.x,rk.y,'#fff09a',14);}
+          burst(rk.x,rk.y,rk.weapon&&WEAPONS[rk.weapon]?WEAPONS[rk.weapon].color:'#ffd45e',10);
           // 넉백
           const kbA=Math.atan2(en.y-rk.y+0.01, en.x-rk.x+0.01);
           const kbF = en.isBoss?1.5:5;
@@ -635,7 +670,7 @@ function update(){
       }
       // 코인 & 경험치 획득
       const reward = e.isBoss ? 25 : (e.type==='tank'?4 : e.type==='fast'?2 : 3);
-      coins += reward;
+      coins += reward; totalCoins=coins; totalKills++; saveMeta();
       gainXP(e.isBoss ? 5 : 1);
       enemies.splice(i,1); killCount++;
     }
@@ -1266,12 +1301,15 @@ const overScreen=document.getElementById('overScreen');
 function show(el){ el.classList.remove('hidden'); }
 function hide(el){ el.classList.add('hidden'); }
 
+function updateWeaponUI(){const e=document.getElementById('weaponInfo');if(e){const w=WEAPONS[weaponType];e.textContent=`${w.icon} ${w.name} Lv.${weaponLevel} · ${w.desc}`;}}
+function cycleWeapon(){const ks=Object.keys(WEAPONS);weaponType=ks[(ks.indexOf(weaponType)+1)%ks.length];saveWeapon();updateWeaponUI();}
+setTimeout(()=>{updateWeaponUI();const b=document.getElementById('weaponBtn');if(b)b.onclick=cycleWeapon;},0);
 document.getElementById('startBtn').onclick=()=>{
   initAudio();
-  stage=1; killCount=0; coins=0; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(startScreen); startStage();
+  stage=1; killCount=0; coins=totalCoins; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(startScreen); startStage();
 };
 document.getElementById('retryBtn').onclick=()=>{
-  stage=1; killCount=0; coins=0; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(overScreen); startStage();
+  stage=1; killCount=0; coins=totalCoins; xp=0; level=1; xpNeed=6; player=makePlayer(); hide(overScreen); startStage();
 };
 
 // ----- 로그라이크 스킬 풀 -----
@@ -1300,6 +1338,7 @@ const SHOP = [
 
 function stageClear(){
   state='skillpick';
+  bestStage=Math.max(bestStage,stage); totalCoins=coins; saveMeta();
   SFX.door();
   document.getElementById('stageLabel').textContent='STAGE '+stage+' CLEAR';
   const wasBoss = (stage%5===0);
@@ -1348,7 +1387,7 @@ function stageClear(){
                  + '<div class="cost">'+(item._bought?'구매됨':'🪙 '+item.cost)+'</div>';
       el.onclick=()=>{
         if(item._bought || coins<item.cost) { if(coins<item.cost){ SFX.hurt(); } return; }
-        coins-=item.cost; item.buy(player); SFX.item();
+        coins-=item.cost; totalCoins=coins; item.buy(player); saveMeta(); SFX.item();
         // 체력/최대체력 외 반복구매 방지가 필요하면 여기서 _bought 처리 (지금은 반복 허용)
         renderShop();
       };
@@ -1360,13 +1399,14 @@ function stageClear(){
   nextBtn.onclick=()=>{
     if(!picked) return;
     shopPicks.forEach(i=>{ delete i._bought; });
-    stage++; hide(stageScreen); startStage();
+    stage++; totalCoins=coins; saveMeta(); hide(stageScreen); startStage();
   };
 
   show(stageScreen);
 }
 function gameOver(){
   state='gameover';
+  bestStage=Math.max(bestStage,stage); totalCoins=coins; saveMeta();
   SFX.hurt();
   document.getElementById('overMsg').textContent='STAGE '+stage+'에서 쓰러졌어요... 처치한 적: '+killCount+'마리';
   show(overScreen);
