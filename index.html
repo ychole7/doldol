@@ -117,7 +117,7 @@ resize();
 // ----- 게임 상태 -----
 let state = 'menu'; // menu, playing, stageclear, skillpick, gameover
 let stage = 1;
-let player, enemies, rocks, particles, door, obstacles, items;
+let player, enemies, rocks, particles, door, obstacles, items, hazards;
 let input = { active:false, x:0, y:0, ox:0, oy:0 }; // ox,oy = 조이스틱 원점
 let doorOpen = false;
 let killCount = 0;
@@ -132,6 +132,8 @@ let combo = 0, comboT = 0;  // 연속 패링 콤보
 let parryPerfect = 0;       // 마지막 패링 품질(0~1)
 let parryText = '', parryTextT = 0;
 let parrySuccessCount = 0;
+let stageGimmick = 'none';
+let stageGimmickT = 0;
 
 // ----- 손맛(juice) -----
 let shakeT=0, shakeMag=0;      // 화면 흔들림
@@ -261,7 +263,9 @@ function burst(x,y,color,n=12){ for(let i=0;i<n;i++) particles.push(makeParticle
 function startStage(){
   player = player || makePlayer();
   player.x = W/2; player.y = H-180;
-  enemies = []; rocks = []; particles = []; obstacles = []; items = [];
+  enemies = []; rocks = []; particles = []; obstacles = []; items = []; hazards = [];
+  stageGimmick = stage%6===0 ? 'meteor' : (stage%4===0 ? 'wind' : (stage%3===0 ? 'danger' : 'none'));
+  stageGimmickT = 0;
   doorOpen = false; boss = null;
   const isBossStage = (stage % 5 === 0);
   if(isBossStage){
@@ -282,8 +286,10 @@ function startStage(){
       // 스테이지가 오를수록 fast/tank 섞임
       let type='normal';
       const roll=Math.random();
-      if(stage>=3 && roll<0.28) type='fast';
-      else if(stage>=4 && roll<0.5) type='tank';
+      if(stage>=7 && roll<0.12) type='sniper';
+      else if(stage>=6 && roll<0.22) type='bomber';
+      else if(stage>=3 && roll<0.42) type='fast';
+      else if(stage>=4 && roll<0.58) type='tank';
       enemies.push(makeEnemy(x,y,hp,type));
     }
     // 엄폐물: 참조 이미지처럼 세로 기둥 형태로 좌우에 배치
@@ -296,6 +302,11 @@ function startStage(){
       }
     }
     if(stage>=2){ obstacles.push(makeObstacle(W/2, midY-70)); obstacles.push(makeObstacle(W/2, midY+70)); }
+  }
+  if(stageGimmick==='danger'){
+    hazards.push({x:W/2-55,y:(ARENA.top+ARENA.bottom)/2,w:110,h:230,damage:1,flash:0});
+  } else if(stageGimmick==='wind'){
+    hazards.push({x:W/2,y:(ARENA.top+ARENA.bottom)/2,w:360,h:70,damage:0,flash:0});
   }
   door = { x:W/2, y:ARENA.top-40, w:120, h:70 };
   state = 'playing';
@@ -473,9 +484,21 @@ function update(){
       en.cool--;
       if(en.cool<=0){
         const a = Math.atan2(player.y-en.y, player.x-en.x);
-        const spd = (3.2 + stage*0.15)*(en.rockSpd||1);
-        const err = rand(-0.18,0.18);
-        rocks.push(makeRock(en.x, en.y+en.r, Math.cos(a+err)*spd, Math.sin(a+err)*spd, 'enemy'));
+        if(en.type==='sniper'){
+          en.aimT = 34;
+          en.aimX = player.x; en.aimY = player.y;
+          rocks.push(makeRock(en.x,en.y+en.r,Math.cos(a)*6.2,Math.sin(a)*6.2,'enemy'));
+          rocks[rocks.length-1].r=11; rocks[rocks.length-1].sniper=true;
+        } else if(en.type==='bomber'){
+          for(let k=-1;k<=1;k++){
+            const aa=a+k*0.16; const rk=makeRock(en.x,en.y+en.r,Math.cos(aa)*3.8,Math.sin(aa)*3.8,'enemy');
+            rk.bomb=true; rk.r=11; rocks.push(rk);
+          }
+        } else {
+          const spd = (3.2 + stage*0.15)*(en.rockSpd||1);
+          const err = rand(-0.18,0.18);
+          rocks.push(makeRock(en.x, en.y+en.r, Math.cos(a+err)*spd, Math.sin(a+err)*spd, 'enemy'));
+        }
         en.cool = (rand(70,140) - stage*4)*(en.coolMul||1);
       }
     }
@@ -483,6 +506,27 @@ function update(){
     updateAnim(en);
     if(en.flash>0) en.flash--;
   }
+
+  // ===== 스테이지 기믹 =====
+  stageGimmickT++;
+  if(stageGimmick==='meteor' && stageGimmickT%95===0){
+    const hx=rand(ARENA.left+35,ARENA.right-35), hy=rand(ARENA.top+70,ARENA.bottom-80);
+    hazards.push({x:hx,y:hy,w:58,h:58,damage:1,flash:45,meteor:true});
+    burst(hx,hy,'#ffb84d',10);
+  }
+  for(let hi=hazards.length-1;hi>=0;hi--){
+    const hz=hazards[hi];
+    if(hz.meteor){ hz.flash--; if(hz.flash<=0){
+      burst(hz.x,hz.y,'#ff6b3d',20); addShake(5,7);
+      if(Math.abs(player.x-hz.x)<hz.w/2+player.r && Math.abs(player.y-hz.y)<hz.h/2+player.r && player.flash<=0){ player.hp--; player.flash=35; flashScreen=8; SFX.hurt(); if(player.hp<=0){gameOver();return;} }
+      hazards.splice(hi,1); continue;
+    }}
+    if(hz.damage && Math.abs(player.x-hz.x)<hz.w/2+player.r && Math.abs(player.y-hz.y)<hz.h/2+player.r && player.flash<=0){
+      player.hp--; player.flash=30; flashScreen=7; SFX.hurt(); addShake(6,8); if(player.hp<=0){gameOver();return;}
+    }
+  }
+  // 바람 구간에서는 돌이 살짝 좌우로 휘어진다
+  if(stageGimmick==='wind' && stageGimmickT%3===0){ for(const rk of rocks) rk.vx += Math.sin(stageGimmickT/18)*0.025; }
 
   // 돌 이동 & 충돌
   for(let i=rocks.length-1;i>=0;i--){
@@ -539,6 +583,10 @@ function update(){
           player.hp--; player.flash=45; burst(player.x,player.y,'#ff7b7b',16);
           SFX.hurt(); doHitstop(4); addShake(10,16); flashScreen=12;
           rocks.splice(i,1);
+          if(rk.bomb){
+            burst(rk.x,rk.y,'#ff8a3d',22); addShake(7,10);
+            if(dist(rk.x, rk.y, player.x, player.y)<85 && player.flash<=0){ player.hp--; player.flash=35; flashScreen=8; }
+          }
           if(player.hp<=0){ gameOver(); return; }
           continue;
         }
@@ -725,6 +773,8 @@ const ENEMY_PALS = {
   normal:{'o':'#1c1414','M':'#78322c','m':'#96443a','G':'#261a1a','g':'#5a282c','E':'#ff968c','V':'#8c3c34','v':'#682c28','K':'#221818','A':'#5a2824','P':'#462826'},
   fast:  {'o':'#3a2a10','M':'#c8922a','m':'#e6b23e','G':'#3a2a10','g':'#7a5a20','E':'#fff0a0','V':'#d0a038','v':'#a07820','K':'#4a3814','A':'#7a5a20','P':'#5a4418'},
   tank:  {'o':'#161420','M':'#4a4668','m':'#5e5a84','G':'#1a1826','g':'#2e2c44','E':'#b0a8ff','V':'#585476','v':'#3e3a58','K':'#1e1c2c','A':'#3a3654','P':'#302e46'},
+  sniper:{'o':'#121a28','M':'#3e5f92','m':'#547bb5','G':'#162131','g':'#29476d','E':'#a8d8ff','V':'#456da0','v':'#34557f','K':'#182435','A':'#2d4666','P':'#273a55'},
+  bomber:{'o':'#24160f','M':'#8c422d','m':'#ad5637','G':'#301b12','g':'#6f3527','E':'#ffc09a','V':'#8f4931','v':'#6c3324','K':'#321c14','A':'#71402d','P':'#543025'},
 };
 const ENEMY_COMMON = {'S':'#d6aa84','s':'#af8b6c','R':'#8a8f98','r':'#b3b9c5'};
 let ENEMY_TEX=null;
@@ -815,7 +865,7 @@ function drawSprite(x,y,r,emoji,flash,ent){
   ctx.textBaseline='alphabetic';
 }
 // 적 타입별 이모지
-const ENEMY_EMOJI = { normal:'🐤', fast:'🐥', tank:'🦢' };
+const ENEMY_EMOJI = { normal:'🐤', fast:'🐥', tank:'🦢', sniper:'🦆', bomber:'🐔' };
 
 function drawHP(x,y,w,hp,maxhp){
   const bw=w, bh=6;
@@ -980,6 +1030,12 @@ function drawHUD(){
   ctx.fillStyle='#fff'; ctx.font='bold 15px sans-serif'; ctx.textAlign='left';
   ctx.fillText('⏸  ST '+stage, 22, cy);
 
+  if(stageGimmick!=='none' && state==='playing'){
+    const labels={danger:'위험 구역!',wind:'강풍 구역!',meteor:'낙석 주의!'};
+    ctx.save(); ctx.textAlign='center'; ctx.font='bold 14px sans-serif'; ctx.fillStyle=stageGimmick==='danger'?'#ff8a8a':'#ffe08a';
+    ctx.fillText(labels[stageGimmick],W/2,topY+barH+53); ctx.restore();
+  }
+
   // ===== 적 남은 수 카운터 (중앙 아래) =====
   const remain = enemies.length;
   ctx.fillStyle='rgba(20,16,10,.8)'; roundRect(W/2-42,topY+barH+10,84,30,15); ctx.fill();
@@ -1087,6 +1143,23 @@ function render(){
   ctx.save();
   if(shakeMag>0){ ctx.translate(rand(-shakeMag,shakeMag), rand(-shakeMag,shakeMag)); }
   drawArena();
+  // 스테이지 기믹 표시
+  for(const hz of hazards){
+    ctx.save();
+    if(hz.meteor){
+      ctx.globalAlpha=0.35+0.25*Math.sin(Date.now()/80);
+      ctx.fillStyle='#ff5b3d'; ctx.fillRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h);
+      ctx.strokeStyle='#ffd45e'; ctx.lineWidth=3; ctx.strokeRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h);
+      ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='bold 18px sans-serif'; ctx.textAlign='center'; ctx.fillText('!',hz.x,hz.y+6);
+    } else if(hz.damage){
+      ctx.globalAlpha=0.18; ctx.fillStyle='#ff4f4f'; ctx.fillRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h);
+      ctx.globalAlpha=0.5; ctx.strokeStyle='#ff8a6e'; ctx.lineWidth=2; ctx.strokeRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h);
+    } else {
+      ctx.globalAlpha=0.10; ctx.fillStyle='#7ee0ff'; ctx.fillRect(hz.x-hz.w/2,hz.y-hz.h/2,hz.w,hz.h);
+      ctx.globalAlpha=0.35; ctx.fillStyle='#7ee0ff'; ctx.font='bold 22px sans-serif'; ctx.textAlign='center'; ctx.fillText('≋  바람  ≋',hz.x,hz.y+7);
+    }
+    ctx.restore();
+  }
   // 엄폐물
   for(const o of obstacles) drawObstacle(o);
   // 아이템
