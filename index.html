@@ -48,7 +48,7 @@
   .stageCell.current{border-color:#ffd45e;background:rgba(255,212,94,.16);color:#ffe08a}
   .skinRow{display:flex;gap:7px;margin-top:8px}.skinBtn{flex:1;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;border-radius:10px;padding:8px 3px;font-weight:800;font-size:11px}.skinBtn.sel{border-color:#ffd45e;background:rgba(255,212,94,.14)}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=1666"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=4078"></script>
 </head>
 <body>
 <div id="wrap">
@@ -92,6 +92,10 @@
     <div class="stagebadge" id="stageLabel">STAGE 1</div>
     <div class="title" id="stageTitle">스테이지 클리어!</div>
     <div class="sub" id="stageMsg">강화할 능력을 하나 고르세요</div>
+    <div id="rewardPanel" class="rewardPanel">
+      <div class="rewardHead"><span>🎁 전투 보상</span><b id="rewardTotal">+0 🪙</b></div>
+      <div id="rewardRows" class="rewardRows"></div>
+    </div>
     <div id="skillCards" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px;"></div>
     <div id="shopWrap" style="width:100%;max-width:340px;margin-top:6px;">
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;opacity:.85;margin-bottom:8px;">
@@ -121,6 +125,15 @@
 </div>
 
 <style>
+  .rewardPanel{width:100%;max-width:340px;background:linear-gradient(180deg,rgba(255,212,94,.13),rgba(255,255,255,.045));border:2px solid rgba(255,212,94,.24);border-radius:16px;padding:11px 13px;box-sizing:border-box;box-shadow:0 8px 24px rgba(0,0,0,.16);}
+  .rewardHead{display:flex;justify-content:space-between;align-items:center;color:#ffe08a;font-weight:900;font-size:14px;margin-bottom:7px}
+  .rewardHead b{font-size:18px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+  .rewardRows{display:flex;flex-direction:column;gap:5px}
+  .rewardRow{display:flex;justify-content:space-between;font-size:12px;opacity:.88}
+  .rewardRow strong{color:#fff}
+  .rewardRow.bonus strong{color:#7ee0ff}
+  .rewardRow.boss strong{color:#ffcf6a}
+  .rewardRow.perfect strong{color:#b9f5ff}
   .skillcard{
     display:flex; align-items:center; gap:14px; text-align:left;
     background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.15);
@@ -257,6 +270,7 @@ let combo = 0, comboT = 0;  // 연속 패링 콤보
 let parryPerfect = 0;       // 마지막 패링 품질(0~1)
 let parryText = '', parryTextT = 0;
 let parrySuccessCount = 0;
+let stageParries = 0, stagePerfects = 0;
 let stageGimmick = 'none';
 let stageGimmickT = 0;
 
@@ -397,6 +411,7 @@ function startStage(){
   enemies = []; rocks = []; particles = []; obstacles = []; items = []; hazards = [];
   stageGimmick = stage%6===0 ? 'meteor' : (stage%4===0 ? 'wind' : (stage%3===0 ? 'danger' : 'none'));
   stageGimmickT = 0;
+  stageParries = 0; stagePerfects = 0;
   doorOpen = false; boss = null;
   const isBossStage = (stage % 5 === 0);
   if(isBossStage){
@@ -748,7 +763,10 @@ function update(){
         const spd = 9;
         rk.owner='player'; rk.vx=Math.cos(a)*spd; rk.vy=Math.sin(a)*spd;
         rk.pierce = player.pierce; rk.parried=true;
-        burst(rk.x,rk.y,'#7ee0ff',14); SFX.hit(); doHitstop(3); addShake(6,8);
+        stageParries++; parrySuccessCount++; missionData.parry++; dailyData.progress.parry=(dailyData.progress.parry||0)+1;
+        const perfect = dist(rk.x,rk.y,player.x,player.y) < Math.max(24, player.parryR*0.46);
+        if(perfect) stagePerfects++;
+        burst(rk.x,rk.y,perfect?'#e9fbff':'#7ee0ff',perfect?20:14); SFX.hit(); doHitstop(perfect?5:3); addShake(perfect?8:6,perfect?10:8);
         continue;
       }
       if(dist(rk.x,rk.y,player.x,player.y)<player.r+rk.r){
@@ -1496,12 +1514,22 @@ const SHOP = [
 ];
 
 function stageClear(){
-  dailyData.progress.stage=(dailyData.progress.stage||0)+1; saveDaily();
+  dailyData.progress.stage=(dailyData.progress.stage||0)+1; saveDaily(); saveMissions();
   state='skillpick';
-  bestStage=Math.max(bestStage,stage); totalCoins=coins; saveMeta();
-  SFX.door();
-  document.getElementById('stageLabel').textContent='STAGE '+stage+' CLEAR';
+  bestStage=Math.max(bestStage,stage);
   const wasBoss = (stage%5===0);
+  const clearBonus = 8 + Math.min(30, stage*2);
+  const bossBonus = wasBoss ? 20 + stage*2 : 0;
+  const perfectBonus = stagePerfects * 2;
+  const rewardTotal = clearBonus + bossBonus + perfectBonus;
+  coins += rewardTotal; totalCoins=coins; saveMeta();
+  SFX.door();
+  const rewardRows=document.getElementById('rewardRows');
+  document.getElementById('rewardTotal').textContent='+'+rewardTotal+' 🪙';
+  rewardRows.innerHTML=`<div class="rewardRow"><span>🚪 스테이지 클리어</span><strong>+${clearBonus}</strong></div>`
+    +(wasBoss?`<div class="rewardRow boss"><span>👑 보스 격파 보너스</span><strong>+${bossBonus}</strong></div>`:'')
+    +`<div class="rewardRow perfect"><span>🛡️ PERFECT 패링 ${stagePerfects}회</span><strong>+${perfectBonus}</strong></div>`;
+  document.getElementById('stageLabel').textContent='STAGE '+stage+' CLEAR';
   document.getElementById('stageTitle').textContent = wasBoss ? '보스 격파! 👑' : '문을 통과했다! 🚪';
   document.getElementById('stageMsg').textContent='① 능력 하나 고르기';
 
@@ -1574,6 +1602,7 @@ function gameOver(){
   show(overScreen);
 }
 
+// v1.4 Reward & UX Pass
 loop();
 </script>
 <script>
