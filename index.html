@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v2.7</title>
+<title>돌돌 특공대 v2.9</title>
 <meta name="theme-color" content="#151820">
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=10951"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=11349"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🪨%3C/text%3E%3C/svg%3E">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -1003,18 +1003,16 @@ function applyItem(kind){
 // ----- 그리기 -----
 function drawObstacle(o){
   ctx.save(); ctx.translate(o.x,o.y);
-  const c = o.flash>0 ? '#fff' : '#c98a3c';
-  ctx.fillStyle=c;
-  ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h);
-  ctx.fillStyle='rgba(0,0,0,.2)';
-  ctx.fillRect(-o.w/2,o.h/2-8,o.w,8);
-  ctx.strokeStyle='#8a5a1e'; ctx.lineWidth=3;
-  ctx.strokeRect(-o.w/2,-o.h/2,o.w,o.h);
-  // 내구도 표시(살짝 어둡게)
-  const dmg = 1 - o.hp/o.maxhp;
-  if(dmg>0){ ctx.fillStyle='rgba(0,0,0,'+(dmg*0.35)+')'; ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h); }
-  ctx.strokeStyle='rgba(90,52,16,.6)'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(0,-o.h/2); ctx.lineTo(0,o.h/2); ctx.stroke();
+  const w=o.w,h=o.h;
+  // soft shadow
+  ctx.fillStyle='rgba(0,0,0,.28)'; ctx.fillRect(-w/2+5,-h/2+7,w,h);
+  const g=ctx.createLinearGradient(0,-h/2,0,h/2); g.addColorStop(0,'#e0a24a'); g.addColorStop(.5,'#c8842f'); g.addColorStop(1,'#9c5d21');
+  ctx.fillStyle=o.flash>0?'#fff4cf':g; ctx.fillRect(-w/2,-h/2,w,h);
+  ctx.strokeStyle='#6f421a'; ctx.lineWidth=3; ctx.strokeRect(-w/2,-h/2,w,h);
+  ctx.fillStyle='rgba(255,225,160,.22)'; ctx.fillRect(-w/2+4,-h/2+4,w-8,5);
+  ctx.strokeStyle='rgba(95,52,18,.6)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(0,-h/2+3); ctx.lineTo(0,h/2-3); ctx.moveTo(-w/2+3,0); ctx.lineTo(w/2-3,0); ctx.stroke();
+  const dmg=1-o.hp/o.maxhp; if(dmg>0){ctx.fillStyle='rgba(35,18,8,'+(dmg*.38)+')';ctx.fillRect(-w/2,-h/2,w,h);}
   ctx.restore();
 }
 function drawItem(it){
@@ -1103,9 +1101,9 @@ function drawPixelChar(x,y,r,ent,flash){
     const avx=ent?ent.avx||0:0;
     const bob=moving ? -Math.abs(Math.sin(t*10))*r*0.08 : Math.sin(t*2.5)*r*0.025;
     const tilt=moving ? Math.max(-0.08,Math.min(0.08,avx*0.01)) : 0;
-    const h=r*3.45, w=h*(DUCK_COMMando_IMG.naturalWidth/DUCK_COMMando_IMG.naturalHeight);
+    const h=r*4.35, w=h*(DUCK_COMMando_IMG.naturalWidth/DUCK_COMMando_IMG.naturalHeight);
     ctx.fillStyle='rgba(0,0,0,.28)';
-    ctx.beginPath(); ctx.ellipse(x,y+r*0.92,w*0.34,r*0.22,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x,y+r*1.02,w*0.34,r*0.22,0,0,Math.PI*2); ctx.fill();
     ctx.save();
     ctx.translate(x,y+bob);
     ctx.rotate(tilt);
@@ -1333,27 +1331,26 @@ function drawRockBase(rk){
 
 function pxHash(a,b){ let n=(a*73856093 ^ b*19349663); n=(n<<13)^n; return (((n*(n*n*15731+789221)+1376312589))&0x7fffffff)/0x7fffffff; }
 function drawArena(){
-  // ===== 바닥: 청키 픽셀 타일 =====
-  const bs=18; // 블록 크기(픽셀감)
-  const FLOOR=['#6b5842','#655239','#5f4d3a','#71604a'];
-  for(let gx=ARENA.left; gx<ARENA.right; gx+=bs){
-    for(let gy=ARENA.top; gy<ARENA.bottom; gy+=bs){
-      const cx=Math.floor((gx-ARENA.left)/bs), cy=Math.floor((gy-ARENA.top)/bs);
-      const h=pxHash(cx,cy);
-      let col=FLOOR[(cx+cy)%2? 2:0];
-      if(h>0.90) col='#4c3c2d';        // 어두운 균열 블록
-      else if(h>0.80) col='#77664e';   // 밝은 블록
-      ctx.fillStyle=col;
-      ctx.fillRect(gx,gy,Math.min(bs,ARENA.right-gx),Math.min(bs,ARENA.bottom-gy));
-      // 가끔 작은 돌조각(픽셀 디테일)
-      if(h>0.955){ ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fillRect(gx+4,gy+6,4,4); }
-    }
+  // ===== 전투장: 3D 캐주얼 게임풍 흙바닥 =====
+  const floorGrad=ctx.createLinearGradient(0,ARENA.top,0,ARENA.bottom);
+  floorGrad.addColorStop(0,'#7f735e'); floorGrad.addColorStop(.45,'#665946'); floorGrad.addColorStop(1,'#514536');
+  ctx.fillStyle=floorGrad; ctx.fillRect(ARENA.left,ARENA.top,ARENA.right-ARENA.left,ARENA.bottom-ARENA.top);
+  // 은은한 바닥 타일/흙결 — 체커보드 대신 불규칙한 큰 패치
+  for(let i=0;i<110;i++){
+    const gx=ARENA.left+pxHash(i,11)*(ARENA.right-ARENA.left);
+    const gy=ARENA.top+pxHash(i,29)*(ARENA.bottom-ARENA.top);
+    const rr=7+pxHash(i,47)*18;
+    ctx.fillStyle=pxHash(i,71)>.5?'rgba(255,239,194,.035)':'rgba(20,14,10,.045)';
+    ctx.beginPath(); ctx.ellipse(gx,gy,rr,rr*.55,pxHash(i,89)*Math.PI,0,Math.PI*2); ctx.fill();
   }
-  // 아레나 외곽 픽셀 테두리
-  ctx.fillStyle='#3a2e22';
-  ctx.fillRect(ARENA.left-4,ARENA.top,4,ARENA.bottom-ARENA.top);
-  ctx.fillRect(ARENA.right,ARENA.top,4,ARENA.bottom-ARENA.top);
-  ctx.fillRect(ARENA.left-4,ARENA.bottom,ARENA.right-ARENA.left+8,4);
+  // 중앙 전투 동선에 따뜻한 빛
+  const glow=ctx.createRadialGradient(W*.5,H*.62,20,W*.5,H*.62,W*.62);
+  glow.addColorStop(0,'rgba(255,214,120,.10)'); glow.addColorStop(1,'rgba(255,214,120,0)');
+  ctx.fillStyle=glow; ctx.fillRect(ARENA.left,ARENA.top,ARENA.right-ARENA.left,ARENA.bottom-ARENA.top);
+  // 아레나 외곽: 나무/금속 프레임 느낌
+  ctx.fillStyle='#30271f'; ctx.fillRect(ARENA.left-7,ARENA.top,7,ARENA.bottom-ARENA.top); ctx.fillRect(ARENA.right,ARENA.top,7,ARENA.bottom-ARENA.top);
+  ctx.fillStyle='#8f7046'; ctx.fillRect(ARENA.left-5,ARENA.top,2,ARENA.bottom-ARENA.top); ctx.fillRect(ARENA.right+2,ARENA.top,2,ARENA.bottom-ARENA.top);
+  ctx.fillStyle='#382d23'; ctx.fillRect(ARENA.left-7,ARENA.bottom,ARENA.right-ARENA.left+14,7);
 
   // ===== 위쪽 벽: 픽셀 벽돌 =====
   ctx.fillStyle='#c98a3c'; ctx.fillRect(0,0,W,ARENA.top);
