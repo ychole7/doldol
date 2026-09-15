@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v1.0</title>
+<title>돌돌 특공대 v1.6</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; background:#111318; overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif; }
@@ -48,7 +48,7 @@
   .stageCell.current{border-color:#ffd45e;background:rgba(255,212,94,.16);color:#ffe08a}
   .skinRow{display:flex;gap:7px;margin-top:8px}.skinBtn{flex:1;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;border-radius:10px;padding:8px 3px;font-weight:800;font-size:11px}.skinBtn.sel{border-color:#ffd45e;background:rgba(255,212,94,.14)}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=4078"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=5489"></script>
 </head>
 <body>
 <div id="wrap">
@@ -766,7 +766,7 @@ function update(){
         stageParries++; parrySuccessCount++; missionData.parry++; dailyData.progress.parry=(dailyData.progress.parry||0)+1;
         const perfect = dist(rk.x,rk.y,player.x,player.y) < Math.max(24, player.parryR*0.46);
         if(perfect) stagePerfects++;
-        burst(rk.x,rk.y,perfect?'#e9fbff':'#7ee0ff',perfect?20:14); SFX.hit(); doHitstop(perfect?5:3); addShake(perfect?8:6,perfect?10:8);
+        burst(rk.x,rk.y,perfect?'#e9fbff':'#7ee0ff',perfect?20:14); SFX.hit(); if(window.DR16&&window.DR16.haptic) window.DR16.haptic(perfect?'perfect':'parry'); doHitstop(perfect?5:3); addShake(perfect?8:6,perfect?10:8);
         continue;
       }
       if(dist(rk.x,rk.y,player.x,player.y)<player.r+rk.r){
@@ -1647,6 +1647,71 @@ loop();
   guide.innerHTML=types.map(t=>{let r=roles[t];return '<span class="enemy-badge">'+r[0]+' <b>'+r[1]+'</b> · '+r[2]+'</span>'}).join('');
  }
  setInterval(drawGuide,500); drawGuide();
+})();
+</script>
+
+<style>
+/* v1.6 Mobile UX / Audio Pass */
+.dr16-tools{display:flex;gap:7px;width:min(330px,90%);justify-content:center}
+.dr16-tool{flex:1;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:11px;padding:9px 5px;font-weight:800;font-size:11px}
+.dr16-tool:active{transform:scale(.97)}
+#dr16Settings{width:min(330px,90%);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 12px;display:none}
+#dr16Settings.show{display:block}
+.dr16-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px}
+.dr16-toggle{border:0;border-radius:999px;padding:6px 10px;font-weight:900;min-width:76px}
+.dr16-toggle.on{background:#7ee0ff;color:#153548}.dr16-toggle.off{background:#555;color:#ddd}
+.dr16-ver{font-size:10px;opacity:.45;margin-top:-4px}
+</style>
+<script>
+(function(){
+  const KEY='doldol_v16_settings';
+  let cfg={sound:true,haptic:true};
+  try{cfg=Object.assign(cfg,JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}}
+  function vibrate(pattern){ if(!cfg.haptic || !navigator.vibrate) return; try{navigator.vibrate(pattern);}catch(e){} }
+  function refresh(){
+    const sb=document.getElementById('dr16SoundBtn'), hb=document.getElementById('dr16HapticBtn');
+    if(sb){sb.textContent=cfg.sound?'🔊 효과음 ON':'🔇 효과음 OFF';sb.className='dr16-toggle '+(cfg.sound?'on':'off');}
+    if(hb){hb.textContent=cfg.haptic?'📳 진동 ON':'📴 진동 OFF';hb.className='dr16-toggle '+(cfg.haptic?'on':'off');}
+  }
+  function addTools(){
+    const hint=document.querySelector('#startScreen .hint'); if(!hint || document.getElementById('dr16Tools')) return;
+    const tools=document.createElement('div'); tools.id='dr16Tools'; tools.className='dr16-tools';
+    tools.innerHTML='<button class="dr16-tool" id="dr16SettingsBtn">⚙️ 설정</button><button class="dr16-tool" id="dr16FullBtn">⛶ 전체화면</button>';
+    hint.parentNode.insertBefore(tools,hint);
+    const panel=document.createElement('div'); panel.id='dr16Settings';
+    panel.innerHTML='<div class="dr16-row"><span>🔊 전투 효과음</span><button id="dr16SoundBtn" class="dr16-toggle"></button></div><div class="dr16-row"><span>📳 모바일 진동</span><button id="dr16HapticBtn" class="dr16-toggle"></button></div><div class="dr16-ver">v1.6 · MOBILE FEEL PASS</div>';
+    tools.parentNode.insertBefore(panel,tools.nextSibling);
+    document.getElementById('dr16SettingsBtn').onclick=()=>{panel.classList.toggle('show');};
+    document.getElementById('dr16SoundBtn').onclick=()=>{cfg.sound=!cfg.sound;save();refresh();};
+    document.getElementById('dr16HapticBtn').onclick=()=>{cfg.haptic=!cfg.haptic;save();refresh(); if(cfg.haptic)vibrate(12);};
+    document.getElementById('dr16FullBtn').onclick=async()=>{
+      try{
+        if(!document.fullscreenElement){await document.documentElement.requestFullscreen?.();}
+        else{await document.exitFullscreen?.();}
+      }catch(e){}
+    };
+    refresh();
+  }
+  function installAudioGate(){
+    if(window.__dr16AudioWrapped) return; window.__dr16AudioWrapped=true;
+    const originalBeep=window.beep, originalNoise=window.noise;
+    window.beep=function(...args){if(cfg.sound && originalBeep) return originalBeep(...args);};
+    window.noise=function(...args){if(cfg.sound && originalNoise) return originalNoise(...args);};
+    // Existing SFX functions call beep/noise dynamically, so the toggle applies without changing gameplay code.
+    window.DR16=window.DR16||{}; window.DR16.haptic=(kind)=>{
+      const map={perfect:[18,28,18],parry:12,hurt:[35,20,55],boss:[45,30,80],kill:8,item:10,door:14};
+      vibrate(map[kind]||8);
+    };
+    const wrap=(name,kind)=>{if(!window.SFX||!SFX[name]||SFX[name]['__dr16'])return; const fn=SFX[name]; const w=function(){const r=fn.apply(this,arguments); if(window.DR16&&DR16.haptic)DR16.haptic(kind); return r;};w.__dr16=true;SFX[name]=w;};
+    ['hurt','boss','kill','item','door'].forEach(k=>wrap(k,k));
+  }
+  // The main script is synchronous; run after it has defined SFX and started the RAF loop.
+  installAudioGate();
+  addTools();
+  window.addEventListener('load',()=>{installAudioGate();addTools();}, {once:true});
+  const guide=document.getElementById('enemyGuide');
+  setInterval(()=>{if(guide) guide.style.display=(typeof state!=='undefined'&&state==='playing')?'flex':'none';},250);
 })();
 </script>
 </body>
