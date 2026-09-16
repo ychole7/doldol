@@ -58,6 +58,8 @@ function startStage(n){
   player.x=vw*.5;
   player.y=vh*.80;
   player.hp=Math.min(player.maxHp, player.hp+25);
+  player.x=clamp(player.x,32,Math.max(32,vw-32));
+  player.y=clamp(player.y,vh*.48,Math.max(vh*.48,vh-90));
   player.inv=.8;
   running=true;
   last=performance.now();
@@ -179,7 +181,7 @@ cv.addEventListener('pointercancel',joyEnd);
 
 function update(dt){
   if(!running) return;
-  if(intro>0){ intro-=dt; return; }
+  if(intro>0){ intro-=dt; }
 
   if(player.inv>0) player.inv-=dt;
   if(messageTimer>0) messageTimer-=dt;
@@ -381,8 +383,20 @@ function draw(){
 }
 
 function loop(t){
-  const dt=Math.min(.033,(t-last)/1000||0);last=t;
-  update(dt);draw();requestAnimationFrame(loop);
+  try{
+    const dt=Math.min(.033,(t-last)/1000||0);
+    last=t;
+    update(dt);
+    draw();
+  }catch(err){
+    // Keep the game alive; reset only transient combat objects.
+    rocks=[]; shots=[]; particles=[];
+    if(player){
+      player.x=clamp(player.x||vw*.5,32,Math.max(32,vw-32));
+      player.y=clamp(player.y||vh*.8,vh*.48,Math.max(vh*.48,vh-90));
+    }
+  }
+  requestAnimationFrame(loop);
 }
 running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0}; enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 })();
