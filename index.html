@@ -17,7 +17,7 @@ const wrap = document.body;
 let vw=1, vh=1, dpr=1, running=false, last=0;
 let player, enemies=[], rocks=[], shots=[], particles=[];
 let covers=[];
-let pickups=[], coins=0, xp=0;
+let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false;
 
@@ -65,7 +65,7 @@ function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false;
   player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
   enemies=[]; rocks=[]; shots=[]; particles=[]; pickups=[];
-  coins=0; xp=0;
+  coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0;
   makeCovers();
   for(let i=0;i<total;i++) spawnEnemy(i);
   running=true; last=performance.now();
@@ -224,6 +224,7 @@ function update(dt){
 
   if(player.inv>0) player.inv-=dt;
   if(messageTimer>0) messageTimer-=dt;
+  if(levelFlash>0) levelFlash-=dt;
   if(comboTimer>0){comboTimer-=dt;}else{combo=0;}
   shake=Math.max(0,shake-dt*24);
 
@@ -238,7 +239,7 @@ function update(dt){
   player.y=clamp(player.y,vh*.48,vh-90);
 
   player.fire-=dt;
-  if(player.fire<=0){player.fire=.42;shootPlayer();}
+  if(player.fire<=0){player.fire=Math.max(.24,.42-(level-1)*.012);shootPlayer();}
 
   for(const e of enemies){
     if(e.dead) continue;
@@ -318,9 +319,25 @@ function update(dt){
     p.life-=dt; p.bob+=dt*4;
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
-      if(p.type==='coin') coins+=1;
-      else xp+=10;
-      message=p.type==='coin'?'+1 COIN':'+10 XP';
+      if(p.type==='coin'){
+        coins+=1;
+        message='+1 COIN';
+      }else{
+        xp+=10;
+        levelXp+=10;
+        message='+10 XP';
+        if(levelXp>=nextXp){
+          level++;
+          levelXp-=nextXp;
+          nextXp=Math.round(nextXp*1.28);
+          levelFlash=1.2;
+          message='LEVEL UP!';
+          messageTimer=.75;
+          player.hp=player.maxHp;
+          burst(player.x,player.y,24);
+          shake=6;
+        }
+      }
       messageTimer=.32;
       burst(p.x,p.y,8);
       p.life=0;
@@ -441,12 +458,15 @@ function draw(){
 
   ctx.textAlign='left';ctx.fillStyle='#fff';ctx.font='900 16px system-ui';
   ctx.fillText(`STAGE ${stage}`,28,38);
+  ctx.font='900 11px system-ui';ctx.fillStyle='#ffd866';ctx.fillText(`LV ${level}`,28,59);
   ctx.font='12px system-ui';ctx.fillStyle='#aeb9c4';ctx.fillText(`${kills}/${total} 처치`,28,59);
   ctx.textAlign='right';ctx.font='900 12px system-ui';ctx.fillStyle='#ffd866';
   ctx.fillText(`🪙 ${coins}   XP ${xp}`,vw-26,59);
 
   ctx.fillStyle='#303943';roundRect(vw*.42,25,vw*.31,13,7);ctx.fill();
   ctx.fillStyle='#58d56c';roundRect(vw*.42,25,vw*.31*(player.hp/player.maxHp),13,7);ctx.fill();
+  ctx.fillStyle='#222b34';roundRect(vw*.42,vh*0+43,vw*.31,5,3);ctx.fill();
+  ctx.fillStyle='#7bd7ff';roundRect(vw*.42,43,vw*.31*(levelXp/nextXp),5,3);ctx.fill();
   ctx.font='11px system-ui';ctx.fillStyle='#d8e0e7';ctx.textAlign='center';
   ctx.fillText('HP',vw*.575,35);
 
@@ -526,6 +546,14 @@ function draw(){
     ctx.fillText(boss?'BOSS STAGE':'STAGE '+stage,vw/2,vh*.43);
     ctx.font='bold 16px system-ui';ctx.fillStyle='#ffd866';
     ctx.fillText(boss?'⚠️ 강력한 적 출현':'전투 준비!',vw/2,vh*.49);
+  }
+
+  if(levelFlash>0){
+    ctx.globalAlpha=Math.min(1,levelFlash);
+    ctx.fillStyle='rgba(255,216,102,.14)';ctx.fillRect(0,0,vw,vh);
+    ctx.fillStyle='#ffd866';ctx.font='900 28px system-ui';ctx.textAlign='center';
+    ctx.fillText(`LEVEL ${level}!`,vw/2,vh*.31);
+    ctx.globalAlpha=1;
   }
 
   if(messageTimer>0){
