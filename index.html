@@ -1,11 +1,11 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.4</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}.badge{background:rgba(15,21,30,.86);border:1px solid rgba(255,210,80,.5);color:#fff;border-radius:16px;padding:9px 12px;font-weight:800;font-size:14px}#hint{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(12,19,28,.9);color:#fff;border-radius:20px;padding:9px 15px;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><div id="hud"><div class="badge">🦆 돌돌 특공대</div><div class="badge">STAGE 6</div></div><div id="hint">화면 전체를 하나의 게임 좌표계로 사용</div><button id="start">🚀 전투 시작</button><div id="log"></div>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}.badge{background:rgba(15,21,30,.86);border:1px solid rgba(255,210,80,.5);color:#fff;border-radius:16px;padding:9px 12px;font-weight:800;font-size:14px}#hint{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(12,19,28,.9);color:#fff;border-radius:20px;padding:9px 15px;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><div id="hud"><div class="badge">🦆 돌돌 특공대 · v6.6</div><div class="badge">STAGE 1</div></div><div id="hint">화면 전체를 하나의 게임 좌표계로 사용</div><button id="start">🚀 전투 시작</button><div id="log"></div>
 <script>
 (() => {
 'use strict';
 
 const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
-const wrap = document.getElementById('wrap');
+const wrap = document.body;
 
 let vw=1, vh=1, dpr=1, running=false, last=0;
 let player, enemies=[], rocks=[], shots=[], particles=[];
@@ -98,6 +98,11 @@ function pointerPos(e){
   const r=cv.getBoundingClientRect();
   return {x:e.clientX-r.left,y:e.clientY-r.top};
 }
+
+document.getElementById('start').addEventListener('click', e=>{
+  e.preventDefault();
+  reset();
+});
 
 cv.addEventListener('pointerdown',e=>{
   e.preventDefault();
@@ -285,7 +290,7 @@ function loop(t){
   const dt=Math.min(.033,(t-last)/1000||0);last=t;
   update(dt);draw();requestAnimationFrame(loop);
 }
-reset();requestAnimationFrame(loop);
+running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0}; requestAnimationFrame(loop);
 })();
 </script>
 </body></html>
