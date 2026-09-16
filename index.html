@@ -86,7 +86,7 @@ function spawnEnemy(i){
     hp:type==='tank'?4: type==='fast'?1:2,
     max:type==='tank'?4: type==='fast'?1:2,
     speed:type==='tank'?42:type==='fast'?115:68,
-    fire:.7+Math.random()*1.5,
+    fire:.7+Math.random()*1.5, telegraph:0,
     phase:Math.random()*6.28
   });
 }
@@ -221,10 +221,15 @@ function update(dt){
       e.x-=dx/L*e.speed*.35*dt; e.y-=dy/L*e.speed*.35*dt;
     }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
-    e.fire-=dt;
-    if(e.fire<=0){
-      e.fire=(e.type==='boss') ? .85 : (e.type==='tank' ? 2.0 : (e.type==='fast' ? 1.15 : 1.55));
-      enemyShoot(e);
+    if(e.telegraph>0){
+      e.telegraph-=dt;
+      if(e.telegraph<=0){
+        e.fire=(e.type==='boss') ? .85 : (e.type==='tank' ? 2.0 : (e.type==='fast' ? 1.15 : 1.55));
+        enemyShoot(e);
+      }
+    }else{
+      e.fire-=dt;
+      if(e.fire<=0) e.telegraph=.28;
     }
   }
 
@@ -374,7 +379,12 @@ function draw(){
     ctx.strokeStyle='rgba(255,216,102,.8)';ctx.lineWidth=2;ctx.stroke();
   }
   for(const r of rocks){
-    ctx.save();ctx.translate(r.x,r.y);ctx.rotate(Math.atan2(r.vy,r.vx));
+    ctx.save();
+    ctx.globalAlpha=r.parried?.25:.16;
+    ctx.fillStyle=r.parried?'#ffdc65':'#c5ccd1';
+    ctx.beginPath();ctx.arc(r.x-r.vx*.055,r.y-r.vy*.055,r.r*1.8,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.translate(r.x,r.y);ctx.rotate(Math.atan2(r.vy,r.vx));
     ctx.fillStyle=r.parried?'#ffdc65':'#9fa8ae';
     ctx.beginPath();ctx.moveTo(-r.r*.9,-r.r*.55);ctx.lineTo(r.r*.65,-r.r);
     ctx.lineTo(r.r,0);ctx.lineTo(r.r*.35,r.r*.8);ctx.lineTo(-r.r*.85,r.r*.55);
@@ -384,12 +394,33 @@ function draw(){
     ctx.restore();
   }
   for(const e of enemies){
+    if(e.telegraph>0){
+      const pulse=1+Math.sin(performance.now()/55)*.08;
+      ctx.strokeStyle='rgba(255,90,90,.72)';
+      ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(e.x,e.y,(e.r+13)*pulse,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='rgba(255,90,90,.75)';
+      ctx.beginPath();ctx.arc(e.x,e.y- e.r-20,4,0,Math.PI*2);ctx.fill();
+    }
     drawEnemy(e);
     ctx.fillStyle='#2b3035';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48),6,3);ctx.fill();
     ctx.fillStyle='#ef5a5a';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48)*(e.hp/e.max),6,3);ctx.fill();
   }
 
   if(player.inv<=0 || Math.floor(performance.now()/70)%2===0) drawDuck(player.x,player.y);
+
+  let dangerRock=null, dangerDist=Infinity;
+  for(const r of rocks){
+    if(r.parried) continue;
+    const d=Math.hypot(r.x-player.x,r.y-player.y);
+    if(d<180 && d<dangerDist){dangerRock=r;dangerDist=d;}
+  }
+  if(dangerRock){
+    const alpha=0.10+0.08*(1+Math.sin(performance.now()/70));
+    ctx.strokeStyle=`rgba(255,216,102,${alpha+0.18})`;
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(player.x,player.y,48,0,Math.PI*2);ctx.stroke();
+  }
 
   for(const p of particles){
     ctx.globalAlpha=Math.max(0,p.life*1.5);ctx.fillStyle='#fff';
