@@ -819,21 +819,27 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
   window.__duckStartStage=function(s){
     try{
       s=Math.max(1,Math.min(500,Number(s)||1));
-      if(typeof startStage==="function"){
-        if(!player) player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
-        startStage(s);
+      if(typeof stage!=="undefined") stage=s;
+      window.__selectedDuckStage=s;
+      const rs=document.getElementById("resultScreen"); if(rs)rs.classList.remove("show");
+      const sb=document.getElementById("startBtn");
+      if(sb){
+        sb.style.display="none";
+        sb.click();
+        return;
+      }
+      if(typeof reset==="function"){
+        reset();
+        if(typeof stage!=="undefined") stage=s;
         running=true;
         intro=1.25;
         gate=false;
         const lobby=document.getElementById("gameLobby");
-        if(lobby)lobby.classList.add("hidden");
-        const map=document.getElementById("mapScreen");
-        if(map)map.classList.remove("show");
-        return;
+        if(lobby) lobby.classList.add("hidden");
       }
-    }catch(e){}
-    const sb=document.getElementById("startBtn");
-    if(sb)sb.click();
+    }catch(e){
+      console.error("start bridge",e);
+    }
   };
 })();
 </script>
