@@ -65,6 +65,7 @@
   @media(max-height:650px){.combatBottom{bottom:7px}.combatTop{top:6px}.bossBar{top:50px}.combatWeapon{display:none}}
 
 /* v2.1 combat polish */
+.combat-tip.hidden{display:none !important}
 .combat-tip{position:absolute;left:50%;top:102px;transform:translateX(-50%);z-index:12;pointer-events:none;font:800 11px/1 system-ui,sans-serif;letter-spacing:.08em;color:#fff;background:rgba(8,15,28,.72);border:1px solid rgba(255,255,255,.16);padding:7px 11px;border-radius:999px;box-shadow:0 5px 18px rgba(0,0,0,.18)}
 .weapon-spark{position:absolute;pointer-events:none}
 
@@ -684,6 +685,7 @@ function startStage(){
 }
 
 function showIntro(){
+  const tip=document.getElementById('combatTip'); if(tip) tip.classList.add('hidden');
   const el=document.getElementById('introScreen');
   document.getElementById('introStage').textContent='STAGE '+stage;
   const isBoss=(stage%5===0);
@@ -698,6 +700,7 @@ function showIntro(){
 function finishIntro(){
   hide(document.getElementById('introScreen'));
   state='playing';
+  const tip=document.getElementById('combatTip'); if(tip && combatTipT>0) tip.classList.remove('hidden');
 }
 
 function togglePause(){
