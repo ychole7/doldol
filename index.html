@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v5.0</title>
+<title>돌돌 특공대 v5.1</title>
 <meta name="theme-color" content="#151820">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🪨%3C/text%3E%3C/svg%3E">
 <style>
@@ -208,6 +208,38 @@ body.v20 #joystick{filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));}
 html,body{margin:0!important;padding:0!important;width:100%!important;height:100%!important;overflow:hidden!important;}
 #wrap{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;overflow:hidden!important;display:block!important;}
 #game{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;display:block!important;transform:none!important;aspect-ratio:auto!important;border-radius:0!important;}
+</style>
+
+<style id="v51-canvas-architecture">
+/* v5.1 — Single responsive game surface. CSS owns the viewport; JS owns logical coordinates. */
+html, body {
+  margin:0 !important; padding:0 !important;
+  width:100% !important; height:100% !important;
+  overflow:hidden !important;
+  position:fixed !important;
+  inset:0 !important;
+}
+#wrap {
+  position:fixed !important;
+  inset:0 !important;
+  width:100% !important; height:100% !important;
+  margin:0 !important; padding:0 !important;
+  overflow:hidden !important;
+  display:block !important;
+}
+#game {
+  position:fixed !important;
+  inset:0 !important;
+  width:100% !important; height:100% !important;
+  min-width:0 !important; min-height:0 !important;
+  max-width:none !important; max-height:none !important;
+  margin:0 !important; padding:0 !important;
+  display:block !important;
+  aspect-ratio:auto !important;
+  transform:none !important;
+  border-radius:0 !important;
+  box-sizing:border-box !important;
+}
 </style>
 </head>
 <body class="v20">
@@ -434,49 +466,31 @@ html,body{width:100%;height:100%;max-width:100%;max-height:100%;overflow:hidden;
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-// ----- 화면 크기 (세로 폰 비율) -----
-let W, H, DPR;
+// ----- v5.1 화면 아키텍처 -----
+// CSS 캔버스는 실제 viewport를 100% 차지하고, 게임 좌표계만 반응형으로 바꾼다.
+// 세로 기준 높이는 960 logical px. 논리 폭 W는 현재 화면 비율에 맞춰 자동 결정한다.
+let W=540, H=960, DPR=1, VIEW_SCALE=1, VIEW_LEFT=0, VIEW_TOP=0;
 function resize(){
-  // v4.9 — iOS Safari에서 visualViewport.width를 직접 CSS 폭으로 쓰지 않는다.
-  // pinch/주소창 상태에 따라 visualViewport가 축소되면서 캔버스가 한쪽으로 밀리는 문제가 있었다.
-  DPR = Math.min(window.devicePixelRatio||1, 2.5);
-  W = 540; H = 960;
-  // CSS 크기는 #wrap의 실제 화면 크기에 100%로 맡기고, 내부 렌더 해상도만 DPR로 관리한다.
-  canvas.width = Math.round(W*DPR);
-  canvas.height = Math.round(H*DPR);
-  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(1, rect.width);
+  const cssH = Math.max(1, rect.height);
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+
+  H = 960;
+  VIEW_SCALE = cssH / H;
+  W = cssW / VIEW_SCALE;
+  VIEW_LEFT = 0;
+  VIEW_TOP = 0;
+
+  // backing store는 실제 CSS viewport 크기에 맞춘다. CSS로 늘이거나 줄이지 않는다.
+  canvas.width = Math.max(1, Math.round(cssW * DPR));
+  canvas.height = Math.max(1, Math.round(cssH * DPR));
+  ctx.setTransform(DPR * VIEW_SCALE, 0, 0, DPR * VIEW_SCALE, 0, 0);
 }
 window.addEventListener('resize', resize, {passive:true});
 window.addEventListener('orientationchange', ()=>setTimeout(resize,80), {passive:true});
+window.addEventListener('pageshow', ()=>setTimeout(resize,0), {passive:true});
 resize();
-
-// v5.0: Safari/iOS canvas layout watchdog. Keep the game surface pinned to the
-// actual layout viewport without using visualViewport dimensions.
-function lockGameSurface(){
-  const root=document.documentElement;
-  const body=document.body;
-  const c=document.getElementById('game');
-  if(!c)return;
-  root.style.setProperty('width','100%','important');
-  root.style.setProperty('height','100%','important');
-  body.style.setProperty('width','100%','important');
-  body.style.setProperty('height','100%','important');
-  c.style.setProperty('position','fixed','important');
-  c.style.setProperty('left','0px','important');
-  c.style.setProperty('top','0px','important');
-  c.style.setProperty('right','0px','important');
-  c.style.setProperty('bottom','0px','important');
-  c.style.setProperty('width','auto','important');
-  c.style.setProperty('height','auto','important');
-  c.style.setProperty('min-width','100%','important');
-  c.style.setProperty('min-height','100%','important');
-  c.style.setProperty('max-width','none','important');
-  c.style.setProperty('max-height','none','important');
-}
-lockGameSurface();
-window.addEventListener('pageshow',lockGameSurface,{passive:true});
-window.addEventListener('resize',lockGameSurface,{passive:true});
-window.addEventListener('orientationchange',()=>setTimeout(lockGameSurface,100),{passive:true});
 
 // ----- 게임 상태 -----
 let state = 'menu'; // menu, playing, stageclear, skillpick, gameover, paused, intro
@@ -837,9 +851,11 @@ function togglePause(){
 function pointerPos(e){
   const rect = canvas.getBoundingClientRect();
   const t = e.touches ? e.touches[0] : e;
+  // CSS viewport → logical game coordinates. W/H are the same coordinate
+  // system used by render(), so touch never depends on intrinsic canvas size.
   return {
-    x:(t.clientX-rect.left)/rect.width*W,
-    y:(t.clientY-rect.top)/rect.height*H
+    x:(t.clientX-rect.left)/VIEW_SCALE,
+    y:(t.clientY-rect.top)/VIEW_SCALE
   };
 }
 function tryParry(){
