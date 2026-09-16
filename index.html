@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(12,19,28,.9);color:#fff;border-radius:20px;padding:9px 15px;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><div id="hint">화면 전체를 하나의 게임 좌표계로 사용</div><button id="start">🚀 전투 시작</button><div id="log"></div>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><button id="start">🚀 전투 시작</button><div id="log"></div>
 <script>
 (() => {
 'use strict';
@@ -116,7 +116,7 @@ function hitEnemy(e){
     kills++; burst(e.x,e.y,18);
     e.dead=true;
     message='격파!';
-    messageTimer=.45;
+    messageTimer=.28;
   }
 }
 
@@ -136,11 +136,11 @@ function parryAt(x,y){
         perfect++;
         r.vx*=1.35; r.vy*=1.35;
         message='PERFECT PARRY!';
-        messageTimer=.8;
+        messageTimer=.62;
         shake=8;
       }else{
         message='PARRY!';
-        messageTimer=.55;
+        messageTimer=.38;
         shake=4;
       }
       burst(r.x,r.y,isPerfect?18:10);
@@ -241,7 +241,7 @@ function update(dt){
     r.x+=r.vx*dt;r.y+=r.vy*dt;r.life-=dt;
     if(!r.parried && player.inv<=0 && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
       player.hp-=18;player.inv=.55;burst(player.x,player.y,14);
-      message='피격!';messageTimer=.45;
+      message='피격!';messageTimer=.28;
       if(player.hp<=0){running=false;message='GAME OVER';}
       r.life=0;
     }
@@ -349,17 +349,23 @@ function draw(){
   roundRect(vw*.5-58,vh*.47,116,4,2);ctx.fill();
 
   // top HUD
-  ctx.fillStyle='rgba(0,0,0,.45)';roundRect(12,12,vw-24,52,15);ctx.fill();
-  ctx.fillStyle='#fff';ctx.font='bold 16px system-ui';ctx.textAlign='left';
-  ctx.fillText(`STAGE ${stage}`,26,34);
-  ctx.font='13px system-ui';ctx.fillStyle='#cdd6df';ctx.fillText(`적 ${kills}/${total}`,26,53);
+  // compact commercial-style HUD
+  ctx.fillStyle='rgba(8,13,19,.82)';roundRect(14,14,vw-28,64,18);ctx.fill();
+  ctx.strokeStyle='rgba(255,216,102,.22)';ctx.lineWidth=1;ctx.stroke();
 
-  ctx.fillStyle='#39424c';roundRect(vw*.48,25,vw*.43,14,7);ctx.fill();
-  ctx.fillStyle='#55d66b';roundRect(vw*.48,25,vw*.43*(player.hp/player.maxHp),14,7);ctx.fill();
+  ctx.textAlign='left';ctx.fillStyle='#fff';ctx.font='900 16px system-ui';
+  ctx.fillText(`STAGE ${stage}`,28,38);
+  ctx.font='12px system-ui';ctx.fillStyle='#aeb9c4';ctx.fillText(`${kills}/${total} 처치`,28,59);
+
+  ctx.fillStyle='#303943';roundRect(vw*.42,25,vw*.31,13,7);ctx.fill();
+  ctx.fillStyle='#58d56c';roundRect(vw*.42,25,vw*.31*(player.hp/player.maxHp),13,7);ctx.fill();
+  ctx.font='11px system-ui';ctx.fillStyle='#d8e0e7';ctx.textAlign='center';
+  ctx.fillText('HP',vw*.575,35);
 
   if(combo>0){
     ctx.fillStyle='#ffd85a';ctx.font='900 17px system-ui';ctx.textAlign='right';
-    ctx.fillText(`COMBO ×${combo}`,vw-22,54);
+    ctx.fillText(`×${combo}`,vw-26,39);
+    ctx.font='10px system-ui';ctx.fillStyle='#fff1ae';ctx.fillText('COMBO',vw-26,57);
   }
 
   for(const s of shots){
@@ -395,8 +401,9 @@ function draw(){
     ctx.globalAlpha=.5;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(joy.baseX,joy.baseY,62,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha=.8;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(joy.x,joy.y,27,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
   }else{
-    ctx.fillStyle='rgba(255,255,255,.12)';ctx.beginPath();ctx.arc(78,vh-86,52,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DRAG',78,vh-82);
+    ctx.fillStyle='rgba(255,255,255,.08)';ctx.beginPath();ctx.arc(78,vh-86,52,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.13)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.48)';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('MOVE',78,vh-82);
   }
 
   if(intro>0){
@@ -408,10 +415,16 @@ function draw(){
   }
 
   if(messageTimer>0){
-    ctx.fillStyle=message.includes('PERFECT')?'rgba(255,184,50,.18)':'rgba(0,0,0,.55)';
+    const perfectMsg=message.includes('PERFECT');
+    ctx.fillStyle=perfectMsg?'rgba(255,184,50,.10)':'rgba(0,0,0,.22)';
     ctx.fillRect(0,0,vw,vh);
-    ctx.fillStyle='rgba(0,0,0,.55)';roundRect(vw*.5-90,vh*.42,180,52,18);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font='bold 22px system-ui';ctx.textAlign='center';ctx.fillText(message,vw*.5,vh*.42+34);
+    const mw=perfectMsg?210:150, mh=44, my=vh*.37;
+    ctx.fillStyle=perfectMsg?'rgba(255,191,48,.94)':'rgba(10,16,23,.88)';
+    roundRect(vw*.5-mw/2,my,mw,mh,16);ctx.fill();
+    ctx.strokeStyle=perfectMsg?'rgba(255,245,180,.8)':'rgba(255,255,255,.12)';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=perfectMsg?'#3d2600':'#fff';
+    ctx.font=perfectMsg?'900 19px system-ui':'900 18px system-ui';ctx.textAlign='center';
+    ctx.fillText(message,vw*.5,my+29);
   }
 
   if(!running){
