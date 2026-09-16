@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v3.7</title>
+<title>돌돌 특공대 v3.9</title>
 <meta name="theme-color" content="#151820">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🪨%3C/text%3E%3C/svg%3E">
 <style>
@@ -266,7 +266,10 @@ body.v20 #joystick{filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));}
       <div style="font-size:14px;opacity:.85;margin:10px 0 7px">🔧 무기 강화</div>
       <div id="weaponUpgrade" class="upgradeBox"></div>
     </div>
-    <button class="btn" id="shopNextBtn" style="margin-top:14px;padding:12px 34px;font-size:17px;">다음 스테이지 →</button>
+    <div id="clearNav" style="display:flex;gap:8px;width:100%;max-width:340px;margin-top:14px;">
+      <button class="btn" id="clearMapBtn" style="flex:1;padding:12px 10px;font-size:15px;background:linear-gradient(180deg,#33485b,#1d2a36);color:#fff;border:1px solid rgba(255,224,138,.35);">🗺️ 스테이지 맵</button>
+      <button class="btn" id="shopNextBtn" style="flex:1;padding:12px 10px;font-size:15px;">다음 스테이지 →</button>
+    </div>
   </div>
 
   <div class="overlay hidden" id="pauseScreen">
@@ -1543,6 +1546,34 @@ function drawArena(){
   // wooden posts / barrels for visual framing
   function post(x,y){ctx.fillStyle='rgba(38,31,22,.3)';ctx.fillRect(x-8,y+7,16,30);ctx.fillStyle='#8c5b2e';ctx.fillRect(x-7,y,14,30);ctx.fillStyle='#c98a3d';ctx.fillRect(x-5,y+2,4,25);ctx.fillStyle='#5a3a22';ctx.fillRect(x-9,y+26,18,4);}
   post(44,160);post(W-44,230);post(44,650);post(W-44,740);
+  // v3.9: visible exit gate — the clear condition is now visually understandable.
+  // Closed while enemies remain, opens after the last enemy is defeated.
+  const gx=W/2, gy=ARENA.top-8, gw=150, gh=78;
+  ctx.save();
+  ctx.fillStyle='rgba(26,20,15,.38)'; ctx.fillRect(gx-gw/2+5,gy+7,gw,gh);
+  // stone gate pillars
+  const pillarG=ctx.createLinearGradient(gx-gw/2,gy, gx-gw/2+22,gy);
+  pillarG.addColorStop(0,'#514b43'); pillarG.addColorStop(1,'#918878');
+  ctx.fillStyle=pillarG; ctx.fillRect(gx-gw/2,gy,22,gh);
+  ctx.fillStyle='#766e62'; ctx.fillRect(gx+gw/2-22,gy,22,gh);
+  // wooden double door
+  const doorG=ctx.createLinearGradient(gx,gy,gx,gy+gh-10);
+  doorG.addColorStop(0,doorOpen?'#c99345':'#6f4929'); doorG.addColorStop(1,doorOpen?'#71441f':'#38251b');
+  ctx.fillStyle=doorG; ctx.fillRect(gx-52,gy+8,104,gh-8);
+  ctx.strokeStyle='#2d1d15'; ctx.lineWidth=4; ctx.strokeRect(gx-52,gy+8,104,gh-8);
+  if(doorOpen){
+    ctx.fillStyle='rgba(255,214,111,.24)'; ctx.fillRect(gx-44,gy+15,88,gh-22);
+    ctx.fillStyle='#ffe39a'; ctx.beginPath(); ctx.arc(gx,gy+42,12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#5c4325'; ctx.font='700 11px sans-serif'; ctx.textAlign='center'; ctx.fillText('EXIT',gx,gy+46);
+  }else{
+    ctx.strokeStyle='#c79a5a'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(gx-46,gy+18);ctx.lineTo(gx+46,gy+gh-4);ctx.moveTo(gx+46,gy+18);ctx.lineTo(gx-46,gy+gh-4);ctx.stroke();
+    ctx.fillStyle='#ffe08a'; ctx.font='900 11px sans-serif'; ctx.textAlign='center'; ctx.fillText('CLEAR ENEMIES',gx,gy-5);
+  }
+  // small flags
+  ctx.fillStyle='#7c3d2d'; ctx.fillRect(gx-gw/2-10,gy-18,3,25); ctx.fillRect(gx+gw/2+7,gy-18,3,25);
+  ctx.fillStyle='#d84b3f'; ctx.beginPath(); ctx.moveTo(gx-gw/2-7,gy-18);ctx.lineTo(gx-gw/2+22,gy-9);ctx.lineTo(gx-gw/2-7,gy);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(gx+gw/2+10,gy-18);ctx.lineTo(gx+gw/2-19,gy-9);ctx.lineTo(gx+gw/2+10,gy);ctx.closePath();ctx.fill();
+  ctx.restore();
   // subtle arena frame
   ctx.fillStyle='rgba(49,39,27,.72)';ctx.fillRect(0,ARENA.top,7,ARENA.bottom-ARENA.top);ctx.fillRect(W-7,ARENA.top,7,ARENA.bottom-ARENA.top);
   ctx.fillStyle='rgba(255,235,177,.22)';ctx.fillRect(7,ARENA.top,2,ARENA.bottom-ARENA.top);ctx.fillRect(W-9,ARENA.top,2,ARENA.bottom-ARENA.top);
@@ -1955,7 +1986,7 @@ function closeWorldMap(){
   worldMapScreen.classList.add('hidden'); show(startScreen); updateLobbyStats();
 }
 if(document.getElementById('worldMapBack'))document.getElementById('worldMapBack').onclick=closeWorldMap;
-if(document.getElementById('worldMapLaunch'))document.getElementById('worldMapLaunch').onclick=()=>{closeWorldMap();document.getElementById('startBtn').click();};
+if(document.getElementById('worldMapLaunch'))document.getElementById('worldMapLaunch').onclick=()=>{closeWorldMap();stage=selectedStage;document.getElementById('startBtn').click();};
 if(document.getElementById('stageSelectBtn'))document.getElementById('stageSelectBtn').onclick=openWorldMap;
 
 
@@ -2089,6 +2120,13 @@ function stageClear(){
   renderWeaponUpgrade();
   updateMissionUI();
 
+  const clearMapBtn=document.getElementById('clearMapBtn');
+  if(clearMapBtn){
+    clearMapBtn.onclick=()=>{
+      hide(stageScreen);
+      openWorldMap();
+    };
+  }
   nextBtn.onclick=()=>{
     // 스킬을 선택하지 않아도 다음 스테이지로 진행 가능
     shopPicks.forEach(i=>{ delete i._bought; });
