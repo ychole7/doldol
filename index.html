@@ -2033,11 +2033,12 @@ function stageClear(){
   const starScore = wasBoss ? 3 : (stagePerfects >= 3 ? 3 : stagePerfects >= 1 ? 2 : 1);
   document.getElementById('clearStars').innerHTML=[0,1,2].map(i=>`<span style="opacity:${i<starScore?1:.18}">★</span>`).join('');
   document.getElementById('newRecord').style.display = stage>previousBest ? 'inline-block' : 'none';
-  document.getElementById('stageMsg').textContent='① 능력 하나 고르기';
+  document.getElementById('stageMsg').textContent='① 능력을 고르거나 바로 다음 스테이지로 갈 수 있어요';
 
   const nextBtn=document.getElementById('shopNextBtn');
   let picked=false;
-  nextBtn.style.opacity='.45'; nextBtn.style.pointerEvents='none';
+  // 능력 선택은 선택사항: 다음 스테이지 버튼은 클리어 직후부터 활성화
+  nextBtn.style.opacity='1'; nextBtn.style.pointerEvents='auto';
 
   // ===== 무료 스킬 3개 =====
   const pool = SKILLS.filter(s=>!(s.once && s.applied));
@@ -2057,7 +2058,7 @@ function stageClear(){
       // 선택된 카드 강조, 나머지 흐리게
       [...box.children].forEach(c=>{ if(c!==el){ c.style.opacity='.35'; c.style.pointerEvents='none'; } });
       el.style.borderColor='#8fe08a';
-      document.getElementById('stageMsg').textContent='② 코인으로 추가 구매 (선택)';
+      document.getElementById('stageMsg').textContent='② 코인으로 추가 구매 (선택) · 다음 스테이지로 이동할 수 있어요';
       nextBtn.style.opacity='1'; nextBtn.style.pointerEvents='auto';
     };
     box.appendChild(el);
@@ -2089,7 +2090,7 @@ function stageClear(){
   updateMissionUI();
 
   nextBtn.onclick=()=>{
-    if(!picked) return;
+    // 스킬을 선택하지 않아도 다음 스테이지로 진행 가능
     shopPicks.forEach(i=>{ delete i._bought; });
     stage++; totalCoins=coins; saveMeta(); hide(stageScreen); startStage();
   };
