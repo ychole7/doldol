@@ -20,6 +20,8 @@ let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false;
+let upgradeOpen=false;
+const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 
 function resize(){
   const r=cv.getBoundingClientRect();
@@ -65,7 +67,7 @@ function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false;
   player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
   enemies=[]; rocks=[]; shots=[]; particles=[]; pickups=[];
-  coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0;
+  coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
   makeCovers();
   for(let i=0;i<total;i++) spawnEnemy(i);
   running=true; last=performance.now();
@@ -182,6 +184,14 @@ function parryAt(x,y){
   return false;
 }
 
+function chooseUpgrade(i){
+  if(!upgradeOpen) return;
+  if(i===0){ player.fire=Math.max(0,player.fire-.08); player.speed+=10; }
+  if(i===1){ player.maxHp+=20; player.hp=player.maxHp; }
+  if(i===2){ player.parryBonus=Math.min(.2,(player.parryBonus||0)+.04); }
+  upgradeOpen=false; running=true; message='강화 완료!'; messageTimer=.55; levelFlash=.55; burst(player.x,player.y,18); shake=4; last=performance.now();
+}
+
 function pointerPos(e){
   const r=cv.getBoundingClientRect();
   return {x:e.clientX-r.left,y:e.clientY-r.top};
@@ -196,6 +206,15 @@ document.getElementById('start').addEventListener('click', e=>{
 cv.addEventListener('pointerdown',e=>{
   e.preventDefault();
   const p=pointerPos(e);
+  if(upgradeOpen){
+    const w=Math.min(vw-36,430), h=250, x=(vw-w)/2, y=(vh-h)/2;
+    const bh=45, gap=10, by=y+82;
+    for(let i=0;i<3;i++){
+      const yy=by+i*(bh+gap);
+      if(p.x>=x+18 && p.x<=x+w-18 && p.y>=yy && p.y<=yy+bh){ chooseUpgrade(i); return; }
+    }
+    return;
+  }
   if(!running){
     if(gate){ nextStage(); }
     else { reset(); }
@@ -332,8 +351,10 @@ function update(dt){
           nextXp=Math.round(nextXp*1.28);
           levelFlash=1.2;
           message='LEVEL UP!';
-          messageTimer=.75;
+          messageTimer=1.2;
           player.hp=player.maxHp;
+          upgradeOpen=true;
+          running=false;
           burst(player.x,player.y,24);
           shake=6;
         }
@@ -412,6 +433,22 @@ function drawEnemy(e){
     if(e.type==='tank'){
       ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=3;ctx.stroke();
     }
+  }
+  ctx.restore();
+}
+function drawUpgrade(){
+  if(!upgradeOpen) return;
+  ctx.save();
+  ctx.fillStyle='rgba(8,12,18,.76)'; ctx.fillRect(0,0,vw,vh);
+  const w=Math.min(vw-36,430), h=250, x=(vw-w)/2, y=(vh-h)/2;
+  ctx.fillStyle='#fff8e7'; roundRect(x,y,w,h,22); ctx.fill();
+  ctx.fillStyle='#35281d'; ctx.font='900 25px system-ui'; ctx.textAlign='center'; ctx.fillText('LEVEL UP!',vw/2,y+42);
+  ctx.font='700 15px system-ui'; ctx.fillStyle='#78624d'; ctx.fillText('강화 하나를 선택하세요',vw/2,y+67);
+  const bh=45, gap=10, by=y+82;
+  for(let i=0;i<3;i++){
+    const bx=x+18, bw=w-36, yy=by+i*(bh+gap);
+    ctx.fillStyle='#f0d39a'; roundRect(bx,yy,bw,bh,13); ctx.fill();
+    ctx.fillStyle='#3b2b20'; ctx.font='800 17px system-ui'; ctx.fillText((i+1)+'  '+upgradeChoices[i],vw/2,yy+29);
   }
   ctx.restore();
 }
@@ -569,7 +606,7 @@ function draw(){
     ctx.fillText(message,vw*.5,my+29);
   }
 
-  if(!running){
+  if(!running && !upgradeOpen){
     ctx.fillStyle='rgba(5,8,12,.72)';ctx.fillRect(0,0,vw,vh);
     ctx.fillStyle='#fff';ctx.font='900 30px system-ui';ctx.textAlign='center';
     ctx.fillText(message==='GAME OVER'?'GAME OVER':'STAGE CLEAR!',vw/2,vh*.42);
@@ -584,6 +621,7 @@ function draw(){
       ctx.fillText('탭해서 다시 도전',vw/2,vh*.49);
     }
   }
+  drawUpgrade();
   ctx.restore();
 }
 
