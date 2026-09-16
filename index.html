@@ -1,4 +1,135 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><button id="start">🚀 전투 시작</button><div id="log"></div>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body>
+<style>
+#gameLobby{
+  position:fixed; inset:0; z-index:20; display:flex; flex-direction:column;
+  padding:18px 16px 22px; box-sizing:border-box; color:#fff;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,255,255,.18), transparent 30%),
+    linear-gradient(160deg,#86c9a0 0%,#5a9c82 42%,#315c55 100%);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+#gameLobby.hidden{display:none}
+.lobbyTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.lobbyTitle{font-weight:1000;font-size:29px;letter-spacing:-1.5px;text-shadow:0 3px 0 rgba(0,0,0,.2)}
+.resourceBar{display:flex;gap:7px}
+.res{background:rgba(28,45,43,.78);border:2px solid rgba(255,255,255,.25);border-radius:18px;padding:7px 11px;font-weight:900;font-size:13px}
+.hero{
+  margin-top:14px; flex:1; min-height:0; border-radius:28px; position:relative;
+  overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,rgba(235,216,161,.96),rgba(119,157,113,.9));
+  border:3px solid rgba(255,255,255,.45); box-shadow:0 12px 30px rgba(0,0,0,.2);
+}
+.hero:before{content:"";position:absolute;inset:auto -15% -22% -15%;height:48%;background:#5b8964;border-radius:50% 50% 0 0;opacity:.8}
+.duckMark{position:relative;width:148px;height:148px;border-radius:50%;background:rgba(255,255,255,.24);display:grid;place-items:center;font-size:91px;filter:drop-shadow(0 10px 4px rgba(0,0,0,.18))}
+.heroSmall{position:relative;margin-top:12px;font-size:12px;font-weight:800;opacity:.78}
+.stageCard{
+  position:relative;margin-top:12px;width:min(310px,88%);padding:13px 15px;
+  background:rgba(37,57,51,.9);border:2px solid rgba(255,255,255,.25);border-radius:19px;
+  text-align:center;
+}
+.stageCard b{display:block;font-size:20px}.stageCard span{font-size:12px;opacity:.75}
+.lobbyActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.lobbyBtn{
+  min-height:52px;border:0;border-radius:18px;font-weight:1000;font-size:16px;color:#263b35;
+  background:#f7e7a6;box-shadow:0 5px 0 #b99d56;cursor:pointer
+}
+.lobbyBtn.primary{grid-column:1/-1;font-size:20px;background:#ffcb55;box-shadow:0 6px 0 #a9752f}
+.lobbyBtn:active{transform:translateY(3px);box-shadow:0 2px 0 #a9752f}
+.subNav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.subBtn{min-height:43px;border-radius:15px;border:1px solid rgba(255,255,255,.25);background:rgba(26,43,39,.7);color:#fff;font-weight:900}
+#stageSelect{
+  position:fixed;inset:0;z-index:21;display:none;padding:20px 16px;
+  background:linear-gradient(160deg,#9bd0b0,#477a69 60%,#294b48);color:#fff;
+  font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box
+}
+#stageSelect.show{display:block}
+.stageHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stageHead h2{margin:0;font-size:25px}.closeBtn{border:0;border-radius:13px;padding:10px 14px;font-weight:900}
+.stageGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:520px;margin:auto}
+.stageBtn{aspect-ratio:1;border:2px solid rgba(255,255,255,.3);border-radius:19px;background:rgba(35,60,54,.75);color:#fff;font-size:23px;font-weight:1000}
+.stageBtn.current{background:#f7c955;color:#2d4038}.stageBtn.locked{opacity:.45}
+@media(max-width:360px){.lobbyTitle{font-size:25px}.duckMark{width:125px;height:125px;font-size:77px}}
+</style>
+
+<div id="gameLobby">
+  <div class="lobbyTop">
+    <div class="lobbyTitle">🦆 돌돌 특공대</div>
+    <div class="resourceBar"><div class="res">🪙 <span id="lobbyCoins">0</span></div></div>
+  </div>
+  <section class="hero">
+    <div class="duckMark">🦆</div>
+    <div class="heroSmall">돌을 던지고, 받아치고, 끝까지 살아남아라!</div>
+    <div class="stageCard"><b id="lobbyStage">STAGE 1</b><span>훈련 구역 · 다음 보스 STAGE 5</span></div>
+  </section>
+  <div class="lobbyActions">
+    <button class="lobbyBtn primary" id="lobbyStart">⚔️ 전투 시작</button>
+    <button class="lobbyBtn" id="lobbyStages">🗺️ 스테이지</button>
+    <button class="lobbyBtn" id="lobbyShop">🛒 상점</button>
+  </div>
+  <div class="subNav">
+    <button class="subBtn" id="lobbyGrowth">📈 성장</button>
+    <button class="subBtn" id="lobbyGear">🛡️ 장비</button>
+    <button class="subBtn" id="lobbyBook">📖 도감</button>
+  </div>
+</div>
+
+<div id="stageSelect">
+  <div class="stageHead"><h2>🗺️ 스테이지 선택</h2><button class="closeBtn" id="stageClose">닫기</button></div>
+  <div class="stageGrid" id="stageGrid"></div>
+</div>
+<script>
+(function(){
+  const lobby=document.getElementById('gameLobby');
+  const stageSelect=document.getElementById('stageSelect');
+  const grid=document.getElementById('stageGrid');
+  const stageEl=document.getElementById('lobbyStage');
+  const coinsEl=document.getElementById('lobbyCoins');
+  const start=document.getElementById('lobbyStart');
+
+  function getStage(){
+    try{return Math.max(1,Math.min(500,Number(window.__duckStage||1)))}catch(e){return 1}
+  }
+  function sync(){
+    const s=getStage();
+    stageEl.textContent='STAGE '+s;
+    coinsEl.textContent=String(window.__duckCoins||0);
+  }
+  function showLobby(){
+    lobby.classList.remove('hidden');
+    stageSelect.classList.remove('show');
+    sync();
+  }
+  function begin(stage){
+    window.__duckStage=stage;
+    lobby.classList.add('hidden');
+    stageSelect.classList.remove('show');
+    if(typeof window.__duckStartStage==='function') window.__duckStartStage(stage);
+    else if(start) start.click();
+  }
+  start.addEventListener('click',()=>begin(getStage()));
+  document.getElementById('lobbyStages').addEventListener('click',()=>{
+    grid.innerHTML='';
+    const unlocked=getStage();
+    for(let i=1;i<=15;i++){
+      const b=document.createElement('button'); b.className='stageBtn'+(i===unlocked?' current':'')+(i>unlocked?' locked':'');
+      b.textContent=i>unlocked?'🔒':String(i);
+      b.disabled=i>unlocked;
+      b.addEventListener('click',()=>begin(i));
+      grid.appendChild(b);
+    }
+    stageSelect.classList.add('show');
+  });
+  document.getElementById('stageClose').addEventListener('click',()=>stageSelect.classList.remove('show'));
+  ['lobbyShop','lobbyGrowth','lobbyGear','lobbyBook'].forEach(id=>{
+    document.getElementById(id).addEventListener('click',()=>alert('이 메뉴는 다음 업데이트에서 실제 기능을 연결할게요!'));
+  });
+
+  window.__duckShowLobby=showLobby;
+  window.__duckSyncLobby=sync;
+  sync();
+})();
+</script>
+<canvas id="game"></canvas><button id="start">🚀 전투 시작</button><div id="log"></div>
 <script>
 (() => {
 'use strict';
@@ -642,6 +773,23 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0}; enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(function(){
+  const oldReset=window.reset;
+  if(typeof oldReset==='function'){
+    window.__duckStartStage=function(s){
+      try{
+        window.stage=s;
+        oldReset();
+        if(window.stage!==s) window.stage=s;
+        const sb=document.getElementById('startBtn');
+        if(sb) sb.style.display='none';
+      }catch(e){}
+    };
+  }
 })();
 </script>
 </body></html>
