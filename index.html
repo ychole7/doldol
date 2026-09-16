@@ -16,6 +16,7 @@ const wrap = document.body;
 
 let vw=1, vh=1, dpr=1, running=false, last=0;
 let player, enemies=[], rocks=[], shots=[], particles=[];
+let covers=[];
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false;
 
@@ -33,10 +34,37 @@ addEventListener('orientationchange',()=>setTimeout(resize,80));
 addEventListener('pageshow',resize);
 resize();
 
+function makeCovers(){
+  covers=[];
+  const positions=[
+    [.18,.62],[.50,.58],[.82,.64],
+    [.30,.76],[.70,.78]
+  ];
+  for(const [px,py] of positions){
+    covers.push({x:vw*px,y:vh*py,w:54,h:34,r:9});
+  }
+}
+function circleRectHit(c,rect){
+  const nx=clamp(c.x,rect.x-rect.w/2,rect.x+rect.w/2);
+  const ny=clamp(c.y,rect.y-rect.h/2,rect.y+rect.h/2);
+  return Math.hypot(c.x-nx,c.y-ny)<c.r;
+}
+function moveAroundCovers(obj,dx,dy){
+  const ox=obj.x,oy=obj.y;
+  obj.x+=dx; obj.y+=dy;
+  for(const c of covers){
+    if(circleRectHit(obj,c)){
+      obj.x=ox; obj.y=oy;
+      return false;
+    }
+  }
+  return true;
+}
 function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false;
   player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
   enemies=[]; rocks=[]; shots=[]; particles=[];
+  makeCovers();
   for(let i=0;i<total;i++) spawnEnemy(i);
   running=true; last=performance.now();
 }
@@ -53,6 +81,7 @@ function startStage(n){
   comboTimer=0;
   intro=1.25;
   rocks=[]; shots=[]; particles=[];
+  makeCovers();
   enemies=[];
   if(boss){
     enemies.push({
@@ -201,8 +230,9 @@ function update(dt){
     ay=clamp((joy.y-joy.baseY)/62,-1,1);
   }
   const len=Math.hypot(ax,ay)||1;
-  player.x=clamp(player.x+ax/len*player.speed*dt,32,vw-32);
-  player.y=clamp(player.y+ay/len*player.speed*dt,vh*.48,vh-90);
+  moveAroundCovers(player,ax/len*player.speed*dt,ay/len*player.speed*dt);
+  player.x=clamp(player.x,32,vw-32);
+  player.y=clamp(player.y,vh*.48,vh-90);
 
   player.fire-=dt;
   if(player.fire<=0){player.fire=.42;shootPlayer();}
@@ -212,13 +242,13 @@ function update(dt){
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
     const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
     if(L>desired){
-      e.x+=dx/L*e.speed*dt; e.y+=dy/L*e.speed*dt;
+      moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
     }else if(e.type==='boss'){
       e.phase+=dt;
       e.x=vw*.5+Math.sin(e.phase*.9)*vw*.28;
       e.y=vh*.18+Math.sin(e.phase*1.7)*18;
     }else if(e.type==='fast'){
-      e.x-=dx/L*e.speed*.35*dt; e.y-=dy/L*e.speed*.35*dt;
+      moveAroundCovers(e,-dx/L*e.speed*.35*dt,-dy/L*e.speed*.35*dt);
     }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
     if(e.telegraph>0){
@@ -235,6 +265,10 @@ function update(dt){
 
   for(const s of shots){
     s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
+    for(const c of covers){
+      if(circleRectHit(s,c)){s.life=0;burst(s.x,s.y,4);break;}
+    }
+    if(s.life<=0) continue;
     for(const e of enemies){
       if(e.dead) continue;
       if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;hitEnemy(e);break;}
@@ -244,6 +278,10 @@ function update(dt){
 
   for(const r of rocks){
     r.x+=r.vx*dt;r.y+=r.vy*dt;r.life-=dt;
+    for(const c of covers){
+      if(circleRectHit(r,c)){ r.life=0; burst(r.x,r.y,6); break; }
+    }
+    if(r.life<=0) continue;
     if(!r.parried && player.inv<=0 && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
       player.hp-=18;player.inv=.55;burst(player.x,player.y,14);
       message='피격!';messageTimer=.28;
@@ -352,6 +390,15 @@ function draw(){
   }
   ctx.fillStyle='rgba(255,216,102,.16)';
   roundRect(vw*.5-58,vh*.47,116,4,2);ctx.fill();
+
+  // cover obstacles
+  for(const c of covers){
+    ctx.fillStyle='rgba(81,94,101,.72)';
+    roundRect(c.x-c.w/2,c.y-c.h/2,c.w,c.h,c.r);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.08)';
+    roundRect(c.x-c.w/2+7,c.y-c.h/2+6,c.w-14,7,4);ctx.fill();
+  }
 
   // top HUD
   // compact commercial-style HUD
