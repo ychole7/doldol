@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v4.4</title>
+<title>돌돌 특공대 v4.5</title>
 <meta name="theme-color" content="#151820">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🪨%3C/text%3E%3C/svg%3E">
 <style>
@@ -404,11 +404,11 @@ body.v20 #joystick{filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));}
   .statrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07)}
   .statrow:last-child{border-bottom:0}
   .weaponbar{height:8px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden;margin-top:8px}.weaponbar i{display:block;height:100%;background:#ffd45e}
-/* v4.4 — 모바일 Safari viewport overflow hardening */
-html,body{width:100%;max-width:100%;overflow:hidden;}
-#wrap{width:100%;height:100dvh;max-width:100%;overflow:hidden;}
-#game{display:block;flex:0 0 auto;max-width:100%;max-height:100%;margin:0;object-fit:contain;}
-@supports not (height:100dvh){#wrap{height:100vh;}}
+/* v4.5 — iOS Safari: canvas를 viewport 중앙에 고정하고 실제 visualViewport로 크기 계산 */
+html,body{width:100%;height:100%;max-width:100%;max-height:100%;overflow:hidden;}
+#wrap{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;overflow:hidden;display:block;}
+#game{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;width:min(100vw,56.25dvh);height:min(100dvh,177.7777778vw);max-width:none;max-height:none;margin:0;aspect-ratio:9/16;touch-action:none;}
+@supports not (height:100dvh){#wrap{width:100vw;height:100vh;}#game{width:min(100vw,56.25vh);height:min(100vh,177.7777778vw);}}
 </style>
 
 <script>
@@ -419,19 +419,19 @@ const ctx = canvas.getContext('2d');
 let W, H, DPR;
 function resize(){
   DPR = Math.min(window.devicePixelRatio||1, 2.5);
-  const availH = document.documentElement.clientHeight || window.innerHeight;
-  const availW = document.documentElement.clientWidth || window.innerWidth;
-  // 9:16 비율 유지 — Safari의 주소창/안전영역 변화에도 항상 현재 viewport 안에 맞춘다.
-  let h = Math.max(1, availH), w = h*9/16;
-  if (w > availW){ w = Math.max(1, availW); h = w*16/9; }
+  const vv = window.visualViewport;
+  const availW = Math.max(1, Math.round((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth));
+  const availH = Math.max(1, Math.round((vv && vv.height) || window.innerHeight || document.documentElement.clientHeight));
+  // 실제 화면 안에 들어가는 9:16 게임 영역을 계산한다.
+  const w = Math.min(availW, availH * 9/16);
+  const h = w * 16/9;
   canvas.style.width = Math.floor(w)+'px';
   canvas.style.height = Math.floor(h)+'px';
-  canvas.style.maxWidth = '100%';
-  canvas.style.maxHeight = '100%';
   W = 540; H = 960; // 내부 논리 해상도
-  canvas.width = W*DPR; canvas.height = H*DPR;
+  canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
 }
+if(window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 window.addEventListener('resize', resize);
 resize();
 
