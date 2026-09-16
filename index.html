@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v3.4</title>
+<title>돌돌 특공대 v3.5</title>
 <meta name="theme-color" content="#151820">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🪨%3C/text%3E%3C/svg%3E">
 <style>
@@ -90,6 +90,10 @@
 .worldMapBottom button{flex:1;border:0;background:transparent;color:#fff;border-radius:12px;padding:7px 2px;font-size:9px;font-weight:900}.worldMapBottom button.active{background:linear-gradient(180deg,#ffd45e,#e99527);color:#3e270e;box-shadow:inset 0 1px rgba(255,255,255,.55)}
 @media(max-height:760px){.worldNode{width:58px;height:58px}.worldMapTop{top:7px}.worldMapBottom{bottom:7px}.worldMapToast{top:58px}}
 
+
+/* v3.5 combat feel pass */
+.combat-tip{top:86px;padding:8px 13px;font-size:11px;background:rgba(11,19,29,.86);border-color:rgba(255,216,90,.28);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+@media(max-width:520px){.combat-tip{max-width:78vw;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 </style>
 
 <style>
@@ -146,7 +150,7 @@ body.v20 #joystick{filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));}
 .worldMapLaunch:active{transform:translateX(-50%) translateY(2px);}
 </style>
 <style>
-/* v3.4 — commercial lobby redesign */
+/* v3.5 — commercial lobby redesign */
 #startScreen{justify-content:flex-start;overflow-y:auto;overflow-x:hidden;padding:12px 14px 86px;gap:9px;background:radial-gradient(circle at 50% 0%,rgba(255,195,71,.16),transparent 22%),linear-gradient(180deg,#171b22 0%,#0c0f15 100%);}
 #startScreen>*{position:relative;z-index:1;flex:none}
 #startScreen::before{content:'🪨';right:8px;top:118px;left:auto;font-size:22px;opacity:.45}
@@ -470,6 +474,8 @@ let stageGimmickT = 0;
 
 // ----- 손맛(juice) -----
 let shakeT=0, shakeMag=0;      // 화면 흔들림
+let parryFX=[];                 // 패링 충격파 연출
+let combatTipT=0;               // 전투 시작 안내 노출 시간
 let hitstop=0;                  // 히트스톱(순간 정지)
 let flashScreen=0;             // 피격 시 화면 붉게
 function addShake(mag,t){ shakeMag=Math.max(shakeMag,mag); shakeT=Math.max(shakeT,t); }
@@ -670,6 +676,8 @@ function startStage(){
   }
   door = { x:W/2, y:ARENA.top-40, w:120, h:70 };
   state = 'intro';
+  combatTipT = 150;
+  parryFX = [];
   introStageTarget = stage;
   introTimer = 180;
   showIntro();
@@ -711,6 +719,7 @@ function tryParry(){
   player.parry = 14;
   player.parryCool = player.parryCD || 40;
   player.parryFlash = 10;
+  parryFX.push({x:player.x,y:player.y,t:0,perfect:false});
   SFX.shoot(); addShake(2,3);
 }
 function onDown(e){ e.preventDefault(); const p=pointerPos(e); if(state==='playing' && p.x>W-70 && p.y<65){ togglePause(); return; } if(state==='paused' || state==='intro') return; input.active=true; input.ox=p.x; input.oy=p.y; input.x=p.x; input.y=p.y; input.downT=Date.now(); input.moved=false; }
@@ -758,6 +767,8 @@ function update(){
   if(slowT>0) slowT--;
   if(comboT>0) comboT--; else combo=0;
   if(parryTextT>0) parryTextT--;
+  if(combatTipT>0) combatTipT--;
+  for(let i=parryFX.length-1;i>=0;i--){ parryFX[i].t++; if(parryFX[i].t>24) parryFX.splice(i,1); }
   if(player && player.parryFlash>0) player.parryFlash--;
   // 히트스톱: 잠깐 로직 정지 (타격감)
   if(hitstop>0){ hitstop--; return; }
@@ -980,6 +991,7 @@ function update(){
         rk.pierce = player.pierce; rk.parried=true;
         stageParries++; parrySuccessCount++; missionData.parry++; dailyData.progress.parry=(dailyData.progress.parry||0)+1;
         const perfect = dist(rk.x,rk.y,player.x,player.y) < Math.max(24, player.parryR*0.46);
+        if(parryFX.length) parryFX[parryFX.length-1].perfect=perfect;
         if(perfect) stagePerfects++;
         burst(rk.x,rk.y,perfect?'#e9fbff':'#7ee0ff',perfect?20:14); SFX.hit(); if(window.DR16&&window.DR16.haptic) window.DR16.haptic(perfect?'perfect':'parry'); doHitstop(perfect?5:3); addShake(perfect?8:6,perfect?10:8);
         continue;
@@ -1741,6 +1753,32 @@ function render(){
     }
     ctx.restore();
   }
+  // 다가오는 돌 경고: 플레이어가 위험할 때만 짧고 명확하게 표시
+  if(player && state==='playing') {
+    let threat=null, threatD=1e9;
+    for(const rk of rocks){
+      if(rk.owner==='player') continue;
+      const dx=player.x-rk.x, dy=player.y-rk.y;
+      const speed=Math.hypot(rk.vx,rk.vy)||1;
+      const toward=(dx*rk.vx+dy*rk.vy)/speed;
+      const d=Math.hypot(dx,dy);
+      if(toward>0 && d<260 && d<threatD){ threat=rk; threatD=d; }
+    }
+    if(threat){
+      ctx.save();
+      const pulse=.55+.45*Math.sin(Date.now()/90);
+      ctx.globalAlpha=.16+.18*pulse;
+      ctx.strokeStyle='#ffcf66'; ctx.lineWidth=2; ctx.setLineDash([7,7]);
+      ctx.beginPath(); ctx.moveTo(threat.x,threat.y); ctx.lineTo(player.x,player.y); ctx.stroke();
+      ctx.setLineDash([]);
+      const tx=player.x, ty=player.y-player.r-48;
+      ctx.globalAlpha=.72+.2*pulse; ctx.fillStyle='#fff6d5';
+      ctx.beginPath(); ctx.roundRect(tx-34,ty-14,68,28,14); ctx.fill();
+      ctx.fillStyle='#15202a'; ctx.font='900 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('TAP  🛡️',tx,ty);
+      ctx.restore();
+    }
+  }
   // 돌
   for(const rk of rocks) drawRock(rk);
   // 적 / 보스
@@ -1784,6 +1822,20 @@ function render(){
     ctx.save(); ctx.globalAlpha = player.shield<120 && Math.floor(player.shield/6)%2===0 ? 0.3 : 0.7;
     ctx.strokeStyle='#5bd15b'; ctx.lineWidth=4;
     ctx.beginPath(); ctx.arc(player.x, player.y, player.r+9, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+  // 패링 충격파: 성공 순간 플레이어 중심으로 크게 터지는 링
+  for(const fx of parryFX){
+    ctx.save();
+    const p=fx.t/24, a=(1-p)*.9;
+    ctx.globalAlpha=a;
+    ctx.strokeStyle=fx.perfect?'#ffffff':'#79e8ff';
+    ctx.lineWidth=fx.perfect?6:4;
+    ctx.beginPath(); ctx.arc(fx.x,fx.y,player.parryR*(.55+p*1.65),0,Math.PI*2); ctx.stroke();
+    if(fx.perfect){
+      ctx.globalAlpha=a*.8; ctx.strokeStyle='#ffd85a'; ctx.lineWidth=3;
+      for(let k=0;k<8;k++){ const aa=k*Math.PI/4; const r1=player.parryR*(.9+p*1.25), r2=r1+14; ctx.beginPath(); ctx.moveTo(fx.x+Math.cos(aa)*r1,fx.y+Math.sin(aa)*r1); ctx.lineTo(fx.x+Math.cos(aa)*r2,fx.y+Math.sin(aa)*r2); ctx.stroke(); }
+    }
     ctx.restore();
   }
   // 플레이어 (깜빡임)
@@ -1873,7 +1925,7 @@ if(document.getElementById('worldMapLaunch'))document.getElementById('worldMapLa
 if(document.getElementById('stageSelectBtn'))document.getElementById('stageSelectBtn').onclick=openWorldMap;
 
 
-// v3.3 lobby/map interaction repair
+// v3.5 lobby/map interaction repair
 (function(){
   const map=worldMapScreen; if(!map)return;
   const nav=map.querySelectorAll('.worldMapBottom button');
@@ -2257,7 +2309,7 @@ setTimeout(ensureSkinData,0);
   </div>
 </div>
 <script>
-/* v3.4 lobby wiring */
+/* v3.5 lobby wiring */
 (function(){
   function syncLobby(){
     const c=document.getElementById('lobbyCoins'), g=document.getElementById('lobbyGems'), lv=document.getElementById('lobbyLevel');
@@ -2424,7 +2476,7 @@ document.getElementById('combatPause')?.addEventListener('click',(e)=>{e.prevent
   let last='';
   setInterval(()=>{
     if(typeof state==='undefined') return;
-    if(state!=='playing'){tip.classList.add('hidden');return;}
+    if(state!=='playing' || combatTipT<=0){tip.classList.add('hidden');return;}
     let msg='패링으로 돌을 되받아쳐 보세요!';
     if(typeof combo!=='undefined'&&combo>=3) msg='COMBO 유지 중! PERFECT를 노려보세요!';
     else if(typeof boss!=='undefined'&&boss&&boss.alive) msg='보스의 전조를 보고 공격 타이밍을 잡으세요!';
