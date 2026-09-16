@@ -82,6 +82,10 @@
 .worldMapBack{width:44px;height:42px;font-size:25px}.worldMapInfo{padding:8px 12px;font-size:11px;display:flex;gap:7px;align-items:center}.worldMapInfo b{color:#ffd45e}
 .worldMapNodes{position:absolute;inset:0;pointer-events:none}
 .worldNode{position:absolute;transform:translate(-50%,-50%);width:66px;height:66px;border:0;border-radius:50%;background:transparent;color:transparent;pointer-events:auto;cursor:pointer}
+.worldNode{display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#f5f0df,#c9c0a9);border:3px solid #665e51;color:#171717;box-shadow:0 5px 0 rgba(45,34,23,.35),0 8px 18px rgba(0,0,0,.25);font-size:20px;font-weight:1000;text-shadow:0 1px 0 rgba(255,255,255,.65);z-index:3}
+.worldNode .nodeNum{line-height:1}.worldNode .nodeStars{font-size:10px;line-height:1.1;margin-top:3px;letter-spacing:-1px;color:#f4b400;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.worldNode.cleared{background:linear-gradient(180deg,#fff2a8,#e7b62f);border-color:#8d650f}.worldNode.next{background:linear-gradient(180deg,#ffe58a,#ef9b25);border-color:#8b5d13;box-shadow:0 0 0 5px rgba(255,213,87,.25),0 5px 0 rgba(75,45,10,.35),0 8px 24px rgba(255,194,53,.35)}
+.worldNode.locked{background:rgba(34,38,43,.82);border-color:rgba(255,255,255,.22);color:#d8d8d8;box-shadow:0 5px 0 rgba(0,0,0,.25);pointer-events:none}.worldNode .lockIcon{font-size:20px}.worldNode.current:after{z-index:-1}
 .worldNode.current:after{content:'';position:absolute;inset:-5px;border:3px solid #ffd45e;border-radius:50%;box-shadow:0 0 0 5px rgba(255,212,94,.18),0 0 25px rgba(255,212,94,.6);animation:mapPulse 1.5s ease-in-out infinite}
 .worldNode.locked{pointer-events:none}
 @keyframes mapPulse{0%,100%{transform:scale(.95);opacity:.75}50%{transform:scale(1.08);opacity:1}}
@@ -1947,7 +1951,7 @@ function updateLobbyStats(){
 }
 function cycleWeapon(){const ks=Object.keys(WEAPONS);weaponType=ks[(ks.indexOf(weaponType)+1)%ks.length];saveWeapon();updateWeaponUI();}
 function setLobbyExtra(html){const p=document.getElementById('extraLobbyPanel');p.innerHTML=html;p.style.display='block';document.querySelectorAll('.lobbyPanel').forEach(x=>x.classList.remove('active'));}
-function renderStageSelect(){let html='<b style="color:#ffe08a">🗺️ 스테이지 선택</b><div style="margin-top:5px;opacity:.7">최고 기록까지 자유롭게 재도전할 수 있어요.</div><div class="stageGrid">';for(let i=1;i<=Math.min(100,bestStage);i++)html+=`<button class="stageCell ${i===selectedStage?'current':''}" data-stage="${i}">${i}${i%5===0?' 👑':''}</button>`;html+='</div>';setLobbyExtra(html);document.querySelectorAll('.stageCell').forEach(b=>b.onclick=()=>{selectedStage=Number(b.dataset.stage);localStorage.setItem('dr_selected_stage',selectedStage);document.getElementById('startBtn').textContent='STAGE '+selectedStage+' 출격';renderStageSelect();});}
+function renderStageSelect(){const unlocked=Math.min(100,bestStage+1);let html='<b style="color:#ffe08a">🗺️ 스테이지 선택</b><div style="margin-top:5px;opacity:.7">클리어한 스테이지는 언제든 다시 도전할 수 있어요.</div><div class="stageGrid">';for(let i=1;i<=unlocked;i++){const locked=i>bestStage;html+=`<button class="stageCell ${i===selectedStage?'current':''} ${locked?'next':''}" data-stage="${i}">${i}${i%5===0?' 👑':''}${locked?' 🔓':''}</button>`;}html+='</div>';setLobbyExtra(html);document.querySelectorAll('.stageCell').forEach(b=>b.onclick=()=>{selectedStage=Number(b.dataset.stage);localStorage.setItem('dr_selected_stage',selectedStage);document.getElementById('startBtn').textContent='STAGE '+selectedStage+' 출격';renderStageSelect();});}
 function renderSkins(){let html='<b style="color:#ffe08a">🪖 특공대 스킨</b><div style="margin-top:5px;opacity:.7">능력치는 같고 외형만 변경됩니다.</div><div class="skinRow">';for(const [k,v] of Object.entries(SKINS)){const owned=k==='basic'||localStorage.getItem('dr_skin_'+k)==='1';html+=`<button class="skinBtn ${k===skinType?'sel':''}" data-skin="${k}">${v.icon}<br>${v.name}<br>${owned?'보유':'🪙 '+v.cost}</button>`;}html+='</div>';setLobbyExtra(html);document.querySelectorAll('.skinBtn').forEach(b=>b.onclick=()=>{const k=b.dataset.skin,v=SKINS[k];const owned=k==='basic'||localStorage.getItem('dr_skin_'+k)==='1';if(!owned){if(totalCoins<v.cost)return;totalCoins-=v.cost;coins=Math.min(coins,totalCoins);localStorage.setItem('dr_skin_'+k,'1');saveMeta();}skinType=k;applySkin();renderSkins();});}
 function renderDaily(){loadDaily();let html='<b style="color:#ffe08a">📅 오늘의 임무</b>';DAILY.forEach(d=>{const v=Math.min(dailyData.progress[d.k]||0,d.goal),done=v>=d.goal,claimed=!!dailyData.claims[d.k];html+=`<div class="miniCard"><div style="display:flex;justify-content:space-between"><span>${d.icon} ${d.name}</span><b>${v}/${d.goal}</b></div><div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center"><span style="opacity:.65">보상 🪙 ${d.reward}</span><button class="claimBtn" data-day="${d.k}" ${(!done||claimed)?'disabled':''}>${claimed?'수령 완료':done?'보상 받기':'진행 중'}</button></div></div>`});setLobbyExtra(html);document.querySelectorAll('.claimBtn').forEach(b=>b.onclick=()=>{const d=DAILY.find(x=>x.k===b.dataset.day);if(!d||dailyData.claims[d.k]||((dailyData.progress[d.k]||0)<d.goal))return;dailyData.claims[d.k]=1;totalCoins+=d.reward;coins=totalCoins;saveDaily();saveMeta();SFX.item();renderDaily();});}
 
@@ -1959,21 +1963,33 @@ const worldMapToast=document.getElementById('worldMapToast');
 const mapNodePos=[
   [39,82],[43,72],[48,62],[61,54],[42,45],[67,37],[47,29],[65,23],[48,17],[63,10]
 ];
+const STAGE_STARS_KEY='doldol_stage_stars_v40';
+let stageStars={};
+try{stageStars=JSON.parse(localStorage.getItem(STAGE_STARS_KEY)||'{}')||{};}catch(e){stageStars={};}
+function saveStageStars(){try{localStorage.setItem(STAGE_STARS_KEY,JSON.stringify(stageStars));}catch(e){}}
+function unlockedStage(){return Math.min(100,bestStage+1);}
 function renderWorldMap(){
   if(!worldMapNodes)return;
   worldMapNodes.innerHTML='';
-  for(let i=1;i<=10;i++){
+  const visibleCount=10;
+  for(let i=1;i<=visibleCount;i++){
     const b=document.createElement('button');
-    b.className='worldNode '+(i>bestStage?'locked ':'')+(i===selectedStage?'current':'');
-    b.setAttribute('aria-label',i>bestStage?`STAGE ${i} 잠김`:`STAGE ${i}`);
-    b.style.left=mapNodePos[i-1][0]+'%'; b.style.top=mapNodePos[i-1][1]+'%';
-    b.dataset.stage=i;
-    if(i<=bestStage){b.onclick=()=>selectWorldStage(i);}
+    const cleared=i<=bestStage; const canPlay=i<=unlockedStage(); const isNext=i===bestStage+1 && bestStage<100;
+    b.className='worldNode '+(cleared?'cleared ':'')+(isNext?'next ':'')+(i===selectedStage?'current ':'')+(!canPlay?'locked':'');
+    b.setAttribute('aria-label',!canPlay?`STAGE ${i} 잠김`:`STAGE ${i} ${cleared?'재도전 가능':'출격 가능'}`);
+    b.style.left=mapNodePos[i-1][0]+'%'; b.style.top=mapNodePos[i-1][1]+'%'; b.dataset.stage=i;
+    const starCount=Number(stageStars[i]||0);
+    if(!canPlay){b.innerHTML='<span class="lockIcon">🔒</span>';}
+    else {b.innerHTML=`<span class="nodeNum">${i}</span><span class="nodeStars">${[0,1,2].map(k=>k<starCount?'★':'☆').join('')}</span>`;}
+    if(canPlay)b.onclick=()=>selectWorldStage(i);
     worldMapNodes.appendChild(b);
   }
   if(worldMapStage)worldMapStage.textContent=selectedStage;
+  const launch=document.getElementById('worldMapLaunch');
+  if(launch)launch.textContent=`🚀 STAGE ${selectedStage} ${selectedStage<=bestStage?'재도전':'출격'}`;
 }
 function selectWorldStage(n){
+  if(n>unlockedStage()) return;
   selectedStage=n; localStorage.setItem('dr_selected_stage',selectedStage);
   renderWorldMap();
   if(worldMapToast){worldMapToast.textContent=`STAGE ${n} 출격 준비!`;worldMapToast.classList.add('show');setTimeout(()=>worldMapToast.classList.remove('show'),900);}
@@ -2062,6 +2078,8 @@ function stageClear(){
   document.getElementById('stageLabel').textContent='STAGE '+stage+' CLEAR';
   document.getElementById('stageTitle').textContent = wasBoss ? '보스 격파! 👑' : '문을 통과했다! 🚪';
   const starScore = wasBoss ? 3 : (stagePerfects >= 3 ? 3 : stagePerfects >= 1 ? 2 : 1);
+  stageStars[stage]=Math.max(Number(stageStars[stage]||0),starScore); saveStageStars();
+  if(stage<100){ selectedStage=stage+1; localStorage.setItem('dr_selected_stage',selectedStage); } else { selectedStage=100; localStorage.setItem('dr_selected_stage',selectedStage); }
   document.getElementById('clearStars').innerHTML=[0,1,2].map(i=>`<span style="opacity:${i<starScore?1:.18}">★</span>`).join('');
   document.getElementById('newRecord').style.display = stage>previousBest ? 'inline-block' : 'none';
   document.getElementById('stageMsg').textContent='① 능력을 고르거나 바로 다음 스테이지로 갈 수 있어요';
@@ -2130,7 +2148,7 @@ function stageClear(){
   nextBtn.onclick=()=>{
     // 스킬을 선택하지 않아도 다음 스테이지로 진행 가능
     shopPicks.forEach(i=>{ delete i._bought; });
-    stage++; totalCoins=coins; saveMeta(); hide(stageScreen); startStage();
+    stage=Math.min(100,stage+1); selectedStage=stage; localStorage.setItem('dr_selected_stage',selectedStage); totalCoins=coins; saveMeta(); hide(stageScreen); startStage();
   };
 
   show(stageScreen);
