@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}.badge{background:rgba(15,21,30,.86);border:1px solid rgba(255,210,80,.5);color:#fff;border-radius:16px;padding:9px 12px;font-weight:800;font-size:14px}#hint{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(12,19,28,.9);color:#fff;border-radius:20px;padding:9px 15px;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><div id="hud"><div class="badge">🦆 돌돌 특공대 · v6.8</div><div class="badge">STAGE 1</div></div><div id="hint">화면 전체를 하나의 게임 좌표계로 사용</div><button id="start">🚀 전투 시작</button><div id="log"></div>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}.badge{background:rgba(15,21,30,.86);border:1px solid rgba(255,210,80,.5);color:#fff;border-radius:16px;padding:9px 12px;font-weight:800;font-size:14px}#hint{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(12,19,28,.9);color:#fff;border-radius:20px;padding:9px 15px;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style></head><body><canvas id="game"></canvas><div id="hud"><div class="badge">🦆 돌돌 특공대 · v6.9</div><div class="badge">STAGE 1</div></div><div id="hint">화면 전체를 하나의 게임 좌표계로 사용</div><button id="start">🚀 전투 시작</button><div id="log"></div>
 <script>
 (() => {
 'use strict';
@@ -10,7 +10,7 @@ const wrap = document.body;
 let vw=1, vh=1, dpr=1, running=false, last=0;
 let player, enemies=[], rocks=[], shots=[], particles=[];
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
-let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false;
+let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false;
 
 function resize(){
   const r=cv.getBoundingClientRect();
@@ -27,7 +27,7 @@ addEventListener('pageshow',resize);
 resize();
 
 function reset(){
-  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false;
+  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false;
   player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
   enemies=[]; rocks=[]; shots=[]; particles=[];
   for(let i=0;i<total;i++) spawnEnemy(i);
@@ -36,23 +36,33 @@ function reset(){
 function startStage(n){
   stage=n;
   kills=0;
-  total=Math.min(12,7+n);
+  boss=(stage%5===0);
+  total=boss?1:Math.min(12,7+stage);
   clearTimer=0;
   gate=false;
   message='';
   messageTimer=0;
   combo=0;
   comboTimer=0;
+  intro=1.25;
   rocks=[]; shots=[]; particles=[];
   enemies=[];
-  for(let i=0;i<total;i++) spawnEnemy(i);
+  if(boss){
+    enemies.push({
+      type:'boss',x:vw*.5,y:vh*.20,r:48,
+      hp:12,max:12,speed:38,fire:.8,phase:0
+    });
+  }else{
+    for(let i=0;i<total;i++) spawnEnemy(i);
+  }
   player.x=vw*.5;
   player.y=vh*.80;
   player.hp=Math.min(player.maxHp, player.hp+25);
-  player.inv=.6;
+  player.inv=.8;
   running=true;
   last=performance.now();
 }
+
 function nextStage(){
   startStage(stage+1);
 }
@@ -169,6 +179,7 @@ cv.addEventListener('pointercancel',joyEnd);
 
 function update(dt){
   if(!running) return;
+  if(intro>0){ intro-=dt; return; }
 
   if(player.inv>0) player.inv-=dt;
   if(messageTimer>0) messageTimer-=dt;
@@ -190,16 +201,20 @@ function update(dt){
   for(const e of enemies){
     if(e.dead) continue;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
-    const desired=e.type==='fast'?135:e.type==='tank'?220:175;
+    const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
     if(L>desired){
       e.x+=dx/L*e.speed*dt; e.y+=dy/L*e.speed*dt;
+    }else if(e.type==='boss'){
+      e.phase+=dt;
+      e.x=vw*.5+Math.sin(e.phase*.9)*vw*.28;
+      e.y=vh*.18+Math.sin(e.phase*1.7)*18;
     }else if(e.type==='fast'){
       e.x-=dx/L*e.speed*.35*dt; e.y-=dy/L*e.speed*.35*dt;
     }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
     e.fire-=dt;
     if(e.fire<=0){
-      e.fire=e.type==='tank'?2.0: e.type==='fast'?1.15:1.55;
+      e.fire=e.type==='boss'?.85:e.type==='tank'?2.0: e.type==='fast'?1.15:1.55;
       enemyShoot(e);
     }
   }
@@ -264,11 +279,12 @@ function drawDuck(x,y,scale=1){
 }
 function drawEnemy(e){
   ctx.save();ctx.translate(e.x,e.y);
-  ctx.fillStyle=e.type==='tank'?'#5b6570':e.type==='fast'?'#d95757':'#8d6b4d';
+  ctx.fillStyle=e.type==='boss'?'#8e3f68':e.type==='tank'?'#5b6570':e.type==='fast'?'#d95757':'#8d6b4d';
   ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
+  if(e.type==='boss'){ctx.strokeStyle='#ffd866';ctx.lineWidth=5;ctx.stroke();ctx.font='bold 20px system-ui';ctx.fillStyle='#ffd866';ctx.fillText('★',0,-8);}
   ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-7,-5,3,0,Math.PI*2);ctx.arc(7,-5,3,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#ddd';ctx.font='bold 11px system-ui';ctx.textAlign='center';
-  ctx.fillText(e.type==='tank'?'T':e.type==='fast'?'F':'N',0,4);
+  ctx.fillText(e.type==='boss'?'BOSS':e.type==='tank'?'T':e.type==='fast'?'F':'N',0,4);
   ctx.restore();
 }
 function draw(){
@@ -313,8 +329,8 @@ function draw(){
   }
   for(const e of enemies){
     drawEnemy(e);
-    ctx.fillStyle='#2b3035';roundRect(e.x-24,e.y-e.r-12,48,5,3);ctx.fill();
-    ctx.fillStyle='#ef5a5a';roundRect(e.x-24,e.y-e.r-12,48*(e.hp/e.max),5,3);ctx.fill();
+    ctx.fillStyle='#2b3035';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48),6,3);ctx.fill();
+    ctx.fillStyle='#ef5a5a';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48)*(e.hp/e.max),6,3);ctx.fill();
   }
 
   if(player.inv<=0 || Math.floor(performance.now()/70)%2===0) drawDuck(player.x,player.y);
@@ -331,6 +347,14 @@ function draw(){
   }else{
     ctx.fillStyle='rgba(255,255,255,.12)';ctx.beginPath();ctx.arc(78,vh-86,52,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DRAG',78,vh-82);
+  }
+
+  if(intro>0){
+    ctx.fillStyle='rgba(5,8,12,.52)';ctx.fillRect(0,0,vw,vh);
+    ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+    ctx.fillText(boss?'BOSS STAGE':'STAGE '+stage,vw/2,vh*.43);
+    ctx.font='bold 16px system-ui';ctx.fillStyle='#ffd866';
+    ctx.fillText(boss?'⚠️ 강력한 적 출현':'전투 준비!',vw/2,vh*.49);
   }
 
   if(messageTimer>0){
