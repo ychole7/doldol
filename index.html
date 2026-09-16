@@ -626,9 +626,12 @@ const ENEMY_TYPES = {
   normal: { r:22, hpMul:1,   color:'#e85d4d', speed:1,   coolMul:1,    rockSpd:1 },
   fast:   { r:16, hpMul:0.6, color:'#e8b84d', speed:2.0, coolMul:0.9,  rockSpd:1.35 },
   tank:   { r:31, hpMul:2.6, color:'#8e6db8', speed:0.45, coolMul:1.6, rockSpd:0.8 },
+  sniper: { r:20, hpMul:1.15, color:'#4d8fe8', speed:0.75, coolMul:1.15, rockSpd:1.0 },
+  bomber: { r:24, hpMul:1.35, color:'#d95757', speed:0.85, coolMul:1.05, rockSpd:0.95 },
 };
 function makeEnemy(x,y,hp,type='normal'){
-  const t=ENEMY_TYPES[type];
+  const t=ENEMY_TYPES[type] || ENEMY_TYPES.normal;
+  if(!ENEMY_TYPES[type]) type='normal';
   const thp=Math.max(1,Math.round(hp*t.hpMul));
   return { x, y, r:t.r, hp:thp, maxhp:thp, cool:rand(40,110),
     vx:rand(-.6,.6)*t.speed, driftT:rand(60,140), flash:0, alive:true, wob:rand(0,6),
