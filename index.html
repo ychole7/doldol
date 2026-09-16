@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>돌돌 특공대 v4.8</title>
+<title>돌돌 특공대 v5.0</title>
 <meta name="theme-color" content="#151820">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🪨%3C/text%3E%3C/svg%3E">
 <style>
@@ -202,6 +202,12 @@ body.v20 #joystick{filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));}
 .mainStartBtn{width:min(390px,100%);min-height:56px;border:1px solid #ffe9a0;border-radius:17px;background:linear-gradient(180deg,#ffe073,#ffb22f 60%,#ee8c1f);color:#573000;display:flex;align-items:center;text-align:left;padding:8px 14px;box-shadow:0 5px 0 #a95e0a,0 10px 24px #0006,inset 0 1px #fff9}.mainStartBtn>span{font-size:24px;margin-right:8px}.mainStartBtn div{flex:1}.mainStartBtn b{display:block;font-size:18px}.mainStartBtn small{display:block;font-size:9px;opacity:.65;margin-top:1px}.mainStartBtn i{font-style:normal;font-size:29px;line-height:1}.mainStartBtn:active{transform:translateY(2px);box-shadow:0 2px #a95e0a,0 7px 18px #0006}
 #startScreen .lobbyTabs{width:min(390px,100%);margin:1px 0 0;padding:4px;background:#090b0f99;border:1px solid #ffffff12;border-radius:15px}.lobbyTab{font-size:11px!important;padding:9px 4px!important}.lobbyPanel.active{width:min(390px,100%);padding:8px 10px;border-radius:13px;background:#ffffff06;border-color:#ffffff0d}.lobbyActions{width:min(390px,100%);gap:6px}.lobbyAction{height:52px;padding:5px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:13px;background:#ffffff08;border-color:#ffffff13}.lobbyAction:first-line{font-size:17px}.lobbyAction b{font-size:9px;font-weight:800}.enemyBrief{width:min(390px,100%);padding:9px;border-radius:15px;background:#ffffff06;border:1px solid #ffffff10}.enemyBriefHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.enemyBriefHead b{font-size:11px;color:#ffd45e}.enemyBriefHead span{font-size:8px;color:#777}.enemyBriefGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.enemyBriefGrid>div{min-width:0;padding:6px 2px;text-align:center;border-radius:9px;background:#0003}.enemyBriefGrid i{display:block;font-style:normal;font-size:20px}.enemyBriefGrid b{display:block;font-size:8px;margin-top:2px;color:#ddd}.lobbyHint{width:min(390px,100%);font-size:9px;color:#999;text-align:center;padding:2px 4px 3px}.bottomNav{position:fixed!important;z-index:20!important;bottom:0;left:0;right:0;margin:auto;width:min(430px,100%);height:64px;display:grid;grid-template-columns:repeat(5,1fr);padding:5px 7px calc(5px + env(safe-area-inset-bottom));background:rgba(15,17,23,.96);border-top:1px solid #ffffff14;box-shadow:0 -10px 25px #0007;backdrop-filter:blur(12px)}.bottomNav button{border:0;background:transparent;color:#9297a2;border-radius:12px;font-size:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.bottomNav button b{font-size:8px;font-weight:800}.bottomNav button.sel{color:#ffd45e;background:#ffd45e12}.bottomNav button:active{transform:scale(.95)}
 @media(max-height:700px){#startScreen{gap:6px;padding-top:8px}.lobbyHero3D{height:126px}.hero3DChar{width:125px;height:128px}.heroInfo3D>b{font-size:17px}.heroPerks span{font-size:7px;padding:4px}.brandTitle{font-size:27px}.quickStats>div{padding:6px}.selectedWeaponCard{padding:7px}.mainStartBtn{min-height:51px}.bottomNav{height:58px}}
+</style>
+
+<style id="v50-layout-fix">
+html,body{margin:0!important;padding:0!important;width:100%!important;height:100%!important;overflow:hidden!important;}
+#wrap{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;overflow:hidden!important;display:block!important;}
+#game{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;display:block!important;transform:none!important;aspect-ratio:auto!important;border-radius:0!important;}
 </style>
 </head>
 <body class="v20">
@@ -443,6 +449,34 @@ function resize(){
 window.addEventListener('resize', resize, {passive:true});
 window.addEventListener('orientationchange', ()=>setTimeout(resize,80), {passive:true});
 resize();
+
+// v5.0: Safari/iOS canvas layout watchdog. Keep the game surface pinned to the
+// actual layout viewport without using visualViewport dimensions.
+function lockGameSurface(){
+  const root=document.documentElement;
+  const body=document.body;
+  const c=document.getElementById('game');
+  if(!c)return;
+  root.style.setProperty('width','100%','important');
+  root.style.setProperty('height','100%','important');
+  body.style.setProperty('width','100%','important');
+  body.style.setProperty('height','100%','important');
+  c.style.setProperty('position','fixed','important');
+  c.style.setProperty('left','0px','important');
+  c.style.setProperty('top','0px','important');
+  c.style.setProperty('right','0px','important');
+  c.style.setProperty('bottom','0px','important');
+  c.style.setProperty('width','auto','important');
+  c.style.setProperty('height','auto','important');
+  c.style.setProperty('min-width','100%','important');
+  c.style.setProperty('min-height','100%','important');
+  c.style.setProperty('max-width','none','important');
+  c.style.setProperty('max-height','none','important');
+}
+lockGameSurface();
+window.addEventListener('pageshow',lockGameSurface,{passive:true});
+window.addEventListener('resize',lockGameSurface,{passive:true});
+window.addEventListener('orientationchange',()=>setTimeout(lockGameSurface,100),{passive:true});
 
 // ----- 게임 상태 -----
 let state = 'menu'; // menu, playing, stageclear, skillpick, gameover, paused, intro
