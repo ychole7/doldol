@@ -1073,10 +1073,21 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
   window.__duckSetBattleControls=function(show){
     const c=document.getElementById('battleControls');
     if(c){ c.classList.toggle('show',!!show); c.setAttribute('aria-hidden',show?'false':'true'); }
+
     const b=document.getElementById('battleSkill');
     if(b) b.style.display=show?'flex':'none';
+
     const h=document.getElementById('battleHud');
     if(h) h.style.display=show?'flex':'none';
+
+    // 전투 중에는 로비/맵에서 쓰는 '전투 시작' 버튼을 숨긴다.
+    const startButtons=document.querySelectorAll(
+      '#startBattle, #startStage, #battleStart, .startBattle, .stageStart, [data-action="start-battle"]'
+    );
+    startButtons.forEach(el=>{
+      el.style.visibility=show?'hidden':'';
+      el.style.pointerEvents=show?'none':'';
+    });
   };
 
   // Public entry point: this MUST live inside the combat engine IIFE,
