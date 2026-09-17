@@ -1407,12 +1407,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(mapLobby)mapLobby.onclick=showLobby;
   if(resultLobby)resultLobby.onclick=showLobby;
 
-  // Result next button: continue from current engine stage.
-  if(resultNext)resultNext.onclick=function(){
+  // Result next button: CLEAR goes to reward selection first.
+  if(resultNext)resultNext.onclick=function(e){
+    e.preventDefault();
     const clear=$("resultTitle") && $("resultTitle").textContent==="CLEAR!";
     const s=Number(window.__duckStage||1)||1;
+    if(clear && window.__duckOpenStageReward){
+      window.__duckOpenStageReward();
+      return;
+    }
     if(result)result.classList.remove("show");
-    startBattle(clear?s+1:s);
+    startBattle(s);
   };
 
   const battlePause=document.getElementById('battlePause');
@@ -1546,17 +1551,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     o.style.display="flex";
   }
 
-  // 기존 결과 버튼의 bubble listener보다 먼저 실행해서 '다음 스테이지'로 바로 넘어가지 않게 한다.
-  next.addEventListener("click",function(e){
-    if(document.getElementById("resultTitle")?.textContent==="CLEAR!"){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      const resultBox=document.getElementById("resultScreen");
-      if(resultBox)resultBox.classList.remove("show");
-      openChoices();
-    }
-  },true);
-
+  window.__duckOpenStageReward=function(){
+    const resultBox=document.getElementById("resultScreen");
+    if(resultBox)resultBox.classList.remove("show");
+    openChoices();
+  };
   window.__duckCloseStageReward=function(){
     if(overlay)overlay.style.display="none";
   };
