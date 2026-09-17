@@ -42,7 +42,7 @@
 #resultScreen{align-items:center;justify-content:center;padding:22px;background:rgba(15,22,20,.74);color:#4a3925}
 .resultCard{width:min(390px,94vw);padding:23px 17px 17px;border-radius:28px;background:linear-gradient(#f8e8b7,#d5b77c);border:4px solid #fff0bd;box-shadow:0 18px 40px rgba(0,0,0,.35);text-align:center}
 .resultTitle{margin:0;color:#fff;font-size:44px;text-shadow:0 4px 0 #7c572d}.resultSub{font-weight:900;opacity:.72;margin:7px 0 13px}.resultStars{font-size:42px;letter-spacing:4px;margin-bottom:13px}.resultReward{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reward{padding:11px;border-radius:16px;background:#fff7dc;border:2px solid #d7b56d}.reward span{display:block;font-size:11px;opacity:.65}.reward b{font-size:19px}.resultActions{display:grid;gap:8px;margin-top:13px}.resultBtn{min-height:52px;border:0;border-radius:17px;background:#755236;color:#fff;font-size:17px;font-weight:1000;box-shadow:0 5px 0 #4e3826}.resultBtn.primary{background:#ffc84d;color:#49351e;box-shadow:0 5px 0 #98682d}
-</style></head><body>
+</style><script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=4582"></script></head><body>
 <style>
 #gameLobby{
   position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;
@@ -811,38 +811,31 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0}; enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
-})();
-</script>
 
-<script>
-(function(){
+  // Public entry point: this MUST live inside the combat engine IIFE,
+  // because stage/running/startStage are lexical variables here.
   window.__duckStartStage=function(s){
     try{
       s=Math.max(1,Math.min(500,Number(s)||1));
-      if(typeof stage!=="undefined") stage=s;
-      window.__selectedDuckStage=s;
-      const rs=document.getElementById("resultScreen"); if(rs)rs.classList.remove("show");
-      const sb=document.getElementById("startBtn");
-      if(sb){
-        sb.style.display="none";
-        sb.click();
-        return;
-      }
-      if(typeof reset==="function"){
-        reset();
-        if(typeof stage!=="undefined") stage=s;
-        running=true;
-        intro=1.25;
-        gate=false;
-        const lobby=document.getElementById("gameLobby");
-        if(lobby) lobby.classList.add("hidden");
-      }
+      const rs=document.getElementById("resultScreen");
+      if(rs) rs.classList.remove("show");
+      const lobby=document.getElementById("gameLobby");
+      if(lobby) lobby.classList.add("hidden");
+      const map=document.getElementById("mapScreen");
+      if(map) map.classList.remove("show");
+      startStage(s);
+      running=true;
+      intro=1.25;
+      gate=false;
+      last=performance.now();
     }catch(e){
-      console.error("start bridge",e);
+      console.error("combat start failed:",e);
     }
   };
 })();
 </script>
+
+
 <script>
 (function(){
  const t=document.getElementById("titleScreen"),b=document.getElementById("titleStart"),l=document.getElementById("gameLobby");
