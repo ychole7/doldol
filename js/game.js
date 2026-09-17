@@ -201,6 +201,7 @@ const CHARACTER_DEFS=[
   {id:'shiba',face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
   {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
 ];
+window.CHARACTER_DEFS=CHARACTER_DEFS;
 function getSelectedCharacter(){
   try{
     const id=localStorage.getItem('doldol_character_v1')||'doldol';
