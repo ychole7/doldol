@@ -1,4 +1,13 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}</style><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.6</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}
+#battleControls{position:fixed;inset:0;z-index:12;pointer-events:none;display:none;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif}
+#battleControls.show{display:block}
+.battlePause{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;width:46px;height:46px;border:2px solid rgba(255,255,255,.28);border-radius:15px;background:rgba(11,17,23,.78);color:#fff;font-size:19px;font-weight:1000;box-shadow:0 5px 14px rgba(0,0,0,.22);pointer-events:auto}
+.battlePause:active{transform:translateY(2px)}
+.battleSkill{position:absolute;right:16px;bottom:calc(26px + env(safe-area-inset-bottom));width:82px;height:82px;border-radius:50%;border:4px solid rgba(255,236,161,.9);background:radial-gradient(circle at 35% 28%,#fff2b4,#ffb52e 52%,#bd6a20);color:#43270d;box-shadow:0 7px 0 #75451f,0 10px 24px rgba(0,0,0,.3);font-weight:1000;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.battleSkill strong{font-size:17px;line-height:18px}.battleSkill small{font-size:9px;opacity:.78}.battleSkill:active{transform:translateY(4px);box-shadow:0 3px 0 #75451f,0 7px 16px rgba(0,0,0,.25)}
+.battleHint{position:absolute;right:17px;bottom:calc(112px + env(safe-area-inset-bottom));padding:6px 9px;border-radius:10px;background:rgba(8,13,18,.62);color:#fff1b0;font-size:10px;font-weight:900;opacity:.82}
+@media(max-width:360px){.battleSkill{width:72px;height:72px;right:12px}.battleHint{right:12px;bottom:calc(100px + env(safe-area-inset-bottom))}}
+</style><style>
 #titleScreen{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:40px 18px 26px;box-sizing:border-box;overflow:hidden;color:#fff;font-family:system-ui,-apple-system,sans-serif;background:radial-gradient(circle at 50% 15%,rgba(255,255,255,.3),transparent 28%),linear-gradient(160deg,#8fd3e9,#7eb99a 48%,#456b57)}
 #titleScreen:before{content:"";position:absolute;width:150%;height:38%;left:-25%;bottom:-12%;background:#4c775b;border-radius:50% 50% 0 0}
 .ts-logo,.ts-duck,.ts-copy,#titleStart,#titleScreen em{position:relative;z-index:1}
@@ -73,7 +82,7 @@
 @media(max-width:390px){.homeResources{gap:2px}.homeRes{padding:5px 4px;font-size:9px}.homeRes button{display:none}.profileMini{min-width:103px}.homeHero{margin-left:42px}.heroLogo h1{font-size:35px}.heroCharacters{min-height:125px}.heroDuck{width:120px;height:120px}.charGhost{font-size:34px}.modeCard span{display:none}.homeBanner b{font-size:11px}.homeNav{height:63px}.navItem strong{font-size:21px}}
 @media(max-height:700px){#gameLobby.commercialLobby{gap:5px}.homeHero{min-height:215px}.heroLogo h1{font-size:33px}.heroCharacters{min-height:105px}.heroDuck{width:100px;height:100px}.charGhost{font-size:29px}.homeBanner{height:48px}.homeNav{height:58px}}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=29196"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=29649"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -226,7 +235,13 @@
   <div class="charBottom"><button class="charAction" id="charGrowthBtn">📈 성장<small>능력치 강화</small></button><button class="charAction primary" id="charSelectBtn">⚔️ 이 캐릭터로 출격</button></div>
 </div>
 
-<canvas id="game"></canvas><button id="start">🚀 전투 시작</button><div id="log"></div>
+<canvas id="game"></canvas>
+<div id="battleControls" aria-hidden="true">
+  <button class="battlePause" id="battlePause" aria-label="일시정지">Ⅱ</button>
+  <div class="battleHint">가까이 올 때 탭!</div>
+  <button class="battleSkill" id="battleParry" aria-label="패링"><strong>PARRY</strong><small>반격 타이밍</small></button>
+</div>
+<button id="start">🚀 전투 시작</button><div id="log"></div>
 <script>
 (() => {
 'use strict';
@@ -247,7 +262,7 @@ let player, enemies=[], rocks=[], shots=[], particles=[];
 let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
-let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false;
+let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 
@@ -292,7 +307,7 @@ function moveAroundCovers(obj,dx,dy){
   return true;
 }
 function reset(){
-  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false;
+  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false;
   player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
   enemies=[]; rocks=[]; shots=[]; particles=[]; pickups=[];
   coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
@@ -307,6 +322,7 @@ function startStage(n){
   total=boss?1:Math.min(12,7+stage);
   clearTimer=0;
   gate=false;
+  paused=false;
   message='';
   messageTimer=0;
   combo=0;
@@ -466,7 +482,7 @@ cv.addEventListener('pointerup',joyEnd);
 cv.addEventListener('pointercancel',joyEnd);
 
 function update(dt){
-  if(!running) return;
+  if(!running || paused) return;
   if(intro>0){ intro-=dt; }
 
   if(player.inv>0) player.inv-=dt;
@@ -851,6 +867,14 @@ function draw(){
     }
   }
   drawUpgrade();
+  if(paused){
+    ctx.fillStyle='rgba(5,8,12,.58)';ctx.fillRect(0,0,vw,vh);
+    ctx.fillStyle='rgba(12,18,24,.94)';roundRect(vw/2-118,vh*.38,236,132,24);ctx.fill();
+    ctx.strokeStyle='rgba(255,216,102,.32)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='900 26px system-ui';ctx.textAlign='center';ctx.fillText('PAUSED',vw/2,vh*.38+43);
+    ctx.fillStyle='#ffd866';ctx.font='800 14px system-ui';ctx.fillText('전투를 잠시 멈췄어요',vw/2,vh*.38+69);
+    ctx.fillStyle='#fff';ctx.font='800 12px system-ui';ctx.fillText('오른쪽 위 일시정지 버튼으로 계속',vw/2,vh*.38+97);
+  }
   ctx.restore();
 }
 
@@ -872,6 +896,21 @@ function loop(t){
 }
 running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0}; enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
+  window.__duckParry=function(){
+    try{ if(running && !paused) return tryParry(); }catch(e){ console.error('parry failed:',e); }
+    return false;
+  };
+  window.__duckTogglePause=function(){
+    if(!running) return;
+    paused=!paused;
+    const b=document.getElementById('battlePause');
+    if(b) b.textContent=paused?'▶':'Ⅱ';
+  };
+  window.__duckSetBattleControls=function(show){
+    const c=document.getElementById('battleControls');
+    if(c){ c.classList.toggle('show',!!show); c.setAttribute('aria-hidden',show?'false':'true'); }
+  };
+
   // Public entry point: this MUST live inside the combat engine IIFE,
   // because stage/running/startStage are lexical variables here.
   window.__duckStartStage=function(s){
@@ -885,6 +924,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
       if(map) map.classList.remove("show");
       startStage(s);
       running=true;
+      if(window.__duckSetBattleControls)window.__duckSetBattleControls(true);
       intro=1.25;
       gate=false;
       last=performance.now();
@@ -895,7 +935,9 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
   window.__duckStopCombat=function(){
     try{
       running=false;
+      paused=false;
       gate=false;
+      if(window.__duckSetBattleControls)window.__duckSetBattleControls(false);
       shake=0;
       message="";
       messageTimer=0;
@@ -1130,6 +1172,11 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
     if(result)result.classList.remove("show");
     startBattle(clear?s+1:s);
   };
+
+  const battlePause=document.getElementById('battlePause');
+  const battleParry=document.getElementById('battleParry');
+  if(battlePause) battlePause.addEventListener('click',e=>{e.preventDefault(); if(window.__duckTogglePause)window.__duckTogglePause();});
+  if(battleParry) battleParry.addEventListener('pointerdown',e=>{e.preventDefault(); if(window.__duckParry)window.__duckParry();});
 
   // Map nodes select a stage directly; no secondary stage-selection screen.
   document.querySelectorAll(".mapNode").forEach(function(n){
