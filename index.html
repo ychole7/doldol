@@ -42,7 +42,22 @@
 #resultScreen{align-items:center;justify-content:center;padding:22px;background:rgba(15,22,20,.74);color:#4a3925}
 .resultCard{width:min(390px,94vw);padding:23px 17px 17px;border-radius:28px;background:linear-gradient(#f8e8b7,#d5b77c);border:4px solid #fff0bd;box-shadow:0 18px 40px rgba(0,0,0,.35);text-align:center}
 .resultTitle{margin:0;color:#fff;font-size:44px;text-shadow:0 4px 0 #7c572d}.resultSub{font-weight:900;opacity:.72;margin:7px 0 13px}.resultStars{font-size:42px;letter-spacing:4px;margin-bottom:13px}.resultReward{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reward{padding:11px;border-radius:16px;background:#fff7dc;border:2px solid #d7b56d}.reward span{display:block;font-size:11px;opacity:.65}.reward b{font-size:19px}.resultActions{display:grid;gap:8px;margin-top:13px}.resultBtn{min-height:52px;border:0;border-radius:17px;background:#755236;color:#fff;font-size:17px;font-weight:1000;box-shadow:0 5px 0 #4e3826}.resultBtn.primary{background:#ffc84d;color:#49351e;box-shadow:0 5px 0 #98682d}
-</style><style>
+</style>
+<style>
+/* Character Select v1 */
+#characterScreen{position:fixed;inset:0;z-index:65;display:none;flex-direction:column;overflow:hidden;padding:calc(10px + env(safe-area-inset-top)) max(12px,3.2vw) calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#80ccec 0%,#b8d98d 42%,#506e55 100%);font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;color:#fff}
+#characterScreen.show{display:flex}
+.charHead{display:flex;align-items:center;gap:10px;min-height:50px}.charHead .backBtn{flex:none}.charHeadTitle{flex:1}.charHeadTitle b{display:block;font-size:21px}.charHeadTitle span{font-size:11px;opacity:.75}.charCurrency{padding:7px 10px;border-radius:14px;background:rgba(30,48,55,.78);font-weight:1000;font-size:12px}
+.charHero{position:relative;flex:none;height:min(31vh,245px);min-height:185px;margin-top:6px;border-radius:24px;overflow:hidden;border:2px solid rgba(255,255,255,.3);background:linear-gradient(145deg,#5d8362,#304c3b);box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.charHero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.35),transparent 35%),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.25))}
+.heroSelected{position:absolute;inset:auto 0 0;text-align:center;font-size:145px;line-height:.8;filter:drop-shadow(0 12px 5px rgba(0,0,0,.25));z-index:1}.heroSelected.duck{font-size:152px}
+.heroInfo{position:absolute;left:14px;right:14px;bottom:12px;z-index:2;display:flex;align-items:end;justify-content:space-between;gap:10px}.heroName{padding:8px 11px;border-radius:14px;background:rgba(26,35,30,.78)}.heroName b{display:block;font-size:20px}.heroName span{font-size:11px;color:#ffd75d;font-weight:900}.heroStats{display:flex;gap:5px}.statPill{padding:6px 8px;border-radius:11px;background:rgba(26,35,30,.78);font-size:10px;font-weight:900}
+.charGrid{flex:1;min-height:0;overflow:auto;padding:10px 2px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-content:start}.charCard{position:relative;min-width:0;border:2px solid rgba(255,255,255,.24);border-radius:17px;background:rgba(33,51,43,.78);padding:7px 5px 8px;color:#fff;box-shadow:0 5px 12px rgba(0,0,0,.12);cursor:pointer}.charCard.selected{border-color:#ffd45a;box-shadow:0 0 0 3px rgba(255,212,90,.2),0 7px 15px rgba(0,0,0,.18);background:rgba(72,71,46,.9)}.charCard.locked{filter:saturate(.45);opacity:.72}.charFace{height:70px;display:grid;place-items:center;font-size:52px;filter:drop-shadow(0 5px 2px rgba(0,0,0,.2))}.charCard b{display:block;font-size:12px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.charRole{display:block;text-align:center;font-size:9px;opacity:.7;margin-top:2px}.charLv{display:block;text-align:center;font-size:9px;color:#ffd45a;font-weight:900;margin-top:4px}.charLock{position:absolute;top:6px;right:6px;font-size:12px}
+.charBottom{flex:none;display:grid;grid-template-columns:1fr 1.5fr;gap:8px}.charAction{min-height:50px;border:0;border-radius:17px;font-size:15px;font-weight:1000;background:#f1dfac;color:#49351e;box-shadow:0 4px 0 #92703b}.charAction.primary{background:#ffc84d;box-shadow:0 5px 0 #98682d}.charAction small{display:block;font-size:9px;opacity:.7;margin-top:1px}
+@media(max-width:370px){.charGrid{grid-template-columns:repeat(3,1fr)}.heroSelected{font-size:120px}.charHero{min-height:165px}.charFace{height:62px;font-size:46px}}
+@media(max-height:680px){.charHero{height:185px;min-height:155px}.charGrid{padding-top:7px}.charFace{height:55px;font-size:42px}.heroSelected{font-size:105px}.heroSelected.duck{font-size:115px}}
+</style>
+<style>
 /* Commercial Home v1 — portrait responsive / safe-area */
 #gameLobby.commercialLobby{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;overflow:hidden;padding:calc(10px + env(safe-area-inset-top)) max(12px,3.2vw) calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#79c9ed 0%,#a8d78e 43%,#416b51 100%);color:#fff;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;gap:8px}
 #gameLobby.commercialLobby:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 10%,rgba(255,255,255,.45),transparent 24%),linear-gradient(180deg,transparent 55%,rgba(23,47,39,.25));pointer-events:none}
@@ -60,7 +75,7 @@
 @media(max-width:390px){.homeResources{gap:2px}.homeRes{padding:5px 4px;font-size:9px}.homeRes button{display:none}.profileMini{min-width:103px}.homeHero{margin-left:42px}.heroLogo h1{font-size:35px}.heroCharacters{min-height:125px}.heroDuck{width:120px;height:120px}.charGhost{font-size:34px}.modeCard span{display:none}.homeBanner b{font-size:11px}.homeNav{height:63px}.navItem strong{font-size:21px}}
 @media(max-height:700px){#gameLobby.commercialLobby{gap:5px}.homeHero{min-height:215px}.heroLogo h1{font-size:33px}.heroCharacters{min-height:105px}.heroDuck{width:100px;height:100px}.charGhost{font-size:29px}.homeBanner{height:48px}.homeNav{height:58px}}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=27855"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=28612"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -195,6 +210,21 @@
     <button class="navItem" id="lobbyShop"><strong>🛒</strong><span>상점</span><em>N</em></button>
     <button class="navItem" id="lobbyBook"><strong>☷</strong><span>기타</span></button>
   </nav>
+</div>
+
+
+<div id="characterScreen" aria-label="캐릭터 선택">
+  <div class="charHead">
+    <button class="backBtn" id="charBack">‹</button>
+    <div class="charHeadTitle"><b>특공대원 선택</b><span>개성 넘치는 특공대원들과 함께하세요!</span></div>
+    <div class="charCurrency">🪙 <span id="charCoins">12,340</span></div>
+  </div>
+  <div class="charHero">
+    <div class="heroSelected duck" id="charHeroFace">🐥</div>
+    <div class="heroInfo"><div class="heroName"><b id="charHeroName">돌돌이</b><span id="charHeroRole">밸런스형 · Lv.12</span></div><div class="heroStats"><span class="statPill">⚔ 18</span><span class="statPill">❤️ 120</span><span class="statPill">⚡ 320</span></div></div>
+  </div>
+  <div class="charGrid" id="charGrid"></div>
+  <div class="charBottom"><button class="charAction" id="charGrowthBtn">📈 성장<small>능력치 강화</small></button><button class="charAction primary" id="charSelectBtn">⚔️ 이 캐릭터로 출격</button></div>
 </div>
 
 <canvas id="game"></canvas><button id="start">🚀 전투 시작</button><div id="log"></div>
@@ -952,7 +982,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
  }));
  document.getElementById("menuClose").addEventListener("click",()=>menu.classList.remove("show"));
  document.getElementById("lobbyShop").addEventListener("click",()=>openMenu("shop"));
- document.getElementById("lobbyGrowth").addEventListener("click",()=>openMenu("growth"));
+ document.getElementById("lobbyGrowth").addEventListener("click",()=>{if(window.__duckOpenCharacters)window.__duckOpenCharacters();});
  document.getElementById("lobbyGear").addEventListener("click",()=>openMenu("gear"));
  document.getElementById("lobbyBook").addEventListener("click",()=>openMenu("book"));
  window.__duckShowResult=function(clear){
@@ -1038,7 +1068,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
  }));
  document.getElementById("menuClose").addEventListener("click",()=>menu.classList.remove("show"));
  document.getElementById("lobbyShop").addEventListener("click",()=>openMenu("shop"));
- document.getElementById("lobbyGrowth").addEventListener("click",()=>openMenu("growth"));
+ document.getElementById("lobbyGrowth").addEventListener("click",()=>{if(window.__duckOpenCharacters)window.__duckOpenCharacters();});
  document.getElementById("lobbyGear").addEventListener("click",()=>openMenu("gear"));
  document.getElementById("lobbyBook").addEventListener("click",()=>openMenu("book"));
  const mission=document.getElementById("lobbyStages"); // keep stage button mapped; mission can be reached later
@@ -1127,6 +1157,30 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
     const c=document.getElementById("lobbyCoins");
     if(c)c.textContent=String((typeof coins!=="undefined"?coins:0));
   };
+})();
+</script>
+
+<script>
+(function(){
+ const screen=document.getElementById('characterScreen');
+ const grid=document.getElementById('charGrid');
+ const face=document.getElementById('charHeroFace');
+ const name=document.getElementById('charHeroName');
+ const role=document.getElementById('charHeroRole');
+ const data=[
+  ['🐥','돌돌이','밸런스형','Lv.12','기본'],['🐱','냥특공','기동형','Lv.8','획득'],['🐰','토끼특공','정밀형','Lv.7','획득'],['🐼','판다특공','방어형','Lv.6','획득'],
+  ['🤖','킹특공','공격형','Lv.5','획득'],['🐢','거북특공','탱커형','Lv.4','획득'],['🦊','시바특공','특수형','Lv.3','획득'],['🐶','돌격특공','근접형','Lv.1','잠금']
+ ];
+ let selected=0;
+ function render(){
+  grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');
+  grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;updateHero();render();});
+ }
+ function updateHero(){const d=data[selected];face.textContent=d[0];face.classList.toggle('duck',selected===0);name.textContent=d[1];role.textContent=d[2]+' · '+d[3];}
+ window.__duckOpenCharacters=function(){screen.classList.add('show');updateHero();render();};
+ document.getElementById('charBack').onclick=()=>screen.classList.remove('show');
+ document.getElementById('charGrowthBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckOpenMenu)window.__duckOpenMenu('growth');};
+ document.getElementById('charSelectBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckStartStage)window.__duckStartStage(Number(window.__selectedDuckStage||1)||1);};
 })();
 </script>
 </body></html>
