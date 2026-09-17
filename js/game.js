@@ -45,6 +45,18 @@ function clearSkillState(){
   skillState=null;
   skillTimer=0;
 }
+function getSkillVisual(id){
+  const map={
+    doldol:{icon:'★',accent:'#ffd84d',glow:'rgba(255,216,77,.34)'},
+    nyang:{icon:'⚡',accent:'#55e7ff',glow:'rgba(85,231,255,.34)'},
+    rabbit:{icon:'✦',accent:'#ff8bea',glow:'rgba(255,139,234,.34)'},
+    panda:{icon:'🛡',accent:'#72d6ff',glow:'rgba(114,214,255,.34)'},
+    king:{icon:'✹',accent:'#ff8a4d',glow:'rgba(255,138,77,.34)'},
+    turtle:{icon:'◆',accent:'#7dff9b',glow:'rgba(125,255,155,.34)'},
+    shiba:{icon:'↯',accent:'#b794ff',glow:'rgba(183,148,255,.34)'}
+  };
+  return map[id]||{icon:'★',accent:'#ffd84d',glow:'rgba(255,216,77,.34)'};
+}
 function showSkillButton(){
   const host=document.getElementById('battleControls');
   if(!host) return null;
@@ -76,16 +88,25 @@ function showSkillButton(){
     host.appendChild(b);
   }
   const def=getActiveSkillDef();
+  const visual=getSkillVisual(getSelectedCharacter().id);
   b.querySelector('small').textContent=skillCooldown>0 ? Math.ceil(skillCooldown)+'s' : def.name;
   b.style.display=(running?'flex':'none');
-  b.style.opacity=skillCooldown>0?.55:'1';
+  b.style.opacity=skillCooldown>0?.58:'1';
   b.style.transform=skillCooldown>0?'scale(.96)':'scale(1)';
+  b.style.borderColor=visual.accent;
+  b.style.boxShadow=skillTimer>0
+    ? `0 0 0 7px ${visual.glow}, 0 12px 26px rgba(0,0,0,.30)`
+    : `0 10px 24px rgba(0,0,0,.28)`;
+  b.title=def.name+' — '+def.desc;
   if(skillTimer>0) {
-    b.style.background='linear-gradient(180deg,#ffcf5a,#ff8a22)';
+    b.style.background=`linear-gradient(180deg,${visual.accent},#ff8a22)`;
     b.querySelector('strong').textContent='ACTIVE';
+  } else if(skillCooldown<=0) {
+    b.style.background=`linear-gradient(180deg,${visual.accent},#6d35cf)`;
+    b.querySelector('strong').textContent=visual.icon+' SKILL';
   } else {
-    b.style.background='linear-gradient(180deg,#8c5cff,#5a2fd1)';
-    b.querySelector('strong').textContent='SKILL';
+    b.style.background='linear-gradient(180deg,#5b6270,#39404b)';
+    b.querySelector('strong').textContent=visual.icon+' SKILL';
   }
   return b;
 }
@@ -96,7 +117,7 @@ function activateSkill(){
   const cd=(c.skill&&c.skill.cd)||9;
   clearSkillState();
   skillCooldown=cd;
-  skillFx=.55;
+  skillFx=1.05;
   skillMessage=(c.skill&&c.skill.name)||'고유 스킬';
   skillState={id,attackMul:1,speedMul:1,parryMul:1,perfectMul:1,multiShot:false};
   if(id==='doldol'){
@@ -143,7 +164,7 @@ function activateSkill(){
     skillTimer=2;
   }
   message=skillMessage+' 발동!';
-  messageTimer=.65;
+  messageTimer=.80;
   burst(player.x,player.y,28);
   shake=7;
   showSkillButton();
@@ -805,10 +826,46 @@ function draw(){
     if(d<180 && d<dangerDist){dangerRock=r;dangerDist=d;}
   }
   const skillBtn=showSkillButton();
+  const activeChar=getSelectedCharacter();
+  const skillVisual=getSkillVisual(activeChar.id);
   if(skillFx>0){
-    ctx.fillStyle='rgba(157,111,255,.10)';ctx.fillRect(0,0,vw,vh);
-    ctx.fillStyle='#e9ddff';ctx.font='900 18px system-ui';ctx.textAlign='center';
-    ctx.fillText(skillMessage,vw/2,vh*.30);
+    const a=Math.min(.22,skillFx*.21);
+    ctx.fillStyle=skillVisual.glow.replace('.34)',a+')');
+    ctx.fillRect(0,0,vw,vh);
+    const cx=player.x, cy=player.y;
+    const pulse=1+(1-skillFx/1.05)*.55;
+    ctx.save();
+    ctx.strokeStyle=skillVisual.accent;
+    ctx.globalAlpha=Math.min(1,skillFx*1.8);
+    ctx.lineWidth=5;
+    ctx.beginPath();ctx.arc(cx,cy,46+58*pulse,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(cx,cy,72+92*pulse,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+
+    const bw=Math.min(vw-36,330), bh=62, bx=(vw-bw)/2, by=vh*.285;
+    ctx.fillStyle='rgba(8,12,18,.90)';roundRect(bx,by,bw,bh,18);ctx.fill();
+    ctx.strokeStyle=skillVisual.accent;ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=skillVisual.accent;ctx.font='900 23px system-ui';ctx.textAlign='left';
+    ctx.fillText(skillVisual.icon,bx+16,by+30);
+    ctx.fillStyle='#fff';ctx.font='900 17px system-ui';ctx.textAlign='left';
+    ctx.fillText(skillMessage,bx+48,by+27);
+    ctx.fillStyle='#cdd5dd';ctx.font='11px system-ui';
+    ctx.fillText(activeChar.skill?.desc||'',bx+48,by+47);
+  }
+
+  // Persistent shield cue for defensive skills.
+  if(player.skillShield>0){
+    ctx.save();
+    ctx.strokeStyle='#72d6ff';ctx.globalAlpha=.85;ctx.lineWidth=4;
+    ctx.beginPath();ctx.arc(player.x,player.y,42+Math.sin(performance.now()/100)*3,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+  }
+  if(player.skillInvincible && skillTimer>0){
+    ctx.save();
+    ctx.strokeStyle=skillVisual.accent;ctx.globalAlpha=.55;ctx.lineWidth=7;
+    ctx.beginPath();ctx.arc(player.x,player.y,50+Math.sin(performance.now()/90)*5,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
   }
   const parryBtn=document.getElementById('battleParry');
   if(parryBtn){
