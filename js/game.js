@@ -21,6 +21,135 @@ let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
+let skillCooldown=0;
+let skillTimer=0;
+let skillState=null;
+let skillFx=0;
+let skillMessage='';
+function getActiveSkillDef(){
+  const c=getSelectedCharacter();
+  return c.skill || {name:'특공 스킬',desc:'고유 스킬',cd:9};
+}
+function clearSkillState(){
+  if(!player) return;
+  if(skillState){
+    if(skillState.speedMul) player.speed/=skillState.speedMul;
+    if(skillState.attackMul) player.skillAttackMul=1;
+    if(skillState.parryMul) player.skillParryMul=1;
+    if(skillState.perfectMul) player.skillPerfectMul=1;
+    if(skillState.multiShot) player.skillMultiShot=false;
+  }
+  player.skillInvincible=false;
+  player.skillShield=0;
+  player.skillAutoParry=false;
+  skillState=null;
+  skillTimer=0;
+}
+function showSkillButton(){
+  const host=document.getElementById('battleControls');
+  if(!host) return null;
+  let b=document.getElementById('battleSkill');
+  if(!b){
+    b=document.createElement('button');
+    b.id='battleSkill';
+    b.type='button';
+    b.setAttribute('aria-label','고유 스킬');
+    b.innerHTML='<strong>SKILL</strong><small>고유 스킬</small>';
+    Object.assign(b.style,{
+      position:'absolute',right:'14px',bottom:'92px',
+      width:'78px',height:'78px',borderRadius:'50%',
+      border:'2px solid rgba(255,255,255,.24)',
+      background:'linear-gradient(180deg,#8c5cff,#5a2fd1)',
+      color:'#fff',display:'none',flexDirection:'column',
+      alignItems:'center',justifyContent:'center',
+      boxShadow:'0 10px 24px rgba(0,0,0,.28)',
+      fontFamily:'system-ui',fontWeight:'900',zIndex:'30',
+      touchAction:'manipulation',cursor:'pointer',padding:'0'
+    });
+    b.querySelector('strong').style.fontSize='17px';
+    b.querySelector('small').style.fontSize='9px';
+    b.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      activateSkill();
+    });
+    host.appendChild(b);
+  }
+  const def=getActiveSkillDef();
+  b.querySelector('small').textContent=skillCooldown>0 ? Math.ceil(skillCooldown)+'s' : def.name;
+  b.style.display=(running?'flex':'none');
+  b.style.opacity=skillCooldown>0?.55:'1';
+  b.style.transform=skillCooldown>0?'scale(.96)':'scale(1)';
+  if(skillTimer>0) {
+    b.style.background='linear-gradient(180deg,#ffcf5a,#ff8a22)';
+    b.querySelector('strong').textContent='ACTIVE';
+  } else {
+    b.style.background='linear-gradient(180deg,#8c5cff,#5a2fd1)';
+    b.querySelector('strong').textContent='SKILL';
+  }
+  return b;
+}
+function activateSkill(){
+  if(!running || paused || upgradeOpen || skillCooldown>0 || !player) return false;
+  const c=getSelectedCharacter();
+  const id=c.id;
+  const cd=(c.skill&&c.skill.cd)||9;
+  clearSkillState();
+  skillCooldown=cd;
+  skillFx=.55;
+  skillMessage=(c.skill&&c.skill.name)||'고유 스킬';
+  skillState={id,attackMul:1,speedMul:1,parryMul:1,perfectMul:1,multiShot:false};
+  if(id==='doldol'){
+    player.skillInvincible=true;
+    player.skillParryMul=1.45;
+    player.skillPerfectMul=1.2;
+    skillState.parryMul=1.45; skillState.perfectMul=1.2;
+    skillTimer=3;
+  }else if(id==='nyang'){
+    player.speed*=1.45;
+    player.skillAttackMul=1.25;
+    player.skillMultiShot=false;
+    skillState.speedMul=1.45; skillState.attackMul=1.25;
+    skillTimer=3;
+  }else if(id==='rabbit'){
+    player.skillPerfectMul=1.75;
+    player.skillParryMul=1.30;
+    skillState.perfectMul=1.75; skillState.parryMul=1.30;
+    skillTimer=2.5;
+  }else if(id==='panda'){
+    player.hp=Math.min(player.maxHp,player.hp+32);
+    player.skillShield=1;
+    skillTimer=5;
+  }else if(id==='king'){
+    player.skillAttackMul=1.9;
+    player.skillMultiShot=true;
+    skillState.attackMul=1.9; skillState.multiShot=true;
+    skillTimer=4;
+  }else if(id==='turtle'){
+    player.hp=Math.min(player.maxHp,player.hp+50);
+    player.skillInvincible=true;
+    skillTimer=2;
+  }else if(id==='shiba'){
+    player.skillAutoParry=true;
+    player.skillPerfectMul=1.5;
+    player.skillParryMul=1.25;
+    skillState.perfectMul=1.5; skillState.parryMul=1.25;
+    skillTimer=3;
+    for(const r of rocks.slice()){
+      if(!r.parried && Math.hypot(r.x-player.x,r.y-player.y)<170) parryAt(player.x,player.y);
+    }
+  }else{
+    player.skillInvincible=true;
+    skillTimer=2;
+  }
+  message=skillMessage+' 발동!';
+  messageTimer=.65;
+  burst(player.x,player.y,28);
+  shake=7;
+  showSkillButton();
+  return true;
+}
+
 
 function resize(){
   const r=cv.getBoundingClientRect();
@@ -63,14 +192,14 @@ function moveAroundCovers(obj,dx,dy){
   return true;
 }
 const CHARACTER_DEFS=[
-  {id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',desc:'기본에 충실한 올라운더',mods:{atk:1.00,speed:1.00,hp:1.00,parry:1.00,move:1.00,perfect:1.00}},
-  {id:'nyang',face:'🐱',name:'냥특공',role:'기동형',desc:'빠르게 움직이고 연속 공격합니다.',mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
-  {id:'rabbit',face:'🐰',name:'토끼특공',role:'정밀형',desc:'완벽한 타이밍에 특화됩니다.',mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
-  {id:'panda',face:'🐼',name:'판다특공',role:'방어형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
-  {id:'king',face:'🤖',name:'킹특공',role:'공격형',desc:'공격력은 높지만 공격 템포가 느립니다.',mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
-  {id:'turtle',face:'🐢',name:'거북특공',role:'탱커형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
-  {id:'shiba',face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
-  {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
+  {id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',desc:'기본에 충실한 올라운더',skill:{name:'특공대 정신',desc:'3초간 무적 + 패링 판정 강화',cd:9},mods:{atk:1.00,speed:1.00,hp:1.00,parry:1.00,move:1.00,perfect:1.00}},
+  {id:'nyang',face:'🐱',name:'냥특공',role:'기동형',desc:'빠르게 움직이고 연속 공격합니다.',skill:{name:'질풍돌진',desc:'3초간 이동/공격 속도 대폭 증가',cd:8},mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
+  {id:'rabbit',face:'🐰',name:'토끼특공',role:'정밀형',desc:'완벽한 타이밍에 특화됩니다.',skill:{name:'초집중',desc:'2.5초간 PERFECT 보정 극대화',cd:8},mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
+  {id:'panda',face:'🐼',name:'판다특공',role:'방어형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',skill:{name:'철벽 방패',desc:'5초간 보호막 1회 + HP 회복',cd:10},mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
+  {id:'king',face:'🤖',name:'킹특공',role:'공격형',desc:'공격력은 높지만 공격 템포가 느립니다.',skill:{name:'화력 폭주',desc:'4초간 공격력 대폭 증가 + 3연발',cd:10},mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
+  {id:'turtle',face:'🐢',name:'거북특공',role:'탱커형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',skill:{name:'거대 등껍질',desc:'2초간 무적 + 큰 폭의 즉시 회복',cd:11},mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
+  {id:'shiba',face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
+  {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
 ];
 function getSelectedCharacter(){
   try{
@@ -112,8 +241,9 @@ function applyGrowthToPlayer(){
 }
 
 function reset(){
-  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false;
-  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1};
+  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
+  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
+showSkillButton();
   applyGrowthToPlayer();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
@@ -128,6 +258,7 @@ function startStage(n){
   total=boss?1:Math.min(12,7+stage);
   clearTimer=0;
   gate=false;
+  skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
   paused=false;
   message='';
   messageTimer=0;
@@ -148,6 +279,8 @@ function startStage(n){
   player.x=vw*.5;
   player.y=vh*.80;
   applyGrowthToPlayer();
+  player.skillAttackMul=1; player.skillParryMul=1; player.skillPerfectMul=1; player.skillMultiShot=false; player.skillInvincible=false; player.skillShield=0; player.skillAutoParry=false;
+  showSkillButton();
   player.hp=Math.min(player.maxHp, player.hp+25);
   player.x=clamp(player.x,32,Math.max(32,vw-32));
   player.y=clamp(player.y,vh*.48,Math.max(vh*.48,vh-90));
@@ -185,7 +318,17 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
-  shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2,damage:Math.max(1,Math.round(player.attack/25))});
+  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25));
+  if(player.skillMultiShot){
+    for(const off of [-70,0,70]){
+      const vx=off;
+      const vy=-520;
+      const len=Math.hypot(vx,vy)||1;
+      shots.push({x:player.x+off*.08,y:player.y-25,vx:vx,vy:vy,r:7,life:2,damage});
+    }
+  }else{
+    shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2,damage});
+  }
 }
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
@@ -211,7 +354,7 @@ function hitEnemy(e,damage=1){
 function parryAt(x,y){
   for(let i=rocks.length-1;i>=0;i--){
     const r=rocks[i], d=Math.hypot(r.x-x,r.y-y);
-    if(d<(player.parryRange||72)){
+    if(d<((player.parryRange||72)*(player.skillParryMul||1))){
       const nearPlayer=Math.hypot(r.x-player.x,r.y-player.y);
       const perfectThreshold=58 + Math.min(34,Math.max(0,(player.growth?.parry||20)-20)*0.35);
       const isPerfect=nearPlayer<perfectThreshold;
@@ -225,7 +368,7 @@ function parryAt(x,y){
       if(isPerfect){
         perfect++;
         r.vx*=1.35; r.vy*=1.35;
-        r.damage=Math.max(1,Math.round(Math.round((player.attack||25)/25)*2*(player.perfectMultiplier||1)));
+        r.damage=Math.max(1,Math.round(Math.round(((player.attack||25)*(player.skillAttackMul||1))/25)*2*(player.perfectMultiplier||1)*(player.skillPerfectMul||1)));
         message='PERFECT PARRY!';
         messageTimer=.62;
         shake=8;
@@ -253,6 +396,13 @@ function pointerPos(e){
   const r=cv.getBoundingClientRect();
   return {x:e.clientX-r.left,y:e.clientY-r.top};
 }
+
+addEventListener('keydown',e=>{
+  if(e.code==='Space' && !e.repeat){
+    e.preventDefault();
+    activateSkill();
+  }
+});
 
 document.getElementById('start').addEventListener('click', e=>{
   e.preventDefault();
@@ -303,6 +453,20 @@ function update(dt){
   for(const d of damageTexts){ d.y+=d.vy*dt; d.vy*=.96; d.life-=dt; }
   damageTexts=damageTexts.filter(d=>d.life>0);
   if(levelFlash>0) levelFlash-=dt;
+  if(skillCooldown>0) skillCooldown=Math.max(0,skillCooldown-dt);
+  if(skillFx>0) skillFx=Math.max(0,skillFx-dt);
+  if(skillTimer>0){
+    skillTimer-=dt;
+    if(skillTimer<=0) clearSkillState();
+  }
+  if(player && player.skillAutoParry){
+    for(const r of rocks){
+      if(!r.parried && Math.hypot(r.x-player.x,r.y-player.y)<player.parryRange*1.15){
+        parryAt(player.x,player.y);
+        break;
+      }
+    }
+  }
   if(comboTimer>0){comboTimer-=dt;}else{combo=0;}
   shake=Math.max(0,shake-dt*24);
 
@@ -317,7 +481,7 @@ function update(dt){
   player.y=clamp(player.y,vh*.48,vh-90);
 
   player.fire-=dt;
-  if(player.fire<=0){player.fire=Math.max(.24,player.attackInterval-(level-1)*.012);shootPlayer();}
+  if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)-(level-1)*.012);shootPlayer();}
 
   for(const e of enemies){
     if(e.dead) continue;
@@ -379,11 +543,20 @@ function update(dt){
       if(circleRectHit(r,c)){ r.life=0; burst(r.x,r.y,6); break; }
     }
     if(r.life<=0) continue;
-    if(!r.parried && player.inv<=0 && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
-      player.hp-=18;player.inv=.55;burst(player.x,player.y,14);
-      message='피격!';messageTimer=.28;
-      if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}},80);}
-      r.life=0;
+    if(!r.parried && player.inv<=0 && !player.skillInvincible && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
+      if(player.skillShield>0){
+        player.skillShield=0;
+        player.inv=.55;
+        burst(player.x,player.y,20);
+        message='방패 방어!';
+        messageTimer=.38;
+        r.life=0;
+      }else{
+        player.hp-=18;player.inv=.55;burst(player.x,player.y,14);
+        message='피격!';messageTimer=.28;
+        if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}},80);}
+        r.life=0;
+      }
     }
     if(r.parried){
       for(const e of enemies){
@@ -630,6 +803,12 @@ function draw(){
     const d=Math.hypot(r.x-player.x,r.y-player.y);
     if(d<180 && d<dangerDist){dangerRock=r;dangerDist=d;}
   }
+  const skillBtn=showSkillButton();
+  if(skillFx>0){
+    ctx.fillStyle='rgba(157,111,255,.10)';ctx.fillRect(0,0,vw,vh);
+    ctx.fillStyle='#e9ddff';ctx.font='900 18px system-ui';ctx.textAlign='center';
+    ctx.fillText(skillMessage,vw/2,vh*.30);
+  }
   const parryBtn=document.getElementById('battleParry');
   if(parryBtn){
     parryBtn.classList.remove('ready','perfect');
@@ -744,8 +923,11 @@ function loop(t){
 running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1}; applyGrowthToPlayer(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
-    try{ if(running && !paused) return tryParry(); }catch(e){ console.error('parry failed:',e); }
+    try{ if(running && !paused && player) return parryAt(player.x,player.y); }catch(e){ console.error('parry failed:',e); }
     return false;
+  };
+  window.__duckSkill=function(){
+    try{ return activateSkill(); }catch(e){ console.error('skill failed:',e); return false; }
   };
   window.__duckTogglePause=function(){
     if(!running) return;
@@ -756,6 +938,8 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
   window.__duckSetBattleControls=function(show){
     const c=document.getElementById('battleControls');
     if(c){ c.classList.toggle('show',!!show); c.setAttribute('aria-hidden',show?'false':'true'); }
+    const b=document.getElementById('battleSkill');
+    if(b) b.style.display=show?'flex':'none';
   };
 
   // Public entry point: this MUST live inside the combat engine IIFE,
@@ -784,6 +968,8 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
       running=false;
       paused=false;
       gate=false;
+      clearSkillState();
+      skillCooldown=0; skillFx=0; skillMessage='';
       if(window.__duckSetBattleControls)window.__duckSetBattleControls(false);
       shake=0;
       message="";
