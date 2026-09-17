@@ -224,7 +224,25 @@ body:after{
   .lobbyExactScreen .hsBook{left:78vw;top:89vh;width:21vw;height:9vh}
 }
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=12641"></script>
+<style id="v649-responsive-system">
+:root{--app-vw:100vw;--app-vh:100dvh}
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none}
+body{width:100vw;height:100dvh;min-height:100dvh}
+#titleScreen.titleExact,#gameLobby.lobbyExactScreen{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;overflow:hidden!important;display:block!important}
+#titleScreen.titleExact{background:#8fc89c!important}
+#titleScreen.titleExact .titleArtExact{position:absolute!important;left:50%!important;top:50%!important;width:auto!important;height:auto!important;max-width:100vw!important;max-height:100dvh!important;transform:translate(-50%,-50%)!important;object-fit:contain!important;object-position:center!important}
+#titleScreen.titleExact #titleStart{position:fixed!important;z-index:45!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;opacity:0!important;transform:none!important;pointer-events:auto!important}
+#gameLobby.lobbyExactScreen{background:#17291f!important}
+#gameLobby.lobbyExactScreen .lobbyExactArt{position:absolute!important;left:50%!important;top:50%!important;width:auto!important;height:auto!important;max-width:100vw!important;max-height:100dvh!important;transform:translate(-50%,-50%)!important;object-fit:contain!important;object-position:center!important}
+#gameLobby.lobbyExactScreen .lobbyHotspot{position:fixed!important;z-index:32!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;box-shadow:none!important;transform:none!important;opacity:0!important;display:block!important;pointer-events:auto!important}
+@media (min-aspect-ratio:1088/2200){#gameLobby.lobbyExactScreen .lobbyExactArt{height:100dvh!important;width:auto!important}}
+@media (max-aspect-ratio:1088/2200){#gameLobby.lobbyExactScreen .lobbyExactArt{width:100vw!important;height:auto!important}}
+@media (min-aspect-ratio:1080/2400){#titleScreen.titleExact .titleArtExact{height:100dvh!important;width:auto!important}}
+@media (max-aspect-ratio:1080/2400){#titleScreen.titleExact .titleArtExact{width:100vw!important;height:auto!important}}
+#game{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important}
+#mega{max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px)!important}
+</style>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=14947"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -1300,7 +1318,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
   setInterval(()=>{try{if(window.__duckPersist)window.__duckPersist();syncLobby()}catch(e){}},1200);
   syncLobby();
 })();
-</script><div id="v647-marker" aria-hidden="true" style="display:none">v6.47</div>
+</script><div id="v647-marker" aria-hidden="true" style="display:none">v6.49</div>
 <script id="v648-lobby-input-fix">
 (function(){
   const lobby=document.getElementById('gameLobby');
@@ -1321,6 +1339,42 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
     }
     if(y<.13 && x>.82){act('lobbySettings');return;}
   },{passive:true});
+})();
+</script>
+<script id="v649-responsive-hotspots">
+(function(){
+  function place(el, rect, spec){
+    if(!el||!rect)return;
+    el.style.left=(rect.left+rect.width*spec.x)+'px';
+    el.style.top=(rect.top+rect.height*spec.y)+'px';
+    el.style.width=(rect.width*spec.w)+'px';
+    el.style.height=(rect.height*spec.h)+'px';
+  }
+  function sync(){
+    var title=document.getElementById('titleScreen'), ta=title&&title.querySelector('.titleArtExact'), tb=document.getElementById('titleStart');
+    if(title&&ta&&tb&& !title.classList.contains('hidden')){
+      var tr=ta.getBoundingClientRect();
+      place(tb,tr,{x:.12,y:.865,w:.76,h:.10});
+    }
+    var lobby=document.getElementById('gameLobby'), la=lobby&&lobby.querySelector('.lobbyExactArt');
+    if(lobby&&la&&!lobby.classList.contains('hidden')){
+      var r=la.getBoundingClientRect();
+      place(document.getElementById('lobbyStart'),r,{x:.3333,y:.7909,w:.3334,h:.0955});
+      place(document.getElementById('lobbyGrowth'),r,{x:.1074,y:.6673,w:.1324,h:.0655});
+      place(document.getElementById('lobbyGear'),r,{x:.2400,y:.6673,w:.1324,h:.0655});
+      place(document.getElementById('lobbyStages'),r,{x:.3726,y:.6673,w:.1324,h:.0655});
+      place(document.getElementById('lobbyShop'),r,{x:.5052,y:.6673,w:.1324,h:.0655});
+      place(document.getElementById('lobbyBook'),r,{x:.8370,y:.8590,w:.1500,h:.0820});
+      var ls=document.getElementById('lobbySettings'); place(ls,r,{x:.8350,y:.045,w:.12,h:.09});
+    }
+  }
+  window.addEventListener('resize',sync,{passive:true});
+  window.addEventListener('orientationchange',function(){setTimeout(sync,80)},{passive:true});
+  window.addEventListener('pageshow',sync,{passive:true});
+  document.addEventListener('DOMContentLoaded',function(){sync();setTimeout(sync,120);setTimeout(sync,500)});
+  var mo=new MutationObserver(sync); mo.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style']});
+  window.__syncV649=sync;
+  setInterval(sync,1000);
 })();
 </script>
 </body></html>
