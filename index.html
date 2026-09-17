@@ -209,7 +209,22 @@ body:after{
 .small,.sub,.caption{letter-spacing:.01em}
 </style>
 
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=12360"></script>
+<style id="v648-hotspot-fix">
+/* v6.48 — lobby touch reliability: visible reference image + generous, viewport-relative hit areas */
+.lobbyExactScreen{pointer-events:auto!important;touch-action:manipulation!important}
+.lobbyExactArt{pointer-events:none!important}
+.lobbyHotspot{pointer-events:auto!important;touch-action:manipulation!important;z-index:100!important}
+@media (max-width:699px){
+  .lobbyExactScreen .hsSettings{left:auto;right:2.5vw;top:2.5vh;width:14vw;height:9vh}
+  .lobbyExactScreen .hsStart{left:12vw;top:79vh;width:76vw;height:14vh;transform:none}
+  .lobbyExactScreen .hsChars{left:1vw;top:58vh;width:23vw;height:13vh}
+  .lobbyExactScreen .hsGear{left:25vw;top:58vh;width:23vw;height:13vh}
+  .lobbyExactScreen .hsMission{left:49vw;top:58vh;width:23vw;height:13vh}
+  .lobbyExactScreen .hsShop{left:73vw;top:58vh;width:26vw;height:13vh}
+  .lobbyExactScreen .hsBook{left:78vw;top:89vh;width:21vw;height:9vh}
+}
+</style>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=12641"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -1286,4 +1301,26 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
   syncLobby();
 })();
 </script><div id="v647-marker" aria-hidden="true" style="display:none">v6.47</div>
+<script id="v648-lobby-input-fix">
+(function(){
+  const lobby=document.getElementById('gameLobby');
+  if(!lobby)return;
+  function act(id){ const el=document.getElementById(id); if(el) el.click(); }
+  lobby.addEventListener('pointerup',function(e){
+    if(e.defaultPrevented)return;
+    const t=e.target;
+    if(t && t.closest && t.closest('.lobbyHotspot'))return;
+    const r=lobby.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+    if(y>.78 && y<.96 && x>.08 && x<.92){ act('lobbyStart'); return; }
+    if(y>.55 && y<.73){
+      if(x<.25){act('lobbyGrowth');return;}
+      if(x<.49){act('lobbyGear');return;}
+      if(x<.73){act('lobbyStages');return;}
+      act('lobbyShop');return;
+    }
+    if(y<.13 && x>.82){act('lobbySettings');return;}
+  },{passive:true});
+})();
+</script>
 </body></html>
