@@ -45,6 +45,82 @@ function clearSkillState(){
   skillState=null;
   skillTimer=0;
 }
+
+function showBattleHud(){
+  const host=document.getElementById('battleControls');
+  if(!host) return;
+  let hud=document.getElementById('battleHud');
+  if(!hud){
+    hud=document.createElement('div');
+    hud.id='battleHud';
+    Object.assign(hud.style,{
+      position:'absolute',left:'12px',right:'12px',
+      top:'calc(10px + env(safe-area-inset-top))',
+      display:'flex',alignItems:'center',justifyContent:'center',
+      pointerEvents:'none',zIndex:'28',fontFamily:'system-ui',
+      textShadow:'0 2px 5px rgba(0,0,0,.55)'
+    });
+    hud.innerHTML=`
+      <div id="hudStage" style="min-width:150px;padding:8px 14px;border-radius:16px;background:rgba(10,16,22,.76);border:1px solid rgba(255,255,255,.16);box-shadow:0 7px 18px rgba(0,0,0,.18);text-align:center">
+        <div id="hudStageMain" style="font-size:15px;font-weight:1000;letter-spacing:.5px;color:#fff">STAGE 1</div>
+        <div id="hudWave" style="font-size:10px;font-weight:800;color:#cfd6df;margin-top:1px">WAVE 1/3</div>
+      </div>`;
+    host.appendChild(hud);
+
+    const left=document.createElement('div');
+    left.id='hudPlayer';
+    Object.assign(left.style,{
+      position:'absolute',left:'0',top:'54px',width:'min(230px,46vw)',
+      padding:'9px 11px',borderRadius:'14px',
+      background:'rgba(10,16,22,.72)',border:'1px solid rgba(255,255,255,.15)',
+      boxShadow:'0 7px 18px rgba(0,0,0,.16)',color:'#fff'
+    });
+    left.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <span id="hudName" style="font-size:11px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+        <span id="hudHpText" style="font-size:10px;font-weight:900"></span>
+      </div>
+      <div style="height:8px;background:rgba(255,255,255,.13);border-radius:6px;overflow:hidden;margin-top:6px">
+        <i id="hudHpBar" style="display:block;width:100%;height:100%;border-radius:6px;background:linear-gradient(90deg,#ff6262,#ff9d42);transition:width .12s ease"></i>
+      </div>`;
+    host.appendChild(left);
+
+    const right=document.createElement('div');
+    right.id='hudCombo';
+    Object.assign(right.style,{
+      position:'absolute',right:'0',top:'54px',minWidth:'88px',
+      padding:'8px 10px',borderRadius:'14px',
+      background:'rgba(10,16,22,.72)',border:'1px solid rgba(255,255,255,.15)',
+      boxShadow:'0 7px 18px rgba(0,0,0,.16)',color:'#fff',textAlign:'center'
+    });
+    right.innerHTML=`
+      <div style="font-size:9px;font-weight:900;color:#cfd6df">COMBO</div>
+      <div id="hudComboNum" style="font-size:22px;font-weight:1000;line-height:24px;color:#ffd84d">0</div>`;
+    host.appendChild(right);
+  }
+
+  const c=getSelectedCharacter();
+  const waveCount=Math.max(1,Math.min(3,Math.ceil((total||1)/3)));
+  const waveNow=Math.max(1,Math.min(waveCount,Math.floor((kills||0)/Math.max(1,(total||1)/waveCount))+1));
+  const hp=Math.max(0,player?.hp||0);
+  const maxHp=Math.max(1,player?.maxHp||120);
+  const pct=Math.max(0,Math.min(100,(hp/maxHp)*100));
+
+  const stageMain=document.getElementById('hudStageMain');
+  const wave=document.getElementById('hudWave');
+  const name=document.getElementById('hudName');
+  const hpText=document.getElementById('hudHpText');
+  const hpBar=document.getElementById('hudHpBar');
+  const comboNum=document.getElementById('hudComboNum');
+
+  if(stageMain) stageMain.textContent='STAGE '+(stage||1)+(boss?' · BOSS':'');
+  if(wave) wave.textContent=`WAVE ${waveNow}/${waveCount}`;
+  if(name) name.textContent=`${c.face} ${c.name}`;
+  if(hpText) hpText.textContent=`${Math.ceil(hp)} / ${Math.ceil(maxHp)}`;
+  if(hpBar) hpBar.style.width=pct+'%';
+  if(comboNum) comboNum.textContent=String(Math.max(0,combo||0));
+}
+
 function getSkillVisual(id){
   const map={
     doldol:{icon:'★',accent:'#ffd84d',glow:'rgba(255,216,77,.34)'},
@@ -825,6 +901,7 @@ function draw(){
     const d=Math.hypot(r.x-player.x,r.y-player.y);
     if(d<180 && d<dangerDist){dangerRock=r;dangerDist=d;}
   }
+  showBattleHud();
   const skillBtn=showSkillButton();
   const activeChar=getSelectedCharacter();
   const skillVisual=getSkillVisual(activeChar.id);
@@ -998,6 +1075,8 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     if(c){ c.classList.toggle('show',!!show); c.setAttribute('aria-hidden',show?'false':'true'); }
     const b=document.getElementById('battleSkill');
     if(b) b.style.display=show?'flex':'none';
+    const h=document.getElementById('battleHud');
+    if(h) h.style.display=show?'flex':'none';
   };
 
   // Public entry point: this MUST live inside the combat engine IIFE,
