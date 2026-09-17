@@ -1470,6 +1470,98 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  document.getElementById('charSelectBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckStartStage)window.__duckStartStage(Number(window.__selectedDuckStage||1)||1);};
 })();
 
+
+/* --- v10 stage reward skill choice --- */
+(function(){
+  const next=document.getElementById("resultNext");
+  if(!next) return;
+
+  const choices=[
+    {id:"power",icon:"⚔️",name:"강철 탄환",desc:"공격력 +15%",apply:p=>{p.attack=Math.round(p.attack*1.15)}},
+    {id:"rapid",icon:"⚡",name:"연사 훈련",desc:"공격속도 +15%",apply:p=>{p.attackInterval=Math.max(.18,p.attackInterval*.85)}},
+    {id:"vital",icon:"❤️",name:"생존 훈련",desc:"최대 HP +25 및 전투 중 즉시 회복",apply:p=>{p.maxHp+=25;p.hp=p.maxHp}},
+    {id:"parry",icon:"🛡️",name:"패링 훈련",desc:"패링 판정 +15%",apply:p=>{p.parryRange*=1.15}},
+    {id:"perfect",icon:"✦",name:"PERFECT 훈련",desc:"PERFECT 반사 피해 +20%",apply:p=>{p.perfectMultiplier*=1.20}},
+    {id:"move",icon:"🏃",name:"기동 훈련",desc:"이동속도 +12%",apply:p=>{p.speed*=1.12}}
+  ];
+
+  let overlay=null;
+
+  function ensureOverlay(){
+    if(overlay) return overlay;
+    overlay=document.createElement("div");
+    overlay.id="stageSkillReward";
+    Object.assign(overlay.style,{
+      position:"fixed",inset:"0",zIndex:"120",
+      display:"none",alignItems:"center",justifyContent:"center",
+      padding:"20px",boxSizing:"border-box",
+      background:"rgba(5,9,13,.82)",backdropFilter:"blur(7px)",
+      fontFamily:"system-ui"
+    });
+    overlay.innerHTML=`
+      <div id="stageSkillPanel" style="width:min(430px,94vw);max-height:88vh;overflow:auto;border-radius:28px;padding:22px 18px 18px;background:linear-gradient(180deg,#fff8df,#ead19a);box-shadow:0 24px 70px rgba(0,0,0,.45);color:#382718;text-align:center">
+        <div style="font-size:11px;font-weight:1000;letter-spacing:2px;color:#9b6a28">STAGE REWARD</div>
+        <h2 style="margin:5px 0 2px;font-size:28px;font-weight:1000">특공대 보급품</h2>
+        <p style="margin:0 0 16px;color:#725f47;font-size:12px;font-weight:800">보급품 하나를 선택하세요</p>
+        <div id="stageSkillCards" style="display:grid;gap:10px"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function pickThree(){
+    const pool=choices.slice();
+    for(let i=pool.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,3);
+  }
+
+  function openChoices(){
+    const o=ensureOverlay(), cards=o.querySelector("#stageSkillCards");
+    const selected=pickThree();
+    cards.innerHTML=selected.map((c,i)=>`
+      <button data-skill="${c.id}" style="appearance:none;width:100%;border:2px solid rgba(125,91,35,.22);border-radius:18px;background:#fffdf4;padding:14px;text-align:left;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 5px 12px rgba(90,60,20,.10)">
+        <span style="width:48px;height:48px;flex:0 0 48px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#ffe17b,#ffb52f);font-size:25px">${c.icon}</span>
+        <span style="display:block"><b style="display:block;font-size:16px;color:#392919">${c.name}</b><small style="display:block;margin-top:3px;color:#786650;font-size:11px;font-weight:800">${c.desc}</small></span>
+        <span style="margin-left:auto;font-size:18px;color:#b98935">›</span>
+      </button>`).join("");
+
+    cards.querySelectorAll("button").forEach(btn=>{
+      btn.onclick=()=>{
+        const c=selected.find(x=>x.id===btn.dataset.skill);
+        if(!c)return;
+        if(player)c.apply(player);
+        try{
+          const saved=JSON.parse(localStorage.getItem("doldol_run_skills_v1")||"[]");
+          saved.push(c.id);
+          localStorage.setItem("doldol_run_skills_v1",JSON.stringify(saved));
+        }catch(e){}
+        o.style.display="none";
+        const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
+        if(window.__duckStartStage)window.__duckStartStage(s+1);
+      };
+    });
+    o.style.display="flex";
+  }
+
+  // 기존 결과 버튼의 bubble listener보다 먼저 실행해서 '다음 스테이지'로 바로 넘어가지 않게 한다.
+  next.addEventListener("click",function(e){
+    if(document.getElementById("resultTitle")?.textContent==="CLEAR!"){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const resultBox=document.getElementById("resultScreen");
+      if(resultBox)resultBox.classList.remove("show");
+      openChoices();
+    }
+  },true);
+
+  window.__duckCloseStageReward=function(){
+    if(overlay)overlay.style.display="none";
+  };
+})();
+
 /* --- v4 character growth system --- */
 (function(){
  const screen=document.getElementById('growthScreen');
