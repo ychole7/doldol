@@ -1027,3 +1027,31 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
  document.getElementById('charGrowthBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckOpenMenu)window.__duckOpenMenu('growth');};
  document.getElementById('charSelectBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckStartStage)window.__duckStartStage(Number(window.__selectedDuckStage||1)||1);};
 })();
+
+/* --- v4 character growth system --- */
+(function(){
+ const screen=document.getElementById('growthScreen');
+ const cards=document.getElementById('growthCards');
+ if(!screen||!cards)return;
+ const stats=[
+  {key:'atk',icon:'⚔️',name:'공격력',desc:'적에게 주는 기본 피해를 높입니다.',base:25,max:100,cost:300,step:3},
+  {key:'speed',icon:'⚡',name:'공격속도',desc:'자동 공격 간격을 줄여 더 빠르게 공격합니다.',base:1.2,max:3,cost:350,step:.08},
+  {key:'hp',icon:'❤️',name:'최대 HP',desc:'더 많은 돌을 버티고 전투를 이어갑니다.',base:120,max:300,cost:400,step:15},
+  {key:'parry',icon:'🛡️',name:'패링 판정',desc:'PARRY 성공 판정 범위를 조금 더 넓힙니다.',base:20,max:80,cost:450,step:5}
+ ];
+ let values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
+ let coins=Number(localStorage.getItem('doldol_coins_v1')||'12340');
+ function render(){
+   cards.innerHTML=stats.map(s=>{const v=values[s.key]??s.base;const pct=Math.min(100,((v-s.base)/(s.max-s.base))*100+35);const can=v<s.max&&coins>=s.cost;return `<div class="growthStat"><div class="growthStatTop"><b>${s.icon} ${s.name}</b><strong>${s.key==='speed'?v.toFixed(2):v}${s.key==='parry'?'%':''}</strong></div><p>${s.desc}</p><div class="growthBar"><i style="width:${pct}%"></i></div><button class="growthUpgrade ${can?'':'disabled'}" data-key="${s.key}">${v>=s.max?'MAX':'강화  ·  🪙 '+s.cost}</button></div>`}).join('');
+   document.getElementById('growthCoins').textContent=coins.toLocaleString();
+   cards.querySelectorAll('.growthUpgrade').forEach(btn=>btn.onclick=()=>upgrade(btn.dataset.key));
+ }
+ function upgrade(key){const s=stats.find(x=>x.key===key),v=values[key]??s.base;if(!s||v>=s.max||coins<s.cost)return;coins-=s.cost;values[key]=Math.min(s.max,v+s.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));localStorage.setItem('doldol_coins_v1',String(coins));render();}
+ window.__duckOpenGrowth=function(char){
+   const d=char||{face:'🐥',name:'돌돌이',role:'밸런스형 · Lv.12'};
+   document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=d.name||'돌돌이';document.getElementById('growthRole').textContent=d.role||'밸런스형 · Lv.12';render();screen.classList.add('show');
+ };
+ document.getElementById('growthBack').onclick=()=>screen.classList.remove('show');
+ const old=document.getElementById('charGrowthBtn');
+ if(old)old.onclick=()=>{document.getElementById('characterScreen').classList.remove('show');window.__duckOpenGrowth();};
+})();
