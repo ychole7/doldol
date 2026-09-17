@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.45</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>돌돌 특공대 v6.46</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#11151d;touch-action:none}body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#hud{display:none}.badge{display:none}#hint{display:none}#start{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;border:0;border-radius:26px;padding:14px 26px;background:linear-gradient(#ffd866,#ff9f2f);color:#39220b;font-size:18px;font-weight:900;box-shadow:0 7px 0 #b85f18,0 10px 24px rgba(0,0,0,.3)}#log{position:fixed;bottom:5px;right:6px;color:#ff9b9b;font:10px monospace;z-index:9;pointer-events:none}
 /* v6.39 map polish */
 .mapWorld:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.14),transparent 42%),linear-gradient(180deg,transparent 65%,rgba(24,55,38,.18));}
 .mapNode{transition:transform .12s,filter .12s}.mapNode:not(.lock):hover{transform:scale(1.08);filter:brightness(1.08)}
@@ -162,7 +162,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .hsBook{width:80px;height:80px;left:calc(50% + 185px);top:calc(50% + 405px);}
 .srOnly{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;}
 @media(max-aspect-ratio:9/19){.lobbyExactArt{width:100vw;height:100vh}.hsSettings{left:calc(50% + 34vw);top:5vh}.hsStart{width:67vw;height:10vh;top:82vh}.hsChars{left:4vw;top:63vh}.hsGear{left:18vw;top:63vh}.hsMission{left:32vw;top:63vh}.hsShop{left:46vw;top:63vh}.hsBook{left:83vw;top:88vh}}
-</style><script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=10484"></script></head><body>
+</style><script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=12218"></script></head><body>
 <style>
 #gameLobby{
   position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;
@@ -530,6 +530,17 @@ function update(dt){
   if(muzzleFlash>0) muzzleFlash-=dt;
 
   let ax=0,ay=0;
+  const slotY=vh-55;
+  const slotXs=[vw*.25,vw*.39,vw*.53,vw*.67];
+  const slotDefs=[['🪨','∞'],['🔥','3'],['💠','3'],['✹','2']];
+  for(let i=0;i<slotXs.length;i++){
+    const x=slotXs[i];ctx.fillStyle='rgba(255,248,220,.10)';ctx.beginPath();ctx.arc(x,slotY,25,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,232,170,.38)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=i===0?'#d2c4a6':i===1?'#ff5c4f':i===2?'#55c9ff':'#bd71ff';ctx.beginPath();ctx.arc(x,slotY,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.fillText(slotDefs[i][0],x,slotY+5);
+    ctx.fillStyle='#fff3c9';ctx.font='900 9px system-ui';ctx.fillText(slotDefs[i][1],x,slotY+35);
+  }
+
   if(joy.active){
     ax=clamp((joy.x-joy.baseX)/62,-1,1);
     ay=clamp((joy.y-joy.baseY)/62,-1,1);
@@ -813,12 +824,8 @@ function draw(){
     ctx.fillStyle='rgba(74,111,63,.22)';ctx.fillRect(tx-2,ty+rr*.45,4,rr*.75);
   }
 
-  // Stage progress ribbon: gives each 5-stage chapter a clear identity.
+  // v6.46: match the approved combat reference — clean HUD, no extra chapter ribbon.
   const chapter=Math.floor((stage-1)/5)+1, chapterStage=((stage-1)%5)+1;
-  ctx.fillStyle='rgba(19,35,24,.58)';roundRect(vw/2-88,78,176,31,15);ctx.fill();
-  ctx.fillStyle='#fff4cf';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText(`CHAPTER ${chapter}  ·  ${chapterStage}/5`,vw/2,98);
-  ctx.fillStyle='rgba(255,255,255,.20)';roundRect(vw/2-72,104,144,4,2);ctx.fill();
-  ctx.fillStyle='#ffd25e';roundRect(vw/2-72,104,144*(chapterStage/5),4,2);ctx.fill();
   // Stage-region atmosphere: the battlefield gradually becomes more intense.
   const region=Math.min(4,Math.floor((stage-1)/5));
   if(region===1){ctx.fillStyle='rgba(255,196,90,.10)';ctx.fillRect(0,0,vw,vh);}
@@ -885,31 +892,23 @@ function draw(){
     ctx.fillStyle='rgba(255,235,187,.16)';roundRect(px-pw*.40,py-ph*.38,pw*.80,6,3);ctx.fill();
   }
 
-  // Top HUD glass panel
-  ctx.fillStyle='rgba(22,39,29,.91)';roundRect(10,10,vw-20,78,21);ctx.fill();
-  ctx.strokeStyle='rgba(255,239,184,.34)';ctx.lineWidth=2;ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,.10)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(25,88);ctx.lineTo(vw-25,88);ctx.stroke();
-  ctx.fillStyle='rgba(255,255,255,.07)';roundRect(14,14,vw-28,24,14);ctx.fill();
-
-  ctx.textAlign='left';ctx.fillStyle='#fff8df';ctx.font='1000 18px system-ui';ctx.fillText(`STAGE ${stage}`,25,39);
-   if(rocks.length>0){ctx.fillStyle='#ffd45f';ctx.font='900 10px system-ui';ctx.fillText('INCOMING ROCKS',25,77);}
-  ctx.fillStyle='#cfe7d0';ctx.font='800 11px system-ui';ctx.fillText(boss?`BOSS · ${kills}/${total}`:`${kills}/${total} 처치`,25,61);
-
-  const bx=vw*.39,bw=vw*.34;
-  ctx.fillStyle='rgba(0,0,0,.30)';roundRect(bx,23,bw,15,8);ctx.fill();
-  ctx.fillStyle='#63d27a';roundRect(bx,23,bw*Math.max(0,Math.min(1,player.hp/player.maxHp)),15,8);ctx.fill();
-  ctx.fillStyle='rgba(0,0,0,.30)';roundRect(bx,46,bw,7,4);ctx.fill();
-  ctx.fillStyle='#72d7ff';roundRect(bx,46,bw*Math.max(0,Math.min(1,levelXp/nextXp)),7,4);ctx.fill();
-  ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.fillText(`HP ${Math.ceil(player.hp)}/${player.maxHp}`,bx+bw/2,35);
-
-  ctx.textAlign='right';ctx.fillStyle='#ffd45f';ctx.font='1000 13px system-ui';ctx.fillText(`🪙 ${coins}`,vw-24,39);
-  ctx.fillStyle='#bce7ff';ctx.font='900 11px system-ui';ctx.fillText(`LV ${level} · XP ${xp}`,vw-24,61);
-  // Small stage objectives, visible but unobtrusive.
-  const elapsed=Math.max(0,(performance.now()-stageStartTime)/1000);
-  const fast=elapsed<38, clean=stageDamageTaken===0;
-  ctx.fillStyle='rgba(20,31,23,.58)';roundRect(vw-126,76,102,42,12);ctx.fill();
-  ctx.textAlign='left';ctx.font='800 8px system-ui';ctx.fillStyle=fast?'#dff5df':'#a8b7aa';ctx.fillText((fast?'✓':'·')+'  38초 클리어',vw-118,91);
-  ctx.fillStyle=clean?'#dff5df':'#a8b7aa';ctx.fillText((clean?'✓':'·')+'  노피격 보너스',vw-118,105);
+  // Approved combat reference HUD: compact, warm, readable.
+  ctx.fillStyle='rgba(37,48,39,.90)';roundRect(10,10,vw-20,64,18);ctx.fill();
+  ctx.strokeStyle='rgba(255,244,198,.24)';ctx.lineWidth=1.5;ctx.stroke();
+  // stage pill
+  ctx.fillStyle='#506d37';roundRect(18,19,58,28,12);ctx.fill();
+  ctx.fillStyle='#fff4c9';ctx.font='1000 12px system-ui';ctx.textAlign='center';ctx.fillText(`ST ${stage}`,47,38);
+  // level + HP bar center
+  const hbX=vw*.30,hbW=vw*.38;
+  ctx.fillStyle='rgba(11,20,15,.52)';roundRect(hbX,18,hbW,30,13);ctx.fill();
+  ctx.fillStyle='#fff4c9';ctx.font='1000 10px system-ui';ctx.fillText(`LV ${level}`,hbX+26,37);
+  ctx.fillStyle='rgba(255,255,255,.16)';roundRect(hbX+48,25,hbW-60,10,5);ctx.fill();
+  ctx.fillStyle='#42c46b';roundRect(hbX+48,25,(hbW-60)*Math.max(0,Math.min(1,player.hp/player.maxHp)),10,5);ctx.fill();
+  ctx.fillStyle='#dff5dc';ctx.font='800 8px system-ui';ctx.fillText(`${Math.ceil(player.hp)}/${player.maxHp}`,hbX+48+(hbW-60)/2,33);
+  // coin + pause
+  ctx.textAlign='right';ctx.fillStyle='#ffd45f';ctx.font='1000 12px system-ui';ctx.fillText(`🪙 ${coins}`,vw-46,35);
+  ctx.fillStyle='rgba(255,255,255,.12)';roundRect(vw-34,19,24,28,10);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.fillText('Ⅱ',vw-22,38);
 
   // Projectile trails and stones
   for(const s of shots){
@@ -987,9 +986,19 @@ function draw(){
     ctx.fillStyle='#ffe27a';ctx.font='1000 10px system-ui';ctx.textAlign='center';ctx.fillText('BURST READY',vw/2,vh-88);
   }
 
-  // Bottom controls
-  ctx.fillStyle='rgba(25,42,31,.87)';roundRect(13,vh-83,vw-26,64,23);ctx.fill();
-  ctx.strokeStyle='rgba(255,236,173,.22)';ctx.lineWidth=1;ctx.stroke();
+  // Reference-style player status bar
+  const phw=82, phx=player.x-phw/2, phy=player.y+39;
+  ctx.fillStyle='rgba(18,27,21,.62)';roundRect(phx,phy,phw,12,6);ctx.fill();
+  ctx.fillStyle='#54d276';roundRect(phx,phy,phw*Math.max(0,Math.min(1,player.hp/player.maxHp)),12,6);ctx.fill();
+  ctx.fillStyle='#f5fff0';ctx.font='900 8px system-ui';ctx.textAlign='center';ctx.fillText(`${Math.ceil(player.hp)}/${player.maxHp}`,player.x,phy+9);
+  // Soft aiming reticle, like the approved reference
+  const aimX=vw*.50, aimY=vh*.37;
+  ctx.strokeStyle='rgba(255,255,255,.86)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(aimX,aimY,19,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.62)';ctx.beginPath();ctx.moveTo(aimX-28,aimY);ctx.lineTo(aimX-18,aimY);ctx.moveTo(aimX+18,aimY);ctx.lineTo(aimX+28,aimY);ctx.moveTo(aimX,aimY-28);ctx.lineTo(aimX,aimY-18);ctx.moveTo(aimX,aimY+18);ctx.lineTo(aimX,aimY+28);ctx.stroke();
+
+  // Bottom controls — compact five-slot combat tray from the approved reference.
+  ctx.fillStyle='rgba(35,43,35,.90)';roundRect(10,vh-91,vw-20,72,24);ctx.fill();
+  ctx.strokeStyle='rgba(255,235,178,.24)';ctx.lineWidth=1.5;ctx.stroke();
 
   if(joy.active){
     ctx.globalAlpha=.20;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(78,vh-51,53,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.85;
@@ -1001,15 +1010,15 @@ function draw(){
   }
 
   // Skill button — charged by kills and successful parries.
-  const skillX=vw/2, skillY=vh-51, sr=35, ready=skillCharge>=skillMax;
-  ctx.fillStyle=ready?'rgba(255,196,70,.20)':'rgba(255,255,255,.08)';ctx.beginPath();ctx.arc(skillX,skillY,sr,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle=ready?'#ffd35a':'rgba(255,255,255,.20)';ctx.lineWidth=3;ctx.stroke();
-  ctx.fillStyle=ready?'#ffe17c':'#c8d3ca';ctx.font='1000 10px system-ui';ctx.textAlign='center';ctx.fillText('BURST',skillX,skillY-2);
-  ctx.font='900 8px system-ui';ctx.fillText(ready?'READY':Math.floor(skillCharge)+'%',skillX,skillY+11);
+  const skillX=vw*.53, skillY=vh-55, sr=0, ready=skillCharge>=skillMax;
+  ctx.fillStyle='rgba(0,0,0,0)';
+  ctx.strokeStyle='rgba(0,0,0,0)';
+  ctx.fillStyle=ready?'#ffe17c':'#c8d3ca';ctx.font='1000 10px system-ui';ctx.textAlign='center';ctx.fillStyle=ready?'#ffe17c':'rgba(255,255,255,.55)';ctx.fillText('BURST',skillX,skillY-25);
+  ctx.font='900 8px system-ui';ctx.fillStyle=ready?'#ffe17c':'rgba(255,255,255,.45)';ctx.fillText(ready?'READY':Math.floor(skillCharge)+'%',skillX,skillY-14);
   if(skillFlash>0){ctx.globalAlpha=Math.max(0,skillFlash/.55);ctx.strokeStyle='#ffe16c';ctx.lineWidth=5;ctx.beginPath();ctx.arc(player.x,player.y,90+(1-skillFlash/.55)*90,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
 
-  const px=vw-75,py=vh-51;
-  ctx.fillStyle='rgba(255,255,255,.09)';ctx.beginPath();ctx.arc(px,py,35,0,Math.PI*2);ctx.fill();
+  const px=vw-58,py=vh-55;
+  ctx.fillStyle='rgba(255,255,255,.09)';ctx.beginPath();ctx.arc(px,py,31,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle='rgba(255,215,98,.72)';ctx.lineWidth=3;ctx.stroke();
   ctx.fillStyle='#ffe08a';ctx.font='1000 11px system-ui';ctx.textAlign='center';ctx.fillText('PARRY',px,py+4);
 
