@@ -1082,7 +1082,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
 
     // 전투 중에는 로비/맵에서 쓰는 '전투 시작' 버튼을 숨긴다.
     const startButtons=document.querySelectorAll(
-      '#startBattle, #startStage, #battleStart, .startBattle, .stageStart, [data-action="start-battle"]'
+      '#start, #startBattle, #startStage, #battleStart, .startBattle, .stageStart, [data-action="start-battle"]'
     );
     startButtons.forEach(el=>{
       el.style.visibility=show?'hidden':'';
@@ -1103,6 +1103,11 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
       if(map) map.classList.remove("show");
       startStage(s);
       running=true;
+      const legacyStart=document.getElementById('start');
+      if(legacyStart){
+        legacyStart.style.visibility='hidden';
+        legacyStart.style.pointerEvents='none';
+      }
       if(window.__duckSetBattleControls)window.__duckSetBattleControls(true);
       intro=1.25;
       gate=false;
