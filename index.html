@@ -242,7 +242,7 @@ body{width:100vw;height:100dvh;min-height:100dvh}
 #game{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important}
 #mega{max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px)!important}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=14947"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=15129"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -1291,12 +1291,15 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
   function missionUI(){shell("📋 미션 / 업적",`<div class="mission"><div class="missionTop"><span>적 50마리 처치</span><b>${Math.min(50,profile.kills+(state().kills||0))}/50</b></div><p>보상 🪙 100</p></div><div class="mission"><div class="missionTop"><span>패링 10회 성공</span><b>${Math.min(10,profile.parry)}/10</b></div><p>보상 🪙 50</p></div><div class="mission"><div class="missionTop"><span>스테이지 5 클리어</span><b>${Math.min(5,profile.clears)}/5</b></div><p>보상 🪙 150</p></div>`)}
   function bookUI(){const a=[["🐗","일반병"],["👺","빠른병"],["🥷","탱커"],["🐺","스나이퍼"],["🦏","폭격병"],["👹","돌격병"],["👻","엘리트"],["🦾","정예"],["👑","보스"]];shell("📖 적 도감",`<div class="megaGrid">${a.map((x,i)=>`<div class="megaItem"><div class="megaIcon">${x[0]}</div><h3>${x[1]}</h3><p>${i<3?"등록 완료":"스테이지 진행으로 해금"}</p></div>`).join("")}</div>`)}
   function settingsUI(){shell("⚙️ 설정",`<div class="setting"><span>🔊 효과음</span><button class="toggle on"></button></div><div class="setting"><span>🎵 배경음</span><button class="toggle on"></button></div><div class="setting"><span>📳 진동</span><button class="toggle on"></button></div><div class="setting"><span>💾 저장 데이터</span><button class="megaBtn" id="resetSave">초기화</button></div>`);$("megaBody").querySelectorAll(".toggle").forEach(b=>b.onclick=()=>b.classList.toggle("on"));$("resetSave").onclick=()=>{localStorage.removeItem(SAVE);location.reload()}}
-  $("lobbyStart").onclick=()=>startBattle(profile.selected);
-  $("lobbyStages").onclick=openMap;$("lobbyShop").onclick=shopUI;$("lobbyGrowth").onclick=charsUI;$("lobbyGear").onclick=weaponsUI;$("lobbyBook").onclick=bookUI;
-  $("megaClose").onclick=closeMega;
-  $("mapBack").onclick=showLobby;$("mapLobby").onclick=showLobby;$("mapGo").onclick=()=>startBattle(profile.selected);$("mapReset").onclick=()=>{profile.selected=profile.unlocked;save();renderMap()};
+  function bind(id, fn){ const el=$(id); if(el) el.onclick=fn; }
+  bind("lobbyStart",()=>startBattle(profile.selected));
+  bind("lobbyStages",openMap); bind("lobbyShop",shopUI); bind("lobbyGrowth",charsUI); bind("lobbyGear",weaponsUI); bind("lobbyBook",bookUI);
+  bind("megaClose",closeMega);
+  bind("mapBack",showLobby); bind("mapLobby",showLobby); bind("mapGo",()=>startBattle(profile.selected));
+  bind("mapReset",()=>{profile.selected=profile.unlocked;save();renderMap()});
   document.querySelectorAll(".mapNode").forEach(n=>n.onclick=()=>{if(n.disabled)return;profile.selected=+n.dataset.stage||1;save();renderMap()});
-  if($("lobbySettings"))$("lobbySettings").onclick=settingsUI;
+  const lobbySettings=$("lobbySettings");
+  if(lobbySettings) lobbySettings.onclick=settingsUI;
   else{const rb=document.querySelector(".resourceBar");if(rb){const b=document.createElement("button");b.id="lobbySettings";b.className="res";b.textContent="⚙️";rb.appendChild(b);b.onclick=settingsUI}}
   window.__duckMissionEvent=t=>{if(t==="kill")profile.kills++;if(t==="parry")profile.parry++;save()};
   const oldResult=window.__duckShowResult;
@@ -1306,8 +1309,8 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
     if(clear){ const bonus=(s.skillCharge>=0?0:0); profile.unlocked=Math.max(profile.unlocked,Math.min(500,st+1));profile.selected=Math.min(profile.unlocked,st+1);profile.clears=Math.max(profile.clears,st);save()}
     syncLobby();
   };
-  $("resultLobby").onclick=showLobby;
-  $("resultNext").onclick=()=>{const clear=$("resultTitle").textContent==="CLEAR!",s=state().stage||profile.selected;if(result)result.classList.remove("show");startBattle(clear?s+1:s)};
+  bind("resultLobby",showLobby);
+  bind("resultNext",()=>{const clear=$("resultTitle").textContent==="CLEAR!",s=state().stage||profile.selected;if(result)result.classList.remove("show");startBattle(clear?s+1:s)});
   // Single-use revive is handled through a lightweight re-entry, preserving the current run's loadout.
   const revive=document.createElement("button");
   revive.className="resultBtn resultRevive";revive.id="resultRevive";revive.textContent="❤️ 부활하기 (1회)";
