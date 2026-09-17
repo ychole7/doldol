@@ -5,6 +5,8 @@
 .battlePause:active{transform:translateY(2px)}
 .battleSkill{position:absolute;right:16px;bottom:calc(26px + env(safe-area-inset-bottom));width:82px;height:82px;border-radius:50%;border:4px solid rgba(255,236,161,.9);background:radial-gradient(circle at 35% 28%,#fff2b4,#ffb52e 52%,#bd6a20);color:#43270d;box-shadow:0 7px 0 #75451f,0 10px 24px rgba(0,0,0,.3);font-weight:1000;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
 .battleSkill strong{font-size:17px;line-height:18px}.battleSkill small{font-size:9px;opacity:.78}.battleSkill:active{transform:translateY(4px);box-shadow:0 3px 0 #75451f,0 7px 16px rgba(0,0,0,.25)}
+.battleSkill.ready{animation:parryPulse .55s ease-in-out infinite alternate;filter:saturate(1.18);border-color:#fff2a8}.battleSkill.ready strong{font-size:18px}.battleSkill.ready small{opacity:1}.battleSkill.perfect{animation:perfectPulse .22s ease-in-out infinite alternate;background:radial-gradient(circle at 35% 28%,#fff,#ffe36a 48%,#f07824);border-color:#fff;color:#4a2200}.battleSkill.perfect strong{font-size:19px}.battleSkill.perfect small{font-size:10px}
+@keyframes parryPulse{from{transform:scale(1)}to{transform:scale(1.045)}}@keyframes perfectPulse{from{transform:scale(1)}to{transform:scale(1.09)}}
 .battleHint{position:absolute;right:17px;bottom:calc(112px + env(safe-area-inset-bottom));padding:6px 9px;border-radius:10px;background:rgba(8,13,18,.62);color:#fff1b0;font-size:10px;font-weight:900;opacity:.82}
 @media(max-width:360px){.battleSkill{width:72px;height:72px;right:12px}.battleHint{right:12px;bottom:calc(100px + env(safe-area-inset-bottom))}}
 </style><style>
@@ -82,7 +84,6 @@
 @media(max-width:390px){.homeResources{gap:2px}.homeRes{padding:5px 4px;font-size:9px}.homeRes button{display:none}.profileMini{min-width:103px}.homeHero{margin-left:42px}.heroLogo h1{font-size:35px}.heroCharacters{min-height:125px}.heroDuck{width:120px;height:120px}.charGhost{font-size:34px}.modeCard span{display:none}.homeBanner b{font-size:11px}.homeNav{height:63px}.navItem strong{font-size:21px}}
 @media(max-height:700px){#gameLobby.commercialLobby{gap:5px}.homeHero{min-height:215px}.heroLogo h1{font-size:33px}.heroCharacters{min-height:105px}.heroDuck{width:100px;height:100px}.charGhost{font-size:29px}.homeBanner{height:48px}.homeNav{height:58px}}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=29649"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -258,7 +259,7 @@ const ctx = cv.getContext('2d');
 const wrap = document.body;
 
 let vw=1, vh=1, dpr=1, running=false, last=0;
-let player, enemies=[], rocks=[], shots=[], particles=[];
+let player, enemies=[], rocks=[], shots=[], particles=[], damageTexts=[];
 let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
@@ -309,7 +310,7 @@ function moveAroundCovers(obj,dx,dy){
 function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false;
   player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
-  enemies=[]; rocks=[]; shots=[]; particles=[]; pickups=[];
+  enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
   makeCovers();
   for(let i=0;i<total;i++) spawnEnemy(i);
@@ -328,7 +329,7 @@ function startStage(n){
   combo=0;
   comboTimer=0;
   intro=1.25;
-  rocks=[]; shots=[]; particles=[]; pickups=[];
+  rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   makeCovers();
   enemies=[];
   if(boss){
@@ -387,6 +388,8 @@ function enemyShoot(e){
 
 function hitEnemy(e){
   e.hp--;
+  e.hitFlash=.16;
+  damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-1',life:.55,vy:-34,crit:false});
   burst(e.x,e.y,10);
   shake=Math.max(shake,3);
   if(e.hp<=0){
@@ -487,6 +490,8 @@ function update(dt){
 
   if(player.inv>0) player.inv-=dt;
   if(messageTimer>0) messageTimer-=dt;
+  for(const d of damageTexts){ d.y+=d.vy*dt; d.vy*=.96; d.life-=dt; }
+  damageTexts=damageTexts.filter(d=>d.life>0);
   if(levelFlash>0) levelFlash-=dt;
   if(comboTimer>0){comboTimer-=dt;}else{combo=0;}
   shake=Math.max(0,shake-dt*24);
@@ -506,6 +511,7 @@ function update(dt){
 
   for(const e of enemies){
     if(e.dead) continue;
+    if(e.hitFlash>0) e.hitFlash-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
     const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
     if(L>desired){
@@ -613,6 +619,10 @@ function update(dt){
   }
   pickups=pickups.filter(p=>p.life>0);
 
+  for(const d of damageTexts){
+    // drawn in draw()
+  }
+
   for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;p.life-=dt;}
   particles=particles.filter(p=>p.life>0);
 
@@ -657,6 +667,8 @@ function drawEnemy(e){
   ctx.save();
   ctx.translate(e.x,e.y);
   const r=e.r;
+  const hitFlash=e.hitFlash||0;
+  if(hitFlash>0){ctx.globalAlpha=Math.min(1,hitFlash/.16);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
   ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=9;ctx.shadowOffsetY=5;
 
   if(e.type==='boss'){
@@ -758,6 +770,14 @@ function draw(){
     ctx.font='10px system-ui';ctx.fillStyle='#fff1ae';ctx.fillText('COMBO',vw-26,57);
   }
 
+  if(boss && enemies[0] && !enemies[0].dead){
+    const be=enemies[0], bw=Math.min(vw-56,360), bx=(vw-bw)/2, by=vh*.105;
+    ctx.fillStyle='rgba(8,12,18,.78)';roundRect(bx,by,bw,26,13);ctx.fill();
+    ctx.fillStyle='#ff5964';roundRect(bx+3,by+3,(bw-6)*Math.max(0,be.hp/be.max),20,10);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('⚠ BOSS  ·  '+be.hp+' / '+be.max,vw/2,by+17);
+  }
+
   for(const s of shots){
     ctx.globalAlpha=.12;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(s.x,s.y+14,s.r*2.5,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha=1;ctx.fillStyle='#fff4c4';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
@@ -800,11 +820,28 @@ function draw(){
     const d=Math.hypot(r.x-player.x,r.y-player.y);
     if(d<180 && d<dangerDist){dangerRock=r;dangerDist=d;}
   }
+  const parryBtn=document.getElementById('battleParry');
+  if(parryBtn){
+    parryBtn.classList.remove('ready','perfect');
+    const close=dangerRock && dangerDist<145;
+    const perfectWindow=dangerRock && dangerDist<96;
+    if(perfectWindow){parryBtn.classList.add('perfect');parryBtn.querySelector('strong').textContent='NOW!';parryBtn.querySelector('small').textContent='PERFECT';}
+    else if(close){parryBtn.classList.add('ready');parryBtn.querySelector('strong').textContent='PARRY';parryBtn.querySelector('small').textContent='지금 반격!';}
+    else {parryBtn.querySelector('strong').textContent='PARRY';parryBtn.querySelector('small').textContent='반격 타이밍';}
+  }
   if(dangerRock){
     const alpha=0.10+0.08*(1+Math.sin(performance.now()/70));
     ctx.strokeStyle=`rgba(255,216,102,${alpha+0.18})`;
     ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(player.x,player.y,48,0,Math.PI*2);ctx.stroke();
+  }
+
+  for(const d of damageTexts){
+    ctx.globalAlpha=Math.min(1,d.life*2);
+    ctx.fillStyle='#fff';ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=3;
+    ctx.font='900 18px system-ui';ctx.textAlign='center';
+    ctx.strokeText(d.text,d.x,d.y);ctx.fillText(d.text,d.x,d.y);
+    ctx.globalAlpha=1;
   }
 
   for(const p of particles){
@@ -945,6 +982,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,i
       if(rocks)rocks.length=0;
       if(shots)shots.length=0;
       if(particles)particles.length=0;
+      if(damageTexts)damageTexts.length=0;
     }catch(e){console.error("stop combat failed:",e);}
   };
 
