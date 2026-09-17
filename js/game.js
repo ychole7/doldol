@@ -62,9 +62,33 @@ function moveAroundCovers(obj,dx,dy){
   }
   return true;
 }
+function getGrowthStats(){
+  try{
+    const v=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
+    return {
+      atk:Number(v.atk??25),
+      speed:Number(v.speed??1.2),
+      hp:Number(v.hp??120),
+      parry:Number(v.parry??20)
+    };
+  }catch(e){
+    return {atk:25,speed:1.2,hp:120,parry:20};
+  }
+}
+function applyGrowthToPlayer(){
+  const g=getGrowthStats();
+  player.growth=g;
+  player.maxHp=g.hp;
+  player.hp=g.hp;
+  player.attack=g.atk;
+  player.attackInterval=Math.max(.24,1/g.speed);
+  player.parryRange=72 + Math.min(80,Math.max(0,g.parry-20)*1.0);
+}
+
 function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false;
-  player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0};
+  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72};
+  applyGrowthToPlayer();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
   makeCovers();
@@ -97,6 +121,7 @@ function startStage(n){
   }
   player.x=vw*.5;
   player.y=vh*.80;
+  applyGrowthToPlayer();
   player.hp=Math.min(player.maxHp, player.hp+25);
   player.x=clamp(player.x,32,Math.max(32,vw-32));
   player.y=clamp(player.y,vh*.48,Math.max(vh*.48,vh-90));
@@ -134,17 +159,18 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
-  shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2});
+  shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2,damage:Math.max(1,Math.round(player.attack/25))});
 }
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   rocks.push({x:e.x,y:e.y,vx:dx/L*190,vy:dy/L*190,r:10,life:4,parried:false});
 }
 
-function hitEnemy(e){
-  e.hp--;
+function hitEnemy(e,damage=1){
+  damage=Math.max(1,Number(damage)||1);
+  e.hp-=damage;
   e.hitFlash=.16;
-  damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-1',life:.55,vy:-34,crit:false});
+  damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-'+damage,life:.55,vy:-34,crit:damage>1});
   burst(e.x,e.y,10);
   shake=Math.max(shake,3);
   if(e.hp<=0){
@@ -159,10 +185,12 @@ function hitEnemy(e){
 function parryAt(x,y){
   for(let i=rocks.length-1;i>=0;i--){
     const r=rocks[i], d=Math.hypot(r.x-x,r.y-y);
-    if(d<72){
+    if(d<(player.parryRange||72)){
       const nearPlayer=Math.hypot(r.x-player.x,r.y-player.y);
-      const isPerfect=nearPlayer<82;
+      const perfectThreshold=58 + Math.min(34,Math.max(0,(player.growth?.parry||20)-20)*0.35);
+      const isPerfect=nearPlayer<perfectThreshold;
       r.parried=true;
+      r.damage=Math.max(1,Math.round((player.attack||25)/25));
       const dx=player.x-r.x,dy=player.y-r.y,L=Math.hypot(dx,dy)||1;
       r.vx=dx/L*720; r.vy=dy/L*720;
       r.x=player.x; r.y=player.y;
@@ -171,6 +199,7 @@ function parryAt(x,y){
       if(isPerfect){
         perfect++;
         r.vx*=1.35; r.vy*=1.35;
+        r.damage=Math.max(1,Math.round((player.attack||25)/25)*2);
         message='PERFECT PARRY!';
         messageTimer=.62;
         shake=8;
@@ -262,7 +291,7 @@ function update(dt){
   player.y=clamp(player.y,vh*.48,vh-90);
 
   player.fire-=dt;
-  if(player.fire<=0){player.fire=Math.max(.24,.42-(level-1)*.012);shootPlayer();}
+  if(player.fire<=0){player.fire=Math.max(.24,player.attackInterval-(level-1)*.012);shootPlayer();}
 
   for(const e of enemies){
     if(e.dead) continue;
@@ -313,7 +342,7 @@ function update(dt){
     if(s.life<=0) continue;
     for(const e of enemies){
       if(e.dead) continue;
-      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;hitEnemy(e);break;}
+      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;hitEnemy(e,s.damage||1);break;}
     }
   }
   shots=shots.filter(s=>s.life>0 && s.y>-30);
@@ -333,7 +362,7 @@ function update(dt){
     if(r.parried){
       for(const e of enemies){
         if(e.dead) continue;
-        if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){r.life=0;hitEnemy(e);break;}
+        if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){r.life=0;hitEnemy(e,r.damage||1);break;}
       }
     }
   }
@@ -686,7 +715,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-running=false; player={x:vw*.5,y:vh*.80,r:24,hp:100,maxHp:100,speed:300,fire:0,inv:0,dir:0}; enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
+running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72}; applyGrowthToPlayer(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
     try{ if(running && !paused) return tryParry(); }catch(e){ console.error('parry failed:',e); }
