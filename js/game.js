@@ -346,14 +346,24 @@ showSkillButton();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
   makeCovers();
-  for(let i=0;i<total;i++) spawnEnemy(i);
+  for(let i=0;i<total;i++){
+      spawnEnemy(i);
+      if(!boss && stage>=8 && i===total-1){
+        const elite=enemies[enemies.length-1];
+        elite.elite=true;
+        elite.hp=Math.round(elite.hp*1.5);
+        elite.max=elite.hp;
+        elite.speed*=1.12;
+        elite.r+=3;
+      }
+    }
   running=true; last=performance.now();
 }
 function startStage(n){
   stage=n;
   kills=0;
   boss=(stage%5===0);
-  total=boss?1:Math.min(12,7+stage);
+  total=boss?1:Math.min(16,7+Math.floor(stage*.8));
   clearTimer=0;
   gate=false;
   skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
@@ -367,9 +377,15 @@ function startStage(n){
   makeCovers();
   enemies=[];
   if(boss){
+    const bossScale=1+Math.min(2.4,(stage-1)*.095);
     enemies.push({
       type:'boss',x:vw*.5,y:vh*.20,r:48,
-      hp:12,max:12,speed:38,fire:.8,phase:0
+      hp:Math.max(12,Math.round(12*bossScale)),
+      max:Math.max(12,Math.round(12*bossScale)),
+      speed:38*(1+Math.min(.45,(stage-1)*.02)),
+      fire:.8/(1+Math.min(.42,(stage-1)*.018)),
+      patternIndex:0,
+      phase:0
     });
   }else{
     for(let i=0;i<total;i++) spawnEnemy(i);
@@ -393,16 +409,24 @@ function nextStage(){
 }
 function spawnEnemy(i){
   const types=['normal','fast','tank'];
+  // 스테이지가 올라갈수록 같은 적도 조금씩 강해진다.
+  const difficulty=1+Math.min(2.15,(stage-1)*.075);
   const type=types[i%3];
   const margin=55;
+  const baseHp=type==='tank'?4:type==='fast'?1:2;
+  const baseSpeed=type==='tank'?42:type==='fast'?115:68;
+  const baseFire=type==='tank'?2.0:type==='fast'?1.15:1.55;
   enemies.push({
-    type,x:margin+Math.random()*(vw-margin*2),
+    type,
+    x:margin+Math.random()*(vw-margin*2),
     y:vh*.20+Math.random()*vh*.32,
     r:type==='tank'?30:type==='fast'?20:23,
-    hp:type==='tank'?4: type==='fast'?1:2,
-    max:type==='tank'?4: type==='fast'?1:2,
-    speed:type==='tank'?42:type==='fast'?115:68,
-    fire:.7+Math.random()*1.5, telegraph:0,
+    hp:Math.max(1,Math.round(baseHp*difficulty)),
+    max:Math.max(1,Math.round(baseHp*difficulty)),
+    speed:baseSpeed*(1+Math.min(.48,(stage-1)*.018)),
+    fire:(.7+Math.random()*1.5)/(1+Math.min(.42,(stage-1)*.018)),
+    telegraph:0,
+    patternIndex:0,
     phase:Math.random()*6.28
   });
 }
@@ -431,7 +455,38 @@ function shootPlayer(){
 }
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
-  rocks.push({x:e.x,y:e.y,vx:dx/L*190,vy:dy/L*190,r:10,life:4,parried:false});
+  const base=Math.atan2(dy,dx);
+  const speed=190*(1+Math.min(.35,(stage-1)*.012));
+  function addRock(angle,spd,r=10){
+    rocks.push({x:e.x,y:e.y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,r,life:4,parried:false,pattern:e.type==='boss'?'boss':'spread',source:e});
+  }
+
+  if(e.type==='boss'){
+    const phase=(e.patternIndex||0)%3;
+    if(phase===0){
+      for(let i=-2;i<=2;i++) addRock(base+i*.14,speed*1.02,10);
+    }else if(phase===1){
+      for(let i=0;i<3;i++){
+        setTimeout(()=>{
+          if(running && !paused && e && !e.dead) addRock(base,speed*1.12,10);
+        },i*120);
+      }
+    }else{
+      addRock(base,speed*1.38,12);
+    }
+    e.patternIndex=(e.patternIndex||0)+1;
+    return;
+  }
+
+  if(e.type==='fast' && stage>=4){
+    addRock(base-.10,speed*1.08,9);
+    addRock(base+.10,speed*1.08,9);
+  }else if(e.type==='normal' && stage>=7){
+    addRock(base-.075,speed,10);
+    addRock(base+.075,speed,10);
+  }else{
+    addRock(base,speed*(e.elite?1.08:1),10);
+  }
 }
 
 function hitEnemy(e,damage=1){
@@ -451,36 +506,70 @@ function hitEnemy(e,damage=1){
 }
 
 function parryAt(x,y){
+  if(!player || player.parryCd>0) return false;
+
+  // 패링은 누른 위치가 아니라 "플레이어 바로 앞에 들어온 돌"만 잡는다.
+  // 예전에는 클릭 위치 기준이라 멀리 있는 돌도 쉽게 받아칠 수 있었다.
+  const range=(player.parryRange||72)*(player.skillParryMul||1);
+  let best=null, bestD=Infinity;
   for(let i=rocks.length-1;i>=0;i--){
-    const r=rocks[i], d=Math.hypot(r.x-x,r.y-y);
-    if(d<((player.parryRange||72)*(player.skillParryMul||1))){
-      const nearPlayer=Math.hypot(r.x-player.x,r.y-player.y);
-      const perfectThreshold=58 + Math.min(34,Math.max(0,(player.growth?.parry||20)-20)*0.35);
-      const isPerfect=nearPlayer<perfectThreshold;
-      r.parried=true;
-      r.damage=Math.max(1,Math.round((player.attack||25)/25));
-      const dx=player.x-r.x,dy=player.y-r.y,L=Math.hypot(dx,dy)||1;
-      r.vx=dx/L*720; r.vy=dy/L*720;
-      r.x=player.x; r.y=player.y;
-      combo++;
-      comboTimer=1.6;
-      if(isPerfect){
-        perfect++;
-        r.vx*=1.35; r.vy*=1.35;
-        r.damage=Math.max(1,Math.round(Math.round(((player.attack||25)*(player.skillAttackMul||1))/25)*2*(player.perfectMultiplier||1)*(player.skillPerfectMul||1)));
-        message='PERFECT PARRY!';
-        messageTimer=.62;
-        shake=8;
-      }else{
-        message='PARRY!';
-        messageTimer=.38;
-        shake=4;
-      }
-      burst(r.x,r.y,isPerfect?18:10);
-      return true;
+    const r=rocks[i];
+    if(r.parried) continue;
+    const d=Math.hypot(r.x-player.x,r.y-player.y);
+    if(d<=range && d<bestD){ best=r; bestD=d; }
+  }
+  if(!best) return false;
+
+  const r=best;
+  const nearPlayer=bestD;
+  const perfectThreshold=30 + Math.min(18,Math.max(0,(player.growth?.parry||20)-20)*0.22);
+  const isPerfect=nearPlayer<perfectThreshold;
+
+  // 패링 성공 후에는 발사자에게 정확히 되돌려 보낸다.
+  let target=r.source && !r.source.dead ? r.source : null;
+  if(!target){
+    for(const e of enemies){
+      if(e.dead) continue;
+      const d=Math.hypot(r.x-e.x,r.y-e.y);
+      if(!target || d<Math.hypot(r.x-target.x,r.y-target.y)) target=e;
     }
   }
-  return false;
+
+  let dx=0,dy=-1;
+  if(target){
+    dx=target.x-r.x;
+    dy=target.y-r.y;
+  }
+  const L=Math.hypot(dx,dy)||1;
+  const reflectedSpeed=isPerfect?900:720;
+  r.parried=true;
+  r.owner='player';
+  r.damage=Math.max(1,Math.round((player.attack||25)/25));
+  r.vx=dx/L*reflectedSpeed;
+  r.vy=dy/L*reflectedSpeed;
+  r.x=player.x;
+  r.y=player.y-4;
+  r.life=4;
+
+  // 연속 난타를 막아 패링 타이밍을 만들기 위한 짧은 쿨다운.
+  player.parryCd=isPerfect?.18:.34;
+  combo++;
+  comboTimer=1.6;
+
+  if(isPerfect){
+    perfect++;
+    r.vx*=1.35; r.vy*=1.35;
+    r.damage=Math.max(1,Math.round(Math.round(((player.attack||25)*(player.skillAttackMul||1))/25)*2*(player.perfectMultiplier||1)*(player.skillPerfectMul||1)));
+    message='PERFECT PARRY!';
+    messageTimer=.62;
+    shake=8;
+  }else{
+    message='PARRY!';
+    messageTimer=.38;
+    shake=4;
+  }
+  burst(r.x,r.y,isPerfect?18:10);
+  return true;
 }
 
 function chooseUpgrade(i){
@@ -548,6 +637,7 @@ function update(dt){
   if(intro>0){ intro-=dt; }
 
   if(player.inv>0) player.inv-=dt;
+  if(player.parryCd>0) player.parryCd=Math.max(0,player.parryCd-dt);
   if(messageTimer>0) messageTimer-=dt;
   for(const d of damageTexts){ d.y+=d.vy*dt; d.vy*=.96; d.life-=dt; }
   damageTexts=damageTexts.filter(d=>d.life>0);
@@ -605,7 +695,7 @@ function update(dt){
       }
     }else{
       e.fire-=dt;
-      if(e.fire<=0) e.telegraph=.28;
+      if(e.fire<=0) e.telegraph=e.type==='boss'?.22:(stage>=10?.24:.28);
     }
   }
 
@@ -891,7 +981,10 @@ function draw(){
     }
     drawEnemy(e);
     ctx.fillStyle='#2b3035';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48),6,3);ctx.fill();
-    ctx.fillStyle='#ef5a5a';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48)*(e.hp/e.max),6,3);ctx.fill();
+    ctx.fillStyle=e.elite?'#ffb84d':'#ef5a5a';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48)*(e.hp/e.max),6,3);ctx.fill();
+    if(e.elite){
+      ctx.fillStyle='#ffcf66';ctx.font='900 8px system-ui';ctx.textAlign='center';ctx.fillText('ELITE',e.x,e.y-e.r-17);
+    }
   }
 
   if(player.inv<=0 || Math.floor(performance.now()/70)%2===0) drawDuck(player.x,player.y);
@@ -1056,7 +1149,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1}; applyGrowthToPlayer(); window.__duckApplyRunRewards&&window.__duckApplyRunRewards(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
+running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,parryCd:0}; applyGrowthToPlayer(); window.__duckApplyRunRewards&&window.__duckApplyRunRewards(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
     try{ if(running && !paused && player) return parryAt(player.x,player.y); }catch(e){ console.error('parry failed:',e); }
