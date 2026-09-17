@@ -1092,6 +1092,25 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
 
   // Public entry point: this MUST live inside the combat engine IIFE,
   // because stage/running/startStage are lexical variables here.
+  window.__duckApplyReward=function(id){
+    try{
+      if(!player)return false;
+      switch(id){
+        case "power": player.attack=Math.round((player.attack||25)*1.15); break;
+        case "rapid": player.attackInterval=Math.max(.18,(player.attackInterval||.5)*.85); break;
+        case "vital": player.maxHp=(player.maxHp||120)+25; player.hp=player.maxHp; break;
+        case "parry": player.parryRange=(player.parryRange||55)*1.15; break;
+        case "perfect": player.perfectMultiplier=(player.perfectMultiplier||1)*1.20; break;
+        case "move": player.speed=(player.speed||240)*1.12; break;
+        default:return false;
+      }
+      return true;
+    }catch(e){
+      console.error("reward apply failed:",e);
+      return false;
+    }
+  };
+
   window.__duckStartStage=function(s){
     try{
       s=Math.max(1,Math.min(500,Number(s)||1));
@@ -1533,21 +1552,42 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         <span style="margin-left:auto;font-size:18px;color:#b98935">›</span>
       </button>`).join("");
 
-    cards.querySelectorAll("button").forEach(btn=>{
-      btn.onclick=()=>{
-        const c=selected.find(x=>x.id===btn.dataset.skill);
-        if(!c)return;
-        if(player)c.apply(player);
+    // 이벤트 위임: 동적으로 생성되는 카드도 모바일 터치/클릭에서 확실하게 선택된다.
+    if(!o.__rewardClickBound){
+      o.addEventListener("click",function(ev){
+        const btn=ev.target.closest && ev.target.closest("button[data-skill]");
+        if(!btn || !o.contains(btn))return;
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const id=btn.dataset.skill;
+        if(!id)return;
+
+        const applied=window.__duckApplyReward ? window.__duckApplyReward(id) : false;
+        if(!applied){
+          console.warn("보급품 적용 실패:",id);
+        }
+
         try{
           const saved=JSON.parse(localStorage.getItem("doldol_run_skills_v1")||"[]");
-          saved.push(c.id);
+          saved.push(id);
           localStorage.setItem("doldol_run_skills_v1",JSON.stringify(saved));
         }catch(e){}
-        o.style.display="none";
-        const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
-        if(window.__duckStartStage)window.__duckStartStage(s+1);
-      };
-    });
+
+        // 선택 피드백 후 다음 스테이지로 이동
+        btn.style.transform="scale(.97)";
+        btn.style.opacity=".75";
+        o.style.pointerEvents="none";
+
+        const s=Math.max(1,Number(window.__duckStage||1)||1);
+        setTimeout(()=>{
+          o.style.display="none";
+          o.style.pointerEvents="auto";
+          if(window.__duckStartStage)window.__duckStartStage(s+1);
+        },120);
+      });
+      o.__rewardClickBound=true;
+    }
     o.style.display="flex";
   }
 
