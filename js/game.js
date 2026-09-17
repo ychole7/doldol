@@ -62,6 +62,22 @@ function moveAroundCovers(obj,dx,dy){
   }
   return true;
 }
+const CHARACTER_DEFS=[
+  {id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',desc:'기본에 충실한 올라운더',mods:{atk:1.00,speed:1.00,hp:1.00,parry:1.00,move:1.00,perfect:1.00}},
+  {id:'nyang',face:'🐱',name:'냥특공',role:'기동형',desc:'빠르게 움직이고 연속 공격합니다.',mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
+  {id:'rabbit',face:'🐰',name:'토끼특공',role:'정밀형',desc:'완벽한 타이밍에 특화됩니다.',mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
+  {id:'panda',face:'🐼',name:'판다특공',role:'방어형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
+  {id:'king',face:'🤖',name:'킹특공',role:'공격형',desc:'공격력은 높지만 공격 템포가 느립니다.',mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
+  {id:'turtle',face:'🐢',name:'거북특공',role:'탱커형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
+  {id:'shiba',face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
+  {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
+];
+function getSelectedCharacter(){
+  try{
+    const id=localStorage.getItem('doldol_character_v1')||'doldol';
+    return CHARACTER_DEFS.find(c=>c.id===id && !c.locked)||CHARACTER_DEFS[0];
+  }catch(e){ return CHARACTER_DEFS[0]; }
+}
 function getGrowthStats(){
   try{
     const v=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
@@ -77,17 +93,27 @@ function getGrowthStats(){
 }
 function applyGrowthToPlayer(){
   const g=getGrowthStats();
+  const c=getSelectedCharacter();
+  const m=c.mods||{};
+  player.characterId=c.id;
+  player.characterName=c.name;
+  player.characterRole=c.role;
+  player.characterFace=c.face;
+  player.characterMods=m;
   player.growth=g;
-  player.maxHp=g.hp;
-  player.hp=g.hp;
-  player.attack=g.atk;
-  player.attackInterval=Math.max(.24,1/g.speed);
-  player.parryRange=72 + Math.min(80,Math.max(0,g.parry-20)*1.0);
+  player.maxHp=Math.round(g.hp*(m.hp||1));
+  player.hp=player.maxHp;
+  player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)));
+  const effectiveSpeed=Math.max(.35,g.speed*(m.speed||1));
+  player.attackInterval=Math.max(.24,1/effectiveSpeed);
+  player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1);
+  player.speed=300*(m.move||1);
+  player.perfectMultiplier=m.perfect||1;
 }
 
 function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false;
-  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72};
+  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1};
   applyGrowthToPlayer();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
@@ -199,7 +225,7 @@ function parryAt(x,y){
       if(isPerfect){
         perfect++;
         r.vx*=1.35; r.vy*=1.35;
-        r.damage=Math.max(1,Math.round((player.attack||25)/25)*2);
+        r.damage=Math.max(1,Math.round(Math.round((player.attack||25)/25)*2*(player.perfectMultiplier||1)));
         message='PERFECT PARRY!';
         messageTimer=.62;
         shake=8;
@@ -715,7 +741,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72}; applyGrowthToPlayer(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
+running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1}; applyGrowthToPlayer(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
     try{ if(running && !paused) return tryParry(); }catch(e){ console.error('parry failed:',e); }
@@ -1041,14 +1067,11 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
  const face=document.getElementById('charHeroFace');
  const name=document.getElementById('charHeroName');
  const role=document.getElementById('charHeroRole');
- const data=[
-  ['🐥','돌돌이','밸런스형','Lv.12','기본'],['🐱','냥특공','기동형','Lv.8','획득'],['🐰','토끼특공','정밀형','Lv.7','획득'],['🐼','판다특공','방어형','Lv.6','획득'],
-  ['🤖','킹특공','공격형','Lv.5','획득'],['🐢','거북특공','탱커형','Lv.4','획득'],['🦊','시바특공','특수형','Lv.3','획득'],['🐶','돌격특공','근접형','Lv.1','잠금']
- ];
- let selected=0;
+ const data=CHARACTER_DEFS.map((d,i)=>[d.face,d.name,d.role,'Lv.'+(12-i),d.locked?'잠금':'획득',d.id]);
+ let selected=Math.max(0,CHARACTER_DEFS.findIndex(c=>c.id===((()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})())));
  function render(){
   grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');
-  grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;updateHero();render();});
+  grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;try{localStorage.setItem('doldol_character_v1',data[i][5])}catch(e){};updateHero();render();});
  }
  function updateHero(){const d=data[selected];face.textContent=d[0];face.classList.toggle('duck',selected===0);name.textContent=d[1];role.textContent=d[2]+' · '+d[3];}
  window.__duckOpenCharacters=function(){screen.classList.add('show');updateHero();render();};
