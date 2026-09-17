@@ -1160,7 +1160,16 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
    document.getElementById("mapInfoTitle").textContent="STAGE "+selected+(boss?" · BOSS":" · 출격 준비");
    document.getElementById("mapInfoSub").textContent=boss?"⚠️ 보스 스테이지 · 준비가 필요합니다":"스테이지를 선택했습니다 · 아래 출격하기로 전투 시작";
  }
- function openMap(){closePanels();map.classList.add("show");syncMap();}
+ function syncUnlockedStages(){
+  try{
+    const unlocked=Math.max(1,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1));
+    document.querySelectorAll(".mapNode").forEach(n=>{
+      const st=Number(n.dataset.stage)||1;
+      if(st<=unlocked)n.classList.remove("lock"); else n.classList.add("lock");
+    });
+  }catch(e){}
+}
+function openMap(){closePanels();map.classList.add("show");syncMap();}
  function openMenu(kind){
    closePanels();menu.classList.add("show");
    const body=document.getElementById("menuBody"), title=document.getElementById("menuTitle");
@@ -1196,7 +1205,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     body.innerHTML='<div class="bookGrid">'+faces.map((x,i)=>'<div class="bookItem"><div class="enemyFace">'+x+'</div><small>'+names[i]+'</small></div>').join("")+'</div>';
    }
  }
- document.getElementById("lobbyStages").addEventListener("click",openMap);
+ document.getElementById("lobbyStages").addEventListener("click",()=>{syncUnlockedStages();openMap();});
  document.getElementById("mapBack").addEventListener("click",()=>{map.classList.remove("show");lobby.classList.remove("hidden");});
  document.getElementById("mapLobby").addEventListener("click",()=>{map.classList.remove("show");lobby.classList.remove("hidden");});
  document.getElementById("mapGo").addEventListener("click",()=>{map.classList.remove("show");if(window.__duckStartStage)window.__duckStartStage(selected);});
@@ -1216,15 +1225,36 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
  document.getElementById("lobbyGear").addEventListener("click",()=>openMenu("gear"));
  document.getElementById("lobbyBook").addEventListener("click",()=>openMenu("book"));
  window.__duckShowResult=function(clear){
-   const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
-   document.getElementById("resultTitle").textContent=clear?"CLEAR!":"GAME OVER";
-   document.getElementById("resultSub").textContent=clear?"STAGE "+s+" 클리어!":"STAGE "+s+"에서 쓰러졌습니다";
-   document.getElementById("resultStars").textContent=clear?"★ ★ ★":"★ ☆ ☆";
-   document.getElementById("resultCoins").textContent=clear?String(100+s*15):"0";
-   document.getElementById("resultXp").textContent=clear?String(30+s*5):"0";
-   document.getElementById("resultNext").textContent=clear?"다음 스테이지":"다시 도전";
-   result.classList.add("show");
- };
+    const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
+    const hpNow=Math.max(0,Number((typeof player!=="undefined"&&player)?player.hp:0)||0);
+    const hpMax=Math.max(1,Number((typeof player!=="undefined"&&player)?player.maxHp:120)||120);
+    const hpRate=hpNow/hpMax;
+    const pCount=Math.max(0,Number((typeof perfect!=="undefined"?perfect:0))||0);
+    let stars=1;
+    if(clear&&hpRate>=.45)stars=2;
+    if(clear&&hpRate>=.75&&pCount>=1)stars=3;
+    document.getElementById("resultTitle").textContent=clear?"CLEAR!":"GAME OVER";
+    document.getElementById("resultSub").textContent=clear?"STAGE "+s+" 클리어!":"STAGE "+s+"에서 쓰러졌습니다";
+    document.getElementById("resultStars").textContent=clear?("★ ".repeat(stars)+"☆ ".repeat(3-stars)).trim():"★ ☆ ☆";
+    document.getElementById("resultCoins").textContent=clear?String(100+s*15):"0";
+    document.getElementById("resultXp").textContent=clear?String(30+s*5):"0";
+    document.getElementById("resultNext").textContent=clear?"다음 스테이지":"다시 도전";
+    let detail=document.getElementById("resultDetail");
+    if(!detail){
+      detail=document.createElement("div"); detail.id="resultDetail";
+      Object.assign(detail.style,{margin:"10px auto 0",padding:"9px 12px",maxWidth:"330px",borderRadius:"12px",background:"rgba(255,255,255,.08)",color:"#dbe2ea",font:"800 11px system-ui",textAlign:"center"});
+      const sub=document.getElementById("resultSub");
+      if(sub&&sub.parentNode)sub.parentNode.insertBefore(detail,sub.nextSibling);
+    }
+    detail.textContent=clear?`❤️ HP ${Math.ceil(hpNow)}/${Math.ceil(hpMax)}  ·  ✦ PERFECT ${pCount}회`:`이번 전투  ·  ✦ PERFECT ${pCount}회`;
+    if(clear){
+      try{
+        const unlocked=Math.max(s+1,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1));
+        localStorage.setItem("doldol_unlocked_stage_v1",String(unlocked));
+      }catch(e){}
+    }
+    result.classList.add("show");
+  };
  document.getElementById("resultNext").addEventListener("click",()=>{
    const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
    const clear=document.getElementById("resultTitle").textContent==="CLEAR!";
@@ -1283,7 +1313,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
        '</div>';
    }
  }
- document.getElementById("lobbyStages").addEventListener("click",openMap);
+ document.getElementById("lobbyStages").addEventListener("click",()=>{syncUnlockedStages();openMap();});
  document.getElementById("mapBack").addEventListener("click",()=>{map.classList.remove("show");lobby.classList.remove("hidden")});
  document.getElementById("mapLobby").addEventListener("click",()=>{map.classList.remove("show");lobby.classList.remove("hidden")});
  document.getElementById("mapGo").addEventListener("click",()=>{map.classList.remove("show");if(window.__duckStartStage)window.__duckStartStage(selected)});
@@ -1304,15 +1334,36 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
  document.getElementById("lobbyBook").addEventListener("click",()=>openMenu("book"));
  const mission=document.getElementById("lobbyStages"); // keep stage button mapped; mission can be reached later
  window.__duckShowResult=function(clear){
-   const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
-   document.getElementById("resultTitle").textContent=clear?"CLEAR!":"GAME OVER";
-   document.getElementById("resultSub").textContent=clear?"STAGE "+s+" 클리어!":"STAGE "+s+"에서 쓰러졌습니다";
-   document.getElementById("resultStars").textContent=clear?"★ ★ ★":"★ ☆ ☆";
-   document.getElementById("resultCoins").textContent=clear?String(100+s*15):"0";
-   document.getElementById("resultXp").textContent=clear?String(30+s*5):"0";
-   document.getElementById("resultNext").textContent=clear?"다음 스테이지":"다시 도전";
-   result.classList.add("show");
- };
+    const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
+    const hpNow=Math.max(0,Number((typeof player!=="undefined"&&player)?player.hp:0)||0);
+    const hpMax=Math.max(1,Number((typeof player!=="undefined"&&player)?player.maxHp:120)||120);
+    const hpRate=hpNow/hpMax;
+    const pCount=Math.max(0,Number((typeof perfect!=="undefined"?perfect:0))||0);
+    let stars=1;
+    if(clear&&hpRate>=.45)stars=2;
+    if(clear&&hpRate>=.75&&pCount>=1)stars=3;
+    document.getElementById("resultTitle").textContent=clear?"CLEAR!":"GAME OVER";
+    document.getElementById("resultSub").textContent=clear?"STAGE "+s+" 클리어!":"STAGE "+s+"에서 쓰러졌습니다";
+    document.getElementById("resultStars").textContent=clear?("★ ".repeat(stars)+"☆ ".repeat(3-stars)).trim():"★ ☆ ☆";
+    document.getElementById("resultCoins").textContent=clear?String(100+s*15):"0";
+    document.getElementById("resultXp").textContent=clear?String(30+s*5):"0";
+    document.getElementById("resultNext").textContent=clear?"다음 스테이지":"다시 도전";
+    let detail=document.getElementById("resultDetail");
+    if(!detail){
+      detail=document.createElement("div"); detail.id="resultDetail";
+      Object.assign(detail.style,{margin:"10px auto 0",padding:"9px 12px",maxWidth:"330px",borderRadius:"12px",background:"rgba(255,255,255,.08)",color:"#dbe2ea",font:"800 11px system-ui",textAlign:"center"});
+      const sub=document.getElementById("resultSub");
+      if(sub&&sub.parentNode)sub.parentNode.insertBefore(detail,sub.nextSibling);
+    }
+    detail.textContent=clear?`❤️ HP ${Math.ceil(hpNow)}/${Math.ceil(hpMax)}  ·  ✦ PERFECT ${pCount}회`:`이번 전투  ·  ✦ PERFECT ${pCount}회`;
+    if(clear){
+      try{
+        const unlocked=Math.max(s+1,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1));
+        localStorage.setItem("doldol_unlocked_stage_v1",String(unlocked));
+      }catch(e){}
+    }
+    result.classList.add("show");
+  };
  document.getElementById("resultNext").addEventListener("click",()=>{
    const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
    result.classList.remove("show");
