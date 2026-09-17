@@ -80,7 +80,7 @@
 .lobbyBtn{transition:transform .08s,filter .12s}.lobbyBtn:active{transform:translateY(3px) scale(.98);filter:brightness(.96)}
 #gameLobby .menuCard,#gameLobby .lobbyCard{border:2px solid rgba(255,244,199,.72)!important;box-shadow:0 12px 28px rgba(29,67,40,.22),inset 0 1px 0 rgba(255,255,255,.35)!important}
 </style>
-<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=8411"></script>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=8544"></script>
 </head><body>
 <style>
 #gameLobby{
@@ -363,11 +363,11 @@ function spawnEnemy(i){
   }[type];
   enemies.push({
     type,x:margin+Math.random()*(vw-margin*2),
-    y:vh*.18+Math.random()*vh*.34,
+    y:vh*.15+Math.random()*vh*.28,
     r:base.r,
     hp:Math.ceil(base.hp*scale),max:Math.ceil(base.hp*scale),
     speed:base.speed*(1+Math.min(.45,stage*.012)),
-    fire:Math.max(.65,base.fire-Math.min(.35,stage*.01))+Math.random()*.9, telegraph:0,
+    fire:Math.max(.55,base.fire-Math.min(.35,stage*.01))*.55+Math.random()*.35, telegraph:0,
     phase:Math.random()*6.28
   });
 }
@@ -382,11 +382,11 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
-  shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2,damage:weaponBonus.damage*(1+(level-1)*.035)});
+  shots.push({x:player.x,y:player.y-34,vx:0,vy:-520,r:7,life:2,damage:weaponBonus.damage*(1+(level-1)*.035)});
 }
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
-  const sp=e.type==='sniper'?255:e.type==='elite'?225:190; rocks.push({x:e.x,y:e.y,vx:dx/L*sp,vy:dy/L*sp,r:e.type==='tank'?12:10,life:4,parried:false});
+  const sp=e.type==='sniper'?255:e.type==='elite'?225:190; rocks.push({x:e.x+dx/L*8,y:e.y+dy/L*8,vx:dx/L*sp,vy:dy/L*sp,r:e.type==='tank'?12:10,life:4,parried:false});
 }
 
 function hitEnemy(e,damage=1){
@@ -553,7 +553,7 @@ function update(dt){
       }
     }else{
       e.fire-=dt;
-      if(e.fire<=0) e.telegraph=.28;
+      if(e.fire<=0) e.telegraph=.34;
     }
   }
 
@@ -852,6 +852,7 @@ function draw(){
   ctx.fillStyle='rgba(255,255,255,.07)';roundRect(14,14,vw-28,24,14);ctx.fill();
 
   ctx.textAlign='left';ctx.fillStyle='#fff8df';ctx.font='1000 18px system-ui';ctx.fillText(`STAGE ${stage}`,25,39);
+   if(rocks.length>0){ctx.fillStyle='#ffd45f';ctx.font='900 10px system-ui';ctx.fillText('INCOMING ROCKS',25,77);}
   ctx.fillStyle='#cfe7d0';ctx.font='800 11px system-ui';ctx.fillText(boss?`BOSS · ${kills}/${total}`:`${kills}/${total} 처치`,25,61);
 
   const bx=vw*.39,bw=vw*.34;
