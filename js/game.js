@@ -377,6 +377,7 @@ function startStage(n){
   player.x=vw*.5;
   player.y=vh*.80;
   applyGrowthToPlayer();
+  if(window.__duckApplyRunRewards) window.__duckApplyRunRewards();
   player.skillAttackMul=1; player.skillParryMul=1; player.skillPerfectMul=1; player.skillMultiShot=false; player.skillInvincible=false; player.skillShield=0; player.skillAutoParry=false;
   showSkillButton();
   player.hp=Math.min(player.maxHp, player.hp+25);
@@ -1055,7 +1056,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1}; applyGrowthToPlayer(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
+running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1}; applyGrowthToPlayer(); window.__duckApplyRunRewards&&window.__duckApplyRunRewards(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
     try{ if(running && !paused && player) return parryAt(player.x,player.y); }catch(e){ console.error('parry failed:',e); }
@@ -1092,6 +1093,15 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
 
   // Public entry point: this MUST live inside the combat engine IIFE,
   // because stage/running/startStage are lexical variables here.
+  window.__duckApplyRunRewards=function(){
+    try{
+      const saved=JSON.parse(localStorage.getItem("doldol_run_skills_v1")||"[]");
+      if(Array.isArray(saved)){
+        saved.forEach(id=>{ if(window.__duckApplyReward) window.__duckApplyReward(id); });
+      }
+    }catch(e){ console.warn("run reward restore failed:",e); }
+  };
+
   window.__duckApplyReward=function(id){
     try{
       if(!player)return false;
@@ -1419,7 +1429,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(window.__duckSyncLobby)window.__duckSyncLobby();
   }
 
-  if(start)start.onclick=function(e){e.preventDefault();startBattle(Number((window.__duckStage||1))||1);};
+  if(start)start.onclick=function(e){
+    e.preventDefault();
+    try{localStorage.removeItem("doldol_run_skills_v1");}catch(e){}
+    startBattle(Number((window.__duckStage||1))||1);
+  };
   if(stages)stages.onclick=function(e){e.preventDefault();hidePanels();lobby.classList.add("hidden");if(map)map.classList.add("show");};
   if(mapGo)mapGo.onclick=function(e){e.preventDefault();startBattle(Number(window.__selectedDuckStage||1)||1);};
   if(mapBack)mapBack.onclick=showLobby;
@@ -1435,6 +1449,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       window.__duckOpenStageReward();
       return;
     }
+    try{localStorage.removeItem("doldol_run_skills_v1");}catch(e){}
     if(result)result.classList.remove("show");
     startBattle(s);
   };
