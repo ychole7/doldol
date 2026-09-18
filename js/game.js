@@ -385,7 +385,9 @@ function startStage(n){
       speed:38*(1+Math.min(.45,(stage-1)*.02)),
       fire:.8/(1+Math.min(.42,(stage-1)*.018)),
       patternIndex:0,
-      phase:0
+      bossPhase:1,
+      phase:0,
+      moveFx:0
     });
   }else{
     for(let i=0;i<total;i++) spawnEnemy(i);
@@ -462,19 +464,30 @@ function enemyShoot(e){
   }
 
   if(e.type==='boss'){
-    const phase=(e.patternIndex||0)%3;
-    if(phase===0){
+    const phase=e.bossPhase||1;
+    const idx=(e.patternIndex||0);
+    if(phase===1){
+      // 1페이즈: 넓은 5연사
       for(let i=-2;i<=2;i++) addRock(base+i*.14,speed*1.02,10);
-    }else if(phase===1){
+    }else if(phase===2){
+      // 2페이즈: 3연속 추적탄
       for(let i=0;i<3;i++){
         setTimeout(()=>{
-          if(running && !paused && e && !e.dead) addRock(base,speed*1.12,10);
-        },i*120);
+          if(running && !paused && e && !e.dead) {
+            const a=Math.atan2(player.y-e.y,player.x-e.x);
+            addRock(a,speed*1.16,10);
+          }
+        },i*135);
       }
     }else{
-      addRock(base,speed*1.38,12);
+      // 3페이즈: 강력한 단일 돌 + 약간의 보조탄
+      addRock(base,speed*1.48,13);
+      if(idx%2===0){
+        addRock(base-.11,speed*1.05,9);
+        addRock(base+.11,speed*1.05,9);
+      }
     }
-    e.patternIndex=(e.patternIndex||0)+1;
+    e.patternIndex=idx+1;
     return;
   }
 
@@ -488,10 +501,24 @@ function enemyShoot(e){
     addRock(base,speed*(e.elite?1.08:1),10);
   }
 }
-
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
+  const wasBossPhase=e.bossPhase||1;
   e.hp-=damage;
+  if(e.type==='boss' && e.max>0){
+    const ratio=e.hp/e.max;
+    const nextPhase=ratio<=.33?3:(ratio<=.66?2:1);
+    if(nextPhase!==wasBossPhase){
+      e.bossPhase=nextPhase;
+      e.patternIndex=0;
+      e.telegraph=.55;
+      e.moveFx=.7;
+      message=nextPhase===2?'BOSS PHASE 2!':'BOSS PHASE 3!';
+      messageTimer=.75;
+      shake=10;
+      burst(e.x,e.y,28);
+    }
+  }
   e.hitFlash=.16;
   damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-'+damage,life:.55,vy:-34,crit:damage>1});
   burst(e.x,e.y,10);
@@ -675,14 +702,34 @@ function update(dt){
   for(const e of enemies){
     if(e.dead) continue;
     if(e.hitFlash>0) e.hitFlash-=dt;
+    if(e.moveFx>0) e.moveFx-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
     const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
     if(L>desired){
       moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
     }else if(e.type==='boss'){
       e.phase+=dt;
-      e.x=vw*.5+Math.sin(e.phase*.9)*vw*.28;
-      e.y=vh*.18+Math.sin(e.phase*1.7)*18;
+      const bp=e.bossPhase||1;
+      // 보스 이동도 페이즈별로 달라진다.
+      if(bp===1){
+        // 1페이즈: 느린 좌우 순환 — 공격 패턴을 읽기 쉽게
+        const targetX=vw*.5+Math.sin(e.phase*.9)*vw*.28;
+        const targetY=vh*.18+Math.sin(e.phase*1.7)*18;
+        e.x+=(targetX-e.x)*Math.min(1,dt*3.2);
+        e.y+=(targetY-e.y)*Math.min(1,dt*3.2);
+      }else if(bp===2){
+        // 2페이즈: 좌우로 크게 움직이며 간헐적으로 반대편으로 전환
+        const targetX=vw*.5+Math.sin(e.phase*1.65)*vw*.34;
+        const targetY=vh*.20+Math.sin(e.phase*2.4)*24;
+        e.x+=(targetX-e.x)*Math.min(1,dt*5.5);
+        e.y+=(targetY-e.y)*Math.min(1,dt*5.5);
+      }else{
+        // 3페이즈: 플레이어 위치를 일부 따라가되 상단 전투영역을 유지
+        const desiredX=player.x+Math.sin(e.phase*2.2)*110;
+        const desiredY=vh*.19+Math.sin(e.phase*3.1)*30;
+        e.x+=(desiredX-e.x)*Math.min(1,dt*4.2);
+        e.y+=(desiredY-e.y)*Math.min(1,dt*4.2);
+      }
     }else if(e.type==='fast'){
       moveAroundCovers(e,-dx/L*e.speed*.35*dt,-dy/L*e.speed*.35*dt);
     }
@@ -690,12 +737,12 @@ function update(dt){
     if(e.telegraph>0){
       e.telegraph-=dt;
       if(e.telegraph<=0){
-        e.fire=(e.type==='boss') ? .85 : (e.type==='tank' ? 2.0 : (e.type==='fast' ? 1.15 : 1.55));
+        e.fire=(e.type==='boss') ? ((e.bossPhase||1)===3?.68:(e.bossPhase||1)===2?.78:.90) : (e.type==='tank' ? 2.0 : (e.type==='fast' ? 1.15 : 1.55));
         enemyShoot(e);
       }
     }else{
       e.fire-=dt;
-      if(e.fire<=0) e.telegraph=e.type==='boss'?.22:(stage>=10?.24:.28);
+      if(e.fire<=0) e.telegraph=e.type==='boss'?((e.bossPhase||1)===3?.18:(e.bossPhase||1)===2?.20:.24):(stage>=10?.24:.28);
     }
   }
 
@@ -972,6 +1019,18 @@ function draw(){
   }
   for(const e of enemies){
     if(e.telegraph>0){
+      if(e.type==='boss'){
+        const a=Math.atan2(player.y-e.y,player.x-e.x);
+        const len=Math.min(vw*.72,Math.hypot(player.x-e.x,player.y-e.y));
+        ctx.save();
+        ctx.translate(e.x,e.y);ctx.rotate(a);
+        ctx.globalAlpha=.20;
+        ctx.fillStyle='#ff5a5a';ctx.fillRect(0,-5,len,10);
+        ctx.globalAlpha=.85;
+        ctx.fillStyle='#ff7b7b';ctx.beginPath();ctx.arc(len,-0,7,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+      }
+
       const pulse=1+Math.sin(performance.now()/55)*.08;
       ctx.strokeStyle='rgba(255,90,90,.72)';
       ctx.lineWidth=3;
@@ -980,6 +1039,12 @@ function draw(){
       ctx.beginPath();ctx.arc(e.x,e.y- e.r-20,4,0,Math.PI*2);ctx.fill();
     }
     drawEnemy(e);
+    if(e.type==='boss'){
+      const ph=e.bossPhase||1;
+      ctx.fillStyle=ph===3?'#ff6b6b':ph===2?'#ffd866':'#9fe3ff';
+      ctx.font='900 9px system-ui';ctx.textAlign='center';
+      ctx.fillText('PHASE '+ph,e.x,e.y+33);
+    }
     ctx.fillStyle='#2b3035';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48),6,3);ctx.fill();
     ctx.fillStyle=e.elite?'#ffb84d':'#ef5a5a';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48)*(e.hp/e.max),6,3);ctx.fill();
     if(e.elite){
