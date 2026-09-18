@@ -18,7 +18,7 @@ let player, enemies=[], rocks=[], shots=[], particles=[], damageTexts=[];
 let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
-let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
+let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, comboMilestone=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
@@ -339,7 +339,7 @@ function applyGrowthToPlayer(){
 }
 
 function reset(){
-  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
+  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; comboMilestone=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
   player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
 showSkillButton();
   applyGrowthToPlayer();
