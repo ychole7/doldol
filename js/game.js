@@ -1962,7 +1962,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   document.addEventListener('click',openGrowthFromCharacter,true);
   document.addEventListener('pointerup',openGrowthFromCharacter,true);
   document.addEventListener('touchend',openGrowthFromCharacter,true);
-})
+})();
 
 /* --- V25 mission/achievement system --- */
 (function(){
