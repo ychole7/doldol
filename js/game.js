@@ -364,6 +364,8 @@ showSkillButton();
 }
 function startStage(n){
   stage=n;
+  window.__duckStage=stage;
+  window.__selectedDuckStage=stage;
   kills=0;
   boss=(stage%5===0);
   total=boss?1:Math.min(16,7+Math.floor(stage*.8));
@@ -1342,6 +1344,8 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
   window.__duckStartStage=function(s){
     try{
       s=Math.max(1,Math.min(500,Number(s)||1));
+      window.__duckStage=s;
+      window.__selectedDuckStage=s;
       const rs=document.getElementById("resultScreen");
       if(rs) rs.classList.remove("show");
       const lobby=document.getElementById("gameLobby");
@@ -1502,12 +1506,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     result.classList.add("show");
   };
- document.getElementById("resultNext").addEventListener("click",()=>{
-   const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
-   const clear=document.getElementById("resultTitle").textContent==="CLEAR!";
-   result.classList.remove("show");
-   if(window.__duckStartStage)window.__duckStartStage(clear?s+1:s);
- });
  document.getElementById("resultLobby").addEventListener("click",()=>{result.classList.remove("show");if(window.__duckShowLobby)window.__duckShowLobby();});
 })();
 
