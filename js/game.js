@@ -1,3 +1,5 @@
+/* DOLDOL SPECIAL FORCES V21 - BOSS ENCOUNTER UPGRADE */
+/* DOLDOL SPECIAL FORCE V20 - Combat Variety */
 
 (() => {
 'use strict';
@@ -18,7 +20,7 @@ let player, enemies=[], rocks=[], shots=[], particles=[], damageTexts=[];
 let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
-let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, comboMilestone=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
+let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
@@ -26,6 +28,7 @@ let skillTimer=0;
 let skillState=null;
 let skillFx=0;
 let skillMessage='';
+let bossIntroTimer=0, bossDefeatFx=0, bossPatternLabel='', bossPatternTimer=0;
 function getActiveSkillDef(){
   const c=getSelectedCharacter();
   return c.skill || {name:'특공 스킬',desc:'고유 스킬',cd:9};
@@ -339,7 +342,7 @@ function applyGrowthToPlayer(){
 }
 
 function reset(){
-  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; comboMilestone=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
+  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
   player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
 showSkillButton();
   applyGrowthToPlayer();
@@ -373,6 +376,7 @@ function startStage(n){
   combo=0;
   comboTimer=0;
   intro=1.25;
+  bossIntroTimer=boss?1.35:0; bossDefeatFx=0; bossPatternLabel=boss?'INCOMING BOSS':''; bossPatternTimer=boss?1.35:0;
   rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
   makeCovers();
   enemies=[];
@@ -387,7 +391,10 @@ function startStage(n){
       patternIndex:0,
       bossPhase:1,
       phase:0,
-      moveFx:0
+      moveFx:0,
+      attackIndex:0,
+      enraged:false,
+      attackWarn:0
     });
   }else{
     for(let i=0;i<total;i++) spawnEnemy(i);
@@ -410,29 +417,26 @@ function nextStage(){
   startStage(stage+1);
 }
 function spawnEnemy(i){
-  const types=['normal','fast','tank'];
-  // 스테이지가 올라갈수록 같은 적도 조금씩 강해진다.
+  // V20: 스테이지가 진행될수록 전투 역할이 뚜렷한 특수 적이 섞인다.
+  const pool = stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
+             : stage>=12 ? ['normal','fast','tank','sniper','charger']
+             : stage>=8  ? ['normal','fast','tank','sniper']
+             : ['normal','fast','tank'];
   const difficulty=1+Math.min(2.15,(stage-1)*.075);
-  const type=types[i%3];
+  const type=pool[i%pool.length];
   const margin=55;
-  const baseHp=type==='tank'?4:type==='fast'?1:2;
-  const baseSpeed=type==='tank'?42:type==='fast'?115:68;
-  const baseFire=type==='tank'?2.0:type==='fast'?1.15:1.55;
+  const baseHp={tank:4,sniper:2,charger:3,bomber:3,fast:1,normal:2}[type]||2;
+  const baseSpeed={tank:42,sniper:45,charger:92,bomber:50,fast:115,normal:68}[type]||68;
+  const baseFire={tank:2.0,sniper:2.25,charger:1.75,bomber:2.35,fast:1.15,normal:1.55}[type]||1.55;
+  const radius={tank:30,sniper:21,charger:25,bomber:27,fast:20,normal:23}[type]||23;
   enemies.push({
-    type,
-    x:margin+Math.random()*(vw-margin*2),
-    y:vh*.20+Math.random()*vh*.32,
-    r:type==='tank'?30:type==='fast'?20:23,
-    hp:Math.max(1,Math.round(baseHp*difficulty)),
-    max:Math.max(1,Math.round(baseHp*difficulty)),
+    type,x:margin+Math.random()*(vw-margin*2),y:vh*.20+Math.random()*vh*.32,r:radius,
+    hp:Math.max(1,Math.round(baseHp*difficulty)),max:Math.max(1,Math.round(baseHp*difficulty)),
     speed:baseSpeed*(1+Math.min(.48,(stage-1)*.018)),
     fire:(.7+Math.random()*1.5)/(1+Math.min(.42,(stage-1)*.018)),
-    telegraph:0,
-    patternIndex:0,
-    phase:Math.random()*6.28
+    baseFire,telegraph:0,patternIndex:0,phase:Math.random()*6.28,moveFx:0,chargeTimer:0
   });
 }
-
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function burst(x,y,n=12){
@@ -459,47 +463,44 @@ function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
   const speed=190*(1+Math.min(.35,(stage-1)*.012));
-  function addRock(angle,spd,r=10){
-    rocks.push({x:e.x,y:e.y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,r,life:4,parried:false,pattern:e.type==='boss'?'boss':'spread',source:e});
+  function addRock(angle,spd,r=10,extra={}){
+    rocks.push({x:e.x,y:e.y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,r,life:4,parried:false,pattern:e.type==='boss'?'boss':e.type,source:e,...extra});
   }
-
   if(e.type==='boss'){
-    const phase=e.bossPhase||1;
-    const idx=(e.patternIndex||0);
+    const phase=e.bossPhase||1,idx=(e.patternIndex||0);
+    const attack=(e.attackIndex||0)%4;
+    e.attackIndex=(e.attackIndex||0)+1;
     if(phase===1){
-      // 1페이즈: 넓은 5연사
+      bossPatternLabel='BOSS · 부채꼴 포격'; bossPatternTimer=.7;
       for(let i=-2;i<=2;i++) addRock(base+i*.14,speed*1.02,10);
     }else if(phase===2){
-      // 2페이즈: 3연속 추적탄
-      for(let i=0;i<3;i++){
-        setTimeout(()=>{
-          if(running && !paused && e && !e.dead) {
-            const a=Math.atan2(player.y-e.y,player.x-e.x);
-            addRock(a,speed*1.16,10);
-          }
-        },i*135);
-      }
+      bossPatternLabel='BOSS · 연속 추격탄'; bossPatternTimer=.7;
+      for(let i=0;i<3;i++) setTimeout(()=>{if(running&&!paused&&e&&!e.dead){const a=Math.atan2(player.y-e.y,player.x-e.x);addRock(a,speed*1.16,10);}},i*135);
     }else{
-      // 3페이즈: 강력한 단일 돌 + 약간의 보조탄
-      addRock(base,speed*1.48,13);
-      if(idx%2===0){
-        addRock(base-.11,speed*1.05,9);
-        addRock(base+.11,speed*1.05,9);
+      if(attack===0 || attack===2){
+        bossPatternLabel='BOSS · 광역 7연탄'; bossPatternTimer=.7;
+        for(let i=-3;i<=3;i++) addRock(base+i*.13,speed*1.12,10);
+      }else{
+        bossPatternLabel='BOSS · 직격 강탄'; bossPatternTimer=.7;
+        addRock(base,speed*1.55,14); addRock(base-.16,speed*1.10,9); addRock(base+.16,speed*1.10,9);
       }
     }
-    e.patternIndex=idx+1;
-    return;
+    e.patternIndex=idx+1; return;
   }
-
-  if(e.type==='fast' && stage>=4){
-    addRock(base-.10,speed*1.08,9);
-    addRock(base+.10,speed*1.08,9);
+  if(e.type==='sniper'){
+    addRock(base,speed*1.55,8,{sniper:true});
+  }else if(e.type==='charger'){
+    // 돌진 적은 전조 후 플레이어 방향으로 한 번 강하게 돌진한다.
+    e.chargeTimer=.75;
+    addRock(base-.07,speed*1.12,9); addRock(base+.07,speed*1.12,9);
+  }else if(e.type==='bomber'){
+    // 폭격형은 느리지만 플레이어 주변으로 넓게 퍼지는 5발을 쏜다.
+    for(let i=-2;i<=2;i++) addRock(base+i*.19,speed*.9,11,{bomber:true});
+  }else if(e.type==='fast' && stage>=4){
+    addRock(base-.10,speed*1.08,9); addRock(base+.10,speed*1.08,9);
   }else if(e.type==='normal' && stage>=7){
-    addRock(base-.075,speed,10);
-    addRock(base+.075,speed,10);
-  }else{
-    addRock(base,speed*(e.elite?1.08:1),10);
-  }
+    addRock(base-.075,speed,10); addRock(base+.075,speed,10);
+  }else addRock(base,speed*(e.elite?1.08:1),10);
 }
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
@@ -514,8 +515,12 @@ function hitEnemy(e,damage=1){
       e.telegraph=.55;
       e.moveFx=.7;
       message=nextPhase===2?'BOSS PHASE 2!':'BOSS PHASE 3!';
-      messageTimer=.75;
-      shake=10;
+      messageTimer=1.0;
+      bossPatternLabel=nextPhase===2?'PHASE 2 · 광폭화':'PHASE 3 · 최종 공격';
+      bossPatternTimer=1.0;
+      shake=14;
+      bossIntroTimer=.65;
+      e.enraged=nextPhase>=2;
       burst(e.x,e.y,28);
     }
   }
@@ -524,7 +529,9 @@ function hitEnemy(e,damage=1){
   burst(e.x,e.y,10);
   shake=Math.max(shake,3);
   if(e.hp<=0){
-    kills++; burst(e.x,e.y,18);
+    kills++;
+    if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
+    burst(e.x,e.y,18);
     e.dead=true;
     pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
     message='격파!';
@@ -671,6 +678,9 @@ function update(dt){
   if(levelFlash>0) levelFlash-=dt;
   if(skillCooldown>0) skillCooldown=Math.max(0,skillCooldown-dt);
   if(skillFx>0) skillFx=Math.max(0,skillFx-dt);
+  if(bossIntroTimer>0) bossIntroTimer=Math.max(0,bossIntroTimer-dt);
+  if(bossPatternTimer>0) bossPatternTimer=Math.max(0,bossPatternTimer-dt);
+  if(bossDefeatFx>0) bossDefeatFx=Math.max(0,bossDefeatFx-dt);
   if(skillTimer>0){
     skillTimer-=dt;
     if(skillTimer<=0) clearSkillState();
@@ -704,8 +714,26 @@ function update(dt){
     if(e.hitFlash>0) e.hitFlash-=dt;
     if(e.moveFx>0) e.moveFx-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
-    const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
-    if(L>desired){
+    if(e.type==='charger' && !e.dead){
+      if(e.chargeTimer>0){
+        e.chargeTimer-=dt;
+        e.x+=dx/L*e.speed*2.8*dt; e.y+=dy/L*e.speed*2.8*dt;
+        e.moveFx=.12;
+      }else{
+        e.x+=(vw*.5-e.x)*Math.min(1,dt*1.4); e.y+=(vh*.30-e.y)*Math.min(1,dt*1.4);
+      }
+    }else if(e.type==='sniper'){
+      // 스나이퍼는 상단에서 거리를 유지하며 공격 전조가 길다.
+      const desired=300;
+      if(L<desired){ e.x-=dx/L*e.speed*.55*dt; e.y-=dy/L*e.speed*.55*dt; }
+      else { e.x+=(vw*.5-e.x)*Math.min(1,dt*.65); }
+    }else if(e.type==='bomber'){
+      const desired=245;
+      if(L>desired) moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
+      else e.x+=(vw*.5-e.x)*Math.min(1,dt*.7);
+    }else{
+      const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
+      if(L>desired){
       moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
     }else if(e.type==='boss'){
       e.phase+=dt;
@@ -715,8 +743,8 @@ function update(dt){
         // 1페이즈: 느린 좌우 순환 — 공격 패턴을 읽기 쉽게
         const targetX=vw*.5+Math.sin(e.phase*.9)*vw*.28;
         const targetY=vh*.18+Math.sin(e.phase*1.7)*18;
-        e.x+=(targetX-e.x)*Math.min(1,dt*3.2);
-        e.y+=(targetY-e.y)*Math.min(1,dt*3.2);
+        e.x+=(targetX-e.x)*Math.min(1,dt*(e.enraged?4.4:3.2));
+        e.y+=(targetY-e.y)*Math.min(1,dt*(e.enraged?4.4:3.2));
       }else if(bp===2){
         // 2페이즈: 좌우로 크게 움직이며 간헐적으로 반대편으로 전환
         const targetX=vw*.5+Math.sin(e.phase*1.65)*vw*.34;
@@ -733,16 +761,17 @@ function update(dt){
     }else if(e.type==='fast'){
       moveAroundCovers(e,-dx/L*e.speed*.35*dt,-dy/L*e.speed*.35*dt);
     }
+    }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
     if(e.telegraph>0){
       e.telegraph-=dt;
       if(e.telegraph<=0){
-        e.fire=(e.type==='boss') ? ((e.bossPhase||1)===3?.68:(e.bossPhase||1)===2?.78:.90) : (e.type==='tank' ? 2.0 : (e.type==='fast' ? 1.15 : 1.55));
+        e.fire=(e.type==='boss') ? ((e.bossPhase||1)===3?.58:(e.bossPhase||1)===2?.70:.90) : (e.type==='sniper'?2.25:(e.type==='charger'?1.75:(e.type==='bomber'?2.35:(e.type==='tank'?2.0:(e.type==='fast'?1.15:1.55)))));
         enemyShoot(e);
       }
     }else{
       e.fire-=dt;
-      if(e.fire<=0) e.telegraph=e.type==='boss'?((e.bossPhase||1)===3?.18:(e.bossPhase||1)===2?.20:.24):(stage>=10?.24:.28);
+      if(e.fire<=0) e.telegraph=e.type==='boss'?((e.bossPhase||1)===3?.28:(e.bossPhase||1)===2?.24:.32):(e.type==='sniper'?.55:(e.type==='charger'?.32:(e.type==='bomber'?.42:(stage>=10?.24:.28))));
     }
   }
 
@@ -899,13 +928,17 @@ function drawEnemy(e){
     ctx.fillStyle='#ffd866';ctx.font='900 18px system-ui';ctx.textAlign='center';ctx.fillText('★',0,-18);
     ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.fillText('BOSS',0,19);
   }else{
-    ctx.fillStyle=e.type==='tank'?'#56616d':e.type==='fast'?'#d65355':'#8c684a';
+    ctx.fillStyle=e.type==='tank'?'#56616d':e.type==='fast'?'#d65355':e.type==='sniper'?'#5578b8':e.type==='charger'?'#c66a35':e.type==='bomber'?'#8b5aa6':'#8c684a';
     ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
     ctx.shadowColor='transparent';
     ctx.fillStyle='#f0c7a8';ctx.beginPath();ctx.arc(-7,-5,5,0,Math.PI*2);ctx.arc(7,-5,5,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-7,-5,2.2,0,Math.PI*2);ctx.arc(7,-5,2.2,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.textAlign='center';
-    ctx.fillText(e.type==='tank'?'TANK':e.type==='fast'?'FAST':'ROCK',0,18);
+    ctx.fillText(e.type==='tank'?'TANK':e.type==='fast'?'FAST':e.type==='sniper'?'SNIPER':e.type==='charger'?'CHARGE':e.type==='bomber'?'BOMB':'ROCK',0,18);
+    if(e.type==='sniper' || e.type==='bomber' || e.type==='charger'){
+      ctx.strokeStyle=e.type==='sniper'?'rgba(100,180,255,.55)':e.type==='bomber'?'rgba(210,130,255,.55)':'rgba(255,170,80,.55)';
+      ctx.lineWidth=3; ctx.stroke();
+    }
     if(e.type==='tank'){
       ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=3;ctx.stroke();
     }
@@ -962,6 +995,32 @@ function draw(){
     ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;ctx.stroke();
     ctx.fillStyle='rgba(255,255,255,.08)';
     roundRect(c.x-c.w/2+7,c.y-c.h/2+6,c.w-14,7,4);ctx.fill();
+  }
+
+  // V21 boss cinematic overlay / attack callout
+  if(bossIntroTimer>0 && boss){
+    const t=1-Math.max(0,bossIntroTimer)/1.35;
+    ctx.save();
+    ctx.fillStyle='rgba(120,0,0,'+(0.12+0.18*Math.sin(t*Math.PI))+')';ctx.fillRect(0,0,vw,vh);
+    ctx.strokeStyle='rgba(255,90,90,.75)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(vw/2,vh*.20,58+24*Math.sin(performance.now()/100),0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='900 30px system-ui';ctx.textAlign='center';ctx.fillText('⚠ BOSS INCOMING',vw/2,vh*.34);
+    ctx.fillStyle='#ffb5b5';ctx.font='800 13px system-ui';ctx.fillText('패턴을 읽고 PARRY 타이밍을 잡으세요',vw/2,vh*.34+25);
+    ctx.restore();
+  }
+  if(bossPatternTimer>0 && bossPatternLabel){
+    const a=Math.min(1,bossPatternTimer*2.5);
+    ctx.save();ctx.globalAlpha=a;
+    const bw=Math.min(vw-48,300),bh=38,bx=(vw-bw)/2,by=vh*.38;
+    ctx.fillStyle='rgba(8,12,18,.88)';roundRect(bx,by,bw,bh,19);ctx.fill();
+    ctx.strokeStyle='rgba(255,110,110,.65)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.fillText(bossPatternLabel,vw/2,by+24);ctx.restore();
+  }
+  if(bossDefeatFx>0){
+    ctx.save();const p=1-bossDefeatFx/1.8;ctx.globalAlpha=Math.max(0,bossDefeatFx/1.8);
+    ctx.strokeStyle='#ffd866';ctx.lineWidth=7;
+    ctx.beginPath();ctx.arc(vw*.5,vh*.20,55+p*180,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='900 28px system-ui';ctx.textAlign='center';ctx.fillText('BOSS DEFEATED!',vw/2,vh*.34);ctx.restore();
   }
 
   // top HUD
@@ -1044,6 +1103,7 @@ function draw(){
       ctx.fillStyle=ph===3?'#ff6b6b':ph===2?'#ffd866':'#9fe3ff';
       ctx.font='900 9px system-ui';ctx.textAlign='center';
       ctx.fillText('PHASE '+ph,e.x,e.y+33);
+      if(e.enraged){ctx.fillStyle='#ff5d66';ctx.font='900 9px system-ui';ctx.fillText('ENRAGED',e.x,e.y+45);}
     }
     ctx.fillStyle='#2b3035';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48),6,3);ctx.fill();
     ctx.fillStyle=e.elite?'#ffb84d':'#ef5a5a';roundRect(e.x-(e.type==='boss'?48:24),e.y-e.r-12,(e.type==='boss'?96:48)*(e.hp/e.max),6,3);ctx.fill();
