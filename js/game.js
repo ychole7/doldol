@@ -1,4 +1,4 @@
-/* DOLDOL SPECIAL FORCES V24 - PERSISTENT REWARD ECONOMY */
+/* DOLDOL SPECIAL FORCES V26 - PERSISTENT CHARACTER GROWTH */
 /* DOLDOL SPECIAL FORCE V20 - Combat Variety */
 
 (() => {
@@ -311,10 +311,44 @@ const CHARACTER_DEFS=[
   {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
 ];
 window.CHARACTER_DEFS=CHARACTER_DEFS;
+/* --- V26 persistent character level / XP --- */
+const CHAR_PROGRESS_KEY='doldol_character_progress_v1';
+function loadCharacterProgress(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(CHAR_PROGRESS_KEY)||'{}');
+    return raw && typeof raw==='object' ? raw : {};
+  }catch(e){ return {}; }
+}
+function saveCharacterProgress(data){ try{localStorage.setItem(CHAR_PROGRESS_KEY,JSON.stringify(data));}catch(e){} }
+function getCharacterProgress(id){
+  const all=loadCharacterProgress();
+  const v=all[id]||{};
+  return {level:Math.max(1,Number(v.level)||1),xp:Math.max(0,Number(v.xp)||0),next:Math.max(50,Number(v.next)||50)};
+}
+function addCharacterXP(amount,id){
+  const cid=id||((localStorage.getItem('doldol_character_v1')||'doldol'));
+  const all=loadCharacterProgress();
+  const v=getCharacterProgress(cid);
+  let gained=Math.max(0,Number(amount)||0), levels=0;
+  v.xp+=gained;
+  while(v.xp>=v.next && v.level<50){
+    v.xp-=v.next; v.level++; levels++; v.next=Math.round(v.next*1.24);
+  }
+  all[cid]=v; saveCharacterProgress(all);
+  return {id:cid,level:v.level,xp:v.xp,next:v.next,levels};
+}
+window.__duckCharacterProgress=getCharacterProgress;
+window.__duckAddCharacterXP=addCharacterXP;
+window.__duckIsCharacterUnlocked=isCharacterUnlocked;
+function isCharacterUnlocked(c){
+  if(!c) return false;
+  if(!c.locked) return true;
+  return getCharacterProgress(c.id).level>=10;
+}
 function getSelectedCharacter(){
   try{
     const id=localStorage.getItem('doldol_character_v1')||'doldol';
-    return CHARACTER_DEFS.find(c=>c.id===id && !c.locked)||CHARACTER_DEFS[0];
+    return CHARACTER_DEFS.find(c=>c.id===id && isCharacterUnlocked(c))||CHARACTER_DEFS[0];
   }catch(e){ return CHARACTER_DEFS[0]; }
 }
 function getGrowthStats(){
@@ -333,6 +367,9 @@ function getGrowthStats(){
 function applyGrowthToPlayer(){
   const g=getGrowthStats();
   const c=getSelectedCharacter();
+  const cp=getCharacterProgress(c.id);
+  const levelMul=1+Math.min(0.35,(cp.level-1)*0.012);
+  const hpMul=1+Math.min(0.30,(cp.level-1)*0.010);
   const m=c.mods||{};
   player.characterId=c.id;
   player.characterName=c.name;
@@ -340,9 +377,9 @@ function applyGrowthToPlayer(){
   player.characterFace=c.face;
   player.characterMods=m;
   player.growth=g;
-  player.maxHp=Math.round(g.hp*(m.hp||1));
+  player.maxHp=Math.round(g.hp*(m.hp||1)*hpMul);
   player.hp=player.maxHp;
-  player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)));
+  player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)*levelMul));
   const effectiveSpeed=Math.max(.35,g.speed*(m.speed||1));
   player.attackInterval=Math.max(.24,1/effectiveSpeed);
   player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1);
@@ -372,7 +409,7 @@ showSkillButton();
   running=true; last=performance.now();
 }
 function startStage(n){
-  pendingNextStage=0;
+  if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   stage=n;
   window.__duckStage=stage;
@@ -543,6 +580,7 @@ function hitEnemy(e,damage=1){
   shake=Math.max(shake,3);
   if(e.hp<=0){
     kills++;
+    if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
     if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
     burst(e.x,e.y,18);
     e.dead=true;
@@ -605,6 +643,7 @@ function parryAt(x,y){
 
   if(isPerfect){
     perfect++;
+    if(window.__duckMissionEvent){ window.__duckMissionEvent("parry",1); window.__duckMissionEvent("perfect",1); }
     r.vx*=1.35; r.vy*=1.35;
     r.damage=Math.max(1,Math.round(Math.round(((player.attack||25)*(player.skillAttackMul||1))/25)*2*(player.perfectMultiplier||1)*(player.skillPerfectMul||1)));
     message='PERFECT PARRY!';
@@ -854,9 +893,11 @@ function update(dt){
         message='+1 COIN  ·  '+walletCoins.toLocaleString();
         if(window.__duckSyncLobby)window.__duckSyncLobby();
       }else{
-        xp+=10;
-        levelXp+=10;
-        message='+10 XP';
+        const gained=10;
+        xp+=gained;
+        levelXp+=gained;
+        const prog=window.__duckAddCharacterXP?window.__duckAddCharacterXP(gained,player.characterId):null;
+        message='+'+gained+' XP';
         if(levelXp>=nextXp){
           level++;
           levelXp-=nextXp;
@@ -870,8 +911,17 @@ function update(dt){
           burst(player.x,player.y,24);
           shake=6;
         }
+        if(prog && prog.levels>0){
+          player.characterLevel=prog.level;
+          message='🎉 '+player.characterName+' Lv.'+prog.level+' UP!';
+          messageTimer=1.35;
+          levelFlash=1.35;
+          applyGrowthToPlayer();
+          burst(player.x,player.y,30);
+          shake=7;
+        }
       }
-      messageTimer=.32;
+      messageTimer=Math.max(messageTimer,.32);
       burst(p.x,p.y,8);
       p.life=0;
     }else if(d<130){
@@ -894,6 +944,7 @@ function update(dt){
     if(clearTimer>.8){
       gate=true;
       running=false;
+      if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
       setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
@@ -1724,7 +1775,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  const face=document.getElementById('charHeroFace');
  const name=document.getElementById('charHeroName');
  const role=document.getElementById('charHeroRole');
- const data=CHARACTER_DEFS.map((d,i)=>[d.face,d.name,d.role,'Lv.'+(12-i),d.locked?'잠금':'획득',d.id]);
+ const data=CHARACTER_DEFS.map((d,i)=>{const p=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1};const unlocked=window.__duckIsCharacterUnlocked?window.__duckIsCharacterUnlocked(d):(!d.locked||p.level>=10);return [d.face,d.name,d.role,'Lv.'+p.level,unlocked?'획득':'Lv.10 해금',d.id];});
  let selected=Math.max(0,CHARACTER_DEFS.findIndex(c=>c.id===((()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})())));
  function render(){
   grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');
@@ -1859,17 +1910,91 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  ];
  let values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
  const wallet=window.__duckWallet;
+ function currentChar(){ return getSelectedCharacter(); }
  function render(){
-   cards.innerHTML=stats.map(s=>{const v=values[s.key]??s.base;const pct=Math.min(100,((v-s.base)/(s.max-s.base))*100+35);const can=v<s.max&&wallet.coins>=s.cost;return `<div class="growthStat"><div class="growthStatTop"><b>${s.icon} ${s.name}</b><strong>${s.key==='speed'?v.toFixed(2):v}${s.key==='parry'?'%':''}</strong></div><p>${s.desc}</p><div class="growthBar"><i style="width:${pct}%"></i></div><button class="growthUpgrade ${can?'':'disabled'}" data-key="${s.key}">${v>=s.max?'MAX':'강화  ·  🪙 '+s.cost}</button></div>`}).join('');
+   const cp=window.__duckCharacterProgress?window.__duckCharacterProgress(currentChar().id):{level:1,xp:0,next:50};
+   const xpPct=Math.min(100,Math.round(cp.xp/cp.next*100));
+   const progressBox='<div style="margin:0 0 12px;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,216,102,.18),rgba(123,215,255,.12));border:1px solid rgba(255,255,255,.12)"><div style="display:flex;justify-content:space-between;align-items:center;font-weight:1000"><span>⭐ '+currentChar().name+' 성장</span><b>Lv.'+cp.level+'</b></div><div style="height:8px;margin-top:8px;border-radius:8px;background:rgba(0,0,0,.18);overflow:hidden"><i style="display:block;height:100%;width:'+xpPct+'%;background:#7bd7ff"></i></div><small style="display:block;margin-top:6px;opacity:.72">XP '+cp.xp+' / '+cp.next+' · Lv.10 달성 시 돌격특공 해금</small></div>';
+   cards.innerHTML=progressBox+stats.map(s=>{const v=values[s.key]??s.base;const pct=Math.min(100,((v-s.base)/(s.max-s.base))*100+35);const can=v<s.max&&wallet.coins>=s.cost;return `<div class="growthStat"><div class="growthStatTop"><b>${s.icon} ${s.name}</b><strong>${s.key==='speed'?v.toFixed(2):v}${s.key==='parry'?'%':''}</strong></div><p>${s.desc}</p><div class="growthBar"><i style="width:${pct}%"></i></div><button class="growthUpgrade ${can?'':'disabled'}" data-key="${s.key}">${v>=s.max?'MAX':'강화  ·  🪙 '+s.cost}</button></div>`}).join('');
    document.getElementById('growthCoins').textContent=wallet.coins.toLocaleString();
    cards.querySelectorAll('.growthUpgrade').forEach(btn=>btn.onclick=()=>upgrade(btn.dataset.key));
  }
  function upgrade(key){const s=stats.find(x=>x.key===key),v=values[key]??s.base;if(!s||v>=s.max||!wallet.spendCoins(s.cost))return;values[key]=Math.min(s.max,v+s.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
  window.__duckOpenGrowth=function(char){
-   const d=char||{face:'🐥',name:'돌돌이',role:'밸런스형 · Lv.12'};
-   document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=d.name||'돌돌이';document.getElementById('growthRole').textContent=d.role||'밸런스형 · Lv.12';render();screen.classList.add('show');
+   const d=char||getSelectedCharacter();
+   const cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1};
+   document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=d.name||'돌돌이';document.getElementById('growthRole').textContent=(d.role||'밸런스형')+' · Lv.'+cp.level;render();screen.classList.add('show');
  };
  document.getElementById('growthBack').onclick=()=>screen.classList.remove('show');
  const old=document.getElementById('charGrowthBtn');
  if(old)old.onclick=()=>{document.getElementById('characterScreen').classList.remove('show');window.__duckOpenGrowth();};
+})();
+
+
+/* --- V25 mission/achievement system --- */
+(function(){
+  const KEY='doldol_missions_v1';
+  const defaults={kills:0,parry:0,perfect:0,clears:0,plays:0,claimed:{}};
+  function load(){try{return Object.assign({},defaults,JSON.parse(localStorage.getItem(KEY)||'{}'),{claimed:Object.assign({},defaults.claimed,(JSON.parse(localStorage.getItem(KEY)||'{}').claimed)||{})});}catch(e){return Object.assign({},defaults,{claimed:{}});}}
+  let state=load();
+  const defs=[
+    {id:'kill50',icon:'🎯',name:'적 50마리 처치',key:'kills',goal:50,reward:200,desc:'전투에서 적을 50마리 처치하세요.'},
+    {id:'parry10',icon:'🛡️',name:'패링 10회 성공',key:'parry',goal:10,reward:150,desc:'적의 공격을 10회 PARRY하세요.'},
+    {id:'perfect3',icon:'✦',name:'PERFECT PARRY 3회',key:'perfect',goal:3,reward:200,desc:'완벽한 타이밍으로 3회 반격하세요.'},
+    {id:'clear5',icon:'🏁',name:'스테이지 5 클리어',key:'clears',goal:5,reward:300,desc:'스테이지를 5개 클리어하세요.'},
+    {id:'clear10',icon:'🏆',name:'스테이지 10 클리어',key:'clears',goal:10,reward:500,desc:'스테이지를 10개 클리어하세요.'},
+    {id:'play10',icon:'🚀',name:'10회 출격',key:'plays',goal:10,reward:250,desc:'전투에 10회 출격하세요.'}
+  ];
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+  function sync(){save(); if(window.__duckSyncLobby)window.__duckSyncLobby();}
+  window.__duckMissionEvent=function(type,n){
+    const v=Math.max(0,Number(n)||0);
+    if(!v)return;
+    if(type==='kill')state.kills+=v;
+    if(type==='parry')state.parry+=v;
+    if(type==='perfect')state.perfect+=v;
+    if(type==='clear')state.clears+=v;
+    if(type==='play')state.plays+=v;
+    sync();
+  };
+  function render(){
+    const body=document.getElementById('menuBody'), title=document.getElementById('menuTitle');
+    if(!body||!title)return;
+    title.textContent='📋 미션 / 업적';
+    body.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);font-weight:900"><span>진행 상황</span><span style="color:#ffd34f">🪙 '+window.__duckWallet.coins.toLocaleString()+'</span></div>'+
+      defs.map(d=>{
+        const cur=Math.min(d.goal,Number(state[d.key]||0));
+        const done=cur>=d.goal;
+        const claimed=!!state.claimed[d.id];
+        const pct=Math.round(cur/d.goal*100);
+        return '<div class="missionItem" style="margin-bottom:9px"><div style="flex:1"><div style="display:flex;justify-content:space-between;gap:8px"><span>'+d.icon+' '+d.name+'</span><b>'+cur+'/'+d.goal+'</b></div><div class="bar"><i style="width:'+pct+'%"></i></div><small style="opacity:.65">'+d.desc+' · 보상 🪙 '+d.reward+'</small></div><button data-claim="'+d.id+'" '+(!done||claimed?'disabled':'')+' style="margin-left:8px">'+(claimed?'완료':done?'받기':'진행중')+'</button></div>';
+      }).join('');
+    body.querySelectorAll('[data-claim]').forEach(btn=>btn.onclick=function(){
+      const id=btn.dataset.claim, d=defs.find(x=>x.id===id);
+      if(!d||state.claimed[id]||Number(state[d.key]||0)<d.goal)return;
+      state.claimed[id]=true;
+      window.__duckWallet.addCoins(d.reward);
+      sync(); render();
+    });
+  }
+  function open(){
+    const menu=document.getElementById('menuScreen');
+    if(!menu)return;
+    if(window.__duckStopCombat)window.__duckStopCombat();
+    menu.classList.add('show');
+    render();
+  }
+  function installButton(){
+    const anchor=document.getElementById('lobbyBook')||document.getElementById('lobbyGear');
+    const lobby=document.getElementById('gameLobby');
+    if(!lobby||document.getElementById('lobbyMission'))return;
+    const b=document.createElement('button');
+    b.id='lobbyMission'; b.className=anchor?anchor.className:'menuItem';
+    b.innerHTML='📋 미션<small>보상 받기</small>';
+    b.onclick=open;
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(b,anchor); else lobby.appendChild(b);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installButton); else installButton();
+  window.__duckOpenMissions=open;
+  window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
