@@ -1,8 +1,16 @@
-/* DOLDOL SPECIAL FORCES V21 - BOSS ENCOUNTER UPGRADE */
+/* DOLDOL SPECIAL FORCES V24 - PERSISTENT REWARD ECONOMY */
 /* DOLDOL SPECIAL FORCE V20 - Combat Variety */
 
 (() => {
 'use strict';
+
+// V24: persistent wallet shared by combat and growth screens.
+window.__duckWallet = window.__duckWallet || {
+  get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '12340'); },
+  addCoins(n){ const v=Math.max(0,this.coins+(Number(n)||0)); localStorage.setItem('doldol_coins_v1',String(v)); return v; },
+  spendCoins(n){ const cost=Math.max(0,Number(n)||0); if(this.coins<cost)return false; localStorage.setItem('doldol_coins_v1',String(this.coins-cost)); return true; },
+  setCoins(n){ const v=Math.max(0,Number(n)||0); localStorage.setItem('doldol_coins_v1',String(v)); return v; }
+};
 
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
@@ -348,7 +356,7 @@ function reset(){
 showSkillButton();
   applyGrowthToPlayer();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
-  coins=0; xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
+  xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
   makeCovers();
   for(let i=0;i<total;i++){
       spawnEnemy(i);
@@ -842,8 +850,9 @@ function update(dt){
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
       if(p.type==='coin'){
-        coins+=1;
-        message='+1 COIN';
+        const walletCoins=window.__duckWallet.addCoins(1);
+        message='+1 COIN  ·  '+walletCoins.toLocaleString();
+        if(window.__duckSyncLobby)window.__duckSyncLobby();
       }else{
         xp+=10;
         levelXp+=10;
@@ -1038,7 +1047,7 @@ function draw(){
   ctx.font='900 11px system-ui';ctx.fillStyle='#ffd866';ctx.fillText(`LV ${level}`,28,59);
   ctx.font='12px system-ui';ctx.fillStyle='#aeb9c4';ctx.fillText(`${kills}/${total} 처치`,28,59);
   ctx.textAlign='right';ctx.font='900 12px system-ui';ctx.fillStyle='#ffd866';
-  ctx.fillText(`🪙 ${coins}   XP ${xp}`,vw-26,59);
+  ctx.fillText(`🪙 ${window.__duckWallet.coins.toLocaleString()}   XP ${xp}`,vw-26,59);
 
   ctx.fillStyle='#303943';roundRect(vw*.42,25,vw*.31,13,7);ctx.fill();
   ctx.fillStyle='#58d56c';roundRect(vw*.42,25,vw*.31*(player.hp/player.maxHp),13,7);ctx.fill();
@@ -1242,7 +1251,7 @@ function draw(){
     ctx.fillText(message==='GAME OVER'?'GAME OVER':'STAGE CLEAR!',vw/2,vh*.42);
     if(gate){
       ctx.fillStyle='#dfe7ee';ctx.font='bold 14px system-ui';
-      ctx.fillText(`보상  🪙 ${coins}   XP ${xp}`,vw/2,vh*.50);
+      ctx.fillText(`보유 코인  🪙 ${window.__duckWallet.coins.toLocaleString()}   XP ${xp}`,vw/2,vh*.50);
       ctx.fillStyle='#ffd866';roundRect(vw*.5-105,vh*.54,210,54,18);ctx.fill();
       ctx.fillStyle='#3a260d';ctx.font='900 18px system-ui';
       ctx.fillText(`STAGE ${stage+1}  ▶`,vw/2,vh*.54+35);
@@ -1702,7 +1711,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const el=document.getElementById("lobbyStage");
     if(el)el.textContent="STAGE "+s;
     const c=document.getElementById("lobbyCoins");
-    if(c)c.textContent=String((typeof coins!=="undefined"?coins:0));
+    if(c)c.textContent=window.__duckWallet.coins.toLocaleString();
   };
 })();
 
@@ -1849,13 +1858,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   {key:'parry',icon:'🛡️',name:'패링 판정',desc:'PARRY 성공 판정 범위를 조금 더 넓힙니다.',base:20,max:80,cost:450,step:5}
  ];
  let values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
- let coins=Number(localStorage.getItem('doldol_coins_v1')||'12340');
+ const wallet=window.__duckWallet;
  function render(){
-   cards.innerHTML=stats.map(s=>{const v=values[s.key]??s.base;const pct=Math.min(100,((v-s.base)/(s.max-s.base))*100+35);const can=v<s.max&&coins>=s.cost;return `<div class="growthStat"><div class="growthStatTop"><b>${s.icon} ${s.name}</b><strong>${s.key==='speed'?v.toFixed(2):v}${s.key==='parry'?'%':''}</strong></div><p>${s.desc}</p><div class="growthBar"><i style="width:${pct}%"></i></div><button class="growthUpgrade ${can?'':'disabled'}" data-key="${s.key}">${v>=s.max?'MAX':'강화  ·  🪙 '+s.cost}</button></div>`}).join('');
-   document.getElementById('growthCoins').textContent=coins.toLocaleString();
+   cards.innerHTML=stats.map(s=>{const v=values[s.key]??s.base;const pct=Math.min(100,((v-s.base)/(s.max-s.base))*100+35);const can=v<s.max&&wallet.coins>=s.cost;return `<div class="growthStat"><div class="growthStatTop"><b>${s.icon} ${s.name}</b><strong>${s.key==='speed'?v.toFixed(2):v}${s.key==='parry'?'%':''}</strong></div><p>${s.desc}</p><div class="growthBar"><i style="width:${pct}%"></i></div><button class="growthUpgrade ${can?'':'disabled'}" data-key="${s.key}">${v>=s.max?'MAX':'강화  ·  🪙 '+s.cost}</button></div>`}).join('');
+   document.getElementById('growthCoins').textContent=wallet.coins.toLocaleString();
    cards.querySelectorAll('.growthUpgrade').forEach(btn=>btn.onclick=()=>upgrade(btn.dataset.key));
  }
- function upgrade(key){const s=stats.find(x=>x.key===key),v=values[key]??s.base;if(!s||v>=s.max||coins<s.cost)return;coins-=s.cost;values[key]=Math.min(s.max,v+s.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));localStorage.setItem('doldol_coins_v1',String(coins));render();}
+ function upgrade(key){const s=stats.find(x=>x.key===key),v=values[key]??s.base;if(!s||v>=s.max||!wallet.spendCoins(s.cost))return;values[key]=Math.min(s.max,v+s.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
  window.__duckOpenGrowth=function(char){
    const d=char||{face:'🐥',name:'돌돌이',role:'밸런스형 · Lv.12'};
    document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=d.name||'돌돌이';document.getElementById('growthRole').textContent=d.role||'밸런스형 · Lv.12';render();screen.classList.add('show');
