@@ -1780,9 +1780,18 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  function render(){const data=getCharRows();if(selected>=data.length)selected=0;grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;try{localStorage.setItem('doldol_character_v1',data[i][5])}catch(e){};updateHero();render();});}
  function updateHero(){const data=getCharRows();const d=data[selected]||data[0];face.textContent=d[0];face.classList.toggle('duck',selected===0);name.textContent=d[1];role.textContent=d[2]+' · '+d[3];}
  window.__duckRefreshCharacters=function(){updateHero();render();};
- window.__duckOpenCharacters=function(){screen.classList.add('show');updateHero();render();};
+ window.__duckOpenCharacters=function(){
+   if(!screen){
+     console.warn('characterScreen missing');
+     return false;
+   }
+   screen.classList.add('show');
+   updateHero(); render();
+   return true;
+ };
  document.getElementById('charBack').onclick=()=>screen.classList.remove('show');
- document.getElementById('charGrowthBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckOpenGrowth)window.__duckOpenGrowth();};
+ const legacyGrowthBtn=document.getElementById('charGrowthBtn');
+ if(legacyGrowthBtn) legacyGrowthBtn.onclick=null;
  document.getElementById('charSelectBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckStartStage)window.__duckStartStage(Number(window.__selectedDuckStage||1)||1);};
 })();
 
@@ -1939,20 +1948,21 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       return false;
     }
   };
-  // Character screen -> growth: one authoritative touch/click handler.
-  const btn=document.getElementById('charGrowthBtn');
-  if(btn){
-    btn.onclick=null;
-    btn.addEventListener('click',function(e){
-      e.preventDefault(); e.stopPropagation();
-      window.__duckOpenGrowth();
-    },{capture:true});
-    btn.addEventListener('touchend',function(e){
-      e.preventDefault(); e.stopPropagation();
-      window.__duckOpenGrowth();
-    },{capture:true,passive:false});
+  // Character screen -> growth: one authoritative delegated handler.
+  // Delegation survives dynamically rebuilt character screens and prevents legacy
+  // handlers from sending the user back to the lobby.
+  function openGrowthFromCharacter(e){
+    const t=e.target && e.target.closest ? e.target.closest('#charGrowthBtn') : null;
+    if(!t)return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    window.__duckOpenGrowth && window.__duckOpenGrowth();
   }
-})();
+  document.addEventListener('click',openGrowthFromCharacter,true);
+  document.addEventListener('pointerup',openGrowthFromCharacter,true);
+  document.addEventListener('touchend',openGrowthFromCharacter,true);
+})
 
 /* --- V25 mission/achievement system --- */
 (function(){
