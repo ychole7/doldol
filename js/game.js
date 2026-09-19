@@ -21,6 +21,7 @@ let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
+let pendingNextStage=0;
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
@@ -363,6 +364,8 @@ showSkillButton();
   running=true; last=performance.now();
 }
 function startStage(n){
+  pendingNextStage=0;
+  window.__duckPendingNextStage=0;
   stage=n;
   window.__duckStage=stage;
   window.__selectedDuckStage=stage;
@@ -1609,11 +1612,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     result.classList.add("show");
   };
- document.getElementById("resultNext").addEventListener("click",()=>{
-   const s=Math.max(1,Number((typeof stage!=="undefined"?stage:1))||1);
-   result.classList.remove("show");
-   if(window.__duckStartStage)window.__duckStartStage(document.getElementById("resultTitle").textContent==="CLEAR!"?s+1:s);
- });
  document.getElementById("resultLobby").addEventListener("click",()=>{result.classList.remove("show");if(window.__duckShowLobby)window.__duckShowLobby()});
 })();
 
@@ -1660,14 +1658,19 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(resultNext)resultNext.onclick=function(e){
     e.preventDefault();
     const clear=$("resultTitle") && $("resultTitle").textContent==="CLEAR!";
-    const s=Number(window.__duckStage||1)||1;
-    if(clear && window.__duckOpenStageReward){
-      window.__duckOpenStageReward();
-      return;
+    const s=Math.max(1,Math.min(500,Number(window.__duckStage||1)||1));
+    if(clear){
+      // 다음 스테이지를 클릭 시점에 고정한다. 이후 UI 이벤트가 stage 값을
+      // 바꿔도 보상 선택 후 반드시 정확히 다음 스테이지로 진행한다.
+      window.__duckPendingNextStage=Math.min(500,s+1);
+      if(window.__duckOpenStageReward){
+        window.__duckOpenStageReward();
+        return;
+      }
     }
     try{localStorage.removeItem("doldol_run_skills_v1");}catch(e){}
     if(result)result.classList.remove("show");
-    startBattle(s);
+    startBattle(clear?Math.min(500,s+1):s);
   };
 
   const battlePause=document.getElementById('battlePause');
@@ -1810,11 +1813,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         btn.style.opacity=".75";
         o.style.pointerEvents="none";
 
-        const s=Math.max(1,Number(window.__duckStage||1)||1);
+        const currentStage=Math.max(1,Math.min(500,Number(window.__duckStage||1)||1));
+        const nextStage=Math.max(1,Math.min(500,Number(window.__duckPendingNextStage||currentStage+1)||currentStage+1));
         setTimeout(()=>{
           o.style.display="none";
           o.style.pointerEvents="auto";
-          if(window.__duckStartStage)window.__duckStartStage(s+1);
+          window.__duckPendingNextStage=0;
+          if(window.__duckStartStage)window.__duckStartStage(nextStage);
         },120);
       });
       o.__rewardClickBound=true;
