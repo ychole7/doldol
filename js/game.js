@@ -896,7 +896,7 @@ function update(dt){
         const gained=10;
         xp+=gained;
         levelXp+=gained;
-        const prog=window.__duckAddCharacterXP?window.__duckAddCharacterXP(gained,player.characterId):null;
+        const prog=window.__duckAddCharacterXP?window.__duckAddCharacterXP(gained,player.characterId):null;if(window.__duckRefreshCharacters)window.__duckRefreshCharacters();
         message='+'+gained+' XP';
         if(levelXp>=nextXp){
           level++;
@@ -1775,16 +1775,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  const face=document.getElementById('charHeroFace');
  const name=document.getElementById('charHeroName');
  const role=document.getElementById('charHeroRole');
- const data=CHARACTER_DEFS.map((d,i)=>{const p=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1};const unlocked=window.__duckIsCharacterUnlocked?window.__duckIsCharacterUnlocked(d):(!d.locked||p.level>=10);return [d.face,d.name,d.role,'Lv.'+p.level,unlocked?'획득':'Lv.10 해금',d.id];});
+ function getCharRows(){return CHARACTER_DEFS.map((d)=>{const p=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1};const unlocked=window.__duckIsCharacterUnlocked?window.__duckIsCharacterUnlocked(d):(!d.locked||p.level>=10);return [d.face,d.name,d.role,'Lv.'+p.level,unlocked?'획득':'잠금',d.id];});}
  let selected=Math.max(0,CHARACTER_DEFS.findIndex(c=>c.id===((()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})())));
- function render(){
-  grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');
-  grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;try{localStorage.setItem('doldol_character_v1',data[i][5])}catch(e){};updateHero();render();});
- }
- function updateHero(){const d=data[selected];face.textContent=d[0];face.classList.toggle('duck',selected===0);name.textContent=d[1];role.textContent=d[2]+' · '+d[3];}
+ function render(){const data=getCharRows();if(selected>=data.length)selected=0;grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;try{localStorage.setItem('doldol_character_v1',data[i][5])}catch(e){};updateHero();render();});}
+ function updateHero(){const data=getCharRows();const d=data[selected]||data[0];face.textContent=d[0];face.classList.toggle('duck',selected===0);name.textContent=d[1];role.textContent=d[2]+' · '+d[3];}
+ window.__duckRefreshCharacters=function(){updateHero();render();};
  window.__duckOpenCharacters=function(){screen.classList.add('show');updateHero();render();};
  document.getElementById('charBack').onclick=()=>screen.classList.remove('show');
- document.getElementById('charGrowthBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckOpenMenu)window.__duckOpenMenu('growth');};
+ document.getElementById('charGrowthBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckOpenGrowth)window.__duckOpenGrowth();};
  document.getElementById('charSelectBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckStartStage)window.__duckStartStage(Number(window.__selectedDuckStage||1)||1);};
 })();
 
@@ -1897,39 +1895,32 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   };
 })();
 
-/* --- v4 character growth system --- */
+/* --- V27 character growth screen fix --- */
 (function(){
- const screen=document.getElementById('growthScreen');
- const cards=document.getElementById('growthCards');
- if(!screen||!cards)return;
- const stats=[
-  {key:'atk',icon:'⚔️',name:'공격력',desc:'적에게 주는 기본 피해를 높입니다.',base:25,max:100,cost:300,step:3},
-  {key:'speed',icon:'⚡',name:'공격속도',desc:'자동 공격 간격을 줄여 더 빠르게 공격합니다.',base:1.2,max:3,cost:350,step:.08},
-  {key:'hp',icon:'❤️',name:'최대 HP',desc:'더 많은 돌을 버티고 전투를 이어갑니다.',base:120,max:300,cost:400,step:15},
-  {key:'parry',icon:'🛡️',name:'패링 판정',desc:'PARRY 성공 판정 범위를 조금 더 넓힙니다.',base:20,max:80,cost:450,step:5}
- ];
- let values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
- const wallet=window.__duckWallet;
- function currentChar(){ return getSelectedCharacter(); }
- function render(){
-   const cp=window.__duckCharacterProgress?window.__duckCharacterProgress(currentChar().id):{level:1,xp:0,next:50};
-   const xpPct=Math.min(100,Math.round(cp.xp/cp.next*100));
-   const progressBox='<div style="margin:0 0 12px;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,216,102,.18),rgba(123,215,255,.12));border:1px solid rgba(255,255,255,.12)"><div style="display:flex;justify-content:space-between;align-items:center;font-weight:1000"><span>⭐ '+currentChar().name+' 성장</span><b>Lv.'+cp.level+'</b></div><div style="height:8px;margin-top:8px;border-radius:8px;background:rgba(0,0,0,.18);overflow:hidden"><i style="display:block;height:100%;width:'+xpPct+'%;background:#7bd7ff"></i></div><small style="display:block;margin-top:6px;opacity:.72">XP '+cp.xp+' / '+cp.next+' · Lv.10 달성 시 돌격특공 해금</small></div>';
-   cards.innerHTML=progressBox+stats.map(s=>{const v=values[s.key]??s.base;const pct=Math.min(100,((v-s.base)/(s.max-s.base))*100+35);const can=v<s.max&&wallet.coins>=s.cost;return `<div class="growthStat"><div class="growthStatTop"><b>${s.icon} ${s.name}</b><strong>${s.key==='speed'?v.toFixed(2):v}${s.key==='parry'?'%':''}</strong></div><p>${s.desc}</p><div class="growthBar"><i style="width:${pct}%"></i></div><button class="growthUpgrade ${can?'':'disabled'}" data-key="${s.key}">${v>=s.max?'MAX':'강화  ·  🪙 '+s.cost}</button></div>`}).join('');
-   document.getElementById('growthCoins').textContent=wallet.coins.toLocaleString();
-   cards.querySelectorAll('.growthUpgrade').forEach(btn=>btn.onclick=()=>upgrade(btn.dataset.key));
- }
- function upgrade(key){const s=stats.find(x=>x.key===key),v=values[key]??s.base;if(!s||v>=s.max||!wallet.spendCoins(s.cost))return;values[key]=Math.min(s.max,v+s.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
- window.__duckOpenGrowth=function(char){
-   const d=char||getSelectedCharacter();
-   const cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1};
-   document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=d.name||'돌돌이';document.getElementById('growthRole').textContent=(d.role||'밸런스형')+' · Lv.'+cp.level;render();screen.classList.add('show');
- };
- document.getElementById('growthBack').onclick=()=>screen.classList.remove('show');
- const old=document.getElementById('charGrowthBtn');
- if(old)old.onclick=()=>{document.getElementById('characterScreen').classList.remove('show');window.__duckOpenGrowth();};
+  let screen=document.getElementById('growthScreen');
+  const stats=[
+    {key:'atk',icon:'⚔️',name:'공격력',desc:'적에게 주는 기본 피해를 높입니다.',base:25,max:100,cost:300,step:3},
+    {key:'speed',icon:'⚡',name:'공격속도',desc:'자동 공격 간격을 줄여 더 빠르게 공격합니다.',base:1.2,max:3,cost:350,step:.08},
+    {key:'hp',icon:'❤️',name:'최대 HP',desc:'더 많은 공격을 버틸 수 있습니다.',base:120,max:300,cost:400,step:15},
+    {key:'parry',icon:'🛡️',name:'패링 판정',desc:'PARRY 성공 범위를 넓힙니다.',base:20,max:80,cost:450,step:5}
+  ];
+  let values={};
+  function ensure(){
+    if(screen)return;
+    screen=document.createElement('div');screen.id='growthScreen';
+    Object.assign(screen.style,{position:'fixed',inset:'0',zIndex:'130',display:'none',overflow:'auto',background:'linear-gradient(180deg,#101820,#18232d)',color:'#fff',fontFamily:'system-ui',padding:'calc(18px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))',boxSizing:'border-box'});
+    screen.innerHTML=`<div style="max-width:520px;margin:0 auto"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button id="growthBack" style="border:0;border-radius:12px;padding:9px 12px;background:rgba(255,255,255,.1);color:#fff;font-size:16px">‹</button><div><b style="font-size:20px">📈 캐릭터 성장</b><div id="growthRole" style="font-size:11px;opacity:.65"></div></div></div><div id="growthHero" style="padding:16px;border-radius:22px;background:linear-gradient(135deg,rgba(255,216,102,.16),rgba(123,215,255,.10));border:1px solid rgba(255,255,255,.1);margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div id="growthFace" style="font-size:46px">🐥</div><div><div id="growthName" style="font-size:20px;font-weight:1000"></div><div id="growthXp" style="font-size:12px;opacity:.75;margin-top:3px"></div></div></div><div style="height:9px;background:rgba(0,0,0,.25);border-radius:8px;overflow:hidden;margin-top:12px"><i id="growthXpBar" style="display:block;height:100%;width:0;background:#7bd7ff"></i></div></div><div id="growthCoins" style="text-align:right;font-weight:900;color:#ffd866;margin:8px 2px 10px"></div><div id="growthCards"></div></div>`;
+    document.body.appendChild(screen);
+    document.getElementById('growthBack').onclick=()=>{screen.style.display='none';if(window.__duckRefreshCharacters)window.__duckRefreshCharacters();};
+  }
+  function load(){try{values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}')||{};}catch(e){values={};}}
+  function current(){return getSelectedCharacter();}
+  function render(){ensure();load();const d=current(),cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1,xp:0,next:50};const pct=Math.min(100,Math.round(cp.xp/cp.next*100));document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;document.getElementById('growthRole').textContent=d.role||'밸런스형';document.getElementById('growthXp').textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');document.getElementById('growthXpBar').style.width=pct+'%';document.getElementById('growthCoins').textContent='🪙 '+window.__duckWallet.coins.toLocaleString();document.getElementById('growthCards').innerHTML=stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&window.__duckWallet.coins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');document.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));}
+  function upgrade(key){const x=stats.find(v=>v.key===key),v=Number(values[key]??x.base);if(!x||v>=x.max||!window.__duckWallet.spendCoins(x.cost))return;values[key]=Math.min(x.max,v+x.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
+  window.__duckOpenGrowth=function(){ensure();render();screen.style.display='block';};
+  // Always bind the character-menu growth button to this real screen.
+  const btn=document.getElementById('charGrowthBtn');if(btn)btn.onclick=()=>{const cs=document.getElementById('characterScreen');if(cs)cs.classList.remove('show');window.__duckOpenGrowth();};
 })();
-
 
 /* --- V25 mission/achievement system --- */
 (function(){
