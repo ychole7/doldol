@@ -1948,16 +1948,32 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       return false;
     }
   };
-  // Character screen -> growth: one authoritative delegated handler.
-  // Delegation survives dynamically rebuilt character screens and prevents legacy
-  // handlers from sending the user back to the lobby.
+  // Character screen -> growth: authoritative delegated handler.
+  // The actual server HTML uses a visible button labelled "성장" but does not
+  // reliably expose the legacy #charGrowthBtn id, so bind by screen + button
+  // text instead of assuming a specific id.
+  let growthOpening=false;
+  function findGrowthButton(target){
+    const cs=document.getElementById('characterScreen');
+    if(!cs || !cs.classList.contains('show')) return null;
+    let el=target;
+    while(el && el!==document.body){
+      if((el.tagName==='BUTTON'||el.tagName==='A'||el.getAttribute?.('role')==='button') && /성장/.test((el.textContent||'').replace(/\s+/g,' '))) return el;
+      el=el.parentElement;
+    }
+    return null;
+  }
   function openGrowthFromCharacter(e){
-    const t=e.target && e.target.closest ? e.target.closest('#charGrowthBtn') : null;
+    const t=findGrowthButton(e.target);
     if(!t)return;
     e.preventDefault();
     e.stopPropagation();
     if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    window.__duckOpenGrowth && window.__duckOpenGrowth();
+    if(growthOpening)return;
+    growthOpening=true;
+    const ok=window.__duckOpenGrowth && window.__duckOpenGrowth();
+    setTimeout(()=>{growthOpening=false;},250);
+    if(!ok) console.warn('성장 화면 열기 실패');
   }
   document.addEventListener('click',openGrowthFromCharacter,true);
   document.addEventListener('pointerup',openGrowthFromCharacter,true);
