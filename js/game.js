@@ -2496,3 +2496,106 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   /* Keep old map hidden if another legacy handler tries to open it. */
   const map=$('mapScreen'); if(map){const obs=new MutationObserver(()=>{if(map.classList.contains('show'))map.classList.remove('show');});obs.observe(map,{attributes:true,attributeFilter:['class']});}
 })();
+
+/* ================================================================
+   V41 — Roguelike Run Flow
+   - Remove manual stage selection from the main loop.
+   - Keep 500 stage data, but advance automatically after each clear.
+   - Lobby's stage/story card opens a compact run-status panel only.
+   - A run resets temporary run upgrades at launch; permanent character
+     growth/currency remain intact.
+================================================================ */
+(function(){
+  const $=id=>document.getElementById(id);
+  function currentStage(){ return Math.max(1,Math.min(500,Number(window.__duckStage||1)||1)); }
+  function chapterOf(s){ return Math.min(5,Math.ceil(s/100)); }
+  const names=['푸른 언덕의 시작','붉은 협곡','얼어붙은 계곡','화산 요새','최종 특공 작전'];
+
+  function buildRunPanel(){
+    let p=$('v41RunPanel');
+    if(p)return p;
+    p=document.createElement('div'); p.id='v41RunPanel';
+    p.innerHTML=`
+      <div class="v41RunSheet">
+        <button class="v41RunClose" id="v41RunClose" type="button">‹</button>
+        <div class="v41RunKicker">CURRENT OPERATION</div>
+        <div class="v41RunStage" id="v41RunStage">STAGE 1</div>
+        <div class="v41RunChapter" id="v41RunChapter">CHAPTER 1 · 푸른 언덕의 시작</div>
+        <div class="v41RunTrack"><i id="v41RunTrackFill"></i></div>
+        <div class="v41RunMeta"><span id="v41RunMetaLeft">1 / 100</span><span id="v41RunMetaRight">BOSS · STAGE 5</span></div>
+        <div class="v41RunDesc">전투를 클리어하면 다음 작전으로 자동 진입합니다.<br>전투 사이에는 보급품을 선택해 이번 런의 빌드를 만들어보세요.</div>
+        <button class="v41RunAction" id="v41RunAction" type="button">⚔️ 현재 작전 출격</button>
+      </div>`;
+    document.body.appendChild(p);
+    $('v41RunClose').onclick=()=>p.classList.remove('show');
+    p.addEventListener('click',e=>{if(e.target===p)p.classList.remove('show');});
+    $('v41RunAction').onclick=()=>{
+      p.classList.remove('show');
+      try{localStorage.removeItem('doldol_run_skills_v1');}catch(e){}
+      if(window.__duckStartStage)window.__duckStartStage(currentStage());
+    };
+    return p;
+  }
+
+  function syncRunPanel(){
+    const p=buildRunPanel(), s=currentStage(), ch=chapterOf(s), within=((s-1)%100)+1;
+    $('v41RunStage').textContent='STAGE '+s;
+    $('v41RunChapter').textContent=`CHAPTER ${ch} · ${names[ch-1]}`;
+    $('v41RunMetaLeft').textContent=`${within} / 100`;
+    const nextBoss=Math.ceil(s/5)*5;
+    $('v41RunMetaRight').textContent=(s%5===0?'⚠️ BOSS STAGE':'NEXT BOSS · STAGE '+nextBoss);
+    $('v41RunTrackFill').style.width=(within/100*100)+'%';
+  }
+
+  // Disable the old manual 1-500 selector completely.
+  const oldList=$('stageListPanel'); if(oldList) oldList.remove();
+  const legacyMap=$('mapScreen'); if(legacyMap) legacyMap.classList.remove('show');
+
+  // The lobby stage/story card is now an operation-status card, not a stage picker.
+  const stageBtn=$('lobbyStages');
+  if(stageBtn){
+    const clone=stageBtn.cloneNode(true);
+    stageBtn.parentNode.replaceChild(clone,stageBtn);
+    clone.id='lobbyStages';
+    clone.innerHTML=`<span style="font-size:25px;display:block">🗺️</span><b>작전 현황</b><small id="v41LobbyRunText">STAGE 1 · CHAPTER 1</small>`;
+    clone.onclick=e=>{e.preventDefault();e.stopPropagation();syncRunPanel();buildRunPanel().classList.add('show');};
+  }
+
+  // Make the main start button the single primary entry point.
+  const start=$('lobbyStart');
+  if(start){
+    start.onclick=function(e){
+      e.preventDefault();e.stopPropagation();
+      try{localStorage.removeItem('doldol_run_skills_v1');}catch(err){}
+      if(window.__duckStartStage)window.__duckStartStage(currentStage());
+    };
+  }
+
+  // Keep the compact operation panel synchronized after stage transitions.
+  setInterval(()=>{
+    try{
+      const s=currentStage(), el=$('v41LobbyRunText');
+      if(el)el.textContent=`STAGE ${s} · CHAPTER ${chapterOf(s)}`;
+    }catch(e){}
+  },400);
+
+  const style=document.createElement('style'); style.id='v41Styles'; style.textContent=`
+    #v41RunPanel{position:fixed;inset:0;z-index:120000;display:none;align-items:center;justify-content:center;background:rgba(5,10,15,.78);backdrop-filter:blur(8px);padding:18px;box-sizing:border-box;font-family:system-ui,sans-serif}
+    #v41RunPanel.show{display:flex}
+    .v41RunSheet{position:relative;width:min(390px,100%);border-radius:28px;padding:26px 20px 20px;background:linear-gradient(180deg,#1b323c,#101d25);border:1px solid rgba(255,216,102,.35);box-shadow:0 24px 70px rgba(0,0,0,.48);color:#fff;text-align:center}
+    .v41RunClose{position:absolute;left:14px;top:14px;width:40px;height:40px;border:0;border-radius:13px;background:#263c47;color:#fff;font-size:28px;line-height:1}
+    .v41RunKicker{font-size:9px;letter-spacing:2px;color:#8fa5ae;font-weight:900;margin-top:5px}
+    .v41RunStage{font-size:38px;font-weight:1000;letter-spacing:.5px;margin-top:7px;color:#ffd866;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+    .v41RunChapter{font-size:13px;font-weight:900;color:#d8e1e5;margin-top:3px}
+    .v41RunTrack{height:10px;background:#263b45;border-radius:99px;overflow:hidden;margin:18px 4px 7px;border:1px solid rgba(255,255,255,.08)}
+    .v41RunTrack i{display:block;height:100%;width:1%;background:linear-gradient(90deg,#ffd866,#ff9d3f);border-radius:99px}
+    .v41RunMeta{display:flex;justify-content:space-between;color:#9eafb8;font-size:10px;font-weight:900;padding:0 4px}
+    .v41RunDesc{margin:22px 2px;padding:15px;border-radius:17px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#c5d0d5;font-size:11px;line-height:1.6}
+    .v41RunAction{width:100%;min-height:58px;border:0;border-radius:18px;background:linear-gradient(180deg,#ffd866,#f6b83e);box-shadow:0 6px 0 #a76d22;color:#3a2912;font-weight:1000;font-size:18px;cursor:pointer}
+    .v41RunAction:active{transform:translateY(3px);box-shadow:0 3px 0 #a76d22}
+    #gameLobby #lobbyStages{cursor:pointer}
+    @media(max-width:380px){.v41RunSheet{padding-left:16px;padding-right:16px}.v41RunStage{font-size:34px}}
+  `; document.head.appendChild(style);
+
+  window.__duckV41Roguelike=true;
+})();
