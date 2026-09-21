@@ -63,15 +63,19 @@ let farmInventoryV2=farmLoadV2();
 function farmSaveV2(){try{localStorage.setItem(FARM_INV_KEY_V2,JSON.stringify(farmInventoryV2));}catch(e){}}
 function farmRandomItemV2(){return FARM_ITEMS_V2[Math.floor(Math.random()*FARM_ITEMS_V2.length)];}
 function spawnFarmDropV2(x,y){
-  if(Math.random()>=0.45) return false;
+  // V5: 파밍 드롭은 적 처치마다 1개 확실하게 생성한다.
   const item=farmRandomItemV2();
+  const a=Math.random()*Math.PI*2, dist=26;
   pickups.push({
-    x:Number(x)||vw*.5,y:Number(y)||vh*.5,type:'farm',
+    x:(Number(x)||vw*.5)+Math.cos(a)*dist,
+    y:(Number(y)||vh*.5)+Math.sin(a)*dist,
+    type:'farm',
     farmId:item.id,farmName:item.name,farmIcon:item.icon,
-    life:10,bob:Math.random()*Math.PI*2,farmPicked:false
+    life:12,bob:Math.random()*Math.PI*2,farmPicked:false
   });
   return true;
 }
+
 window.__doldolFarmV2={
   version:2,
   items:FARM_ITEMS_V2.map(x=>({...x})),
@@ -1153,29 +1157,16 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-  // V44: 적 전멸 후 바로 결과창으로 가지 않고 관문을 열고
-  // 플레이어가 직접 관문을 통과해야 스테이지 클리어 처리한다.
-  if(enemies.length===0 && !gate){
+  if(enemies.length===0){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
-      clearTimer=0;
-      message='관문이 열렸습니다!';
-      messageTimer=1.15;
-      burst(vw*.5,vh*.16,30);
-    }
-  }
-
-  if(gate && running && player){
-    const gx=vw*.5, gy=vh*.14, gr=58;
-    const gd=Math.hypot(player.x-gx,player.y-gy);
-    if(gd<gr+Math.max(18,player.r||22)){
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
-      burst(gx,gy,42);
-      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},120);
+      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
+      burst(vw*.5,vh*.18,24);
     }
   }
 }
@@ -1240,6 +1231,8 @@ function drawEnemy(e){
 function drawUpgrade(){
   if(!upgradeOpen) return;
   ctx.save();
+  // V5: 전투 화면 shake transform과 분리해 레벨업 팝업이 흔들리지 않게 한다.
+  ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle='rgba(8,12,18,.76)'; ctx.fillRect(0,0,vw,vh);
   const w=Math.min(vw-36,430), h=250, x=(vw-w)/2, y=(vh-h)/2;
   ctx.fillStyle='#fff8e7'; roundRect(x,y,w,h,22); ctx.fill();
@@ -1518,27 +1511,6 @@ function draw(){
     ctx.fillStyle='#ffd866';ctx.font='900 28px system-ui';ctx.textAlign='center';
     ctx.fillText(`LEVEL ${level}!`,vw/2,vh*.31);
     ctx.globalAlpha=1;
-  }
-
-  // V44: 전투 화면에 실제 관문을 표시한다.
-  if(gate){
-    const gx=vw*.5, gy=vh*.14, pulse=1+Math.sin(performance.now()*.006)*.06;
-    ctx.save();
-    ctx.translate(gx,gy);
-    ctx.globalAlpha=.96;
-    ctx.shadowColor='rgba(255,216,102,.72)'; ctx.shadowBlur=24;
-    ctx.fillStyle='rgba(255,216,102,.18)';
-    ctx.beginPath(); ctx.arc(0,0,58*pulse,0,Math.PI*2); ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.strokeStyle='#ffd866'; ctx.lineWidth=7;
-    ctx.beginPath(); ctx.arc(0,0,42*pulse,0,Math.PI*2); ctx.stroke();
-    ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(0,0,30*pulse,0,Math.PI*2); ctx.stroke();
-    ctx.fillStyle='#fff'; ctx.font='900 15px system-ui'; ctx.textAlign='center';
-    ctx.fillText('GATE',0,5);
-    ctx.fillStyle='#ffd866'; ctx.font='900 12px system-ui';
-    ctx.fillText('관문으로 이동',0,76);
-    ctx.restore();
   }
 
   if(messageTimer>0){
