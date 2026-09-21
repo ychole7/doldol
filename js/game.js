@@ -1024,13 +1024,45 @@ function update(dt){
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
     }else if(p.type==='farm'){
+      // V6: 이모지/문자 대신 실제 캔버스 오브젝트로 파밍 아이템을 그린다.
       const pulse=1+Math.sin(performance.now()/150)*.08;
-      ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
+      const id=p.farmId||'special';
+      const colors={wood:'#9a6a3a',stone:'#87929b',ember:'#ef633f',ice:'#65cfff',herb:'#63b86b',gem:'#7d8cff',vial:'#b58cff',powder:'#555b68',spark:'#ffd34f',special:'#ffcf57'};
+      const c=colors[id]||'#ffd866';
+      ctx.globalAlpha=.20;ctx.fillStyle=c;ctx.beginPath();ctx.arc(0,0,22*pulse,0,Math.PI*2);ctx.fill();
       ctx.globalAlpha=1;
-      ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(p.farmIcon||'⭐',0,1);
-      ctx.textBaseline='alphabetic';
-      ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
+      ctx.shadowColor=c;ctx.shadowBlur=10;
+      ctx.fillStyle=c;
+      if(id==='wood'){
+        roundRect(-13,-8,26,16,5);ctx.fill();
+        ctx.fillStyle='rgba(255,235,190,.65)';ctx.fillRect(-8,-5,3,10);ctx.fillRect(2,-5,3,10);
+      }else if(id==='stone'){
+        ctx.beginPath();ctx.moveTo(-13,5);ctx.lineTo(-8,-10);ctx.lineTo(6,-13);ctx.lineTo(14,0);ctx.lineTo(7,11);ctx.lineTo(-7,12);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;ctx.stroke();
+      }else if(id==='ember'){
+        ctx.beginPath();ctx.moveTo(0,-15);ctx.bezierCurveTo(13,-5,11,7,0,13);ctx.bezierCurveTo(-11,7,-8,-2,0,-15);ctx.fill();
+        ctx.fillStyle='#fff0a0';ctx.beginPath();ctx.arc(0,3,5,0,Math.PI*2);ctx.fill();
+      }else if(id==='ice'){
+        ctx.beginPath();for(let i=0;i<6;i++){const a=-Math.PI/2+i*Math.PI/3;const x=Math.cos(a)*14,y=Math.sin(a)*14;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.stroke();
+      }else if(id==='herb'){
+        ctx.lineWidth=4;ctx.strokeStyle='#4d8f50';ctx.beginPath();ctx.moveTo(0,12);ctx.lineTo(0,-8);ctx.stroke();
+        ctx.fillStyle='#76cf78';ctx.beginPath();ctx.ellipse(-6,-5,6,10,-.6,0,Math.PI*2);ctx.ellipse(6,-9,6,10,.6,0,Math.PI*2);ctx.fill();
+      }else if(id==='gem'){
+        ctx.beginPath();ctx.moveTo(-12,-5);ctx.lineTo(-4,-14);ctx.lineTo(8,-11);ctx.lineTo(14,0);ctx.lineTo(4,14);ctx.lineTo(-10,9);ctx.closePath();ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,.65)';ctx.beginPath();ctx.moveTo(-5,-8);ctx.lineTo(2,-9);ctx.lineTo(-1,1);ctx.closePath();ctx.fill();
+      }else if(id==='vial'){
+        roundRect(-9,-9,18,20,5);ctx.fill();ctx.fillStyle='#eee';ctx.fillRect(-5,-14,10,5);ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillRect(-5,-4,4,10);
+      }else if(id==='powder'){
+        roundRect(-12,-8,24,16,5);ctx.fill();ctx.fillStyle='#d9dde5';ctx.fillRect(-7,-11,14,4);ctx.fillStyle='#303641';ctx.beginPath();ctx.arc(5,0,3,0,Math.PI*2);ctx.fill();
+      }else if(id==='spark'){
+        ctx.beginPath();ctx.moveTo(3,-15);ctx.lineTo(-9,0);ctx.lineTo(-2,0);ctx.lineTo(-5,14);ctx.lineTo(9,-3);ctx.lineTo(2,-3);ctx.closePath();ctx.fill();
+      }else{
+        ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5;const rr=i%2?7:14;const x=Math.cos(a)*rr,y=Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
+      }
+      ctx.shadowBlur=0;
+      ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText(p.farmName||'재료',0,25);
     }else{
       ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
@@ -1157,16 +1189,28 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-  if(enemies.length===0){
+  // V44 유지: 적 전멸 후 관문을 열고, 플레이어가 직접 통과해야 클리어한다.
+  if(enemies.length===0 && !gate){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
+      clearTimer=0;
+      message='관문이 열렸습니다!';
+      messageTimer=1.15;
+      burst(vw*.5,vh*.16,30);
+    }
+  }
+
+  if(gate && running && player){
+    const gx=vw*.5, gy=vh*.14, gr=58;
+    const gd=Math.hypot(player.x-gx,player.y-gy);
+    if(gd<gr+Math.max(18,player.r||22)){
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
-      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
-      burst(vw*.5,vh*.18,24);
+      burst(gx,gy,42);
+      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},120);
     }
   }
 }
@@ -1511,6 +1555,27 @@ function draw(){
     ctx.fillStyle='#ffd866';ctx.font='900 28px system-ui';ctx.textAlign='center';
     ctx.fillText(`LEVEL ${level}!`,vw/2,vh*.31);
     ctx.globalAlpha=1;
+  }
+
+  // V44 유지: 실제 관문 표시. 기존 관문 디자인은 그대로 보존한다.
+  if(gate){
+    const gx=vw*.5, gy=vh*.14, pulse=1+Math.sin(performance.now()*.006)*.06;
+    ctx.save();
+    ctx.translate(gx,gy);
+    ctx.globalAlpha=.96;
+    ctx.shadowColor='rgba(255,216,102,.72)'; ctx.shadowBlur=24;
+    ctx.fillStyle='rgba(255,216,102,.18)';
+    ctx.beginPath(); ctx.arc(0,0,58*pulse,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='#ffd866'; ctx.lineWidth=7;
+    ctx.beginPath(); ctx.arc(0,0,42*pulse,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(0,0,30*pulse,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='900 15px system-ui'; ctx.textAlign='center';
+    ctx.fillText('GATE',0,5);
+    ctx.fillStyle='#ffd866'; ctx.font='900 12px system-ui';
+    ctx.fillText('관문으로 이동',0,76);
+    ctx.restore();
   }
 
   if(messageTimer>0){
