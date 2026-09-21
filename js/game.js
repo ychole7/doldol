@@ -291,13 +291,41 @@ addEventListener('orientationchange',()=>setTimeout(resize,80));
 addEventListener('pageshow',resize);
 resize();
 
+/* V44: 스테이지별 전투 맵 레이아웃
+   - 같은 화면을 반복하지 않고 16개의 기본 구조를 순환
+   - 홀수/짝수 챕터마다 좌우 미러를 섞어 인접 스테이지의 체감 구조도 변화
+   - cover = 장애물, spawn = 적 초기 배치, gateX = 상단 관문 위치
+*/
+const STAGE_LAYOUTS=[
+  {gateX:.50,c:[[.18,.62],[.50,.58],[.82,.64],[.30,.76],[.70,.78]],s:[[.18,.22],[.38,.25],[.62,.22],[.82,.27],[.28,.37],[.52,.34],[.76,.38]]},
+  {gateX:.22,c:[[.28,.58],[.72,.58],[.50,.69],[.22,.79],[.78,.79]],s:[[.50,.20],[.28,.26],[.72,.26],[.18,.36],[.50,.34],[.82,.36],[.50,.43]]},
+  {gateX:.78,c:[[.16,.57],[.38,.66],[.62,.66],[.84,.57],[.50,.80]],s:[[.22,.24],[.50,.22],[.78,.24],[.30,.35],[.70,.35],[.50,.43],[.16,.42]]},
+  {gateX:.50,c:[[.50,.56],[.24,.67],[.76,.67],[.24,.82],[.76,.82]],s:[[.16,.22],[.84,.22],[.32,.29],[.68,.29],[.20,.39],[.50,.35],[.80,.39]]},
+  {gateX:.34,c:[[.16,.60],[.42,.60],[.68,.60],[.84,.74],[.50,.80]],s:[[.50,.19],[.24,.27],[.76,.27],[.16,.36],[.50,.34],[.84,.36],[.50,.43]]},
+  {gateX:.66,c:[[.16,.74],[.32,.62],[.50,.74],[.68,.62],[.84,.74]],s:[[.18,.23],[.42,.28],[.70,.22],[.82,.34],[.28,.38],[.58,.35],[.78,.43]]},
+  {gateX:.28,c:[[.24,.56],[.76,.56],[.36,.72],[.64,.72],[.50,.84]],s:[[.50,.20],[.20,.28],[.80,.28],[.32,.36],[.68,.36],[.18,.43],[.82,.43]]},
+  {gateX:.72,c:[[.18,.60],[.50,.60],[.82,.60],[.30,.80],[.70,.80]],s:[[.22,.22],[.50,.26],[.78,.22],[.34,.34],[.66,.34],[.18,.42],[.82,.42]]},
+  {gateX:.50,c:[[.30,.56],[.70,.56],[.18,.72],[.50,.72],[.82,.72]],s:[[.18,.20],[.82,.20],[.30,.28],[.70,.28],[.50,.36],[.22,.43],[.78,.43]]},
+  {gateX:.18,c:[[.50,.56],[.20,.68],[.80,.68],[.36,.82],[.64,.82]],s:[[.50,.20],[.20,.26],[.80,.26],[.36,.34],[.64,.34],[.16,.41],[.84,.41]]},
+  {gateX:.82,c:[[.20,.58],[.50,.68],[.80,.58],[.28,.82],[.72,.82]],s:[[.18,.24],[.50,.21],[.82,.24],[.30,.34],[.70,.34],[.22,.43],[.78,.43]]},
+  {gateX:.38,c:[[.16,.60],[.34,.74],[.66,.74],[.84,.60],[.50,.60]],s:[[.50,.20],[.24,.28],[.76,.28],[.16,.37],[.50,.36],[.84,.37],[.50,.44]]},
+  {gateX:.62,c:[[.24,.58],[.50,.66],[.76,.58],[.24,.82],[.76,.82]],s:[[.18,.21],[.50,.24],[.82,.21],[.30,.34],[.70,.34],[.18,.43],[.82,.43]]},
+  {gateX:.26,c:[[.18,.58],[.50,.58],[.82,.58],[.32,.74],[.68,.82]],s:[[.50,.20],[.20,.25],[.80,.25],[.32,.35],[.68,.35],[.16,.43],[.84,.43]]},
+  {gateX:.74,c:[[.22,.62],[.42,.78],[.58,.62],[.78,.78],[.50,.56]],s:[[.20,.22],[.50,.20],[.80,.22],[.30,.32],[.70,.32],[.18,.41],[.82,.41]]},
+  {gateX:.50,c:[[.20,.56],[.80,.56],[.20,.80],[.80,.80],[.50,.68]],s:[[.16,.22],[.38,.27],[.62,.27],[.84,.22],[.28,.38],[.50,.34],[.72,.38]]}
+];
+let stageLayout=STAGE_LAYOUTS[0];
+function getStageLayout(n){
+  const idx=(Math.max(1,n)-1)%STAGE_LAYOUTS.length;
+  const base=STAGE_LAYOUTS[idx];
+  const mirror=(Math.floor((Math.max(1,n)-1)/STAGE_LAYOUTS.length)%2)===1;
+  if(!mirror) return base;
+  return {gateX:1-base.gateX,c:base.c.map(([x,y])=>[1-x,y]),s:base.s.map(([x,y])=>[1-x,y])};
+}
 function makeCovers(){
+  stageLayout=getStageLayout(stage);
   covers=[];
-  const positions=[
-    [.18,.62],[.50,.58],[.82,.64],
-    [.30,.76],[.70,.78]
-  ];
-  for(const [px,py] of positions){
+  for(const [px,py] of stageLayout.c){
     covers.push({x:vw*px,y:vh*py,w:54,h:34,r:9});
   }
 }
@@ -412,11 +440,13 @@ function applyGrowthToPlayer(){
   player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1);
   player.speed=300*(m.move||1);
   player.perfectMultiplier=m.perfect||1;
+  player.stones=player.stones||{normal:true};
+  player.stoneType=player.stoneType||'normal';
 }
 
 function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
-  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
+  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false,stoneType:'normal',stones:{normal:true}};
 showSkillButton();
   applyGrowthToPlayer();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
@@ -494,7 +524,8 @@ function nextStage(){
   startStage(stage+1);
 }
 function spawnEnemy(i){
-  // V20: 스테이지가 진행될수록 전투 역할이 뚜렷한 특수 적이 섞인다.
+  // V44: 스테이지 레이아웃마다 적의 시작 위치도 달라진다.
+  // 부족한 좌표는 결정적 패턴으로 보완해 적 수가 늘어나도 구조가 유지된다.
   const pool = stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
              : stage>=12 ? ['normal','fast','tank','sniper','charger']
              : stage>=8  ? ['normal','fast','tank','sniper']
@@ -506,8 +537,13 @@ function spawnEnemy(i){
   const baseSpeed={tank:42,sniper:45,charger:92,bomber:50,fast:115,normal:68}[type]||68;
   const baseFire={tank:2.0,sniper:2.25,charger:1.75,bomber:2.35,fast:1.15,normal:1.55}[type]||1.55;
   const radius={tank:30,sniper:21,charger:25,bomber:27,fast:20,normal:23}[type]||23;
+  const sp=stageLayout && stageLayout.s ? stageLayout.s[i%stageLayout.s.length] : [.5,.25];
+  const cycle=Math.floor(i/(stageLayout?.s?.length||1));
+  const jitterX=((cycle%3)-1)*.035;
+  const jitterY=(cycle%2)*.025;
+  const sx=clamp(sp[0]+jitterX,.08,.92), sy=clamp(sp[1]+jitterY,.16,.44);
   enemies.push({
-    type,x:margin+Math.random()*(vw-margin*2),y:vh*.20+Math.random()*vh*.32,r:radius,
+    type,x:vw*sx,y:vh*sy,r:radius,
     hp:Math.max(1,Math.round(baseHp*difficulty)),max:Math.max(1,Math.round(baseHp*difficulty)),
     speed:baseSpeed*(1+Math.min(.48,(stage-1)*.018)),
     fire:(.7+Math.random()*1.5)/(1+Math.min(.42,(stage-1)*.018)),
@@ -524,18 +560,22 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
-  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25));
+  const type=player.stoneType||'normal';
+  const baseDamage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25));
+  const mods={
+    normal:{damage:baseDamage,r:7},
+    fire:{damage:Math.max(1,Math.round(baseDamage*1.10)),r:8},
+    ice:{damage:Math.max(1,Math.round(baseDamage*.90)),r:8},
+    bomb:{damage:Math.max(1,Math.round(baseDamage*1.25)),r:10},
+    lightning:{damage:Math.max(1,Math.round(baseDamage*1.05)),r:8}
+  };
+  const m=mods[type]||mods.normal;
+  const makeShot=(vx,vy)=>({x:player.x+vx*.08,y:player.y-25,vx,vy,r:m.r,life:2,damage:m.damage,stone:type});
   if(player.skillMultiShot){
-    for(const off of [-70,0,70]){
-      const vx=off;
-      const vy=-520;
-      const len=Math.hypot(vx,vy)||1;
-      shots.push({x:player.x+off*.08,y:player.y-25,vx:vx,vy:vy,r:7,life:2,damage});
-    }
-  }else{
-    shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2,damage});
-  }
+    for(const off of [-70,0,70]) shots.push(makeShot(off,-520));
+  }else shots.push(makeShot(0,-520));
 }
+
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
@@ -790,13 +830,15 @@ function update(dt){
 
   for(const e of enemies){
     if(e.dead) continue;
+    if(e.burnTimer>0){ e.burnTimer-=dt; hitEnemy(e,Math.max(.15,(e.burnDps||.4)*dt)); }
+    if(e.slowTimer>0) e.slowTimer-=dt; else e.slowMul=1;
     if(e.hitFlash>0) e.hitFlash-=dt;
     if(e.moveFx>0) e.moveFx-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
     if(e.type==='charger' && !e.dead){
       if(e.chargeTimer>0){
         e.chargeTimer-=dt;
-        e.x+=dx/L*e.speed*2.8*dt; e.y+=dy/L*e.speed*2.8*dt;
+        e.x+=dx/L*e.speed*(e.slowMul||1)*2.8*dt; e.y+=dy/L*e.speed*(e.slowMul||1)*2.8*dt;
         e.moveFx=.12;
       }else{
         e.x+=(vw*.5-e.x)*Math.min(1,dt*1.4); e.y+=(vh*.30-e.y)*Math.min(1,dt*1.4);
@@ -805,15 +847,15 @@ function update(dt){
       // 스나이퍼는 상단에서 거리를 유지하며 공격 전조가 길다.
       const desired=300;
       if(L<desired){ e.x-=dx/L*e.speed*.55*dt; e.y-=dy/L*e.speed*.55*dt; }
-      else { e.x+=(vw*.5-e.x)*Math.min(1,dt*.65); }
+      else { e.x+=(vw*.5-e.x)*Math.min(1,dt*.65*(e.slowMul||1)); }
     }else if(e.type==='bomber'){
       const desired=245;
-      if(L>desired) moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
+      if(L>desired) moveAroundCovers(e,dx/L*e.speed*(e.slowMul||1)*dt,dy/L*e.speed*(e.slowMul||1)*dt);
       else e.x+=(vw*.5-e.x)*Math.min(1,dt*.7);
     }else{
       const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
       if(L>desired){
-      moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
+      moveAroundCovers(e,dx/L*e.speed*(e.slowMul||1)*dt,dy/L*e.speed*(e.slowMul||1)*dt);
     }else if(e.type==='boss'){
       e.phase+=dt;
       const bp=e.bossPhase||1;
@@ -876,7 +918,27 @@ function update(dt){
     if(s.life<=0) continue;
     for(const e of enemies){
       if(e.dead) continue;
-      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;hitEnemy(e,s.damage||1);break;}
+      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){
+        s.life=0;
+        hitEnemy(e,s.damage||1);
+        const st=s.stone||'normal';
+        if(st==='fire'){ e.burnTimer=2.8; e.burnDps=Math.max(1,(s.damage||1)*.32); message='🔥 BURN!'; messageTimer=.25; }
+        else if(st==='ice'){ e.slowTimer=2.4; e.slowMul=.58; message='❄️ SLOW!'; messageTimer=.25; }
+        else if(st==='bomb'){
+          burst(s.x,s.y,16);
+          for(const other of enemies){
+            if(other!==e && !other.dead && Math.hypot(other.x-e.x,other.y-e.y)<82) hitEnemy(other,Math.max(1,Math.round((s.damage||1)*.55)));
+          }
+          message='💥 BLAST!'; messageTimer=.25;
+        }
+        else if(st==='lightning'){
+          let chained=0;
+          for(const other of enemies){
+            if(other!==e && !other.dead && chained<2 && Math.hypot(other.x-e.x,other.y-e.y)<115){ hitEnemy(other,Math.max(1,Math.round((s.damage||1)*.48))); chained++; }
+          }
+          message='⚡ CHAIN!'; messageTimer=.25;
+        }
+        break;}
     }
   }
   shots=shots.filter(s=>s.life>0 && s.y>-30);
@@ -966,16 +1028,31 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-  if(enemies.length===0){
+
+  // V43: 적을 모두 처치했다고 즉시 스테이지를 끝내지 않는다.
+  // 상단 관문이 열리고 플레이어가 직접 관문까지 이동해 통과해야 클리어된다.
+  if(enemies.length===0 && !gate){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
+      running=true;
+      message='관문으로 이동하세요!';
+      messageTimer=999;
+      burst(vw*(stageLayout?.gateX||.5),vh*.12,28);
+    }
+  }
+
+  if(gate && running){
+    const gateY=vh*.105;
+    const gateX=vw*(stageLayout?.gateX||.5);
+    if(player.y-player.r <= gateY+34 && Math.abs(player.x-gateX)<Math.min(86,vw*.18)){
+      gate=false;
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
-      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
-      burst(vw*.5,vh*.18,24);
+      burst(gateX,gateY,36);
+      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},180);
     }
   }
 }
@@ -1079,6 +1156,24 @@ function draw(){
   }
   ctx.fillStyle='rgba(255,216,102,.16)';
   roundRect(vw*.5-58,vh*.47,116,4,2);ctx.fill();
+
+  // V43 상단 관문 — 모든 적 처치 후 열리고, 플레이어가 직접 통과해야 한다.
+  if(gate){
+    const gx=vw*(stageLayout?.gateX||.5), gy=vh*.105, gw=Math.min(vw*.62,260), gh=62;
+    ctx.save();
+    ctx.shadowColor='rgba(255,210,92,.38)'; ctx.shadowBlur=22;
+    ctx.fillStyle='rgba(255,216,102,.12)';
+    roundRect(gx-gw/2,gy-gh/2,gw,gh,18); ctx.fill();
+    ctx.shadowColor='transparent';
+    ctx.strokeStyle='#ffd866'; ctx.lineWidth=4;
+    roundRect(gx-gw/2,gy-gh/2,gw,gh,18); ctx.stroke();
+    ctx.fillStyle='#ffd866';
+    roundRect(gx-gw/2+12,gy+gh/2-10,gw-24,5,3); ctx.fill();
+    ctx.font='1000 13px system-ui'; ctx.textAlign='center'; ctx.fillText('GATE  •  EXIT',gx,gy+5);
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.font='900 11px system-ui'; ctx.fillText('↑ 관문으로 이동',gx,gy+gh/2+22);
+    ctx.restore();
+  }
 
   // cover obstacles
   for(const c of covers){
@@ -1366,7 +1461,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,parryCd:0}; applyGrowthToPlayer(); window.__duckApplyRunRewards&&window.__duckApplyRunRewards(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
+running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,parryCd:0,stoneType:'normal',stones:{normal:true}}; applyGrowthToPlayer(); window.__duckApplyRunRewards&&window.__duckApplyRunRewards(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
     try{ if(running && !paused && player) return parryAt(player.x,player.y); }catch(e){ console.error('parry failed:',e); }
@@ -1422,6 +1517,10 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
         case "parry": player.parryRange=(player.parryRange||55)*1.15; break;
         case "perfect": player.perfectMultiplier=(player.perfectMultiplier||1)*1.20; break;
         case "move": player.speed=(player.speed||240)*1.12; break;
+        case "firestone": player.stones=player.stones||{normal:true}; player.stones.fire=true; player.stoneType='fire'; break;
+        case "icestone": player.stones=player.stones||{normal:true}; player.stones.ice=true; player.stoneType='ice'; break;
+        case "bombstone": player.stones=player.stones||{normal:true}; player.stones.bomb=true; player.stoneType='bomb'; break;
+        case "lightningstone": player.stones=player.stones||{normal:true}; player.stones.lightning=true; player.stoneType='lightning'; break;
         default:return false;
       }
       return true;
@@ -1733,6 +1832,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(start)start.onclick=function(e){
     e.preventDefault();
     try{localStorage.removeItem("doldol_run_skills_v1");}catch(e){}
+    // V43: 새 런은 이전 런의 특수돌 장착 상태도 초기화한다.
+    if(typeof player!=="undefined" && player){ player.stones={normal:true}; player.stoneType='normal'; }
     startBattle(Number((window.__duckStage||1))||1);
   };
   if(stages)stages.onclick=function(e){e.preventDefault();hidePanels();lobby.classList.add("hidden");if(map)map.classList.add("show");};
@@ -1831,10 +1932,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const choices=[
     {id:"power",icon:"⚔️",name:"강철 탄환",desc:"공격력 +15%",apply:p=>{p.attack=Math.round(p.attack*1.15)}},
     {id:"rapid",icon:"⚡",name:"연사 훈련",desc:"공격속도 +15%",apply:p=>{p.attackInterval=Math.max(.18,p.attackInterval*.85)}},
+    {id:"firestone",icon:"🔥",name:"불돌 보급",desc:"명중 시 화상 · 지속 피해",apply:p=>{p.stones.fire=true;p.stoneType='fire'}},
+    {id:"icestone",icon:"❄️",name:"얼음돌 보급",desc:"명중한 적의 이동속도 감소",apply:p=>{p.stones.ice=true;p.stoneType='ice'}},
+    {id:"bombstone",icon:"💣",name:"폭발돌 보급",desc:"명중 시 주변 적에게 범위 피해",apply:p=>{p.stones.bomb=true;p.stoneType='bomb'}},
+    {id:"lightningstone",icon:"⚡",name:"번개돌 보급",desc:"명중 시 주변 적 최대 2명 연쇄 공격",apply:p=>{p.stones.lightning=true;p.stoneType='lightning'}},
     {id:"vital",icon:"❤️",name:"생존 훈련",desc:"최대 HP +25 및 전투 중 즉시 회복",apply:p=>{p.maxHp+=25;p.hp=p.maxHp}},
-    {id:"parry",icon:"🛡️",name:"패링 훈련",desc:"패링 판정 +15%",apply:p=>{p.parryRange*=1.15}},
-    {id:"perfect",icon:"✦",name:"PERFECT 훈련",desc:"PERFECT 반사 피해 +20%",apply:p=>{p.perfectMultiplier*=1.20}},
-    {id:"move",icon:"🏃",name:"기동 훈련",desc:"이동속도 +12%",apply:p=>{p.speed*=1.12}}
+    {id:"parry",icon:"🛡️",name:"패링 훈련",desc:"패링 판정 +15%",apply:p=>{p.parryRange*=1.15}}
   ];
 
   let overlay=null;
@@ -2433,11 +2536,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       bottom.innerHTML=`
         <div class="v40PlayerCard"><div class="v40PlayerFace" id="v40PlayerFace">🐥</div><div><b id="v40PlayerName">돌돌이</b><small id="v40PlayerHp">120 / 120</small></div></div>
         <div class="v40ItemStrip" id="v40ItemStrip">
-          <button type="button"><b>🪨</b><small>∞</small></button>
-          <button type="button"><b>🔥</b><small>3</small></button>
-          <button type="button"><b>❄️</b><small>3</small></button>
-          <button type="button"><b>💣</b><small>2</small></button>
-          <button type="button"><b>⚡</b><small>3</small></button>
+          <button type="button" data-stone="normal"><b>🪨</b><small>기본</small></button>
+          <button type="button" data-stone="fire"><b>🔥</b><small>불돌</small></button>
+          <button type="button" data-stone="ice"><b>❄️</b><small>얼음</small></button>
+          <button type="button" data-stone="bomb"><b>💣</b><small>폭발</small></button>
+          <button type="button" data-stone="lightning"><b>⚡</b><small>번개</small></button>
         </div>`;
       host.appendChild(bottom);
     }
@@ -2478,6 +2581,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
 
   buildBattlePresentation();
+  const stoneStrip=$('v40ItemStrip');
+  if(stoneStrip){
+    stoneStrip.addEventListener('click',e=>{
+      const b=e.target.closest&&e.target.closest('button[data-stone]'); if(!b)return;
+      const type=b.dataset.stone; if(!player || !player.stones || !player.stones[type]){ message='보급품에서 획득하세요'; messageTimer=.5; return; }
+      player.stoneType=type;
+      stoneStrip.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));
+      message=(b.textContent||'돌')+' 장착'; messageTimer=.5;
+    });
+  }
   setInterval(()=>{try{if(typeof running!=='undefined'&&running){buildBattlePresentation();syncBattlePresentation();}}catch(e){}},250);
 
   const style=document.createElement('style');style.id='v40Styles';style.textContent=`
@@ -2488,7 +2601,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .v40ChapterTabs{display:flex;gap:6px;margin:14px 0 10px;overflow:auto}.v40ChapterTabs button{flex:0 0 auto;border:1px solid rgba(255,255,255,.10);background:#233640;color:#b7c4ca;border-radius:12px;padding:8px 11px;font-weight:900;font-size:10px}.v40ChapterTabs button.active{background:#ffd866;color:#3a2912;border-color:#ffd866}
     .v40StageGrid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;max-height:56vh;overflow:auto;padding:3px}.v40StageGrid button{height:35px;border:1px solid rgba(255,255,255,.10);border-radius:9px;background:#253b45;color:#fff;font-weight:900;font-size:10px}.v40StageGrid button.current{border:2px solid #ffd866;color:#ffd866;background:#334954}.v40StageGrid button.boss{color:#ff9b70}.v40StageGrid button.locked{opacity:.25}.v40SheetFoot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding:8px 2px 0;color:#9eafb8;font-size:9px;font-weight:800}
     #v40BattleTop{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;pointer-events:none}.v40StageBox,.v40BattlePause button,.v40Progress{background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.14);box-shadow:0 7px 18px rgba(0,0,0,.22);color:#fff}.v40StageBox{min-width:78px;padding:8px 10px;border-radius:15px}.v40StageBox small{display:block;color:#aebdc4;font-size:8px;font-weight:800}.v40StageBox b{display:block;font-size:14px;margin-top:1px}.v40StageBox i{font-style:normal;color:#ff866b;font-size:8px;font-weight:900}.v40Progress{flex:1;padding:7px 10px;border-radius:14px}.v40Progress>div{display:flex;justify-content:space-between;font-size:8px;color:#b9c5cb;font-weight:900}.v40Progress b{color:#fff}.v40Progress em{display:block;height:7px;margin-top:5px;background:#263943;border-radius:99px;overflow:hidden}.v40Progress em i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd866,#ff9c3a);border-radius:99px}.v40BattlePause{pointer-events:auto}.v40BattlePause button{width:42px;height:42px;border-radius:14px;color:#fff;font-size:17px;font-weight:1000}.v40BattlePause button:active{transform:scale(.94)}
-    #v40BattleBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:8px;pointer-events:none}.v40PlayerCard{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:14px;background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.13);min-width:92px;color:#fff}.v40PlayerFace{font-size:25px}.v40PlayerCard b{display:block;font-size:10px}.v40PlayerCard small{display:block;color:#ff9b9b;font-size:8px;margin-top:2px}.v40ItemStrip{display:flex;gap:5px;flex:1;justify-content:center}.v40ItemStrip button{width:42px;height:48px;border-radius:12px;background:rgba(13,28,37,.90);border:1px solid rgba(255,255,255,.13);color:#fff;pointer-events:auto;box-shadow:0 6px 14px rgba(0,0,0,.22)}.v40ItemStrip b{display:block;font-size:17px}.v40ItemStrip small{display:block;color:#ffd866;font-weight:900;font-size:8px;margin-top:2px}
+    #v40BattleBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:8px;pointer-events:none}.v40PlayerCard{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:14px;background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.13);min-width:92px;color:#fff}.v40PlayerFace{font-size:25px}.v40PlayerCard b{display:block;font-size:10px}.v40PlayerCard small{display:block;color:#ff9b9b;font-size:8px;margin-top:2px}.v40ItemStrip{display:flex;gap:5px;flex:1;justify-content:center}.v40ItemStrip button.selected{border-color:#ffd866;background:rgba(64,78,52,.96);box-shadow:0 0 0 2px rgba(255,216,102,.22),0 6px 14px rgba(0,0,0,.22)}.v40ItemStrip button{width:42px;height:48px;border-radius:12px;background:rgba(13,28,37,.90);border:1px solid rgba(255,255,255,.13);color:#fff;pointer-events:auto;box-shadow:0 6px 14px rgba(0,0,0,.22)}.v40ItemStrip b{display:block;font-size:17px}.v40ItemStrip small{display:block;color:#ffd866;font-weight:900;font-size:8px;margin-top:2px}
     #battleParry.ready{border-color:#ffd866!important;box-shadow:0 0 0 5px rgba(255,216,102,.18),0 10px 24px rgba(0,0,0,.32)!important}#battleParry.perfect{border-color:#fff!important;box-shadow:0 0 0 8px rgba(255,255,255,.18),0 0 26px rgba(255,216,102,.55)!important}
     @media(max-width:380px){.v40ItemStrip button{width:36px}.v40PlayerCard{min-width:80px}.v40PlayerFace{font-size:21px}}
   `;document.head.appendChild(style);
