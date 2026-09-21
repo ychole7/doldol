@@ -1931,7 +1931,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   };
 })();
 
-/* --- V27 character growth screen fix --- */
+/* --- V36 commercial growth screen design --- */
 (function(){
   let screen=document.getElementById('growthScreen');
   const stats=[
@@ -1945,91 +1945,59 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(!screen || !document.body.contains(screen)) screen=document.getElementById('growthScreen')||null;
     const required=['growthBack','growthRole','growthFace','growthName','growthXp','growthXpBar','growthCoins','growthCards'];
     const complete=screen && required.every(id=>screen.querySelector('#'+id));
-    if(!screen){
-      screen=document.createElement('div');
-      screen.id='growthScreen';
-      document.body.appendChild(screen);
-    }
+    if(!screen){screen=document.createElement('div');screen.id='growthScreen';document.body.appendChild(screen);}
     if(!complete){
-      Object.assign(screen.style,{position:'fixed',inset:'0',zIndex:'9999',display:'none',visibility:'hidden',overflow:'auto',background:'linear-gradient(180deg,#101820,#18232d)',color:'#fff',fontFamily:'system-ui',padding:'calc(18px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))',boxSizing:'border-box'});
-      screen.innerHTML=`<div style="max-width:520px;margin:0 auto"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button id="growthBack" style="border:0;border-radius:12px;padding:9px 12px;background:rgba(255,255,255,.1);color:#fff;font-size:16px">‹</button><div><b style="font-size:20px">📈 캐릭터 성장</b><div id="growthRole" style="font-size:11px;opacity:.65"></div></div></div><div id="growthHero" style="padding:16px;border-radius:22px;background:linear-gradient(135deg,rgba(255,216,102,.16),rgba(123,215,255,.10));border:1px solid rgba(255,255,255,.1);margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div id="growthFace" style="font-size:46px">🐥</div><div><div id="growthName" style="font-size:20px;font-weight:1000"></div><div id="growthXp" style="font-size:12px;opacity:.75;margin-top:3px"></div></div></div><div style="height:9px;background:rgba(0,0,0,.25);border-radius:8px;overflow:hidden;margin-top:12px"><i id="growthXpBar" style="display:block;height:100%;width:0;background:#7bd7ff"></i></div></div><div id="growthCoins" style="text-align:right;font-weight:900;color:#ffd866;margin:8px 2px 10px"></div><div id="growthCards"></div></div>`;
+      Object.assign(screen.style,{position:'fixed',inset:'0',zIndex:'99999',display:'none',visibility:'hidden',overflow:'auto',background:'linear-gradient(180deg,#15242a 0%,#20362f 48%,#14221f 100%)',color:'#fff',fontFamily:'system-ui,-apple-system,BlinkMacSystemFont,sans-serif',padding:'calc(12px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom))',boxSizing:'border-box'});
+      screen.innerHTML=`
+      <div style="max-width:540px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 2px 12px">
+          <button id="growthBack" aria-label="뒤로" style="width:42px;height:42px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(0,0,0,.22);color:#fff;font-size:26px;line-height:1">‹</button>
+          <div style="text-align:center;flex:1;margin:0 10px"><div style="font-size:19px;font-weight:1000;letter-spacing:-.6px">캐릭터 성장</div><div id="growthRole" style="font-size:10px;opacity:.58;margin-top:2px;letter-spacing:.4px"></div></div>
+          <div id="growthCoins" style="min-width:82px;text-align:right;font-weight:1000;color:#ffd866;font-size:13px"></div>
+        </div>
+        <div id="growthHero" style="position:relative;overflow:hidden;padding:18px;border-radius:26px;background:linear-gradient(135deg,rgba(255,216,102,.22),rgba(80,176,194,.12) 55%,rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.12);box-shadow:0 16px 36px rgba(0,0,0,.22);margin-bottom:12px">
+          <div style="position:absolute;right:-40px;top:-55px;width:160px;height:160px;border-radius:50%;background:rgba(255,216,102,.08)"></div>
+          <div style="display:flex;align-items:center;gap:15px;position:relative">
+            <div id="growthFace" style="width:74px;height:74px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:50px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)">🐥</div>
+            <div style="min-width:0;flex:1"><div id="growthName" style="font-size:22px;font-weight:1000;letter-spacing:-.8px"></div><div id="growthXp" style="font-size:11px;opacity:.7;margin-top:4px"></div></div>
+            <div style="text-align:right"><div style="font-size:10px;opacity:.55">LEVEL</div><div id="growthLevel" style="font-size:27px;font-weight:1000;color:#ffd866;line-height:1">1</div></div>
+          </div>
+          <div style="height:10px;background:rgba(0,0,0,.28);border-radius:99px;overflow:hidden;margin-top:15px;border:1px solid rgba(255,255,255,.08)"><i id="growthXpBar" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#7bd7ff,#ffd866);border-radius:99px;box-shadow:0 0 12px rgba(123,215,255,.35)"></i></div>
+        </div>
+        <div style="display:flex;gap:8px;margin:12px 0"><div style="flex:1;padding:11px 12px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.07)"><div style="font-size:9px;opacity:.5">ROLE</div><div id="growthRole2" style="font-size:12px;font-weight:900;margin-top:2px"></div></div><div style="flex:1;padding:11px 12px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.07)"><div style="font-size:9px;opacity:.5">GROWTH</div><div style="font-size:12px;font-weight:900;margin-top:2px">전투로 성장</div></div></div>
+        <div id="growthCards"></div>
+      </div>`;
     }
     const back=screen.querySelector('#growthBack');
     if(back) back.onclick=()=>{screen.style.display='none';screen.style.visibility='hidden';if(window.__duckRefreshCharacters)window.__duckRefreshCharacters();};
   }
   function load(){try{values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}')||{};}catch(e){values={};}}
-  function current(){return (window.__duckGetSelectedCharacter?window.__duckGetSelectedCharacter():CHARACTER_DEFS[0]);}
+  function current(){return (window.__duckGetSelectedCharacter?window.__duckGetSelectedCharacter():(typeof CHARACTER_DEFS!=='undefined'?CHARACTER_DEFS[0]:{id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',skill:{name:'특공대 정신',desc:'고유 스킬'}}));}
   function render(){
     ensure();load();
     const d=current(),cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1,xp:0,next:50};
     const pct=cp.next>0?Math.min(100,Math.round(cp.xp/cp.next*100)):0;
     const q=id=>screen.querySelector('#'+id);
-    const face=q('growthFace'),name=q('growthName'),role=q('growthRole'),xpEl=q('growthXp'),bar=q('growthXpBar'),coinsEl=q('growthCoins'),cards=q('growthCards');
+    const face=q('growthFace'),name=q('growthName'),role=q('growthRole'),role2=q('growthRole2'),xpEl=q('growthXp'),bar=q('growthXpBar'),coinsEl=q('growthCoins'),cards=q('growthCards'),levelEl=q('growthLevel');
     if(!face||!name||!role||!xpEl||!bar||!coinsEl||!cards) throw new Error('growth UI elements missing');
-    face.textContent=d.face||'🐥';name.textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;role.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();
+    face.textContent=d.face||'🐥';name.textContent=d.name||'돌돌이';role.textContent=d.role||'밸런스형';if(role2)role2.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();if(levelEl)levelEl.textContent=cp.level;
     const walletCoins=Number((window.__duckWallet&&window.__duckWallet.coins)||0);
     const skillLevel=Math.max(1,Math.min(5,Number((window.__duckCharacterSkillProgress?window.__duckCharacterSkillProgress(d.id):{level:1}).level)||1));
-    const skillCost=700+skillLevel*350;
-    const skillCan=skillLevel<5&&walletCoins>=skillCost;
-    const skillCard=`<div style="padding:16px;margin:12px 0;border-radius:20px;background:linear-gradient(135deg,rgba(255,216,102,.12),rgba(123,215,255,.08));border:1px solid rgba(255,216,102,.22)"><div style="display:flex;justify-content:space-between;align-items:center"><b>⚡ ${d.skill?.name||'특공 스킬'}</b><strong>Lv.${skillLevel}/5</strong></div><div style="font-size:11px;opacity:.68;margin:5px 0 10px">${d.skill?.desc||'고유 스킬'} · 레벨이 오를수록 지속시간/효과가 강화됩니다.</div><button id="growthSkillUpgrade" ${skillCan?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${skillCan?'#7bd7ff':'rgba(255,255,255,.08)'};color:${skillCan?'#10232d':'#7f8992'};font-weight:1000">${skillLevel>=5?'MAX':'스킬 강화 · 🪙 '+skillCost}</button></div>`;
-    cards.innerHTML=skillCard+stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&walletCoins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');
+    const skillCost=700+skillLevel*350,skillCan=skillLevel<5&&walletCoins>=skillCost;
+    const cardBase='padding:15px;margin:10px 0;border-radius:20px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.085);box-shadow:0 8px 22px rgba(0,0,0,.10)';
+    const btn=(can,label,accent)=>`width:100%;padding:12px;border:0;border-radius:13px;background:${can?accent:'rgba(255,255,255,.075)'};color:${can?(accent==='#ffd866'?'#30220b':'#10232d'):'#7f8992'};font-weight:1000;font-size:12px`;
+    const skillCard=`<div style="${cardBase};background:linear-gradient(135deg,rgba(123,215,255,.12),rgba(255,216,102,.08));border-color:rgba(123,215,255,.16)"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;opacity:.5;letter-spacing:.7px">SPECIAL SKILL</div><b style="font-size:15px">⚡ ${d.skill?.name||'특공 스킬'}</b></div><strong style="color:#7bd7ff">Lv.${skillLevel}/5</strong></div><div style="font-size:11px;opacity:.66;margin:6px 0 11px;line-height:1.45">${d.skill?.desc||'고유 스킬'}<br><span style="opacity:.7">레벨이 오를수록 스킬 효과가 강화됩니다.</span></div><button id="growthSkillUpgrade" ${skillCan?'':'disabled'} style="${btn(skillCan,skillLevel>=5?'MAX':'스킬 강화 · 🪙 '+skillCost,'#7bd7ff')}">${skillLevel>=5?'✓ MAX':'스킬 강화 · 🪙 '+skillCost}</button></div>`;
+    const statCards=stats.map(x=>{const v=Number(values[x.key]??x.base),can=v<x.max&&walletCoins>=x.cost,p=Math.max(0,Math.min(100,Math.round((v-x.base)/(x.max-x.base)*100)));return `<div style="${cardBase}"><div style="display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:14px">${x.icon} ${x.name}</b><div style="font-size:10px;opacity:.52;margin-top:3px">${x.desc}</div></div><strong style="font-size:17px">${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="height:5px;background:rgba(0,0,0,.24);border-radius:99px;overflow:hidden;margin:10px 0"><i style="display:block;width:${p}%;height:100%;background:#ffd866"></i></div><button data-grow="${x.key}" ${can?'':'disabled'} style="${btn(can,v>=x.max?'MAX':'강화 · 🪙 '+x.cost,'#ffd866')}">${v>=x.max?'✓ MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');
+    cards.innerHTML=skillCard+`<div style="font-size:11px;font-weight:1000;opacity:.62;margin:16px 3px 7px;letter-spacing:.5px">BASIC STATS</div>`+statCards;
     cards.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));
-    const skillBtn=cards.querySelector('#growthSkillUpgrade');
-    if(skillBtn) skillBtn.onclick=()=>{if(skillLevel>=5||walletCoins<skillCost)return;if(window.__duckWallet&&window.__duckWallet.spendCoins(skillCost)){window.__duckUpgradeCharacterSkill(d.id);render();}};
+    const skillBtn=cards.querySelector('#growthSkillUpgrade');if(skillBtn)skillBtn.onclick=()=>{if(skillLevel>=5||walletCoins<skillCost)return;if(window.__duckWallet&&window.__duckWallet.spendCoins(skillCost)){window.__duckUpgradeCharacterSkill(d.id);render();}};
   }
-  function upgrade(key){const x=stats.find(v=>v.key===key),v=Number(values[key]??x.base);if(!x||v>=x.max||!window.__duckWallet.spendCoins(x.cost))return;values[key]=Math.min(x.max,v+x.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
-  window.__duckOpenGrowth=function(){
-    try{
-      ensure();
-      const cs=document.getElementById('characterScreen');
-      const ms=document.getElementById('menuScreen');
-      const rs=document.getElementById('resultScreen');
-      const mp=document.getElementById('mapScreen');
-      if(cs)cs.classList.remove('show');
-      if(ms)ms.classList.remove('show');
-      if(rs)rs.classList.remove('show');
-      if(mp)mp.classList.remove('show');
-      render();
-      screen.style.display='block';
-      screen.style.visibility='visible';
-      screen.style.opacity='1';
-      screen.style.zIndex='9999';
-      return true;
-    }catch(err){
-      console.error('growth open failed:',err);
-      return false;
-    }
-  };
-  // Character screen -> growth: authoritative delegated handler.
-  // The actual server HTML uses a visible button labelled "성장" but does not
-  // reliably expose the legacy #charGrowthBtn id, so bind by screen + button
-  // text instead of assuming a specific id.
+  function upgrade(key){const x=stats.find(v=>v.key===key);if(!x)return;const v=Number(values[key]??x.base);if(v>=x.max||!window.__duckWallet.spendCoins(x.cost))return;values[key]=Math.min(x.max,v+x.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
+  window.__duckOpenGrowth=function(){try{ensure();['characterScreen','menuScreen','resultScreen','mapScreen'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show');});render();screen.style.display='block';screen.style.visibility='visible';screen.style.opacity='1';screen.style.zIndex='99999';return true;}catch(err){console.error('growth open failed:',err);return false;}};
   let growthOpening=false;
-  function findGrowthButton(target){
-    const cs=document.getElementById('characterScreen');
-    if(!cs || !cs.classList.contains('show')) return null;
-    let el=target;
-    while(el && el!==document.body){
-      if((el.tagName==='BUTTON'||el.tagName==='A'||el.getAttribute?.('role')==='button') && /성장/.test((el.textContent||'').replace(/\s+/g,' '))) return el;
-      el=el.parentElement;
-    }
-    return null;
-  }
-  function openGrowthFromCharacter(e){
-    const t=findGrowthButton(e.target);
-    if(!t)return;
-    e.preventDefault();
-    e.stopPropagation();
-    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    if(growthOpening)return;
-    growthOpening=true;
-    const ok=window.__duckOpenGrowth && window.__duckOpenGrowth();
-    setTimeout(()=>{growthOpening=false;},250);
-    if(!ok) console.warn('성장 화면 열기 실패');
-  }
-  document.addEventListener('click',openGrowthFromCharacter,true);
-  document.addEventListener('pointerup',openGrowthFromCharacter,true);
-  document.addEventListener('touchend',openGrowthFromCharacter,true);
+  function findGrowthButton(target){const cs=document.getElementById('characterScreen');if(!cs||!cs.classList.contains('show'))return null;let el=target;while(el&&el!==document.body){if((el.tagName==='BUTTON'||el.tagName==='A'||el.getAttribute?.('role')==='button')&&/성장/.test((el.textContent||'').replace(/\s+/g,' ')))return el;el=el.parentElement;}return null;}
+  function openGrowthFromCharacter(e){const t=findGrowthButton(e.target);if(!t)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();if(growthOpening)return;growthOpening=true;const ok=window.__duckOpenGrowth&&window.__duckOpenGrowth();setTimeout(()=>{growthOpening=false;},250);if(!ok)console.warn('성장 화면 열기 실패');}
+  document.addEventListener('click',openGrowthFromCharacter,true);document.addEventListener('pointerup',openGrowthFromCharacter,true);document.addEventListener('touchend',openGrowthFromCharacter,true);
 })();
 
 /* --- V25 mission/achievement system --- */
