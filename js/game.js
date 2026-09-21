@@ -2670,3 +2670,87 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  `;
  document.head.appendChild(s);
 })();
+
+
+/* ============================================================
+   DOLDOL FARM MATERIALS V1
+   - isolated from legacy combat-item system
+   - enemy kill -> chance to drop -> pickup -> persistent inventory
+   - no item effects / no crafting yet
+   - index.html is intentionally untouched
+   ============================================================ */
+(() => {
+  'use strict';
+
+  const NS = 'doldol_farm_items_v1';
+
+  const FARM_ITEMS = [
+    {id:'wood',    name:'나무 조각', icon:'🪵'},
+    {id:'stone',   name:'단단한 돌', icon:'🪨'},
+    {id:'ember',   name:'불씨',     icon:'🔥'},
+    {id:'ice',     name:'얼음 조각', icon:'❄️'},
+    {id:'herb',   name:'약초',     icon:'🌿'},
+    {id:'gem',    name:'보석 조각', icon:'💎'},
+    {id:'vial',   name:'액체 병',   icon:'🧪'},
+    {id:'powder', name:'화약',     icon:'💣'},
+    {id:'spark',  name:'전기 조각', icon:'⚡'},
+    {id:'special',name:'특수 조각', icon:'⭐'}
+  ];
+
+  const DEFAULT = Object.fromEntries(FARM_ITEMS.map(x => [x.id, 0]));
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(NS);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return {...DEFAULT, ...(parsed && typeof parsed === 'object' ? parsed : {})};
+    }catch(e){ return {...DEFAULT}; }
+  }
+
+  let inventory = load();
+
+  function save(){
+    try{ localStorage.setItem(NS, JSON.stringify(inventory)); }catch(e){}
+  }
+
+  function add(id, amount=1){
+    if(!DEFAULT.hasOwnProperty(id)) return inventory;
+    inventory[id] = Math.max(0, Number(inventory[id] || 0) + Math.max(0, Number(amount)||0));
+    save();
+    return inventory;
+  }
+
+  function get(id){ return Number(inventory[id] || 0); }
+  function all(){ return {...inventory}; }
+
+  function pickRandom(){
+    const item = FARM_ITEMS[Math.floor(Math.random()*FARM_ITEMS.length)];
+    return item;
+  }
+
+  // 22% drop chance. Drop is intentionally independent of combat-item effects.
+  function tryDrop(x, y){
+    if(Math.random() >= 0.22) return null;
+    const item = pickRandom();
+    const drop = { ...item, x:Number(x)||0, y:Number(y)||0, picked:false };
+    window.__doldolFarmDrops = window.__doldolFarmDrops || [];
+    window.__doldolFarmDrops.push(drop);
+    add(item.id, 1);
+    return drop;
+  }
+
+  window.__doldolFarm = {
+    version: 1,
+    items: FARM_ITEMS.map(x=>({...x})),
+    get,
+    all,
+    add,
+    tryDrop,
+    reset(){
+      inventory = {...DEFAULT};
+      save();
+    }
+  };
+
+  window.__doldolFarmInventory = inventory;
+})();
