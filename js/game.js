@@ -46,10 +46,12 @@ const STONE_DEFS={
   lightning:{icon:'⚡',name:'번개',max:3,damage:1.30,color:'#ffd84d'}
 };
 let selectedStone='basic';
+let equippedStone='basic';
 let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
 function resetStoneLoadout(){
-  selectedStone='basic';
   stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+  selectedStone=equippedStone||'basic';
+  if(selectedStone!=='basic' && !(stoneAmmo[selectedStone]>0)) selectedStone='basic';
 }
 function selectStone(id){
   if(!STONE_DEFS[id]) return false;
@@ -61,9 +63,19 @@ function selectStone(id){
   message=STONE_DEFS[id].name+' 선택!'; messageTimer=.35;
   return true;
 }
+function equipStone(id){
+  if(!STONE_DEFS[id]) return false;
+  equippedStone=id;
+  try{localStorage.setItem('doldol_prebattle_stone_v1',id);}catch(e){}
+  return selectStone(id);
+}
+try{ equippedStone=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; }catch(e){ equippedStone='basic'; }
+if(!STONE_DEFS[equippedStone]) equippedStone='basic';
 // V42: expose the REAL combat stone selector to menus/UI.
 window.__duckSelectStone=selectStone;
+window.__duckEquipStone=equipStone;
 window.__duckGetSelectedStone=()=>selectedStone;
+window.__duckGetEquippedStone=()=>equippedStone;
 function consumeSelectedStone(){
   if(selectedStone==='basic') return;
   stoneAmmo[selectedStone]=Math.max(0,(stoneAmmo[selectedStone]||0)-1);
@@ -201,7 +213,7 @@ function showStoneBar(){
     });
     host.appendChild(bar);
   }
-  bar.style.display=running?'flex':'none';
+  bar.style.display='none';
   bar.querySelectorAll('.battleStone').forEach(b=>{
     const id=b.dataset.stone,d=STONE_DEFS[id],count=stoneAmmo[id];
     const active=id===selectedStone;
@@ -214,7 +226,7 @@ function showStoneBar(){
     const ic=b.querySelector('.stoneIcon'); if(ic)ic.style.fontSize='20px';
   });
 }
-function renderStoneBar(){ showStoneBar(); }
+function renderStoneBar(){ const bar=document.getElementById('battleStoneBar'); if(bar) bar.style.display='none'; }
 
 function getSkillVisual(id){
   const map={
@@ -503,9 +515,10 @@ showSkillButton();
   running=true; last=performance.now();
 }
 function startStage(n){
+  // V43: the weapon/equipment menu is the single source of truth for the starting stone.
+  try{ equippedStone=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; }catch(e){ equippedStone='basic'; }
+  if(!STONE_DEFS[equippedStone]) equippedStone='basic';
   resetStoneLoadout();
-  // V42: keep the player's equipped stone when a new battle starts.
-  try{ const equipped=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; if(equipped && equipped!=='basic') selectStone(equipped); }catch(e){}
   if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   stage=n;
@@ -594,6 +607,7 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
+  if(!selectedStone || !STONE_DEFS[selectedStone]) selectedStone=equippedStone||'basic';
   const def=STONE_DEFS[selectedStone]||STONE_DEFS.basic;
   const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage));
   const stone=selectedStone;
@@ -1459,11 +1473,21 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     const b=document.getElementById('battlePause');
     if(b) b.textContent=paused?'▶':'Ⅱ';
   };
+  function ensureBattleItemSlots(){
+    const host=document.getElementById('battleControls');
+    if(!host || document.getElementById('battleItemSlots')) return;
+    const box=document.createElement('div'); box.id='battleItemSlots';
+    box.innerHTML='<div class=\"battleItemTitle\">ITEM</div><div class=\"battleItemEmpty\">아이템 슬롯</div>';
+    host.appendChild(box);
+  }
+
   window.__duckSetBattleControls=function(show){
+    ensureBattleItemSlots();
     const c=document.getElementById('battleControls');
     if(c){ c.classList.toggle('show',!!show); c.setAttribute('aria-hidden',show?'false':'true'); }
 
-    showStoneBar();
+    const stoneBar=document.getElementById('battleStoneBar');
+    if(stoneBar) stoneBar.style.display='none';
 
   const b=document.getElementById('battleSkill');
     if(b) b.style.display=show?'flex':'none';
@@ -2486,11 +2510,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         return '<button type=\"button\" class=\"v41GearCard '+(active?'selected':'')+'\" data-v42-stone=\"'+id+'\">'+
           '<span class=\"v41GearIcon\">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';
       }).join('')+'</div>'+
-      '<div class=\"v42EquipNote\">장착한 무기는 전투 시작 시 적용됩니다. 전투 중에도 아래 무기 버튼으로 변경할 수 있습니다.</div>'+
+      '<div class=\"v42EquipNote\">장착한 무기는 전투 시작 시 사용됩니다. 전투 중에는 장착한 무기로만 공격합니다.</div>'+
       '<button type=\"button\" id=\"v42EquipDone\" class=\"v41StartBattle\">✓ 장착 완료</button>';
     menuBody.querySelectorAll('[data-v42-stone]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.v42Stone;
-      if(window.__duckSelectStone && !window.__duckSelectStone(id)) return;
+      if(window.__duckEquipStone && !window.__duckEquipStone(id)) return;
       window.__duckPreparedStone=id; savePreparedStone(id);
       menuBody.querySelectorAll('.v41GearCard').forEach(x=>x.classList.toggle('selected',x===btn));
     }));
@@ -2601,4 +2625,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .v42EquipIntro{padding:15px 16px;border-radius:18px;background:linear-gradient(180deg,#243f45,#182c33);border:1px solid #52676d;margin-bottom:14px}.v42EquipIntro strong{display:block;font-size:22px}.v42EquipIntro small{display:block;color:#aebbc0;margin-top:4px}.v42EquipNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.55}
     #gameLobby #lobbyGear{cursor:pointer}
   `; document.head.appendChild(css);
+})();
+
+
+/* V43 battle cleanup: equipment is selected before battle; bottom center is reserved for future item slots. */
+(function(){
+ const s=document.createElement('style');
+ s.textContent=`
+   #battleStoneBar{display:none!important;}
+   #battleItemSlots{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:7px;pointer-events:none;}
+   #battleItemSlots .battleItemTitle{font-size:9px;font-weight:900;letter-spacing:1px;color:rgba(255,255,255,.55);margin-right:2px;}
+   #battleItemSlots .battleItemEmpty{min-width:88px;height:36px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(8,16,23,.52);color:rgba(255,255,255,.38);display:grid;place-items:center;font-size:10px;}
+ `;
+ document.head.appendChild(s);
 })();
