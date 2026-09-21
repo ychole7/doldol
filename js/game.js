@@ -38,6 +38,22 @@ let skillState=null;
 let skillFx=0;
 let skillMessage='';
 let bossIntroTimer=0, bossDefeatFx=0, bossPatternLabel='', bossPatternTimer=0;
+const CHAR_SKILL_KEY='doldol_skill_progress_v1';
+function loadCharacterSkillProgress(){ try{return JSON.parse(localStorage.getItem(CHAR_SKILL_KEY)||'{}')||{};}catch(e){return {};} }
+function getCharacterSkillProgress(id){
+  const all=loadCharacterSkillProgress(); const v=all[id]||{};
+  return {level:Math.max(1,Math.min(5,Number(v.level)||1))};
+}
+function upgradeCharacterSkill(id){
+  const all=loadCharacterSkillProgress(); const v=getCharacterSkillProgress(id);
+  if(v.level>=5) return false;
+  v.level++; all[id]=v; try{localStorage.setItem(CHAR_SKILL_KEY,JSON.stringify(all));}catch(e){}
+  return v.level;
+}
+window.__duckCharacterSkillProgress=getCharacterSkillProgress;
+window.__duckUpgradeCharacterSkill=upgradeCharacterSkill;
+function getSkillLevel(id){ return getCharacterSkillProgress(id).level; }
+
 function getActiveSkillDef(){
   const c=getSelectedCharacter();
   return c.skill || {name:'특공 스킬',desc:'고유 스킬',cd:9};
@@ -202,54 +218,55 @@ function activateSkill(){
   if(!running || paused || upgradeOpen || skillCooldown>0 || !player) return false;
   const c=getSelectedCharacter();
   const id=c.id;
-  const cd=(c.skill&&c.skill.cd)||9;
+  const skillLevel=getSkillLevel(id);
+  const cd=Math.max(5,(c.skill&&c.skill.cd||9)-(skillLevel-1)*0.6);
   clearSkillState();
   skillCooldown=cd;
   skillFx=1.05;
   skillMessage=(c.skill&&c.skill.name)||'고유 스킬';
-  skillState={id,attackMul:1,speedMul:1,parryMul:1,perfectMul:1,multiShot:false};
+  skillState={id,attackMul:1,speedMul:1,parryMul:1,perfectMul:1,multiShot:false,skillLevel};
   if(id==='doldol'){
     player.skillInvincible=true;
-    player.skillParryMul=1.45;
-    player.skillPerfectMul=1.2;
-    skillState.parryMul=1.45; skillState.perfectMul=1.2;
+    player.skillParryMul=1.45+0.06*(skillLevel-1);
+    player.skillPerfectMul=1.2+0.04*(skillLevel-1);
+    skillState.parryMul=player.skillParryMul; skillState.perfectMul=player.skillPerfectMul;
     skillTimer=3;
   }else if(id==='nyang'){
-    player.speed*=1.45;
-    player.skillAttackMul=1.25;
+    player.speed*=1.45+0.06*(skillLevel-1);
+    player.skillAttackMul=1.25+0.06*(skillLevel-1);
     player.skillMultiShot=false;
-    skillState.speedMul=1.45; skillState.attackMul=1.25;
+    skillState.speedMul=1.45+0.06*(skillLevel-1); skillState.attackMul=player.skillAttackMul;
     skillTimer=3;
   }else if(id==='rabbit'){
-    player.skillPerfectMul=1.75;
-    player.skillParryMul=1.30;
-    skillState.perfectMul=1.75; skillState.parryMul=1.30;
+    player.skillPerfectMul=1.75+0.08*(skillLevel-1);
+    player.skillParryMul=1.30+0.05*(skillLevel-1);
+    skillState.perfectMul=player.skillPerfectMul; skillState.parryMul=player.skillParryMul;
     skillTimer=2.5;
   }else if(id==='panda'){
-    player.hp=Math.min(player.maxHp,player.hp+32);
+    player.hp=Math.min(player.maxHp,player.hp+32+8*(skillLevel-1));
     player.skillShield=1;
-    skillTimer=5;
+    skillTimer=5+0.3*(skillLevel-1);
   }else if(id==='king'){
-    player.skillAttackMul=1.9;
+    player.skillAttackMul=1.9+0.10*(skillLevel-1);
     player.skillMultiShot=true;
     skillState.attackMul=1.9; skillState.multiShot=true;
     skillTimer=4;
   }else if(id==='turtle'){
-    player.hp=Math.min(player.maxHp,player.hp+50);
+    player.hp=Math.min(player.maxHp,player.hp+50+10*(skillLevel-1));
     player.skillInvincible=true;
-    skillTimer=2;
+    skillTimer=2+0.2*(skillLevel-1);
   }else if(id==='shiba'){
     player.skillAutoParry=true;
-    player.skillPerfectMul=1.5;
-    player.skillParryMul=1.25;
-    skillState.perfectMul=1.5; skillState.parryMul=1.25;
-    skillTimer=3;
+    player.skillPerfectMul=1.5+0.07*(skillLevel-1);
+    player.skillParryMul=1.25+0.05*(skillLevel-1);
+    skillState.perfectMul=player.skillPerfectMul; skillState.parryMul=player.skillParryMul;
+    skillTimer=3+0.25*(skillLevel-1);
     for(const r of rocks.slice()){
       if(!r.parried && Math.hypot(r.x-player.x,r.y-player.y)<170) parryAt(player.x,player.y);
     }
   }else{
     player.skillInvincible=true;
-    skillTimer=2;
+    skillTimer=2+0.2*(skillLevel-1);
   }
   message=skillMessage+' 발동!';
   messageTimer=.80;
@@ -1951,8 +1968,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(!face||!name||!role||!xpEl||!bar||!coinsEl||!cards) throw new Error('growth UI elements missing');
     face.textContent=d.face||'🐥';name.textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;role.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();
     const walletCoins=Number((window.__duckWallet&&window.__duckWallet.coins)||0);
-    cards.innerHTML=stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&walletCoins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');
+    const skillLevel=getSkillLevel(d.id);
+    const skillCost=700+skillLevel*350;
+    const skillCan=skillLevel<5&&walletCoins>=skillCost;
+    const skillCard=`<div style="padding:16px;margin:12px 0;border-radius:20px;background:linear-gradient(135deg,rgba(255,216,102,.12),rgba(123,215,255,.08));border:1px solid rgba(255,216,102,.22)"><div style="display:flex;justify-content:space-between;align-items:center"><b>⚡ ${d.skill?.name||'특공 스킬'}</b><strong>Lv.${skillLevel}/5</strong></div><div style="font-size:11px;opacity:.68;margin:5px 0 10px">${d.skill?.desc||'고유 스킬'} · 레벨이 오를수록 지속시간/효과가 강화됩니다.</div><button id="growthSkillUpgrade" ${skillCan?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${skillCan?'#7bd7ff':'rgba(255,255,255,.08)'};color:${skillCan?'#10232d':'#7f8992'};font-weight:1000">${skillLevel>=5?'MAX':'스킬 강화 · 🪙 '+skillCost}</button></div>`;
+    cards.innerHTML=skillCard+stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&walletCoins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');
     cards.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));
+    const skillBtn=cards.querySelector('#growthSkillUpgrade');
+    if(skillBtn) skillBtn.onclick=()=>{if(skillLevel>=5||walletCoins<skillCost)return;if(window.__duckWallet&&window.__duckWallet.spendCoins(skillCost)){window.__duckUpgradeCharacterSkill(d.id);render();}};
   }
   function upgrade(key){const x=stats.find(v=>v.key===key),v=Number(values[key]??x.base);if(!x||v>=x.max||!window.__duckWallet.spendCoins(x.cost))return;values[key]=Math.min(x.max,v+x.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
   window.__duckOpenGrowth=function(){
