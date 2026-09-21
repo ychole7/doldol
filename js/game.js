@@ -1968,7 +1968,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(!face||!name||!role||!xpEl||!bar||!coinsEl||!cards) throw new Error('growth UI elements missing');
     face.textContent=d.face||'🐥';name.textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;role.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();
     const walletCoins=Number((window.__duckWallet&&window.__duckWallet.coins)||0);
-    const skillLevel=getSkillLevel(d.id);
+    const skillLevel=Math.max(1,Math.min(5,Number((window.__duckCharacterSkillProgress?window.__duckCharacterSkillProgress(d.id):{level:1}).level)||1));
     const skillCost=700+skillLevel*350;
     const skillCan=skillLevel<5&&walletCoins>=skillCost;
     const skillCard=`<div style="padding:16px;margin:12px 0;border-radius:20px;background:linear-gradient(135deg,rgba(255,216,102,.12),rgba(123,215,255,.08));border:1px solid rgba(255,216,102,.22)"><div style="display:flex;justify-content:space-between;align-items:center"><b>⚡ ${d.skill?.name||'특공 스킬'}</b><strong>Lv.${skillLevel}/5</strong></div><div style="font-size:11px;opacity:.68;margin:5px 0 10px">${d.skill?.desc||'고유 스킬'} · 레벨이 오를수록 지속시간/효과가 강화됩니다.</div><button id="growthSkillUpgrade" ${skillCan?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${skillCan?'#7bd7ff':'rgba(255,255,255,.08)'};color:${skillCan?'#10232d':'#7f8992'};font-weight:1000">${skillLevel>=5?'MAX':'스킬 강화 · 🪙 '+skillCost}</button></div>`;
