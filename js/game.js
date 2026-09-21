@@ -63,15 +63,18 @@ let farmInventoryV2=farmLoadV2();
 function farmSaveV2(){try{localStorage.setItem(FARM_INV_KEY_V2,JSON.stringify(farmInventoryV2));}catch(e){}}
 function farmRandomItemV2(){return FARM_ITEMS_V2[Math.floor(Math.random()*FARM_ITEMS_V2.length)];}
 function spawnFarmDropV2(x,y){
-  // V5: 파밍 드롭은 적 처치마다 1개 확실하게 생성한다.
+  // V7: 파밍 아이템은 적 처치 위치에서 실제로 떨어져 잠시 바닥에 남는다.
+  // 기존 인벤토리/획득 시스템은 그대로 유지하고 즉시 흡수되는 현상만 막는다.
   const item=farmRandomItemV2();
   const a=Math.random()*Math.PI*2, dist=26;
+  const gx=(Number(x)||vw*.5)+Math.cos(a)*dist;
+  const gy=(Number(y)||vh*.5)+Math.sin(a)*dist;
   pickups.push({
-    x:(Number(x)||vw*.5)+Math.cos(a)*dist,
-    y:(Number(y)||vh*.5)+Math.sin(a)*dist,
+    x:gx,y:gy-24,groundY:gy,vy:-105,gravity:330,
     type:'farm',
     farmId:item.id,farmName:item.name,farmIcon:item.icon,
-    life:12,bob:Math.random()*Math.PI*2,farmPicked:false
+    life:12,bob:Math.random()*Math.PI*2,farmPicked:false,
+    collectDelay:.65
   });
   return true;
 }
@@ -1131,8 +1134,18 @@ function update(dt){
 
   for(const p of pickups){
     p.life-=dt; p.bob+=dt*4;
+
+    // 파밍 아이템은 먼저 떨어지는 애니메이션을 보여준 뒤 획득 가능해진다.
+    if(p.type==='farm' && p.collectDelay>0){
+      p.collectDelay=Math.max(0,p.collectDelay-dt);
+      p.vy=(p.vy||0)+(p.gravity||330)*dt;
+      p.y+=(p.vy||0)*dt;
+      const gy=Number.isFinite(p.groundY)?p.groundY:p.y;
+      if(p.y>=gy){ p.y=gy; p.vy=0; }
+    }
+
     const d=Math.hypot(p.x-player.x,p.y-player.y);
-    if(d<42){
+    if(d<42 && !(p.type==='farm' && p.collectDelay>0)){
       if(p.type==='coin'){
         const walletCoins=window.__duckWallet.addCoins(1);
         message='+1 COIN  ·  '+walletCoins.toLocaleString();
@@ -1174,7 +1187,7 @@ function update(dt){
       messageTimer=Math.max(messageTimer,.32);
       burst(p.x,p.y,8);
       p.life=0;
-    }else if(d<130){
+    }else if(d<130 && !(p.type==='farm' && p.collectDelay>0)){
       const dx=player.x-p.x,dy=player.y-p.y,L=Math.hypot(dx,dy)||1;
       p.x+=dx/L*80*dt;p.y+=dy/L*80*dt;
     }
