@@ -4,10 +4,7 @@
 (() => {
 'use strict';
 
-// V24: persistent wallet shared by combat and growth screens.
-// DOLDOL FARM MATERIALS V2 — isolated from legacy combat-item system.
-// Enemy defeat -> chance to drop -> pickup -> persistent inventory.
-// No combat effects, no crafting, no index.html changes.
+// DOLDOL FARM MATERIALS V3 — isolated farming loop
 const FARM_ITEMS = [
   {id:'wood',name:'나무 조각',icon:'🪵'},
   {id:'stone',name:'단단한 돌',icon:'🪨'},
@@ -20,33 +17,23 @@ const FARM_ITEMS = [
   {id:'spark',name:'전기 조각',icon:'⚡'},
   {id:'special',name:'특수 조각',icon:'⭐'}
 ];
-const FARM_KEY='doldol_farm_materials_v2';
+const FARM_KEY='doldol_farm_inventory_v1';
 function loadFarmInventory(){
-  try{
-    const raw=JSON.parse(localStorage.getItem(FARM_KEY)||'{}')||{};
-    const out={};
-    for(const item of FARM_ITEMS) out[item.id]=Math.max(0,Number(raw[item.id])||0);
-    return out;
-  }catch(e){ return Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0])); }
+  const base=Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0]));
+  try{const v=JSON.parse(localStorage.getItem(FARM_KEY)||'{}'); return Object.assign(base,v||{});}catch(e){return base;}
 }
 let farmInventory=loadFarmInventory();
-function saveFarmInventory(){ try{localStorage.setItem(FARM_KEY,JSON.stringify(farmInventory));}catch(e){} }
-function addFarmMaterial(id,n=1){
-  if(!FARM_ITEMS.some(x=>x.id===id)) return 0;
-  farmInventory[id]=Math.max(0,(farmInventory[id]||0)+(Number(n)||0));
-  saveFarmInventory();
-  return farmInventory[id];
+function saveFarmInventory(){try{localStorage.setItem(FARM_KEY,JSON.stringify(farmInventory));}catch(e){}}
+function addFarmItem(id,n=1){if(!farmInventory[id])farmInventory[id]=0;farmInventory[id]+=Math.max(0,n|0);saveFarmInventory();}
+window.__doldolFarm={items:FARM_ITEMS.map(x=>({...x})),all:()=>({...farmInventory}),get:id=>farmInventory[id]||0,reset:()=>{farmInventory=Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0]));saveFarmInventory();}};
+function spawnFarmDrop(x,y){
+  if(Math.random()>=0.35) return false;
+  const item=FARM_ITEMS[Math.floor(Math.random()*FARM_ITEMS.length)];
+  pickups.push({x,y,type:'farm',itemId:item.id,itemName:item.name,itemIcon:item.icon,life:8,bob:Math.random()*6.28});
+  return true;
 }
-function randomFarmMaterial(){ return FARM_ITEMS[Math.floor(Math.random()*FARM_ITEMS.length)]; }
-window.__duckFarm={
-  version:2,
-  items:FARM_ITEMS.map(x=>({...x})),
-  getInventory:()=>({...farmInventory}),
-  get:(id)=>Number(farmInventory[id]||0),
-  add:addFarmMaterial,
-  reset:()=>{farmInventory=Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0]));saveFarmInventory();return {...farmInventory};}
-};
 
+// V24: persistent wallet shared by combat and growth screens.
 window.__duckWallet = window.__duckWallet || {
   get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '12340'); },
   addCoins(n){ const v=Math.max(0,this.coins+(Number(n)||0)); localStorage.setItem('doldol_coins_v1',String(v)); return v; },
@@ -717,15 +704,6 @@ function enemyShoot(e){
     addRock(base-.075,speed,10); addRock(base+.075,speed,10);
   }else addRock(base,speed*(e.elite?1.08:1),10);
 }
-function trySpawnFarmDrop(e){
-  // Drop is intentionally not guaranteed. Inventory is updated only on pickup.
-  if(Math.random()>=0.22) return null;
-  const item=randomFarmMaterial();
-  const drop={x:e.x,y:e.y,type:'farm',farmId:item.id,icon:item.icon,name:item.name,life:8,bob:Math.random()*6.28,pickup:false};
-  pickups.push(drop);
-  return drop;
-}
-
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
   const wasBossPhase=e.bossPhase||1;
@@ -759,7 +737,8 @@ function hitEnemy(e,damage=1){
     burst(e.x,e.y,18);
     e.dead=true;
     pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
-    trySpawnFarmDrop(e);
+    // Enemy defeat -> chance to create a separate farming-material pickup.
+    spawnFarmDrop(e.x,e.y);
     message='격파!';
     messageTimer=.28;
   }
@@ -1006,14 +985,14 @@ function update(dt){
   for(const p of pickups){
     const bob=Math.sin(p.bob)*3;
     ctx.save();ctx.translate(p.x,p.y+bob);
-    if(p.type==='coin'){
+    if(p.type==='farm'){
+      ctx.globalAlpha=.98;ctx.fillStyle='rgba(28,35,42,.88)';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+      ctx.font='18px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.itemIcon||'⭐',0,1);
+      ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1.5;ctx.stroke();
+    }else if(p.type==='coin'){
       ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
-    }else if(p.type==='farm'){
-      ctx.fillStyle='rgba(20,25,30,.78)';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=2;ctx.stroke();
-      ctx.font='18px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.icon,0,1);
     }else{
       ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
@@ -1085,9 +1064,9 @@ function update(dt){
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
       if(p.type==='farm'){
-        const total=addFarmMaterial(p.farmId,1);
-        message=p.icon+' '+p.name+' +1  ·  '+total;
-        messageTimer=.75;
+        addFarmItem(p.itemId,1);
+        message=p.itemIcon+' '+p.itemName+' +1';
+        messageTimer=.7;
         burst(p.x,p.y,12);
         p.life=0;
       }else if(p.type==='coin'){
