@@ -519,6 +519,9 @@ function startStage(n){
   try{ equippedStone=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; }catch(e){ equippedStone='basic'; }
   if(!STONE_DEFS[equippedStone]) equippedStone='basic';
   resetStoneLoadout();
+  // Re-assert the equipped loadout after all battle state has been reset.
+  selectedStone=equippedStone||'basic';
+  if(selectedStone!=='basic' && !(stoneAmmo[selectedStone]>0)) selectedStone='basic';
   if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   stage=n;
@@ -607,6 +610,7 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
+  // V44: the loadout selected in the weapon menu is authoritative at battle start.
   if(!selectedStone || !STONE_DEFS[selectedStone]) selectedStone=equippedStone||'basic';
   const def=STONE_DEFS[selectedStone]||STONE_DEFS.basic;
   const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage));
@@ -1249,9 +1253,27 @@ function draw(){
   }
 
   for(const s of shots){
-    ctx.globalAlpha=.12;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(s.x,s.y+14,s.r*2.5,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=1;ctx.fillStyle='#fff4c4';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(255,216,102,.8)';ctx.lineWidth=2;ctx.stroke();
+    // V44: make the equipped stone visually unmistakable in flight.
+    const st=s.stone||'basic';
+    const cfg={
+      basic:{glow:'rgba(255,216,102,.18)',fill:'#f2eee2',stroke:'#ffd866'},
+      fire:{glow:'rgba(255,85,35,.30)',fill:'#ff6b35',stroke:'#ffd04a'},
+      ice:{glow:'rgba(75,190,255,.28)',fill:'#8ee8ff',stroke:'#d7f8ff'},
+      bomb:{glow:'rgba(90,70,150,.30)',fill:'#25283a',stroke:'#c5b4ff'},
+      lightning:{glow:'rgba(255,225,50,.32)',fill:'#ffe44d',stroke:'#fff7a8'}
+    }[st] || {glow:'rgba(255,216,102,.18)',fill:'#f2eee2',stroke:'#ffd866'};
+    ctx.globalAlpha=.18;ctx.fillStyle=cfg.glow;ctx.beginPath();ctx.arc(s.x,s.y+14,s.r*3.2,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;ctx.fillStyle=cfg.fill;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=cfg.stroke;ctx.lineWidth=2.5;ctx.stroke();
+    if(st==='fire'){
+      ctx.fillStyle='#fff2a6';ctx.beginPath();ctx.arc(s.x,s.y-2,s.r*.42,0,Math.PI*2);ctx.fill();
+    }else if(st==='ice'){
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(s.x-s.r*.65,s.y);ctx.lineTo(s.x+s.r*.65,s.y);ctx.moveTo(s.x,s.y-s.r*.65);ctx.lineTo(s.x,s.y+s.r*.65);ctx.stroke();
+    }else if(st==='bomb'){
+      ctx.fillStyle='#d8d0ff';ctx.fillRect(s.x+s.r*.45,s.y-s.r*.8,3,5);
+    }else if(st==='lightning'){
+      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(s.x-2,s.y-5);ctx.lineTo(s.x+2,s.y);ctx.lineTo(s.x-2,s.y+5);ctx.stroke();
+    }
   }
   for(const r of rocks){
     ctx.save();
