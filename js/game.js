@@ -4,35 +4,6 @@
 (() => {
 'use strict';
 
-// DOLDOL FARM MATERIALS V3 — isolated farming loop
-const FARM_ITEMS = [
-  {id:'wood',name:'나무 조각',icon:'🪵'},
-  {id:'stone',name:'단단한 돌',icon:'🪨'},
-  {id:'ember',name:'불씨',icon:'🔥'},
-  {id:'ice',name:'얼음 조각',icon:'❄️'},
-  {id:'herb',name:'약초',icon:'🌿'},
-  {id:'gem',name:'보석 조각',icon:'💎'},
-  {id:'vial',name:'액체 병',icon:'🧪'},
-  {id:'powder',name:'화약',icon:'💣'},
-  {id:'spark',name:'전기 조각',icon:'⚡'},
-  {id:'special',name:'특수 조각',icon:'⭐'}
-];
-const FARM_KEY='doldol_farm_inventory_v1';
-function loadFarmInventory(){
-  const base=Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0]));
-  try{const v=JSON.parse(localStorage.getItem(FARM_KEY)||'{}'); return Object.assign(base,v||{});}catch(e){return base;}
-}
-let farmInventory=loadFarmInventory();
-function saveFarmInventory(){try{localStorage.setItem(FARM_KEY,JSON.stringify(farmInventory));}catch(e){}}
-function addFarmItem(id,n=1){if(!farmInventory[id])farmInventory[id]=0;farmInventory[id]+=Math.max(0,n|0);saveFarmInventory();}
-window.__doldolFarm={items:FARM_ITEMS.map(x=>({...x})),all:()=>({...farmInventory}),get:id=>farmInventory[id]||0,reset:()=>{farmInventory=Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0]));saveFarmInventory();}};
-function spawnFarmDrop(x,y){
-  if(Math.random()>=0.35) return false;
-  const item=FARM_ITEMS[Math.floor(Math.random()*FARM_ITEMS.length)];
-  pickups.push({x,y,type:'farm',itemId:item.id,itemName:item.name,itemIcon:item.icon,life:8,bob:Math.random()*6.28});
-  return true;
-}
-
 // V24: persistent wallet shared by combat and growth screens.
 window.__duckWallet = window.__duckWallet || {
   get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '12340'); },
@@ -59,6 +30,33 @@ let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let pendingNextStage=0;
+
+// FARM MATERIALS V4 - isolated from combat item system
+const FARM_MATERIALS_V4=[
+  {id:'wood',name:'나무 조각',icon:'🪵'},
+  {id:'stone',name:'단단한 돌',icon:'🪨'},
+  {id:'ember',name:'불씨',icon:'🔥'},
+  {id:'ice',name:'얼음 조각',icon:'❄️'},
+  {id:'herb',name:'약초',icon:'🌿'},
+  {id:'gem',name:'보석 조각',icon:'💎'},
+  {id:'vial',name:'액체 병',icon:'🧪'},
+  {id:'powder',name:'화약',icon:'💣'},
+  {id:'spark',name:'전기 조각',icon:'⚡'},
+  {id:'special',name:'특수 조각',icon:'⭐'}
+];
+const FARM_KEY_V4='doldol_farm_materials_v4';
+let farmInventoryV4={};
+try{farmInventoryV4=JSON.parse(localStorage.getItem(FARM_KEY_V4)||'{}')||{};}catch(e){farmInventoryV4={};}
+function saveFarmV4(){try{localStorage.setItem(FARM_KEY_V4,JSON.stringify(farmInventoryV4));}catch(e){}}
+function farmAddV4(item){farmInventoryV4[item.id]=(farmInventoryV4[item.id]||0)+1;saveFarmV4();}
+function farmDropV4(e){
+  const item=FARM_MATERIALS_V4[Math.floor(Math.random()*FARM_MATERIALS_V4.length)];
+  pickups.push({x:e.x,y:e.y,type:'farm',farmId:item.id,farmName:item.name,farmIcon:item.icon,life:10,bob:Math.random()*6.28});
+  message=item.icon+' '+item.name+' 발견!';
+  messageTimer=1.0;
+  burst(e.x,e.y,16);
+}
+window.__doldolFarmV4={items:FARM_MATERIALS_V4,get(){return {...farmInventoryV4}},add(id){const item=FARM_MATERIALS_V4.find(x=>x.id===id);if(item){farmAddV4(item);return farmInventoryV4[id]||0;}return 0;}};
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
@@ -735,10 +733,10 @@ function hitEnemy(e,damage=1){
     if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
     if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
     burst(e.x,e.y,18);
+    // FARM V4: guaranteed test drop. Once confirmed working, this can be tuned to a lower chance.
+    farmDropV4(e);
     e.dead=true;
     pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
-    // Enemy defeat -> chance to create a separate farming-material pickup.
-    spawnFarmDrop(e.x,e.y);
     message='격파!';
     messageTimer=.28;
   }
@@ -986,9 +984,9 @@ function update(dt){
     const bob=Math.sin(p.bob)*3;
     ctx.save();ctx.translate(p.x,p.y+bob);
     if(p.type==='farm'){
-      ctx.globalAlpha=.98;ctx.fillStyle='rgba(28,35,42,.88)';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
-      ctx.font='18px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.itemIcon||'⭐',0,1);
-      ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.96)';ctx.beginPath();ctx.arc(0,0,17,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#ffd86b';ctx.lineWidth=3;ctx.stroke();
+      ctx.font='20px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.farmIcon||'⭐',0,1);
     }else if(p.type==='coin'){
       ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
@@ -1064,11 +1062,11 @@ function update(dt){
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
       if(p.type==='farm'){
-        addFarmItem(p.itemId,1);
-        message=p.itemIcon+' '+p.itemName+' +1';
-        messageTimer=.7;
-        burst(p.x,p.y,12);
-        p.life=0;
+        const item=FARM_MATERIALS_V4.find(x=>x.id===p.farmId);
+        if(item) farmAddV4(item);
+        message='획득! '+(p.farmIcon||'⭐')+' '+(p.farmName||'파밍 재료')+' ×1';
+        messageTimer=.9;
+        burst(p.x,p.y,14);
       }else if(p.type==='coin'){
         const walletCoins=window.__duckWallet.addCoins(1);
         message='+1 COIN  ·  '+walletCoins.toLocaleString();
