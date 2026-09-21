@@ -783,7 +783,7 @@ function update(dt){
   const len=Math.hypot(ax,ay)||1;
   moveAroundCovers(player,ax/len*player.speed*dt,ay/len*player.speed*dt);
   player.x=clamp(player.x,32,vw-32);
-  player.y=clamp(player.y,vh*.48,vh-90);
+  player.y=clamp(player.y,vh*.18,vh-90);
 
   player.fire-=dt;
   if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)-(level-1)*.012);shootPlayer();}
@@ -966,16 +966,32 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-  if(enemies.length===0){
+
+  // 모든 적을 처치하면 즉시 클리어하지 않고 '관문'을 연다.
+  // 플레이어가 관문까지 직접 이동해야 스테이지가 완료된다.
+  if(enemies.length===0 && !gate){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
+      clearTimer=0;
+      message='관문이 열렸습니다! 위쪽 관문으로 이동하세요';
+      messageTimer=2.2;
+      burst(vw*.5,vh*.20,24);
+    }
+  }
+
+  if(gate && player){
+    const gateY=vh*.20;
+    const gateX=vw*.5;
+    const gateReachX=Math.min(105,vw*.24);
+    if(player.y<=vh*.27 && Math.abs(player.x-gateX)<=gateReachX){
+      gate=false;
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
       setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
-      burst(vw*.5,vh*.18,24);
+      burst(gateX,gateY,32);
     }
   }
 }
