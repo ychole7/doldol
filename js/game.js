@@ -48,9 +48,9 @@ const STONE_DEFS={
 let selectedStone='basic';
 let equippedStone='basic';
 let battleStone='basic';
-let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3}; // inventory/ownership count; not consumed per shot
 function resetStoneLoadout(){
-  stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+  stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3}; // inventory/ownership count; not consumed per shot
   selectedStone=equippedStone||'basic';
   if(selectedStone!=='basic' && !(stoneAmmo[selectedStone]>0)) selectedStone='basic';
 }
@@ -627,14 +627,8 @@ function shootPlayer(){
   }else addShot();
   // Only special-weapon ammo is consumed. When it reaches zero, the battle
   // automatically switches to the unlimited basic stone.
-  if(battleStone!=='basic'){
-    stoneAmmo[battleStone]=Math.max(0,(stoneAmmo[battleStone]||0)-1);
-    if(stoneAmmo[battleStone]<=0){
-      battleStone='basic';
-      selectedStone='basic';
-      message='특수돌 소진 · 기본돌로 전환'; messageTimer=.6;
-    }
-  }
+  // V46: equipped special stone is a weapon, not per-shot ammunition.
+  // Keep the equipped stone active for the entire battle.
   renderStoneBar();
 }
 
