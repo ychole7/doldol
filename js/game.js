@@ -47,6 +47,7 @@ const STONE_DEFS={
 };
 let selectedStone='basic';
 let equippedStone='basic';
+let battleStone='basic';
 let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
 function resetStoneLoadout(){
   stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
@@ -76,6 +77,7 @@ window.__duckSelectStone=selectStone;
 window.__duckEquipStone=equipStone;
 window.__duckGetSelectedStone=()=>selectedStone;
 window.__duckGetEquippedStone=()=>equippedStone;
+window.__duckGetBattleStone=()=>battleStone;
 function consumeSelectedStone(){
   if(selectedStone==='basic') return;
   stoneAmmo[selectedStone]=Math.max(0,(stoneAmmo[selectedStone]||0)-1);
@@ -522,6 +524,8 @@ function startStage(n){
   // Re-assert the equipped loadout after all battle state has been reset.
   selectedStone=equippedStone||'basic';
   if(selectedStone!=='basic' && !(stoneAmmo[selectedStone]>0)) selectedStone='basic';
+  battleStone=selectedStone;
+  if(battleStone!=='basic'){ message=STONE_DEFS[battleStone].name+' 장착 · 출격!'; messageTimer=.8; }
   if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   stage=n;
@@ -610,16 +614,27 @@ function burst(x,y,n=12){
 }
 
 function shootPlayer(){
-  // V44: the loadout selected in the weapon menu is authoritative at battle start.
-  if(!selectedStone || !STONE_DEFS[selectedStone]) selectedStone=equippedStone||'basic';
-  const def=STONE_DEFS[selectedStone]||STONE_DEFS.basic;
+  // V45: the pre-battle loadout is copied into battleStone at stage start.
+  // The firing engine uses battleStone directly, so the equipped weapon cannot
+  // silently fall back to the basic stone because of a stale UI variable.
+  if(!battleStone || !STONE_DEFS[battleStone]) battleStone=equippedStone||'basic';
+  const def=STONE_DEFS[battleStone]||STONE_DEFS.basic;
   const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage));
-  const stone=selectedStone;
+  const stone=battleStone;
   const addShot=(vx=0,vy=-520)=>shots.push({x:player.x,y:player.y-25,vx,vy,r:stone==='bomb'?10:7,life:2,damage,stone});
   if(player.skillMultiShot){
     for(const off of [-70,0,70]) addShot(off,-520);
   }else addShot();
-  consumeSelectedStone();
+  // Only special-weapon ammo is consumed. When it reaches zero, the battle
+  // automatically switches to the unlimited basic stone.
+  if(battleStone!=='basic'){
+    stoneAmmo[battleStone]=Math.max(0,(stoneAmmo[battleStone]||0)-1);
+    if(stoneAmmo[battleStone]<=0){
+      battleStone='basic';
+      selectedStone='basic';
+      message='특수돌 소진 · 기본돌로 전환'; messageTimer=.6;
+    }
+  }
   renderStoneBar();
 }
 
