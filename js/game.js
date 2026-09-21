@@ -1925,16 +1925,35 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   ];
   let values={};
   function ensure(){
-    if(screen)return;
-    screen=document.createElement('div');screen.id='growthScreen';
-    Object.assign(screen.style,{position:'fixed',inset:'0',zIndex:'130',display:'none',overflow:'auto',background:'linear-gradient(180deg,#101820,#18232d)',color:'#fff',fontFamily:'system-ui',padding:'calc(18px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))',boxSizing:'border-box'});
-    screen.innerHTML=`<div style="max-width:520px;margin:0 auto"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button id="growthBack" style="border:0;border-radius:12px;padding:9px 12px;background:rgba(255,255,255,.1);color:#fff;font-size:16px">‹</button><div><b style="font-size:20px">📈 캐릭터 성장</b><div id="growthRole" style="font-size:11px;opacity:.65"></div></div></div><div id="growthHero" style="padding:16px;border-radius:22px;background:linear-gradient(135deg,rgba(255,216,102,.16),rgba(123,215,255,.10));border:1px solid rgba(255,255,255,.1);margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div id="growthFace" style="font-size:46px">🐥</div><div><div id="growthName" style="font-size:20px;font-weight:1000"></div><div id="growthXp" style="font-size:12px;opacity:.75;margin-top:3px"></div></div></div><div style="height:9px;background:rgba(0,0,0,.25);border-radius:8px;overflow:hidden;margin-top:12px"><i id="growthXpBar" style="display:block;height:100%;width:0;background:#7bd7ff"></i></div></div><div id="growthCoins" style="text-align:right;font-weight:900;color:#ffd866;margin:8px 2px 10px"></div><div id="growthCards"></div></div>`;
-    document.body.appendChild(screen);
-    document.getElementById('growthBack').onclick=()=>{screen.style.display='none';if(window.__duckRefreshCharacters)window.__duckRefreshCharacters();};
+    if(!screen || !document.body.contains(screen)) screen=document.getElementById('growthScreen')||null;
+    const required=['growthBack','growthRole','growthFace','growthName','growthXp','growthXpBar','growthCoins','growthCards'];
+    const complete=screen && required.every(id=>screen.querySelector('#'+id));
+    if(!screen){
+      screen=document.createElement('div');
+      screen.id='growthScreen';
+      document.body.appendChild(screen);
+    }
+    if(!complete){
+      Object.assign(screen.style,{position:'fixed',inset:'0',zIndex:'9999',display:'none',visibility:'hidden',overflow:'auto',background:'linear-gradient(180deg,#101820,#18232d)',color:'#fff',fontFamily:'system-ui',padding:'calc(18px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))',boxSizing:'border-box'});
+      screen.innerHTML=`<div style="max-width:520px;margin:0 auto"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button id="growthBack" style="border:0;border-radius:12px;padding:9px 12px;background:rgba(255,255,255,.1);color:#fff;font-size:16px">‹</button><div><b style="font-size:20px">📈 캐릭터 성장</b><div id="growthRole" style="font-size:11px;opacity:.65"></div></div></div><div id="growthHero" style="padding:16px;border-radius:22px;background:linear-gradient(135deg,rgba(255,216,102,.16),rgba(123,215,255,.10));border:1px solid rgba(255,255,255,.1);margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px"><div id="growthFace" style="font-size:46px">🐥</div><div><div id="growthName" style="font-size:20px;font-weight:1000"></div><div id="growthXp" style="font-size:12px;opacity:.75;margin-top:3px"></div></div></div><div style="height:9px;background:rgba(0,0,0,.25);border-radius:8px;overflow:hidden;margin-top:12px"><i id="growthXpBar" style="display:block;height:100%;width:0;background:#7bd7ff"></i></div></div><div id="growthCoins" style="text-align:right;font-weight:900;color:#ffd866;margin:8px 2px 10px"></div><div id="growthCards"></div></div>`;
+    }
+    const back=screen.querySelector('#growthBack');
+    if(back) back.onclick=()=>{screen.style.display='none';screen.style.visibility='hidden';if(window.__duckRefreshCharacters)window.__duckRefreshCharacters();};
   }
   function load(){try{values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}')||{};}catch(e){values={};}}
   function current(){return (window.__duckGetSelectedCharacter?window.__duckGetSelectedCharacter():CHARACTER_DEFS[0]);}
-  function render(){ensure();load();const d=current(),cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1,xp:0,next:50};const pct=Math.min(100,Math.round(cp.xp/cp.next*100));document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;document.getElementById('growthRole').textContent=d.role||'밸런스형';document.getElementById('growthXp').textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');document.getElementById('growthXpBar').style.width=pct+'%';document.getElementById('growthCoins').textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();document.getElementById('growthCards').innerHTML=stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&window.__duckWallet.coins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');document.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));}
+  function render(){
+    ensure();load();
+    const d=current(),cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1,xp:0,next:50};
+    const pct=cp.next>0?Math.min(100,Math.round(cp.xp/cp.next*100)):0;
+    const q=id=>screen.querySelector('#'+id);
+    const face=q('growthFace'),name=q('growthName'),role=q('growthRole'),xpEl=q('growthXp'),bar=q('growthXpBar'),coinsEl=q('growthCoins'),cards=q('growthCards');
+    if(!face||!name||!role||!xpEl||!bar||!coinsEl||!cards) throw new Error('growth UI elements missing');
+    face.textContent=d.face||'🐥';name.textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;role.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();
+    const walletCoins=Number((window.__duckWallet&&window.__duckWallet.coins)||0);
+    cards.innerHTML=stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&walletCoins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');
+    cards.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));
+  }
   function upgrade(key){const x=stats.find(v=>v.key===key),v=Number(values[key]??x.base);if(!x||v>=x.max||!window.__duckWallet.spendCoins(x.cost))return;values[key]=Math.min(x.max,v+x.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
   window.__duckOpenGrowth=function(){
     try{
