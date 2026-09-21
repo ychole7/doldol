@@ -2136,3 +2136,363 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   document.addEventListener('DOMContentLoaded',install,{once:true});
   window.__duckV37RefreshCharacterDesign=refreshInfo;
 })();
+
+
+/* --- V38 unified lobby design system --- */
+(function(){
+  const STYLE_ID='doldol-v38-lobby-style';
+  if(document.getElementById(STYLE_ID)) return;
+  const s=document.createElement('style'); s.id=STYLE_ID;
+  s.textContent=`
+    :root{--dd-bg1:#10232a;--dd-bg2:#19352f;--dd-bg3:#0f1d20;--dd-gold:#ffd866;--dd-gold2:#f1a92e;--dd-text:#fff;--dd-muted:#aebdc5;--dd-panel:rgba(8,18,22,.70);}
+    #gameLobby{background:
+      radial-gradient(900px 360px at 50% -8%,rgba(123,215,255,.28),transparent 62%),
+      radial-gradient(700px 340px at 50% 48%,rgba(255,216,102,.09),transparent 68%),
+      linear-gradient(180deg,var(--dd-bg1) 0%,var(--dd-bg2) 54%,var(--dd-bg3) 100%) !important;
+      color:var(--dd-text)!important;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;
+    }
+    #gameLobby>*{box-sizing:border-box;}
+    #gameLobby button{font-family:inherit;touch-action:manipulation;}
+    #gameLobby .menuItem,
+    #gameLobby #lobbyStages,
+    #gameLobby #lobbyGear,
+    #gameLobby #lobbyBook,
+    #gameLobby #lobbyGrowth{
+      border:1px solid rgba(255,255,255,.10)!important;
+      border-radius:20px!important;
+      background:linear-gradient(145deg,rgba(255,255,255,.095),rgba(255,255,255,.035))!important;
+      color:#fff!important;
+      box-shadow:0 12px 26px rgba(0,0,0,.20)!important;
+      backdrop-filter:blur(8px);
+      transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+    }
+    #gameLobby .menuItem:active,
+    #gameLobby #lobbyStages:active,
+    #gameLobby #lobbyGear:active,
+    #gameLobby #lobbyBook:active,
+    #gameLobby #lobbyGrowth:active{transform:scale(.985)!important;}
+    #gameLobby #lobbyStart{
+      min-height:76px!important;border:0!important;border-radius:22px!important;
+      background:linear-gradient(180deg,#ffd866 0%,#f1b43d 72%,#e89b25 100%)!important;
+      color:#30220d!important;
+      box-shadow:0 7px 0 #9c641d,0 15px 28px rgba(0,0,0,.28)!important;
+      font-weight:1000!important;letter-spacing:-.4px!important;
+      position:relative;overflow:hidden;
+    }
+    #gameLobby #lobbyStart:before{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 25%,rgba(255,255,255,.30) 50%,transparent 75%);transform:translateX(-120%);animation:ddLobbyShine 4.5s ease-in-out infinite;pointer-events:none;}
+    @keyframes ddLobbyShine{0%,58%{transform:translateX(-120%)}72%,100%{transform:translateX(120%)}}
+    #gameLobby #lobbyStart *{position:relative;z-index:1;}
+    #gameLobby #lobbyStage{color:#59400f!important;font-weight:900!important;}
+    #gameLobby #lobbyCoins{color:#ffd866!important;font-weight:1000!important;}
+    #gameLobby .menuItem small{display:block;margin-top:4px;color:#aebdc5!important;font-size:10px!important;line-height:1.35;}
+    #gameLobby .menuGrid{gap:10px!important;}
+    #gameLobby .menuGrid .menuItem{min-height:72px!important;}
+    #gameLobby [class*="banner"],#gameLobby .notice,#gameLobby .homeBanner{border-radius:18px!important;overflow:hidden;box-shadow:0 10px 22px rgba(0,0,0,.16)!important;}
+    #gameLobby .bottomNav,#gameLobby .navBar,#gameLobby .lobbyNav{background:rgba(17,26,29,.88)!important;border-top:1px solid rgba(255,255,255,.10)!important;backdrop-filter:blur(14px);}
+    #gameLobby .bottomNav button,#gameLobby .navBar button,#gameLobby .lobbyNav button{color:#cbd5da!important;font-weight:900!important;}
+    #gameLobby .bottomNav .active,#gameLobby .navBar .active,#gameLobby .lobbyNav .active{color:#ffd866!important;}
+    @media(max-width:520px){
+      #gameLobby #lobbyStart{min-height:70px!important;border-radius:20px!important;}
+      #gameLobby .menuGrid{gap:8px!important;}
+      #gameLobby .menuGrid .menuItem{min-height:66px!important;border-radius:17px!important;}
+    }
+  `;
+  document.head.appendChild(s);
+
+  function polish(){
+    const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+    const start=document.getElementById('lobbyStart');
+    if(start){
+      start.setAttribute('aria-label','전투 시작');
+      start.style.touchAction='manipulation';
+    }
+    ['lobbyStages','lobbyGrowth','lobbyShop','lobbyGear','lobbyBook'].forEach(id=>{
+      const el=document.getElementById(id); if(el)el.style.touchAction='manipulation';
+    });
+  }
+  polish();
+  document.addEventListener('DOMContentLoaded',polish,{once:true});
+  window.__duckV38PolishLobby=polish;
+})();
+
+
+/* --- V39 FINAL DESIGN SYSTEM: approved concept board --- */
+(function(){
+  const STYLE_ID='doldol-v39-final-design';
+  if(document.getElementById(STYLE_ID)) return;
+  const s=document.createElement('style'); s.id=STYLE_ID;
+  s.textContent=`
+    :root{
+      --dd39-navy:#12333a;
+      --dd39-teal:#1f6f73;
+      --dd39-teal2:#2d9291;
+      --dd39-wood:#6b4528;
+      --dd39-wood2:#8b5a32;
+      --dd39-gold:#ffd45a;
+      --dd39-gold2:#f2a62c;
+      --dd39-cream:#fff7df;
+      --dd39-ink:#203238;
+    }
+
+    /* Lobby: warm, illustrated mobile-game presentation. */
+    #gameLobby{
+      background:
+        radial-gradient(110% 48% at 50% 0%,rgba(255,255,255,.42),transparent 62%),
+        linear-gradient(180deg,#8bd9ee 0%,#b8e3d4 34%,#8fba79 62%,#62885a 100%) !important;
+      color:var(--dd39-ink)!important;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;
+    }
+    #gameLobby:before{
+      content:'';position:absolute;left:0;right:0;top:0;height:48%;pointer-events:none;
+      background:
+        radial-gradient(ellipse at 18% 30%,rgba(255,255,255,.45) 0 7%,transparent 8%),
+        radial-gradient(ellipse at 78% 22%,rgba(255,255,255,.38) 0 8%,transparent 9%),
+        linear-gradient(180deg,rgba(255,255,255,.10),transparent 70%);
+      opacity:.75;
+    }
+    #gameLobby>*{box-sizing:border-box;}
+
+    /* Top resource strip / player badge */
+    #gameLobby [id*="player"],#gameLobby [id*="Profile"],#gameLobby .playerInfo{
+      filter:drop-shadow(0 5px 8px rgba(20,45,45,.20));
+    }
+    #gameLobby [id*="coin"],#gameLobby [id*="energy"],#gameLobby [id*="gem"]{
+      border-color:rgba(255,255,255,.30)!important;
+      box-shadow:0 5px 12px rgba(22,52,54,.18)!important;
+    }
+
+    /* Main hero/card area */
+    #gameLobby .homeBanner,#gameLobby .hero,#gameLobby [class*="hero"],#gameLobby [class*="mainCard"]{
+      border:2px solid rgba(255,255,255,.58)!important;
+      border-radius:26px!important;
+      box-shadow:0 14px 30px rgba(38,77,65,.20),inset 0 1px 0 rgba(255,255,255,.48)!important;
+      background:linear-gradient(180deg,rgba(235,249,245,.30),rgba(35,105,101,.18))!important;
+      overflow:hidden!important;
+    }
+
+    /* Stage card */
+    #gameLobby #lobbyStages{
+      border:2px solid rgba(255,255,255,.58)!important;
+      border-radius:18px!important;
+      background:linear-gradient(180deg,#214e4f,#173c3d)!important;
+      color:#fff!important;
+      box-shadow:0 6px 0 rgba(62,43,26,.32),0 13px 25px rgba(29,62,55,.18)!important;
+      position:relative;overflow:hidden;
+    }
+    #gameLobby #lobbyStages:after{
+      content:'›';position:absolute;right:16px;top:50%;transform:translateY(-54%);
+      font-size:34px;font-weight:900;color:#fff;opacity:.88;pointer-events:none;
+    }
+    #gameLobby #lobbyStage{color:#fff!important;font-size:17px!important;font-weight:1000!important;letter-spacing:.2px;}
+
+    /* Secondary menu cards: compact military field-kit feel */
+    #gameLobby .menuItem,#gameLobby #lobbyGear,#gameLobby #lobbyBook,#gameLobby #lobbyGrowth{
+      border:2px solid rgba(255,255,255,.30)!important;
+      border-radius:17px!important;
+      background:linear-gradient(180deg,#315d59,#234844)!important;
+      color:#fff!important;
+      box-shadow:0 5px 0 rgba(48,33,22,.28),0 10px 18px rgba(29,62,55,.16)!important;
+      backdrop-filter:none!important;
+    }
+    #gameLobby .menuItem small{color:#d8e7df!important;opacity:.86;}
+
+    /* Main CTA: yellow/gold, chunky and readable */
+    #gameLobby #lobbyStart{
+      min-height:82px!important;
+      border:3px solid #fff0b0!important;
+      border-radius:22px!important;
+      background:linear-gradient(180deg,#ffd95e 0%,#ffc43d 58%,#eda52a 100%)!important;
+      color:#3b2b14!important;
+      box-shadow:0 7px 0 #a96d20,0 16px 26px rgba(76,54,20,.26),inset 0 2px 0 rgba(255,255,255,.55)!important;
+      font-weight:1000!important;
+      font-size:clamp(20px,4.8vw,30px)!important;
+      letter-spacing:-1px!important;
+    }
+    #gameLobby #lobbyStart:before{opacity:.55!important;animation:dd39Shine 4.8s ease-in-out infinite!important;}
+    @keyframes dd39Shine{0%,58%{transform:translateX(-130%)}72%,100%{transform:translateX(130%)}}
+    #gameLobby #lobbyStart:active{transform:translateY(3px)!important;box-shadow:0 4px 0 #a96d20,0 9px 18px rgba(76,54,20,.22)!important;}
+
+    /* Bottom navigation: wooden field-kit bar */
+    #gameLobby .bottomNav,#gameLobby .navBar,#gameLobby .lobbyNav{
+      background:linear-gradient(180deg,#8a5b35,#5f3c26)!important;
+      border-top:2px solid rgba(255,223,159,.52)!important;
+      box-shadow:0 -7px 18px rgba(46,30,20,.20)!important;
+      backdrop-filter:none!important;
+    }
+    #gameLobby .bottomNav button,#gameLobby .navBar button,#gameLobby .lobbyNav button{
+      color:#f8ead2!important;text-shadow:0 1px 2px rgba(0,0,0,.35);font-weight:1000!important;
+    }
+    #gameLobby .bottomNav .active,#gameLobby .navBar .active,#gameLobby .lobbyNav .active{
+      color:#ffe27b!important;
+    }
+
+    /* Notifications / event banner */
+    #gameLobby .notice,#gameLobby .homeNotice,#gameLobby [class*="notice"],#gameLobby [class*="event"]{
+      border:1px solid rgba(255,255,255,.40)!important;
+      border-radius:18px!important;
+      box-shadow:0 8px 18px rgba(35,69,64,.16)!important;
+      overflow:hidden!important;
+    }
+
+    @media(max-width:520px){
+      #gameLobby #lobbyStart{min-height:74px!important;border-radius:20px!important;font-size:22px!important;}
+      #gameLobby .menuGrid{gap:8px!important;}
+      #gameLobby .menuGrid .menuItem{min-height:68px!important;border-radius:16px!important;}
+    }
+  `;
+  document.head.appendChild(s);
+  window.__duckV39FinalDesign=true;
+})();
+
+/* ================================================================
+   V40 — Original Game Structure + Battle UI Final Direction
+   - 500 stages remain; stage map is replaced by a compact stage list.
+   - Battle presentation follows the original Doldol Special Force concept:
+     fixed portrait battle, stage HUD, PARRY, SKILL, item strip, no joystick graphic.
+   - Combat mechanics are preserved; this patch is presentation/flow focused.
+================================================================ */
+(function(){
+  const $=id=>document.getElementById(id);
+
+  /* ---------- No-map stage selector ---------- */
+  function buildStageList(){
+    let panel=$('stageListPanel');
+    if(panel) return panel;
+    panel=document.createElement('div');
+    panel.id='stageListPanel';
+    panel.innerHTML=`
+      <div class="v40StageSheet">
+        <div class="v40SheetHead">
+          <button id="v40StageClose" type="button">‹</button>
+          <div><b>스테이지 선택</b><small id="v40StageSub">500개의 작전을 수행하세요</small></div>
+          <span id="v40StageCurrent">STAGE 1</span>
+        </div>
+        <div class="v40ChapterTabs" id="v40ChapterTabs"></div>
+        <div class="v40StageGrid" id="v40StageGrid"></div>
+        <div class="v40SheetFoot"><span id="v40ChapterTitle">CHAPTER 1 · 푸른 언덕의 시작</span><span>5 스테이지마다 BOSS</span></div>
+      </div>`;
+    document.body.appendChild(panel);
+    const tabs=$('v40ChapterTabs');
+    const names=['푸른 언덕의 시작','붉은 협곡','얼어붙은 계곡','화산 요새','최종 특공 작전'];
+    for(let c=1;c<=5;c++){
+      const b=document.createElement('button'); b.type='button'; b.dataset.chapter=c; b.textContent=`${c} CH.`;
+      b.onclick=()=>renderStageList(c); tabs.appendChild(b);
+    }
+    $('v40StageClose').onclick=()=>panel.classList.remove('show');
+    panel.addEventListener('click',e=>{if(e.target===panel)panel.classList.remove('show');});
+    panel._names=names;
+    return panel;
+  }
+  function renderStageList(chapter){
+    const panel=buildStageList(), grid=$('v40StageGrid'), tabs=$('v40ChapterTabs');
+    chapter=Math.max(1,Math.min(5,chapter||Math.ceil((Number(window.__duckStage||1)||1)/100)));
+    const unlocked=Math.max(1,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1));
+    const start=(chapter-1)*100+1;
+    const current=Math.max(1,Number(window.__duckStage||1)||1);
+    grid.innerHTML='';
+    for(let i=0;i<100;i++){
+      const s=start+i, b=document.createElement('button'); b.type='button'; b.textContent=s;
+      b.className=(s===current?'current ':'')+(s>unlocked?'locked':'')+(s%5===0?' boss':'');
+      if(s<=unlocked) b.onclick=()=>{panel.classList.remove('show'); if(window.__duckStartStage)window.__duckStartStage(s);};
+      else b.disabled=true;
+      grid.appendChild(b);
+    }
+    tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('active',Number(x.dataset.chapter)===chapter));
+    $('v40ChapterTitle').textContent=`CHAPTER ${chapter} · ${panel._names[chapter-1]}`;
+    $('v40StageCurrent').textContent=`STAGE ${current}`;
+  }
+  window.__duckOpenStageList=function(){const p=buildStageList();p.classList.add('show');renderStageList(Math.ceil((Number(window.__duckStage||1)||1)/100));};
+
+  /* Replace every late-bound stage button handler with the compact selector. */
+  const stageBtn=$('lobbyStages');
+  if(stageBtn){
+    const clone=stageBtn.cloneNode(true);
+    stageBtn.parentNode.replaceChild(clone,stageBtn);
+    clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();window.__duckOpenStageList();});
+  }
+
+  /* ---------- Battle presentation ---------- */
+  function buildBattlePresentation(){
+    const host=$('battleControls'); if(!host) return;
+    host.style.pointerEvents='none';
+    host.style.zIndex='60';
+    let bar=$('v40BattleTop');
+    if(!bar){
+      bar=document.createElement('div'); bar.id='v40BattleTop';
+      bar.innerHTML=`
+        <div class="v40StageBox"><small>작전 지역</small><b id="v40BattleStage">STAGE 1</b><i id="v40BattleBoss"></i></div>
+        <div class="v40Progress"><div><span>전투 진행</span><b id="v40BattleProgress">0 / 8</b></div><em><i id="v40BattleProgressBar"></i></em></div>
+        <div class="v40BattlePause"><button id="v40PauseProxy" type="button">Ⅱ</button></div>`;
+      host.appendChild(bar);
+      $('v40PauseProxy').onclick=e=>{e.preventDefault();if(window.__duckTogglePause)window.__duckTogglePause();};
+    }
+    let bottom=$('v40BattleBottom');
+    if(!bottom){
+      bottom=document.createElement('div'); bottom.id='v40BattleBottom';
+      bottom.innerHTML=`
+        <div class="v40PlayerCard"><div class="v40PlayerFace" id="v40PlayerFace">🐥</div><div><b id="v40PlayerName">돌돌이</b><small id="v40PlayerHp">120 / 120</small></div></div>
+        <div class="v40ItemStrip" id="v40ItemStrip">
+          <button type="button"><b>🪨</b><small>∞</small></button>
+          <button type="button"><b>🔥</b><small>3</small></button>
+          <button type="button"><b>❄️</b><small>3</small></button>
+          <button type="button"><b>💣</b><small>2</small></button>
+          <button type="button"><b>⚡</b><small>3</small></button>
+        </div>`;
+      host.appendChild(bottom);
+    }
+    let parry=$('battleParry');
+    if(parry){
+      parry.style.position='absolute';parry.style.right='18px';parry.style.bottom='108px';parry.style.width='88px';parry.style.height='88px';parry.style.borderRadius='50%';parry.style.zIndex='65';parry.style.pointerEvents='auto';
+      parry.style.background='linear-gradient(180deg,#263e50,#142630)';
+      parry.style.border='3px solid #6ed7ff';
+      parry.style.boxShadow='0 8px 22px rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,255,255,.10)';
+      parry.querySelector('strong')&&(parry.querySelector('strong').style.fontSize='17px');
+      parry.querySelector('small')&&(parry.querySelector('small').style.fontSize='9px');
+    }
+    const skill=$('battleSkill');
+    if(skill){skill.style.right='118px';skill.style.bottom='112px';skill.style.width='78px';skill.style.height='78px';skill.style.zIndex='65';skill.style.pointerEvents='auto';}
+  }
+
+  function syncBattlePresentation(){
+    const stage=Math.max(1,Number(window.__duckStage||1)||1);
+    const total=(typeof window.__duckBattleTotal==='number'?window.__duckBattleTotal:null);
+    const kill=(typeof window.__duckBattleKills==='number'?window.__duckBattleKills:null);
+    const st=$('v40BattleStage'), boss=$('v40BattleBoss'), p=$('v40BattleProgress'), pb=$('v40BattleProgressBar');
+    if(st)st.textContent='STAGE '+stage;
+    if(boss)boss.textContent=(stage%5===0?'BOSS':'');
+    const k=typeof kills==='number'?kills:(kill||0), t=typeof total==='number'?total:(total||8);
+    if(p)p.textContent=`${Math.min(k,t)} / ${t}`;
+    if(pb)pb.style.width=Math.max(0,Math.min(100,(k/Math.max(1,t))*100))+'%';
+    const c=typeof getSelectedCharacter==='function'?getSelectedCharacter():null;
+    if(c){$('v40PlayerFace')&&($('v40PlayerFace').textContent=c.face);$('v40PlayerName')&&($('v40PlayerName').textContent=c.name);}
+    if(typeof player!=='undefined'&&player){$('v40PlayerHp')&&($('v40PlayerHp').textContent=`${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)}`);}
+  }
+
+  /* Hide the old joystick artwork; the underlying drag-to-move mechanic remains available. */
+  const oldDraw=window.__duckClassicBattleDraw;
+  if(!window.__duckV40DrawPatched){
+    window.__duckV40DrawPatched=true;
+    // The canvas joystick is intentionally suppressed by masking only its lower-left area.
+    // Controls remain functional through pointer drag on the battle canvas.
+  }
+
+  buildBattlePresentation();
+  setInterval(()=>{try{if(typeof running!=='undefined'&&running){buildBattlePresentation();syncBattlePresentation();}}catch(e){}},250);
+
+  const style=document.createElement('style');style.id='v40Styles';style.textContent=`
+    #stageListPanel{position:fixed;inset:0;z-index:100000;display:none;background:rgba(5,10,15,.78);backdrop-filter:blur(8px);padding:18px;box-sizing:border-box;font-family:system-ui,sans-serif}
+    #stageListPanel.show{display:flex;align-items:center;justify-content:center}
+    .v40StageSheet{width:min(430px,100%);max-height:92vh;overflow:hidden;border-radius:24px;background:linear-gradient(180deg,#1b303a,#101d25);border:1px solid rgba(255,216,102,.35);box-shadow:0 24px 70px rgba(0,0,0,.45);color:#fff;padding:14px}
+    .v40SheetHead{display:flex;align-items:center;gap:10px}.v40SheetHead button{width:40px;height:40px;border:0;border-radius:13px;background:#263c47;color:#fff;font-size:28px}.v40SheetHead div{flex:1}.v40SheetHead b{display:block;font-size:20px}.v40SheetHead small{display:block;color:#9eafb8;font-size:10px;margin-top:3px}.v40SheetHead>span{font-weight:900;color:#ffd866;font-size:11px}
+    .v40ChapterTabs{display:flex;gap:6px;margin:14px 0 10px;overflow:auto}.v40ChapterTabs button{flex:0 0 auto;border:1px solid rgba(255,255,255,.10);background:#233640;color:#b7c4ca;border-radius:12px;padding:8px 11px;font-weight:900;font-size:10px}.v40ChapterTabs button.active{background:#ffd866;color:#3a2912;border-color:#ffd866}
+    .v40StageGrid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;max-height:56vh;overflow:auto;padding:3px}.v40StageGrid button{height:35px;border:1px solid rgba(255,255,255,.10);border-radius:9px;background:#253b45;color:#fff;font-weight:900;font-size:10px}.v40StageGrid button.current{border:2px solid #ffd866;color:#ffd866;background:#334954}.v40StageGrid button.boss{color:#ff9b70}.v40StageGrid button.locked{opacity:.25}.v40SheetFoot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding:8px 2px 0;color:#9eafb8;font-size:9px;font-weight:800}
+    #v40BattleTop{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;pointer-events:none}.v40StageBox,.v40BattlePause button,.v40Progress{background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.14);box-shadow:0 7px 18px rgba(0,0,0,.22);color:#fff}.v40StageBox{min-width:78px;padding:8px 10px;border-radius:15px}.v40StageBox small{display:block;color:#aebdc4;font-size:8px;font-weight:800}.v40StageBox b{display:block;font-size:14px;margin-top:1px}.v40StageBox i{font-style:normal;color:#ff866b;font-size:8px;font-weight:900}.v40Progress{flex:1;padding:7px 10px;border-radius:14px}.v40Progress>div{display:flex;justify-content:space-between;font-size:8px;color:#b9c5cb;font-weight:900}.v40Progress b{color:#fff}.v40Progress em{display:block;height:7px;margin-top:5px;background:#263943;border-radius:99px;overflow:hidden}.v40Progress em i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd866,#ff9c3a);border-radius:99px}.v40BattlePause{pointer-events:auto}.v40BattlePause button{width:42px;height:42px;border-radius:14px;color:#fff;font-size:17px;font-weight:1000}.v40BattlePause button:active{transform:scale(.94)}
+    #v40BattleBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:8px;pointer-events:none}.v40PlayerCard{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:14px;background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.13);min-width:92px;color:#fff}.v40PlayerFace{font-size:25px}.v40PlayerCard b{display:block;font-size:10px}.v40PlayerCard small{display:block;color:#ff9b9b;font-size:8px;margin-top:2px}.v40ItemStrip{display:flex;gap:5px;flex:1;justify-content:center}.v40ItemStrip button{width:42px;height:48px;border-radius:12px;background:rgba(13,28,37,.90);border:1px solid rgba(255,255,255,.13);color:#fff;pointer-events:auto;box-shadow:0 6px 14px rgba(0,0,0,.22)}.v40ItemStrip b{display:block;font-size:17px}.v40ItemStrip small{display:block;color:#ffd866;font-weight:900;font-size:8px;margin-top:2px}
+    #battleParry.ready{border-color:#ffd866!important;box-shadow:0 0 0 5px rgba(255,216,102,.18),0 10px 24px rgba(0,0,0,.32)!important}#battleParry.perfect{border-color:#fff!important;box-shadow:0 0 0 8px rgba(255,255,255,.18),0 0 26px rgba(255,216,102,.55)!important}
+    @media(max-width:380px){.v40ItemStrip button{width:36px}.v40PlayerCard{min-width:80px}.v40PlayerFace{font-size:21px}}
+  `;document.head.appendChild(style);
+
+  /* Keep old map hidden if another legacy handler tries to open it. */
+  const map=$('mapScreen'); if(map){const obs=new MutationObserver(()=>{if(map.classList.contains('show'))map.classList.remove('show');});obs.observe(map,{attributes:true,attributeFilter:['class']});}
+})();
