@@ -61,6 +61,9 @@ function selectStone(id){
   message=STONE_DEFS[id].name+' 선택!'; messageTimer=.35;
   return true;
 }
+// V42: expose the REAL combat stone selector to menus/UI.
+window.__duckSelectStone=selectStone;
+window.__duckGetSelectedStone=()=>selectedStone;
 function consumeSelectedStone(){
   if(selectedStone==='basic') return;
   stoneAmmo[selectedStone]=Math.max(0,(stoneAmmo[selectedStone]||0)-1);
@@ -501,6 +504,8 @@ showSkillButton();
 }
 function startStage(n){
   resetStoneLoadout();
+  // V42: keep the player's equipped stone when a new battle starts.
+  try{ const equipped=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; if(equipped && equipped!=='basic') selectStone(equipped); }catch(e){}
   if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   stage=n;
@@ -2424,8 +2429,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
 /* ================================================================
    DOLDOL SPECIAL FORCE V41
-   - Battle entry flow: lobby -> battle prep/equipment -> start
-   - Equipment selection is functional before combat
+   - V42: lobby -> weapon/equipment menu -> direct battle start
+   - Equipped stone is applied to the actual combat engine
    - Stage navigation uses chapter/list UI instead of a map
    - Removes visible MOVE joystick; drag movement remains available
    ================================================================ */
@@ -2446,24 +2451,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function savePreparedStone(id){ try{ localStorage.setItem(LOADOUT_KEY,id); }catch(e){} }
   window.__duckPreparedStone=getPreparedStone();
 
-  // The combat engine owns these functions lexically, so wrap its public start entry.
-  const originalStart=window.__duckStartStage;
-  if(originalStart && !window.__duckV41StartWrapped){
-    window.__duckV41StartWrapped=true;
-    window.__duckStartStage=function(s){
-      originalStart(s);
-      try{
-        const id=window.__duckPreparedStone||'basic';
-        if(window.__duckSelectStone) window.__duckSelectStone(id);
-      }catch(e){ console.warn('prebattle loadout apply failed',e); }
-    };
-  }
-
-  // Expose the already-defined stone helpers without changing their internals.
-  if(!window.__duckSelectStone){
-    // The V40 engine did not expose these, so use a tiny DOM-facing bridge via a prepared value.
-    window.__duckSelectStone=function(id){ window.__duckPreparedStone=id; };
-  }
+  // V42 uses the real combat selector exposed by the battle engine.
+  window.__duckPreparedStone=getPreparedStone();
 
   function currentStage(){ return Math.max(1,Math.min(500,Number(window.__duckStage||window.__selectedDuckStage||1)||1)); }
   function unlockedStage(){
@@ -2484,48 +2473,61 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function closeMenu(){ menu.classList.remove('show'); lobby.classList.remove('hidden'); }
 
-  function renderBattlePrep(){
-    const st=currentStage();
-    let selected=window.__duckPreparedStone||getPreparedStone();
-    if(!defs[selected]) selected='basic';
+  function renderEquipmentMenu(){
+    const current=window.__duckGetSelectedStone?window.__duckGetSelectedStone():(window.__duckPreparedStone||getPreparedStone());
+    const selected=defs[current]?current:'basic';
     window.__duckPreparedStone=selected;
-    menuTitle.textContent='⚔️ 전투 준비';
-    menuBody.innerHTML=''+
-      '<div class="v41PrepHeader">'+
-        '<div><strong>STAGE '+st+'</strong><small>'+(st%5===0?'🔥 BOSS STAGE':'전투 출격 준비')+'</small></div>'+
-        '<div class="v41PrepCharacter">🐥 <b>돌돌이</b><small>Lv.'+(window.__duckCharacterProgress?.('doldol')?.level||12)+'</small></div>'+ 
-      '</div>'+
-      '<div class="v41SectionTitle">🪨 장비 선택</div>'+
-      '<div class="v41GearGrid">'+order.map(id=>{
+    menuTitle.textContent='🪨 무기고';
+    menuBody.innerHTML=
+      '<div class=\"v42EquipIntro\"><strong>출격 장비</strong><small>소유한 돌을 선택해 장착하세요.</small></div>'+
+      '<div class=\"v41SectionTitle\">🪨 보유 무기</div>'+
+      '<div class=\"v41GearGrid\">'+order.map(id=>{
         const d=defs[id], active=id===selected;
-        return '<button type="button" class="v41GearCard '+(active?'selected':'')+'" data-v41-stone="'+id+'">'+
-          '<span class="v41GearIcon">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';
+        return '<button type=\"button\" class=\"v41GearCard '+(active?'selected':'')+'\" data-v42-stone=\"'+id+'\">'+
+          '<span class=\"v41GearIcon\">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';
       }).join('')+'</div>'+
-      '<div class="v41LoadoutNote">선택한 장비는 전투 시작 시 적용되며, 전투 중에도 하단에서 변경할 수 있습니다.</div>'+
-      '<button type="button" id="v41StartBattle" class="v41StartBattle">⚔️ 전투 시작 <small>STAGE '+st+'</small></button>';
-
-    menuBody.querySelectorAll('[data-v41-stone]').forEach(btn=>btn.addEventListener('click',()=>{
-      selected=btn.dataset.v41Stone;
-      window.__duckPreparedStone=selected;
-      savePreparedStone(selected);
+      '<div class=\"v42EquipNote\">장착한 무기는 전투 시작 시 적용됩니다. 전투 중에도 아래 무기 버튼으로 변경할 수 있습니다.</div>'+
+      '<button type=\"button\" id=\"v42EquipDone\" class=\"v41StartBattle\">✓ 장착 완료</button>';
+    menuBody.querySelectorAll('[data-v42-stone]').forEach(btn=>btn.addEventListener('click',()=>{
+      const id=btn.dataset.v42Stone;
+      if(window.__duckSelectStone && !window.__duckSelectStone(id)) return;
+      window.__duckPreparedStone=id; savePreparedStone(id);
       menuBody.querySelectorAll('.v41GearCard').forEach(x=>x.classList.toggle('selected',x===btn));
     }));
-    $('v41StartBattle').addEventListener('click',()=>{
-      savePreparedStone(selected);
-      window.__duckPreparedStone=selected;
-      menu.classList.remove('show');
-      lobby.classList.add('hidden');
-      if(window.__duckStartStage) window.__duckStartStage(st);
-    });
+    const done=document.getElementById('v42EquipDone');
+    if(done) done.onclick=()=>{ savePreparedStone(window.__duckPreparedStone||'basic'); closeMenu(); };
   }
 
-  // Replace the lobby's direct-start action with the intended preparation flow.
-  lobbyStart.onclick=function(e){
-    e.preventDefault(); e.stopPropagation();
-    renderBattlePrep(); showMenu();
-  };
+  function startDirectBattle(){
+    const st=currentStage();
+    const equipped=window.__duckPreparedStone||getPreparedStone()||'basic';
+    savePreparedStone(equipped);
+    window.__duckPreparedStone=equipped;
+    menu.classList.remove('show');
+    lobby.classList.add('hidden');
+    if(window.__duckStartStage) window.__duckStartStage(st);
+  }
 
-  if(menuClose) menuClose.onclick=function(e){e.preventDefault();closeMenu();};
+  // V42: the main CTA starts battle directly; the bottom menu is the equipment/weapon menu.
+  function handleLobbyStart(e){
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    startDirectBattle();
+  }
+  function handleLobbyGear(e){
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    renderEquipmentMenu(); showMenu();
+  }
+  document.addEventListener('click',function(e){
+    const t=e.target && e.target.closest ? e.target.closest('#lobbyStart,#lobbyGear') : null;
+    if(!t) return;
+    if(t.id==='lobbyStart') handleLobbyStart(e);
+    else handleLobbyGear(e);
+  },true);
+
+  // Keep labels consistent with the new navigation.
+  try{ lobbyStart.innerHTML='<span style=\"font-size:24px\">⚔️</span><b>전투 시작</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
+  const gearButton=$('lobbyGear');
+  if(gearButton) gearButton.innerHTML='<span style=\"font-size:22px\">🪨</span><b>무기고</b><small>돌 장착</small>';
 
   // ---------------- Stage list (5 chapters, no map) ----------------
   let stagePanel=$('v41StagePanel');
@@ -2589,5 +2591,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .v41StagePager{display:flex;align-items:center;justify-content:space-between;margin:16px 0}.v41StagePager button{background:#243740;color:#fff;border:1px solid #52636a;border-radius:12px;padding:11px 16px;font-weight:800}.v41StagePager button:disabled{opacity:.35}
     .v41PrepHeader{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:15px;border-radius:18px;background:linear-gradient(180deg,#1b3840,#172a31);border:1px solid #51636a;margin-bottom:14px}.v41PrepHeader strong{font-size:25px}.v41PrepHeader small{display:block;color:#9fadb3;margin-top:3px}.v41PrepCharacter{padding:9px 12px;border-radius:14px;background:#102027;text-align:right}.v41SectionTitle{font-weight:900;font-size:17px;margin:14px 2px 10px}.v41GearGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.v41GearCard{position:relative;text-align:left;min-height:115px;border-radius:17px;border:2px solid #34464e;background:#1d3038;color:#fff;padding:13px}.v41GearCard.selected{border-color:#ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.16);background:linear-gradient(180deg,#30453e,#1e3138)}.v41GearIcon{font-size:28px;display:block}.v41GearCard b{display:block;font-size:16px;margin-top:4px}.v41GearCard small{display:block;color:#a9b6bb;margin-top:4px}.v41GearCard em{position:absolute;right:10px;top:10px;font-style:normal;font-weight:900;color:#ffd45b}.v41LoadoutNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.5}.v41StartBattle{width:100%;min-height:58px;border:0;border-radius:17px;background:linear-gradient(180deg,#ffd45c,#ffb72e);color:#182127;font-size:19px;font-weight:1000;box-shadow:0 5px 0 #a76d20;margin-top:10px}.v41StartBattle small{display:block;font-size:10px;margin-top:2px}
     @media(max-width:430px){#v41StagePanel{padding:14px}.v41Chapters{grid-template-columns:repeat(5,1fr)}.v41Chapter{font-size:10px}.v41StageGrid{gap:7px}.v41StageNode{min-height:64px}.v41StageNode strong{font-size:19px}.v41GearGrid{gap:8px}.v41GearCard{min-height:108px}}
+  `; document.head.appendChild(css);
+})();
+
+
+/* V42 navigation/equipment styles */
+(function(){
+  const css=document.createElement('style'); css.textContent=`
+    .v42EquipIntro{padding:15px 16px;border-radius:18px;background:linear-gradient(180deg,#243f45,#182c33);border:1px solid #52676d;margin-bottom:14px}.v42EquipIntro strong{display:block;font-size:22px}.v42EquipIntro small{display:block;color:#aebbc0;margin-top:4px}.v42EquipNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.55}
+    #gameLobby #lobbyGear{cursor:pointer}
   `; document.head.appendChild(css);
 })();
