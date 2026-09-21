@@ -1153,16 +1153,29 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-  if(enemies.length===0){
+  // V44: 적 전멸 후 바로 결과창으로 가지 않고 관문을 열고
+  // 플레이어가 직접 관문을 통과해야 스테이지 클리어 처리한다.
+  if(enemies.length===0 && !gate){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
+      clearTimer=0;
+      message='관문이 열렸습니다!';
+      messageTimer=1.15;
+      burst(vw*.5,vh*.16,30);
+    }
+  }
+
+  if(gate && running && player){
+    const gx=vw*.5, gy=vh*.14, gr=58;
+    const gd=Math.hypot(player.x-gx,player.y-gy);
+    if(gd<gr+Math.max(18,player.r||22)){
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
-      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
-      burst(vw*.5,vh*.18,24);
+      burst(gx,gy,42);
+      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},120);
     }
   }
 }
@@ -1505,6 +1518,27 @@ function draw(){
     ctx.fillStyle='#ffd866';ctx.font='900 28px system-ui';ctx.textAlign='center';
     ctx.fillText(`LEVEL ${level}!`,vw/2,vh*.31);
     ctx.globalAlpha=1;
+  }
+
+  // V44: 전투 화면에 실제 관문을 표시한다.
+  if(gate){
+    const gx=vw*.5, gy=vh*.14, pulse=1+Math.sin(performance.now()*.006)*.06;
+    ctx.save();
+    ctx.translate(gx,gy);
+    ctx.globalAlpha=.96;
+    ctx.shadowColor='rgba(255,216,102,.72)'; ctx.shadowBlur=24;
+    ctx.fillStyle='rgba(255,216,102,.18)';
+    ctx.beginPath(); ctx.arc(0,0,58*pulse,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='#ffd866'; ctx.lineWidth=7;
+    ctx.beginPath(); ctx.arc(0,0,42*pulse,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(0,0,30*pulse,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='900 15px system-ui'; ctx.textAlign='center';
+    ctx.fillText('GATE',0,5);
+    ctx.fillStyle='#ffd866'; ctx.font='900 12px system-ui';
+    ctx.fillText('관문으로 이동',0,76);
+    ctx.restore();
   }
 
   if(messageTimer>0){
