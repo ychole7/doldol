@@ -351,6 +351,16 @@ function getSelectedCharacter(){
     return CHARACTER_DEFS.find(c=>c.id===id && isCharacterUnlocked(c))||CHARACTER_DEFS[0];
   }catch(e){ return CHARACTER_DEFS[0]; }
 }
+// Explicit global bridge: the growth screen must work even if this script is
+// embedded in a scope where the function declaration is not globally visible.
+window.__duckGetSelectedCharacter=function(){
+  try{ return getSelectedCharacter(); }catch(e){
+    try{
+      const id=localStorage.getItem('doldol_character_v1')||'doldol';
+      return CHARACTER_DEFS.find(c=>c.id===id && isCharacterUnlocked(c))||CHARACTER_DEFS[0];
+    }catch(_e){ return CHARACTER_DEFS[0]; }
+  }
+};
 function getGrowthStats(){
   try{
     const v=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}');
@@ -1923,8 +1933,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     document.getElementById('growthBack').onclick=()=>{screen.style.display='none';if(window.__duckRefreshCharacters)window.__duckRefreshCharacters();};
   }
   function load(){try{values=JSON.parse(localStorage.getItem('doldol_growth_v1')||'{}')||{};}catch(e){values={};}}
-  function current(){return getSelectedCharacter();}
-  function render(){ensure();load();const d=current(),cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1,xp:0,next:50};const pct=Math.min(100,Math.round(cp.xp/cp.next*100));document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;document.getElementById('growthRole').textContent=d.role||'밸런스형';document.getElementById('growthXp').textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');document.getElementById('growthXpBar').style.width=pct+'%';document.getElementById('growthCoins').textContent='🪙 '+window.__duckWallet.coins.toLocaleString();document.getElementById('growthCards').innerHTML=stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&window.__duckWallet.coins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');document.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));}
+  function current(){return (window.__duckGetSelectedCharacter?window.__duckGetSelectedCharacter():CHARACTER_DEFS[0]);}
+  function render(){ensure();load();const d=current(),cp=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1,xp:0,next:50};const pct=Math.min(100,Math.round(cp.xp/cp.next*100));document.getElementById('growthFace').textContent=d.face||'🐥';document.getElementById('growthName').textContent=(d.name||'돌돌이')+'  ·  Lv.'+cp.level;document.getElementById('growthRole').textContent=d.role||'밸런스형';document.getElementById('growthXp').textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');document.getElementById('growthXpBar').style.width=pct+'%';document.getElementById('growthCoins').textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();document.getElementById('growthCards').innerHTML=stats.map(x=>{const v=Number(values[x.key]??x.base);const can=v<x.max&&window.__duckWallet.coins>=x.cost;return `<div style="padding:14px;margin:9px 0;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)"><div style="display:flex;justify-content:space-between"><b>${x.icon} ${x.name}</b><strong>${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="font-size:11px;opacity:.62;margin:5px 0 9px">${x.desc}</div><button data-grow="${x.key}" ${can?'':'disabled'} style="width:100%;padding:11px;border:0;border-radius:12px;background:${can?'#ffd866':'rgba(255,255,255,.08)'};color:${can?'#33230b':'#7f8992'};font-weight:1000">${v>=x.max?'MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');document.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));}
   function upgrade(key){const x=stats.find(v=>v.key===key),v=Number(values[key]??x.base);if(!x||v>=x.max||!window.__duckWallet.spendCoins(x.cost))return;values[key]=Math.min(x.max,v+x.step);localStorage.setItem('doldol_growth_v1',JSON.stringify(values));render();}
   window.__duckOpenGrowth=function(){
     try{
