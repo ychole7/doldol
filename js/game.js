@@ -1,4 +1,4 @@
-/* DOLDOL SPECIAL FORCES V42 - STONE SYSTEM */
+/* DOLDOL SPECIAL FORCES V26 - PERSISTENT CHARACTER GROWTH */
 /* DOLDOL SPECIAL FORCE V20 - Combat Variety */
 
 (() => {
@@ -31,24 +31,44 @@ let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let pendingNextStage=0;
 let upgradeOpen=false;
-// V42: stone/ammo system — basic is infinite; special stones are limited per stage.
-const STONE_DEFS={
-  basic:{icon:'🪨',name:'기본',desc:'기본 투사체',ammo:Infinity,damage:1,color:'#c7d0d6'},
-  fire:{icon:'🔥',name:'불돌',desc:'강한 화염 피해',ammo:3,damage:2,color:'#ff7a45'},
-  ice:{icon:'❄️',name:'얼음',desc:'적 이동속도 감소',ammo:3,damage:1,color:'#69d8ff'},
-  bomb:{icon:'💣',name:'폭발',desc:'주변 적에게 범위 피해',ammo:2,damage:2,color:'#d28cff'},
-  lightning:{icon:'⚡',name:'번개',desc:'강력한 직격 피해',ammo:3,damage:3,color:'#ffd84d'}
-};
-let selectedStone='basic';
-let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
-let stoneCooldown=0;
-
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
 let skillTimer=0;
 let skillState=null;
 let skillFx=0;
 let skillMessage='';
+// V40: battle stone selection / ammo
+const STONE_DEFS={
+  basic:{icon:'🪨',name:'기본',max:Infinity,damage:1,color:'#9da7ae'},
+  fire:{icon:'🔥',name:'불돌',max:3,damage:1.45,color:'#ff7043'},
+  ice:{icon:'❄️',name:'얼음',max:3,damage:.90,color:'#65cfff'},
+  bomb:{icon:'💣',name:'폭발',max:2,damage:1.15,color:'#b9a6ff'},
+  lightning:{icon:'⚡',name:'번개',max:3,damage:1.30,color:'#ffd84d'}
+};
+let selectedStone='basic';
+let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+function resetStoneLoadout(){
+  selectedStone='basic';
+  stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+}
+function selectStone(id){
+  if(!STONE_DEFS[id]) return false;
+  if(id!=='basic' && !(stoneAmmo[id]>0)){
+    message='사용할 '+STONE_DEFS[id].name+'이 없습니다'; messageTimer=.7;
+    return false;
+  }
+  selectedStone=id;
+  message=STONE_DEFS[id].name+' 선택!'; messageTimer=.35;
+  return true;
+}
+function consumeSelectedStone(){
+  if(selectedStone==='basic') return;
+  stoneAmmo[selectedStone]=Math.max(0,(stoneAmmo[selectedStone]||0)-1);
+  if(stoneAmmo[selectedStone]<=0){
+    selectedStone='basic';
+    message='특수돌 소진 · 기본돌로 전환'; messageTimer=.6;
+  }
+}
 let bossIntroTimer=0, bossDefeatFx=0, bossPatternLabel='', bossPatternTimer=0;
 const CHAR_SKILL_KEY='doldol_skill_progress_v1';
 function loadCharacterSkillProgress(){ try{return JSON.parse(localStorage.getItem(CHAR_SKILL_KEY)||'{}')||{};}catch(e){return {};} }
@@ -160,6 +180,38 @@ function showBattleHud(){
   if(hpBar) hpBar.style.width=pct+'%';
   if(comboNum) comboNum.textContent=String(Math.max(0,combo||0));
 }
+
+function showStoneBar(){
+  const host=document.getElementById('battleControls');
+  if(!host) return;
+  let bar=document.getElementById('battleStoneBar');
+  if(!bar){
+    bar=document.createElement('div'); bar.id='battleStoneBar';
+    Object.assign(bar.style,{position:'absolute',left:'50%',bottom:'14px',transform:'translateX(-50%)',display:'flex',gap:'7px',alignItems:'center',justifyContent:'center',zIndex:'31',pointerEvents:'auto',touchAction:'manipulation'});
+    Object.keys(STONE_DEFS).forEach(id=>{
+      const d=STONE_DEFS[id], b=document.createElement('button');
+      b.type='button'; b.dataset.stone=id; b.className='battleStone';
+      b.innerHTML=`<span class="stoneIcon">${d.icon}</span><span class="stoneName">${d.name}</span><b class="stoneCount">∞</b>`;
+      Object.assign(b.style,{width:'62px',height:'58px',borderRadius:'15px',border:'1px solid rgba(255,255,255,.18)',background:'rgba(8,16,23,.92)',color:'#fff',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',fontFamily:'system-ui',padding:'3px',boxShadow:'0 5px 14px rgba(0,0,0,.28)',cursor:'pointer'});
+      b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectStone(id);renderStoneBar();});
+      bar.appendChild(b);
+    });
+    host.appendChild(bar);
+  }
+  bar.style.display=running?'flex':'none';
+  bar.querySelectorAll('.battleStone').forEach(b=>{
+    const id=b.dataset.stone,d=STONE_DEFS[id],count=stoneAmmo[id];
+    const active=id===selectedStone;
+    b.style.borderColor=active?d.color:'rgba(255,255,255,.18)';
+    b.style.boxShadow=active?`0 0 0 2px ${d.color}, 0 7px 18px rgba(0,0,0,.35)`:'0 5px 14px rgba(0,0,0,.28)';
+    b.style.transform=active?'translateY(-3px)':'translateY(0)';
+    b.style.opacity=(id!=='basic' && count<=0)?.38:'1';
+    const c=b.querySelector('.stoneCount'); if(c)c.textContent=id==='basic'?'∞':String(count);
+    const n=b.querySelector('.stoneName'); if(n)n.textContent=d.name;
+    const ic=b.querySelector('.stoneIcon'); if(ic)ic.style.fontSize='20px';
+  });
+}
+function renderStoneBar(){ showStoneBar(); }
 
 function getSkillVisual(id){
   const map={
@@ -448,6 +500,7 @@ showSkillButton();
   running=true; last=performance.now();
 }
 function startStage(n){
+  resetStoneLoadout();
   if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   stage=n;
@@ -458,9 +511,6 @@ function startStage(n){
   total=boss?1:Math.min(16,7+Math.floor(stage*.8));
   clearTimer=0;
   gate=false;
-  selectedStone='basic';
-  stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
-  stoneCooldown=0;
   skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
   paused=false;
   message='';
@@ -499,7 +549,7 @@ function startStage(n){
   showSkillButton();
   player.hp=Math.min(player.maxHp, player.hp+25);
   player.x=clamp(player.x,32,Math.max(32,vw-32));
-  player.y=clamp(player.y,vh*.48,Math.max(vh*.48,vh-90));
+  player.y=clamp(player.y,vh*.20,Math.max(vh*.20,vh-90));
   player.inv=.8;
   running=true;
   last=performance.now();
@@ -538,62 +588,16 @@ function burst(x,y,n=12){
   }
 }
 
-function selectStone(id){
-  if(!STONE_DEFS[id] || id===selectedStone) return;
-  if(id!=='basic' && !(stoneAmmo[id]>0)){
-    message='사용할 수 있는 '+STONE_DEFS[id].name+'이 없습니다';
-    messageTimer=.6;
-    return;
-  }
-  selectedStone=id;
-  stoneCooldown=0;
-  message=STONE_DEFS[id].name+' 장착!';
-  messageTimer=.45;
-}
 function shootPlayer(){
-  const id=(STONE_DEFS[selectedStone] && (selectedStone==='basic'||stoneAmmo[selectedStone]>0))?selectedStone:'basic';
-  const def=STONE_DEFS[id];
-  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25))*def.damage;
-  const shotsToFire=player.skillMultiShot?[[-70,-520],[0,-520],[70,-520]]:[[0,-520]];
-  for(const pair of shotsToFire){
-    const vx=pair[0],vy=pair[1];
-    shots.push({x:player.x+vx*.08,y:player.y-25,vx,vy,r:id==='bomb'?9:7,life:2,damage,stone:id});
-  }
-  if(id!=='basic'){
-    stoneAmmo[id]=Math.max(0,stoneAmmo[id]-1);
-    stoneCooldown=id==='lightning'?.20:id==='bomb'?.34:.18;
-    if(stoneAmmo[id]<=0) selectedStone='basic';
-  }
-}
-function applyStoneHit(s,e){
-  const id=s.stone||'basic';
-  if(id==='ice'){
-    e.stoneSlow=Math.max(e.stoneSlow||0,2.6);
-    e.stoneSlowMul=.52;
-  }
-  hitEnemy(e,s.damage||1);
-  if(id==='bomb'){
-    for(const other of enemies){
-      if(other===e || other.dead) continue;
-      if(Math.hypot(other.x-e.x,other.y-e.y)<105) hitEnemy(other,Math.max(1,Math.round((s.damage||2)*.65)));
-    }
-    burst(e.x,e.y,24);
-  }else if(id==='lightning'){
-    let chained=0;
-    for(const other of enemies){
-      if(other===e || other.dead) continue;
-      if(Math.hypot(other.x-e.x,other.y-e.y)<150){
-        hitEnemy(other,Math.max(1,Math.round((s.damage||3)*.55)));
-        chained++;
-        if(chained>=2) break;
-      }
-    }
-    burst(e.x,e.y,20);
-  }else if(id==='fire'){
-    e.burnTimer=Math.max(e.burnTimer||0,2.4);
-    e.burnDamage=Math.max(e.burnDamage||0,1);
-    burst(e.x,e.y,16);
-  }
+  const def=STONE_DEFS[selectedStone]||STONE_DEFS.basic;
+  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage));
+  const stone=selectedStone;
+  const addShot=(vx=0,vy=-520)=>shots.push({x:player.x,y:player.y-25,vx,vy,r:stone==='bomb'?10:7,life:2,damage,stone});
+  if(player.skillMultiShot){
+    for(const off of [-70,0,70]) addShot(off,-520);
+  }else addShot();
+  consumeSelectedStone();
+  renderStoneBar();
 }
 
 function enemyShoot(e){
@@ -816,7 +820,6 @@ function update(dt){
   damageTexts=damageTexts.filter(d=>d.life>0);
   if(levelFlash>0) levelFlash-=dt;
   if(skillCooldown>0) skillCooldown=Math.max(0,skillCooldown-dt);
-  if(stoneCooldown>0) stoneCooldown=Math.max(0,stoneCooldown-dt);
   if(skillFx>0) skillFx=Math.max(0,skillFx-dt);
   if(bossIntroTimer>0) bossIntroTimer=Math.max(0,bossIntroTimer-dt);
   if(bossPatternTimer>0) bossPatternTimer=Math.max(0,bossPatternTimer-dt);
@@ -844,27 +847,21 @@ function update(dt){
   const len=Math.hypot(ax,ay)||1;
   moveAroundCovers(player,ax/len*player.speed*dt,ay/len*player.speed*dt);
   player.x=clamp(player.x,32,vw-32);
-  player.y=clamp(player.y,vh*.18,vh-90);
+  player.y=clamp(player.y,vh*.20,vh-90);
 
   player.fire-=dt;
   if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)-(level-1)*.012);shootPlayer();}
 
   for(const e of enemies){
     if(e.dead) continue;
-    if(e.stoneSlow>0){e.stoneSlow-=dt;} else {e.stoneSlowMul=1;}
-    if(e.burnTimer>0){
-      e.burnTimer-=dt;
-      if(Math.floor(e.burnTimer*8)!==Math.floor((e.burnTimer+dt)*8)) hitEnemy(e,e.burnDamage||1);
-    }
+    const stoneSlow=(e.slowUntil && performance.now()<e.slowUntil)?.55:1;
     if(e.hitFlash>0) e.hitFlash-=dt;
     if(e.moveFx>0) e.moveFx-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
-    const stoneSpeedMul=(e.stoneSlowMul||1);
-    const moveSpeed=e.speed*stoneSpeedMul;
     if(e.type==='charger' && !e.dead){
       if(e.chargeTimer>0){
         e.chargeTimer-=dt;
-        e.x+=dx/L*moveSpeed*2.8*dt; e.y+=dy/L*moveSpeed*2.8*dt;
+        e.x+=dx/L*e.speed*stoneSlow*2.8*dt; e.y+=dy/L*e.speed*stoneSlow*2.8*dt;
         e.moveFx=.12;
       }else{
         e.x+=(vw*.5-e.x)*Math.min(1,dt*1.4); e.y+=(vh*.30-e.y)*Math.min(1,dt*1.4);
@@ -872,16 +869,16 @@ function update(dt){
     }else if(e.type==='sniper'){
       // 스나이퍼는 상단에서 거리를 유지하며 공격 전조가 길다.
       const desired=300;
-      if(L<desired){ e.x-=dx/L*moveSpeed*.55*dt; e.y-=dy/L*moveSpeed*.55*dt; }
+      if(L<desired){ e.x-=dx/L*e.speed*stoneSlow*.55*dt; e.y-=dy/L*e.speed*stoneSlow*.55*dt; }
       else { e.x+=(vw*.5-e.x)*Math.min(1,dt*.65); }
     }else if(e.type==='bomber'){
       const desired=245;
-      if(L>desired) moveAroundCovers(e,dx/L*moveSpeed*dt,dy/L*moveSpeed*dt);
+      if(L>desired) moveAroundCovers(e,dx/L*e.speed*stoneSlow*dt,dy/L*e.speed*stoneSlow*dt);
       else e.x+=(vw*.5-e.x)*Math.min(1,dt*.7);
     }else{
       const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
       if(L>desired){
-      moveAroundCovers(e,dx/L*moveSpeed*dt,dy/L*moveSpeed*dt);
+      moveAroundCovers(e,dx/L*e.speed*stoneSlow*dt,dy/L*e.speed*stoneSlow*dt);
     }else if(e.type==='boss'){
       e.phase+=dt;
       const bp=e.bossPhase||1;
@@ -906,7 +903,7 @@ function update(dt){
         e.y+=(desiredY-e.y)*Math.min(1,dt*4.2);
       }
     }else if(e.type==='fast'){
-      moveAroundCovers(e,-dx/L*moveSpeed*.35*dt,-dy/L*moveSpeed*.35*dt);
+      moveAroundCovers(e,-dx/L*e.speed*stoneSlow*.35*dt,-dy/L*e.speed*stoneSlow*.35*dt);
     }
     }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
@@ -944,7 +941,23 @@ function update(dt){
     if(s.life<=0) continue;
     for(const e of enemies){
       if(e.dead) continue;
-      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;applyStoneHit(s,e);break;}
+      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){
+        s.life=0;
+        hitEnemy(e,s.damage||1);
+        if(s.stone==='bomb'){
+          for(const other of enemies){ if(other!==e && !other.dead && Math.hypot(s.x-other.x,s.y-other.y)<86) hitEnemy(other,Math.max(1,Math.round((s.damage||1)*.55))); }
+          burst(s.x,s.y,22); message='💥 폭발!'; messageTimer=.35;
+        }else if(s.stone==='fire'){
+          hitEnemy(e,2); message='🔥 화염!'; messageTimer=.3;
+        }else if(s.stone==='ice'){
+          e.slowUntil=performance.now()+1800; message='❄️ 감속!'; messageTimer=.3;
+        }else if(s.stone==='lightning'){
+          let best=null,bd=Infinity; for(const other of enemies){ if(other!==e && !other.dead){const dd=Math.hypot(other.x-e.x,other.y-e.y); if(dd<bd){bd=dd;best=other;}} }
+          if(best && bd<190){ hitEnemy(best,Math.max(1,Math.round((s.damage||1)*.65))); burst(best.x,best.y,10); }
+          message='⚡ 연쇄!'; messageTimer=.3;
+        }
+        break;
+      }
     }
   }
   shots=shots.filter(s=>s.life>0 && s.y>-30);
@@ -1034,32 +1047,16 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-
-  // 모든 적을 처치하면 즉시 클리어하지 않고 '관문'을 연다.
-  // 플레이어가 관문까지 직접 이동해야 스테이지가 완료된다.
-  if(enemies.length===0 && !gate){
+  if(enemies.length===0){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
-      clearTimer=0;
-      message='관문이 열렸습니다! 위쪽 관문으로 이동하세요';
-      messageTimer=2.2;
-      burst(vw*.5,vh*.20,24);
-    }
-  }
-
-  if(gate && player){
-    const gateY=vh*.20;
-    const gateX=vw*.5;
-    const gateReachX=Math.min(105,vw*.24);
-    if(player.y<=vh*.27 && Math.abs(player.x-gateX)<=gateReachX){
-      gate=false;
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
       setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
-      burst(gateX,gateY,32);
+      burst(vw*.5,vh*.18,24);
     }
   }
 }
@@ -1469,7 +1466,9 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     const c=document.getElementById('battleControls');
     if(c){ c.classList.toggle('show',!!show); c.setAttribute('aria-hidden',show?'false':'true'); }
 
-    const b=document.getElementById('battleSkill');
+    showStoneBar();
+
+  const b=document.getElementById('battleSkill');
     if(b) b.style.display=show?'flex':'none';
 
     const h=document.getElementById('battleHud');
@@ -1555,6 +1554,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
       if(joy){joy.active=false;joy.id=null;}
       if(rocks)rocks.length=0;
       if(shots)shots.length=0;
+      const stoneBar=document.getElementById('battleStoneBar'); if(stoneBar)stoneBar.style.display='none';
       if(particles)particles.length=0;
       if(damageTexts)damageTexts.length=0;
     }catch(e){console.error("stop combat failed:",e);}
@@ -2429,178 +2429,184 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   window.__duckV39FinalDesign=true;
 })();
 
-/* ================================================================
-   V40 — Original Game Structure + Battle UI Final Direction
-   - 500 stages remain; stage map is replaced by a compact stage list.
-   - Battle presentation follows the original Doldol Special Force concept:
-     fixed portrait battle, stage HUD, PARRY, SKILL, item strip, no joystick graphic.
-   - Combat mechanics are preserved; this patch is presentation/flow focused.
-================================================================ */
+/* ============================================================
+   V41 — LOADOUT-FIRST WEAPON SYSTEM
+   출격 전 무기고에서 특수돌 3종을 장착하고,
+   전투에서는 장착한 아이템만 순차 사용한다.
+   기존 전투의 자동 기본돌 발사는 유지한다.
+   ============================================================ */
 (function(){
-  const $=id=>document.getElementById(id);
+  const LOADOUT_KEY='doldol_stone_loadout_v1';
+  const MAX_SLOTS=3;
+  const SPECIAL_IDS=['fire','ice','bomb','lightning'];
+  let itemCursor=0;
 
-  /* ---------- No-map stage selector ---------- */
-  function buildStageList(){
-    let panel=$('stageListPanel');
-    if(panel) return panel;
-    panel=document.createElement('div');
-    panel.id='stageListPanel';
-    panel.innerHTML=`
-      <div class="v40StageSheet">
-        <div class="v40SheetHead">
-          <button id="v40StageClose" type="button">‹</button>
-          <div><b>스테이지 선택</b><small id="v40StageSub">500개의 작전을 수행하세요</small></div>
-          <span id="v40StageCurrent">STAGE 1</span>
-        </div>
-        <div class="v40ChapterTabs" id="v40ChapterTabs"></div>
-        <div class="v40StageGrid" id="v40StageGrid"></div>
-        <div class="v40SheetFoot"><span id="v40ChapterTitle">CHAPTER 1 · 푸른 언덕의 시작</span><span>5 스테이지마다 BOSS</span></div>
-      </div>`;
-    document.body.appendChild(panel);
-    const tabs=$('v40ChapterTabs');
-    const names=['푸른 언덕의 시작','붉은 협곡','얼어붙은 계곡','화산 요새','최종 특공 작전'];
-    for(let c=1;c<=5;c++){
-      const b=document.createElement('button'); b.type='button'; b.dataset.chapter=c; b.textContent=`${c} CH.`;
-      b.onclick=()=>renderStageList(c); tabs.appendChild(b);
-    }
-    $('v40StageClose').onclick=()=>panel.classList.remove('show');
-    panel.addEventListener('click',e=>{if(e.target===panel)panel.classList.remove('show');});
-    panel._names=names;
-    return panel;
+  function readLoadout(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(LOADOUT_KEY)||'null');
+      if(Array.isArray(raw)){
+        const clean=[...new Set(raw.filter(id=>SPECIAL_IDS.includes(id)))].slice(0,MAX_SLOTS);
+        if(clean.length)return clean;
+      }
+    }catch(e){}
+    return ['fire','ice','bomb'];
   }
-  function renderStageList(chapter){
-    const panel=buildStageList(), grid=$('v40StageGrid'), tabs=$('v40ChapterTabs');
-    chapter=Math.max(1,Math.min(5,chapter||Math.ceil((Number(window.__duckStage||1)||1)/100)));
-    const unlocked=Math.max(1,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1));
-    const start=(chapter-1)*100+1;
-    const current=Math.max(1,Number(window.__duckStage||1)||1);
-    grid.innerHTML='';
-    for(let i=0;i<100;i++){
-      const s=start+i, b=document.createElement('button'); b.type='button'; b.textContent=s;
-      b.className=(s===current?'current ':'')+(s>unlocked?'locked':'')+(s%5===0?' boss':'');
-      if(s<=unlocked) b.onclick=()=>{panel.classList.remove('show'); if(window.__duckStartStage)window.__duckStartStage(s);};
-      else b.disabled=true;
-      grid.appendChild(b);
-    }
-    tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('active',Number(x.dataset.chapter)===chapter));
-    $('v40ChapterTitle').textContent=`CHAPTER ${chapter} · ${panel._names[chapter-1]}`;
-    $('v40StageCurrent').textContent=`STAGE ${current}`;
+  function saveLoadout(list){
+    const clean=[...new Set((list||[]).filter(id=>SPECIAL_IDS.includes(id)))].slice(0,MAX_SLOTS);
+    try{localStorage.setItem(LOADOUT_KEY,JSON.stringify(clean));}catch(e){}
+    return clean;
   }
-  window.__duckOpenStageList=function(){const p=buildStageList();p.classList.add('show');renderStageList(Math.ceil((Number(window.__duckStage||1)||1)/100));};
+  let equippedStones=readLoadout();
+  window.__duckGetStoneLoadout=()=>equippedStones.slice();
+  window.__duckSetStoneLoadout=list=>{ equippedStones=saveLoadout(list); return equippedStones.slice(); };
 
-  /* Replace every late-bound stage button handler with the compact selector. */
-  const stageBtn=$('lobbyStages');
-  if(stageBtn){
-    const clone=stageBtn.cloneNode(true);
-    stageBtn.parentNode.replaceChild(clone,stageBtn);
-    clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();window.__duckOpenStageList();});
+  // V41: 출격 시 보유 특수돌은 '장착한 것'만 준비한다.
+  resetStoneLoadout=function(){
+    equippedStones=readLoadout();
+    selectedStone='basic';
+    stoneAmmo={basic:Infinity};
+    SPECIAL_IDS.forEach(id=>{ stoneAmmo[id]=equippedStones.includes(id)?STONE_DEFS[id].max:0; });
+    itemCursor=0;
+  };
+
+  function nextAvailableItem(){
+    if(!equippedStones.length)return null;
+    for(let i=0;i<equippedStones.length;i++){
+      const idx=(itemCursor+i)%equippedStones.length;
+      const id=equippedStones[idx];
+      if((stoneAmmo[id]||0)>0){ itemCursor=(idx+1)%equippedStones.length; return id; }
+    }
+    return null;
   }
 
-  /* ---------- Battle presentation ---------- */
-  function buildBattlePresentation(){
-    const host=$('battleControls'); if(!host) return;
-    host.style.pointerEvents='none';
-    host.style.zIndex='60';
-    let bar=$('v40BattleTop');
-    if(!bar){
-      bar=document.createElement('div'); bar.id='v40BattleTop';
-      bar.innerHTML=`
-        <div class="v40StageBox"><small>작전 지역</small><b id="v40BattleStage">STAGE 1</b><i id="v40BattleBoss"></i></div>
-        <div class="v40Progress"><div><span>전투 진행</span><b id="v40BattleProgress">0 / 8</b></div><em><i id="v40BattleProgressBar"></i></em></div>
-        <div class="v40BattlePause"><button id="v40PauseProxy" type="button">Ⅱ</button></div>`;
-      host.appendChild(bar);
-      $('v40PauseProxy').onclick=e=>{e.preventDefault();if(window.__duckTogglePause)window.__duckTogglePause();};
+  const originalShootPlayer=shootPlayer;
+  // 일반 자동 발사는 항상 기본돌.
+  shootPlayer=function(){
+    const prev=selectedStone;
+    selectedStone='basic';
+    try{ originalShootPlayer(); }finally{ selectedStone=prev==='basic'?'basic':prev; }
+  };
+
+  function fireEquippedItem(){
+    if(!running || paused || !player)return false;
+    const id=nextAvailableItem();
+    if(!id){ message='사용할 아이템이 없습니다'; messageTimer=.7; return false; }
+    selectedStone=id;
+    try{
+      originalShootPlayer();
+    }finally{
+      selectedStone='basic';
+      renderStoneBar();
     }
-    let bottom=$('v40BattleBottom');
-    if(!bottom){
-      bottom=document.createElement('div'); bottom.id='v40BattleBottom';
-      bottom.innerHTML=`
-        <div class="v40PlayerCard"><div class="v40PlayerFace" id="v40PlayerFace">🐥</div><div><b id="v40PlayerName">돌돌이</b><small id="v40PlayerHp">120 / 120</small></div></div>
-        <div class="v40ItemStrip" id="v40ItemStrip">
-          <button type="button"><b>🪨</b><small>∞</small></button>
-          <button type="button"><b>🔥</b><small>3</small></button>
-          <button type="button"><b>❄️</b><small>3</small></button>
-          <button type="button"><b>💣</b><small>2</small></button>
-          <button type="button"><b>⚡</b><small>3</small></button>
-        </div>`;
-      host.appendChild(bottom);
-      const stoneButtons=bottom.querySelectorAll('.v40ItemStrip button');
-      const stoneIds=['basic','fire','ice','bomb','lightning'];
-      stoneButtons.forEach((btn,i)=>{
-        btn.dataset.stone=stoneIds[i];
-        btn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectStone(stoneIds[i]);syncStonePresentation();});
+    return true;
+  }
+  window.__duckFireEquippedItem=fireEquippedItem;
+
+  function ensureItemButton(){
+    const host=document.getElementById('battleControls');
+    if(!host)return null;
+    let b=document.getElementById('battleItem');
+    if(!b){
+      b=document.createElement('button');
+      b.id='battleItem'; b.type='button';
+      b.innerHTML='<strong>ITEM</strong><small>아이템 발사</small>';
+      Object.assign(b.style,{
+        position:'absolute',left:'50%',bottom:'18px',transform:'translateX(-50%)',
+        width:'92px',height:'58px',borderRadius:'18px',
+        border:'2px solid rgba(255,216,102,.68)',
+        background:'linear-gradient(180deg,#3a5962,#203640)',color:'#fff',
+        display:'none',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        boxShadow:'0 8px 20px rgba(0,0,0,.28)',fontFamily:'system-ui',fontWeight:'900',
+        zIndex:'32',touchAction:'manipulation',cursor:'pointer',padding:'0'
       });
+      const strong=b.querySelector('strong'); if(strong)strong.style.fontSize='14px';
+      const small=b.querySelector('small'); if(small)small.style.fontSize='9px';
+      b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fireEquippedItem();});
+      host.appendChild(b);
     }
-    syncStonePresentation();
-    let parry=$('battleParry');
-    if(parry){
-      parry.style.position='absolute';parry.style.right='18px';parry.style.bottom='108px';parry.style.width='88px';parry.style.height='88px';parry.style.borderRadius='50%';parry.style.zIndex='65';parry.style.pointerEvents='auto';
-      parry.style.background='linear-gradient(180deg,#263e50,#142630)';
-      parry.style.border='3px solid #6ed7ff';
-      parry.style.boxShadow='0 8px 22px rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,255,255,.10)';
-      parry.querySelector('strong')&&(parry.querySelector('strong').style.fontSize='17px');
-      parry.querySelector('small')&&(parry.querySelector('small').style.fontSize='9px');
-    }
-    const skill=$('battleSkill');
-    if(skill){skill.style.right='118px';skill.style.bottom='112px';skill.style.width='78px';skill.style.height='78px';skill.style.zIndex='65';skill.style.pointerEvents='auto';}
+    const id=equippedStones.length?equippedStones.find(x=>(stoneAmmo[x]||0)>0):null;
+    const d=id?STONE_DEFS[id]:null;
+    const strong=b.querySelector('strong'), small=b.querySelector('small');
+    if(strong)strong.textContent=d?`${d.icon} ${d.name}`:'ITEM';
+    if(small)small.textContent=d?`아이템 발사 ×${stoneAmmo[id]||0}`:'장착 없음';
+    b.style.display=running?'flex':'none';
+    b.style.opacity=d?'1':'.55';
+    return b;
   }
 
-  function syncStonePresentation(){
-    const strip=$('v40ItemStrip'); if(!strip) return;
-    const buttons=strip.querySelectorAll('button');
-    const ids=['basic','fire','ice','bomb','lightning'];
-    buttons.forEach((btn,i)=>{
-      const id=ids[i],def=STONE_DEFS[id];
-      const selected=id===selectedStone;
-      const count=stoneAmmo[id]===Infinity?'∞':String(stoneAmmo[id]||0);
-      btn.querySelector('b').textContent=def.icon;
-      btn.querySelector('small').textContent=count;
-      btn.style.borderColor=selected?def.color:'rgba(255,255,255,.13)';
-      btn.style.boxShadow=selected?`0 0 0 2px ${def.color},0 7px 16px rgba(0,0,0,.28)`:'0 6px 14px rgba(0,0,0,.22)';
-      btn.style.opacity=(id!=='basic'&&stoneAmmo[id]<=0)?.42:'1';
-      btn.title=def.name+' · '+def.desc;
+  // 기존 5종 선택바는 전투에서 제거하고 ITEM 버튼만 사용한다.
+  showStoneBar=function(){
+    const old=document.getElementById('battleStoneBar');
+    if(old)old.style.display='none';
+    ensureItemButton();
+  };
+  renderStoneBar=function(){
+    showStoneBar();
+    ensureItemButton();
+  };
+
+  function renderGearPanel(){
+    const body=document.getElementById('menuBody'), title=document.getElementById('menuTitle');
+    if(!body)return;
+    title.textContent='🧰 무기고';
+    const labels={
+      fire:{icon:'🔥',name:'불돌',desc:'추가 피해'},
+      ice:{icon:'❄️',name:'얼음돌',desc:'적 감속'},
+      bomb:{icon:'💣',name:'폭발돌',desc:'범위 피해'},
+      lightning:{icon:'⚡',name:'번개돌',desc:'연쇄 피해'}
+    };
+    body.innerHTML=`
+      <div style="padding:12px 4px 8px;text-align:center">
+        <div style="font-size:13px;color:#aebdc5;font-weight:800">출격 전 특수돌을 최대 3개 장착하세요</div>
+        <div id="loadoutCount" style="margin-top:5px;font-weight:1000;color:#ffd866">장착 ${equippedStones.length}/${MAX_SLOTS}</div>
+      </div>
+      <div id="gearLoadoutSlots" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px"></div>
+      <div id="gearStoneGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px"></div>
+      <div style="margin-top:14px;padding:11px;border-radius:15px;background:rgba(255,255,255,.06);color:#cbd5dc;font-size:11px;line-height:1.5;text-align:center">
+        🪨 기본돌은 항상 자동 발사 · 특수돌은 전투의 <b style="color:#ffd866">ITEM</b> 버튼으로 사용합니다.
+      </div>`;
+    const slots=body.querySelector('#gearLoadoutSlots');
+    equippedStones.forEach((id,i)=>{
+      const d=labels[id];
+      const el=document.createElement('div');
+      el.style.cssText='min-height:64px;border-radius:14px;border:2px solid #ffd866;background:rgba(255,216,102,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff';
+      el.innerHTML=`<div style="font-size:22px">${d.icon}</div><b style="font-size:11px">${d.name}</b><small style="font-size:9px;color:#ffd866">SLOT ${i+1}</small>`;
+      slots.appendChild(el);
+    });
+    for(let i=equippedStones.length;i<MAX_SLOTS;i++){
+      const el=document.createElement('div');
+      el.style.cssText='min-height:64px;border-radius:14px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;color:#71808a;font-size:22px';
+      el.textContent='＋'; slots.appendChild(el);
+    }
+    const grid=body.querySelector('#gearStoneGrid');
+    SPECIAL_IDS.forEach(id=>{
+      const d=labels[id], on=equippedStones.includes(id);
+      const btn=document.createElement('button'); btn.type='button';
+      btn.dataset.stone=id;
+      btn.style.cssText=`min-height:92px;border-radius:17px;border:2px solid ${on?'#ffd866':'rgba(255,255,255,.13)'};background:${on?'linear-gradient(180deg,#31575b,#203d42)':'rgba(255,255,255,.045)'};color:#fff;box-shadow:${on?'0 5px 0 rgba(120,76,20,.35)':'none'};font-family:system-ui;cursor:pointer`;
+      btn.innerHTML=`<div style="font-size:28px">${d.icon}</div><b>${d.name}</b><small style="display:block;color:${on?'#ffd866':'#9ba8af'};margin-top:3px">${d.desc} · ${STONE_DEFS[id].max}회</small><span style="display:block;margin-top:5px;font-size:10px;color:${on?'#ffe69a':'#7f8b92'}">${on?'장착 중':'장착하기'}</span>`;
+      btn.addEventListener('pointerdown',e=>{
+        e.preventDefault();e.stopPropagation();
+        if(equippedStones.includes(id)) equippedStones=equippedStones.filter(x=>x!==id);
+        else if(equippedStones.length<MAX_SLOTS) equippedStones.push(id);
+        else { const c=body.querySelector('#loadoutCount'); if(c)c.textContent='장착 슬롯은 최대 3개입니다'; return; }
+        saveLoadout(equippedStones); renderGearPanel();
+      });
+      grid.appendChild(btn);
     });
   }
-  function syncBattlePresentation(){
-    const stage=Math.max(1,Number(window.__duckStage||1)||1);
-    const total=(typeof window.__duckBattleTotal==='number'?window.__duckBattleTotal:null);
-    const kill=(typeof window.__duckBattleKills==='number'?window.__duckBattleKills:null);
-    const st=$('v40BattleStage'), boss=$('v40BattleBoss'), p=$('v40BattleProgress'), pb=$('v40BattleProgressBar');
-    if(st)st.textContent='STAGE '+stage;
-    if(boss)boss.textContent=(stage%5===0?'BOSS':'');
-    const k=typeof kills==='number'?kills:(kill||0), t=typeof total==='number'?total:(total||8);
-    if(p)p.textContent=`${Math.min(k,t)} / ${t}`;
-    if(pb)pb.style.width=Math.max(0,Math.min(100,(k/Math.max(1,t))*100))+'%';
-    const c=typeof getSelectedCharacter==='function'?getSelectedCharacter():null;
-    if(c){$('v40PlayerFace')&&($('v40PlayerFace').textContent=c.face);$('v40PlayerName')&&($('v40PlayerName').textContent=c.name);}
-    if(typeof player!=='undefined'&&player){$('v40PlayerHp')&&($('v40PlayerHp').textContent=`${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)}`);}
-    syncStonePresentation();
+
+  // 기존 무기고 버튼이 연 메뉴를 같은 이벤트 흐름에서 최종 장비 화면으로 교체.
+  const gearBtn=document.getElementById('lobbyGear');
+  if(gearBtn)gearBtn.addEventListener('click',()=>setTimeout(renderGearPanel,0));
+
+  // 전투 진입 시 ITEM 버튼을 갱신하고, 전투 종료 시 숨긴다.
+  const oldSetControls=window.__duckSetBattleControls;
+  if(oldSetControls){
+    window.__duckSetBattleControls=function(show){
+      oldSetControls(show);
+      ensureItemButton();
+    };
   }
-
-  /* Hide the old joystick artwork; the underlying drag-to-move mechanic remains available. */
-  const oldDraw=window.__duckClassicBattleDraw;
-  if(!window.__duckV40DrawPatched){
-    window.__duckV40DrawPatched=true;
-    // The canvas joystick is intentionally suppressed by masking only its lower-left area.
-    // Controls remain functional through pointer drag on the battle canvas.
-  }
-
-  buildBattlePresentation();
-  setInterval(()=>{try{if(typeof running!=='undefined'&&running){buildBattlePresentation();syncBattlePresentation();}}catch(e){}},250);
-
-  const style=document.createElement('style');style.id='v40Styles';style.textContent=`
-    #stageListPanel{position:fixed;inset:0;z-index:100000;display:none;background:rgba(5,10,15,.78);backdrop-filter:blur(8px);padding:18px;box-sizing:border-box;font-family:system-ui,sans-serif}
-    #stageListPanel.show{display:flex;align-items:center;justify-content:center}
-    .v40StageSheet{width:min(430px,100%);max-height:92vh;overflow:hidden;border-radius:24px;background:linear-gradient(180deg,#1b303a,#101d25);border:1px solid rgba(255,216,102,.35);box-shadow:0 24px 70px rgba(0,0,0,.45);color:#fff;padding:14px}
-    .v40SheetHead{display:flex;align-items:center;gap:10px}.v40SheetHead button{width:40px;height:40px;border:0;border-radius:13px;background:#263c47;color:#fff;font-size:28px}.v40SheetHead div{flex:1}.v40SheetHead b{display:block;font-size:20px}.v40SheetHead small{display:block;color:#9eafb8;font-size:10px;margin-top:3px}.v40SheetHead>span{font-weight:900;color:#ffd866;font-size:11px}
-    .v40ChapterTabs{display:flex;gap:6px;margin:14px 0 10px;overflow:auto}.v40ChapterTabs button{flex:0 0 auto;border:1px solid rgba(255,255,255,.10);background:#233640;color:#b7c4ca;border-radius:12px;padding:8px 11px;font-weight:900;font-size:10px}.v40ChapterTabs button.active{background:#ffd866;color:#3a2912;border-color:#ffd866}
-    .v40StageGrid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;max-height:56vh;overflow:auto;padding:3px}.v40StageGrid button{height:35px;border:1px solid rgba(255,255,255,.10);border-radius:9px;background:#253b45;color:#fff;font-weight:900;font-size:10px}.v40StageGrid button.current{border:2px solid #ffd866;color:#ffd866;background:#334954}.v40StageGrid button.boss{color:#ff9b70}.v40StageGrid button.locked{opacity:.25}.v40SheetFoot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding:8px 2px 0;color:#9eafb8;font-size:9px;font-weight:800}
-    #v40BattleTop{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;pointer-events:none}.v40StageBox,.v40BattlePause button,.v40Progress{background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.14);box-shadow:0 7px 18px rgba(0,0,0,.22);color:#fff}.v40StageBox{min-width:78px;padding:8px 10px;border-radius:15px}.v40StageBox small{display:block;color:#aebdc4;font-size:8px;font-weight:800}.v40StageBox b{display:block;font-size:14px;margin-top:1px}.v40StageBox i{font-style:normal;color:#ff866b;font-size:8px;font-weight:900}.v40Progress{flex:1;padding:7px 10px;border-radius:14px}.v40Progress>div{display:flex;justify-content:space-between;font-size:8px;color:#b9c5cb;font-weight:900}.v40Progress b{color:#fff}.v40Progress em{display:block;height:7px;margin-top:5px;background:#263943;border-radius:99px;overflow:hidden}.v40Progress em i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd866,#ff9c3a);border-radius:99px}.v40BattlePause{pointer-events:auto}.v40BattlePause button{width:42px;height:42px;border-radius:14px;color:#fff;font-size:17px;font-weight:1000}.v40BattlePause button:active{transform:scale(.94)}
-    #v40BattleBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:8px;pointer-events:none}.v40PlayerCard{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:14px;background:rgba(13,28,37,.88);border:1px solid rgba(255,255,255,.13);min-width:92px;color:#fff}.v40PlayerFace{font-size:25px}.v40PlayerCard b{display:block;font-size:10px}.v40PlayerCard small{display:block;color:#ff9b9b;font-size:8px;margin-top:2px}.v40ItemStrip{display:flex;gap:5px;flex:1;justify-content:center}.v40ItemStrip button{width:42px;height:48px;border-radius:12px;background:rgba(13,28,37,.90);border:1px solid rgba(255,255,255,.13);color:#fff;pointer-events:auto;box-shadow:0 6px 14px rgba(0,0,0,.22)}.v40ItemStrip b{display:block;font-size:17px}.v40ItemStrip small{display:block;color:#ffd866;font-weight:900;font-size:8px;margin-top:2px}
-    #battleParry.ready{border-color:#ffd866!important;box-shadow:0 0 0 5px rgba(255,216,102,.18),0 10px 24px rgba(0,0,0,.32)!important}#battleParry.perfect{border-color:#fff!important;box-shadow:0 0 0 8px rgba(255,255,255,.18),0 0 26px rgba(255,216,102,.55)!important}
-    @media(max-width:380px){.v40ItemStrip button{width:36px}.v40PlayerCard{min-width:80px}.v40PlayerFace{font-size:21px}}
-  `;document.head.appendChild(style);
-
-  /* Keep old map hidden if another legacy handler tries to open it. */
-  const map=$('mapScreen'); if(map){const obs=new MutationObserver(()=>{if(map.classList.contains('show'))map.classList.remove('show');});obs.observe(map,{attributes:true,attributeFilter:['class']});}
+  window.__duckV41Loadout=true;
 })();
