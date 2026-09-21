@@ -210,7 +210,7 @@ body.v20 #joystick{filter:drop-shadow(0 7px 12px rgba(0,0,0,.32));}
     <div class="bossName"><span id="bossEmoji">👑</span><b id="bossNameText">보스</b><span id="bossPhase">PHASE 1</span></div>
     <div class="bossTrack"><i id="bossFill"></i></div>
   </div>
-  <div class="combatBottom"><div id="lootInvHud" style="min-width:70px;padding:6px 8px;border-radius:12px;background:rgba(19,18,23,.84);border:1px solid rgba(255,255,255,.14);font:900 9px system-ui;color:#fff;box-shadow:0 5px 16px rgba(0,0,0,.28);text-align:center"><span style="opacity:.55">🎒 보관</span><b id="lootInvCount" style="display:block;font-size:14px;color:#ffd45e">0</b></div>
+  <div class="combatBottom">
     <div class="hpCard"><span>❤️</span><div><b id="combatHp">5 / 5</b><small>체력</small></div></div>
     <div class="parryCard"><div class="parryHead"><b>🛡️ 되받아치기</b><span id="parryStatus">READY</span></div><div class="parryTrack"><i id="parryFill"></i></div></div>
     <div class="comboCard"><small>COMBO</small><b id="combatCombo">0</b></div>
@@ -664,14 +664,6 @@ const ITEM_INFO = {
   shield: { color:'#5bd15b', icon:'🛡', label:'방패!' },
   heal:   { color:'#ff5b6e', icon:'♥',  label:'회복!' },
 };
-// 영구 보관형 아이템 인벤토리: 전투에서 획득하고, 조합/사용 전까지 저장
-const ITEM_INV_KEY='doldol_item_inventory_v1';
-let itemInventory={rapid:0,triple:0,shield:0,heal:0};
-function loadItemInventory(){ try{ const raw=JSON.parse(localStorage.getItem(ITEM_INV_KEY)||'{}'); for(const k of Object.keys(itemInventory)) itemInventory[k]=Math.max(0,Number(raw[k]||0)); }catch(e){} }
-function saveItemInventory(){ try{ localStorage.setItem(ITEM_INV_KEY,JSON.stringify(itemInventory)); }catch(e){} }
-function addLootItem(kind){ if(!ITEM_INFO[kind]) return; itemInventory[kind]=(itemInventory[kind]||0)+1; saveItemInventory(); updateLootInvHUD(); toast={text:'✨ '+ITEM_INFO[kind].label+' 획득!',life:80,color:ITEM_INFO[kind].color}; SFX.item(); }
-function totalItemInventory(){ return Object.values(itemInventory).reduce((a,b)=>a+b,0); }
-loadItemInventory();
 function makeRock(x,y,vx,vy,owner){
   return { x, y, vx, vy, r:10, owner, spin:rand(0,6), spinV:rand(-.3,.3), pierce:0, big:false, weapon:owner==='player'?weaponType:null, damage:owner==='player'?weaponPower():1 };
 }
@@ -695,7 +687,6 @@ function showBossPhaseAlert(phase){
 // ----- 스테이지 시작 -----
 function startStage(){
   player = player || makePlayer();
-  updateLootInvHUD();
   applySkinPassive(player);
   player.x = W/2; player.y = H-180;
   enemies = []; rocks = []; particles = []; obstacles = []; items = []; hazards = []; weaponFX = [];
@@ -927,8 +918,9 @@ function update(){
     const it=items[i]; it.bob+=0.1; it.life--;
     if(it.life<=0){ items.splice(i,1); continue; }
     if(dist(it.x,it.y,player.x,player.y) < it.r+player.r){
-      addLootItem(it.kind);
+      applyItem(it.kind);
       burst(it.x,it.y,ITEM_INFO[it.kind].color,14);
+      SFX.item();
       items.splice(i,1);
     }
   }
@@ -1127,20 +1119,11 @@ function update(){
         bossFinishT=78;
         const bossFinishEl=document.getElementById('bossFinishFx');
         if(bossFinishEl){ bossFinishEl.classList.remove('show'); void bossFinishEl.offsetWidth; bossFinishEl.classList.add('show'); bossFinishEl.setAttribute('aria-hidden','false'); setTimeout(()=>bossFinishEl.classList.remove('show'),1250); }
-        for(let k=0;k<5;k++){
-          const kinds=['rapid','triple','shield','heal'];
-          items.push(makeItem(e.x+rand(-40,40), e.y+rand(-30,30), kinds[k%4]));
-        }
+        rollFarmDrop(e);
         boss=null;
       } else {
         burst(e.x,e.y,'#ffb84d',22); addShake(4,6); SFX.kill();
-        if(Math.random()<0.35){
-          const kinds = player.hp<player.maxhp
-            ? ['rapid','triple','shield','heal']
-            : ['rapid','triple','shield'];
-          const kind = kinds[Math.floor(Math.random()*kinds.length)];
-          items.push(makeItem(e.x, e.y, kind));
-        }
+        rollFarmDrop(e);
       }
       // 코인 & 경험치 획득
       const reward = e.isBoss ? 25 : (e.type==='tank'?4 : e.type==='fast'?2 : 3);
@@ -1149,6 +1132,7 @@ function update(){
       enemies.splice(i,1); killCount++; missionData.kills++; dailyData.progress.kills=(dailyData.progress.kills||0)+1; saveDaily(); saveMissions();
     }
   }
+  if(farmDropFX.t>0) farmDropFX.t--;
   // 파티클
   for(let i=particles.length-1;i>=0;i--){
     const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.life--;
@@ -1179,8 +1163,6 @@ function update(){
 
 // ----- 아이템 효과 -----
 let toast = { text:'', life:0, color:'#fff' };
-function updateLootInvHUD(){ const el=document.getElementById('lootInvCount'); if(el) el.textContent=String(totalItemInventory()); }
-
 function applyItem(kind){
   const dur = 60*8; // 8초
   if(kind==='rapid') player.rapid = dur;
@@ -2255,7 +2237,31 @@ function stageClear(){
     box.appendChild(el);
   });
 
-  // ===== 코인 상점 (매번 3개 랜덤) =====
+  
+/* ===== V48: CLEAN FARM MATERIAL SYSTEM ===== */
+const FARM_ITEMS={
+  twig:{name:'나무 조각',icon:'🪵'}, stone:{name:'단단한 돌',icon:'🪨'}, ember:{name:'불씨',icon:'🔥'},
+  ice:{name:'얼음 조각',icon:'❄️'}, spark:{name:'전기 조각',icon:'⚡'}, herb:{name:'약초',icon:'🌿'},
+  gem:{name:'보석 조각',icon:'💎'}, vial:{name:'액체 병',icon:'🧪'}, powder:{name:'화약',icon:'💣'}, core:{name:'특수 조각',icon:'⭐'}
+};
+const FARM_KEY='doldol_farm_materials_v1';
+let farmMaterials={};
+try{farmMaterials=JSON.parse(localStorage.getItem(FARM_KEY)||'{}')||{};}catch(e){farmMaterials={};}
+function saveFarmMaterials(){try{localStorage.setItem(FARM_KEY,JSON.stringify(farmMaterials));}catch(e){}}
+function rollFarmDrop(enemy){
+  const chance=enemy&&enemy.isBoss ? 1 : 0.18;
+  if(Math.random()>chance)return null;
+  const keys=Object.keys(FARM_ITEMS), key=keys[Math.floor(Math.random()*keys.length)];
+  farmMaterials[key]=(farmMaterials[key]||0)+1; saveFarmMaterials();
+  const def=FARM_ITEMS[key];
+  // 화면 연출용: 기존 전투 아이템(items)과 완전히 분리
+  farmDropFX={x:enemy.x,y:enemy.y-20,icon:def.icon,name:def.name,t:70};
+  return def;
+}
+let farmDropFX={x:0,y:0,icon:'',name:'',t:0};
+window.__duckFarmMaterials=()=>({...farmMaterials});
+window.__duckFarmDefs=()=>({...FARM_ITEMS});
+// ===== 코인 상점 (매번 3개 랜덤) =====
   const shopPicks=[...SHOP].sort(()=>Math.random()-0.5).slice(0,3);
   const shopBox=document.getElementById('shopItems');
   function renderShop(){
