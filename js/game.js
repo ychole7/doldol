@@ -5,6 +5,48 @@
 'use strict';
 
 // V24: persistent wallet shared by combat and growth screens.
+// DOLDOL FARM MATERIALS V2 — isolated from legacy combat-item system.
+// Enemy defeat -> chance to drop -> pickup -> persistent inventory.
+// No combat effects, no crafting, no index.html changes.
+const FARM_ITEMS = [
+  {id:'wood',name:'나무 조각',icon:'🪵'},
+  {id:'stone',name:'단단한 돌',icon:'🪨'},
+  {id:'ember',name:'불씨',icon:'🔥'},
+  {id:'ice',name:'얼음 조각',icon:'❄️'},
+  {id:'herb',name:'약초',icon:'🌿'},
+  {id:'gem',name:'보석 조각',icon:'💎'},
+  {id:'vial',name:'액체 병',icon:'🧪'},
+  {id:'powder',name:'화약',icon:'💣'},
+  {id:'spark',name:'전기 조각',icon:'⚡'},
+  {id:'special',name:'특수 조각',icon:'⭐'}
+];
+const FARM_KEY='doldol_farm_materials_v2';
+function loadFarmInventory(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(FARM_KEY)||'{}')||{};
+    const out={};
+    for(const item of FARM_ITEMS) out[item.id]=Math.max(0,Number(raw[item.id])||0);
+    return out;
+  }catch(e){ return Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0])); }
+}
+let farmInventory=loadFarmInventory();
+function saveFarmInventory(){ try{localStorage.setItem(FARM_KEY,JSON.stringify(farmInventory));}catch(e){} }
+function addFarmMaterial(id,n=1){
+  if(!FARM_ITEMS.some(x=>x.id===id)) return 0;
+  farmInventory[id]=Math.max(0,(farmInventory[id]||0)+(Number(n)||0));
+  saveFarmInventory();
+  return farmInventory[id];
+}
+function randomFarmMaterial(){ return FARM_ITEMS[Math.floor(Math.random()*FARM_ITEMS.length)]; }
+window.__duckFarm={
+  version:2,
+  items:FARM_ITEMS.map(x=>({...x})),
+  getInventory:()=>({...farmInventory}),
+  get:(id)=>Number(farmInventory[id]||0),
+  add:addFarmMaterial,
+  reset:()=>{farmInventory=Object.fromEntries(FARM_ITEMS.map(x=>[x.id,0]));saveFarmInventory();return {...farmInventory};}
+};
+
 window.__duckWallet = window.__duckWallet || {
   get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '12340'); },
   addCoins(n){ const v=Math.max(0,this.coins+(Number(n)||0)); localStorage.setItem('doldol_coins_v1',String(v)); return v; },
@@ -675,6 +717,15 @@ function enemyShoot(e){
     addRock(base-.075,speed,10); addRock(base+.075,speed,10);
   }else addRock(base,speed*(e.elite?1.08:1),10);
 }
+function trySpawnFarmDrop(e){
+  // Drop is intentionally not guaranteed. Inventory is updated only on pickup.
+  if(Math.random()>=0.22) return null;
+  const item=randomFarmMaterial();
+  const drop={x:e.x,y:e.y,type:'farm',farmId:item.id,icon:item.icon,name:item.name,life:8,bob:Math.random()*6.28,pickup:false};
+  pickups.push(drop);
+  return drop;
+}
+
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
   const wasBossPhase=e.bossPhase||1;
@@ -708,6 +759,7 @@ function hitEnemy(e,damage=1){
     burst(e.x,e.y,18);
     e.dead=true;
     pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
+    trySpawnFarmDrop(e);
     message='격파!';
     messageTimer=.28;
   }
@@ -958,6 +1010,10 @@ function update(dt){
       ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
+    }else if(p.type==='farm'){
+      ctx.fillStyle='rgba(20,25,30,.78)';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=2;ctx.stroke();
+      ctx.font='18px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.icon,0,1);
     }else{
       ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
@@ -1028,7 +1084,13 @@ function update(dt){
     p.life-=dt; p.bob+=dt*4;
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
-      if(p.type==='coin'){
+      if(p.type==='farm'){
+        const total=addFarmMaterial(p.farmId,1);
+        message=p.icon+' '+p.name+' +1  ·  '+total;
+        messageTimer=.75;
+        burst(p.x,p.y,12);
+        p.life=0;
+      }else if(p.type==='coin'){
         const walletCoins=window.__duckWallet.addCoins(1);
         message='+1 COIN  ·  '+walletCoins.toLocaleString();
         if(window.__duckSyncLobby)window.__duckSyncLobby();
@@ -2669,88 +2731,4 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
    #battleItemSlots .battleItemEmpty{min-width:88px;height:36px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(8,16,23,.52);color:rgba(255,255,255,.38);display:grid;place-items:center;font-size:10px;}
  `;
  document.head.appendChild(s);
-})();
-
-
-/* ============================================================
-   DOLDOL FARM MATERIALS V1
-   - isolated from legacy combat-item system
-   - enemy kill -> chance to drop -> pickup -> persistent inventory
-   - no item effects / no crafting yet
-   - index.html is intentionally untouched
-   ============================================================ */
-(() => {
-  'use strict';
-
-  const NS = 'doldol_farm_items_v1';
-
-  const FARM_ITEMS = [
-    {id:'wood',    name:'나무 조각', icon:'🪵'},
-    {id:'stone',   name:'단단한 돌', icon:'🪨'},
-    {id:'ember',   name:'불씨',     icon:'🔥'},
-    {id:'ice',     name:'얼음 조각', icon:'❄️'},
-    {id:'herb',   name:'약초',     icon:'🌿'},
-    {id:'gem',    name:'보석 조각', icon:'💎'},
-    {id:'vial',   name:'액체 병',   icon:'🧪'},
-    {id:'powder', name:'화약',     icon:'💣'},
-    {id:'spark',  name:'전기 조각', icon:'⚡'},
-    {id:'special',name:'특수 조각', icon:'⭐'}
-  ];
-
-  const DEFAULT = Object.fromEntries(FARM_ITEMS.map(x => [x.id, 0]));
-
-  function load(){
-    try{
-      const raw = localStorage.getItem(NS);
-      const parsed = raw ? JSON.parse(raw) : {};
-      return {...DEFAULT, ...(parsed && typeof parsed === 'object' ? parsed : {})};
-    }catch(e){ return {...DEFAULT}; }
-  }
-
-  let inventory = load();
-
-  function save(){
-    try{ localStorage.setItem(NS, JSON.stringify(inventory)); }catch(e){}
-  }
-
-  function add(id, amount=1){
-    if(!DEFAULT.hasOwnProperty(id)) return inventory;
-    inventory[id] = Math.max(0, Number(inventory[id] || 0) + Math.max(0, Number(amount)||0));
-    save();
-    return inventory;
-  }
-
-  function get(id){ return Number(inventory[id] || 0); }
-  function all(){ return {...inventory}; }
-
-  function pickRandom(){
-    const item = FARM_ITEMS[Math.floor(Math.random()*FARM_ITEMS.length)];
-    return item;
-  }
-
-  // 22% drop chance. Drop is intentionally independent of combat-item effects.
-  function tryDrop(x, y){
-    if(Math.random() >= 0.22) return null;
-    const item = pickRandom();
-    const drop = { ...item, x:Number(x)||0, y:Number(y)||0, picked:false };
-    window.__doldolFarmDrops = window.__doldolFarmDrops || [];
-    window.__doldolFarmDrops.push(drop);
-    add(item.id, 1);
-    return drop;
-  }
-
-  window.__doldolFarm = {
-    version: 1,
-    items: FARM_ITEMS.map(x=>({...x})),
-    get,
-    all,
-    add,
-    tryDrop,
-    reset(){
-      inventory = {...DEFAULT};
-      save();
-    }
-  };
-
-  window.__doldolFarmInventory = inventory;
 })();
