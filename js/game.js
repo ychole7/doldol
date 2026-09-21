@@ -31,8 +31,14 @@ let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let pendingNextStage=0;
 
-// FARM MATERIALS V4 - isolated from combat item system
-const FARM_MATERIALS_V4=[
+/* =========================================================
+   DOLDOL FARM MATERIALS V2
+   - index.html untouched
+   - isolated from legacy combat-item systems
+   - enemy defeat -> chance to drop -> visible pickup -> persistent inventory
+   - no crafting / no item combat effects yet
+   ========================================================= */
+const FARM_ITEMS_V2=[
   {id:'wood',name:'나무 조각',icon:'🪵'},
   {id:'stone',name:'단단한 돌',icon:'🪨'},
   {id:'ember',name:'불씨',icon:'🔥'},
@@ -44,19 +50,46 @@ const FARM_MATERIALS_V4=[
   {id:'spark',name:'전기 조각',icon:'⚡'},
   {id:'special',name:'특수 조각',icon:'⭐'}
 ];
-const FARM_KEY_V4='doldol_farm_materials_v4';
-let farmInventoryV4={};
-try{farmInventoryV4=JSON.parse(localStorage.getItem(FARM_KEY_V4)||'{}')||{};}catch(e){farmInventoryV4={};}
-function saveFarmV4(){try{localStorage.setItem(FARM_KEY_V4,JSON.stringify(farmInventoryV4));}catch(e){}}
-function farmAddV4(item){farmInventoryV4[item.id]=(farmInventoryV4[item.id]||0)+1;saveFarmV4();}
-function farmDropV4(e){
-  const item=FARM_MATERIALS_V4[Math.floor(Math.random()*FARM_MATERIALS_V4.length)];
-  pickups.push({x:e.x,y:e.y,type:'farm',farmId:item.id,farmName:item.name,farmIcon:item.icon,life:10,bob:Math.random()*6.28});
-  message=item.icon+' '+item.name+' 발견!';
-  messageTimer=1.0;
-  burst(e.x,e.y,16);
+const FARM_INV_KEY_V2='doldol_farm_inventory_v2';
+function farmLoadV2(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(FARM_INV_KEY_V2)||'{}');
+    const out={};
+    for(const item of FARM_ITEMS_V2) out[item.id]=Math.max(0,Number(raw[item.id])||0);
+    return out;
+  }catch(e){ return Object.fromEntries(FARM_ITEMS_V2.map(x=>[x.id,0])); }
 }
-window.__doldolFarmV4={items:FARM_MATERIALS_V4,get(){return {...farmInventoryV4}},add(id){const item=FARM_MATERIALS_V4.find(x=>x.id===id);if(item){farmAddV4(item);return farmInventoryV4[id]||0;}return 0;}};
+let farmInventoryV2=farmLoadV2();
+function farmSaveV2(){try{localStorage.setItem(FARM_INV_KEY_V2,JSON.stringify(farmInventoryV2));}catch(e){}}
+function farmRandomItemV2(){return FARM_ITEMS_V2[Math.floor(Math.random()*FARM_ITEMS_V2.length)];}
+function spawnFarmDropV2(x,y){
+  if(Math.random()>=0.45) return false;
+  const item=farmRandomItemV2();
+  pickups.push({
+    x:Number(x)||vw*.5,y:Number(y)||vh*.5,type:'farm',
+    farmId:item.id,farmName:item.name,farmIcon:item.icon,
+    life:10,bob:Math.random()*Math.PI*2,farmPicked:false
+  });
+  return true;
+}
+window.__doldolFarmV2={
+  version:2,
+  items:FARM_ITEMS_V2.map(x=>({...x})),
+  inventory:()=>({...farmInventoryV2}),
+  get:id=>Number(farmInventoryV2[id]||0),
+  add:(id,n=1)=>{
+    if(!farmInventoryV2[id]) farmInventoryV2[id]=0;
+    farmInventoryV2[id]+=Math.max(0,Number(n)||0);
+    farmSaveV2();
+    return farmInventoryV2[id];
+  },
+  reset:()=>{
+    farmInventoryV2=Object.fromEntries(FARM_ITEMS_V2.map(x=>[x.id,0]));
+    farmSaveV2();
+    return {...farmInventoryV2};
+  }
+};
+
 let upgradeOpen=false;
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
@@ -733,10 +766,9 @@ function hitEnemy(e,damage=1){
     if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
     if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
     burst(e.x,e.y,18);
-    // FARM V4: guaranteed test drop. Once confirmed working, this can be tuned to a lower chance.
-    farmDropV4(e);
     e.dead=true;
     pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
+    spawnFarmDropV2(e.x,e.y);
     message='격파!';
     messageTimer=.28;
   }
@@ -983,14 +1015,18 @@ function update(dt){
   for(const p of pickups){
     const bob=Math.sin(p.bob)*3;
     ctx.save();ctx.translate(p.x,p.y+bob);
-    if(p.type==='farm'){
-      ctx.fillStyle='rgba(255,255,255,.96)';ctx.beginPath();ctx.arc(0,0,17,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#ffd86b';ctx.lineWidth=3;ctx.stroke();
-      ctx.font='20px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.farmIcon||'⭐',0,1);
-    }else if(p.type==='coin'){
+    if(p.type==='coin'){
       ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
+    }else if(p.type==='farm'){
+      const pulse=1+Math.sin(performance.now()/150)*.08;
+      ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(p.farmIcon||'⭐',0,1);
+      ctx.textBaseline='alphabetic';
+      ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
     }else{
       ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
@@ -1061,16 +1097,15 @@ function update(dt){
     p.life-=dt; p.bob+=dt*4;
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
-      if(p.type==='farm'){
-        const item=FARM_MATERIALS_V4.find(x=>x.id===p.farmId);
-        if(item) farmAddV4(item);
-        message='획득! '+(p.farmIcon||'⭐')+' '+(p.farmName||'파밍 재료')+' ×1';
-        messageTimer=.9;
-        burst(p.x,p.y,14);
-      }else if(p.type==='coin'){
+      if(p.type==='coin'){
         const walletCoins=window.__duckWallet.addCoins(1);
         message='+1 COIN  ·  '+walletCoins.toLocaleString();
         if(window.__duckSyncLobby)window.__duckSyncLobby();
+      }else if(p.type==='farm'){
+        const count=window.__doldolFarmV2.add(p.farmId,1);
+        message=(p.farmIcon||'⭐')+' '+(p.farmName||'재료')+' +1';
+        messageTimer=.65;
+        p.farmPicked=true;
       }else{
         const gained=10;
         xp+=gained;
