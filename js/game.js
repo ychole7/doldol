@@ -1,4 +1,4 @@
-/* DOLDOL SPECIAL FORCES V26 - PERSISTENT CHARACTER GROWTH */
+/* DOLDOL SPECIAL FORCES V42 - STONE SYSTEM */
 /* DOLDOL SPECIAL FORCE V20 - Combat Variety */
 
 (() => {
@@ -31,6 +31,18 @@ let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let pendingNextStage=0;
 let upgradeOpen=false;
+// V42: stone/ammo system — basic is infinite; special stones are limited per stage.
+const STONE_DEFS={
+  basic:{icon:'🪨',name:'기본',desc:'기본 투사체',ammo:Infinity,damage:1,color:'#c7d0d6'},
+  fire:{icon:'🔥',name:'불돌',desc:'강한 화염 피해',ammo:3,damage:2,color:'#ff7a45'},
+  ice:{icon:'❄️',name:'얼음',desc:'적 이동속도 감소',ammo:3,damage:1,color:'#69d8ff'},
+  bomb:{icon:'💣',name:'폭발',desc:'주변 적에게 범위 피해',ammo:2,damage:2,color:'#d28cff'},
+  lightning:{icon:'⚡',name:'번개',desc:'강력한 직격 피해',ammo:3,damage:3,color:'#ffd84d'}
+};
+let selectedStone='basic';
+let stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+let stoneCooldown=0;
+
 const upgradeChoices=['⚡ 공격속도 +12%','❤️ 최대 HP +20','🛡️ 패링 판정 +20%'];
 let skillCooldown=0;
 let skillTimer=0;
@@ -446,6 +458,9 @@ function startStage(n){
   total=boss?1:Math.min(16,7+Math.floor(stage*.8));
   clearTimer=0;
   gate=false;
+  selectedStone='basic';
+  stoneAmmo={basic:Infinity,fire:3,ice:3,bomb:2,lightning:3};
+  stoneCooldown=0;
   skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
   paused=false;
   message='';
@@ -523,19 +538,64 @@ function burst(x,y,n=12){
   }
 }
 
+function selectStone(id){
+  if(!STONE_DEFS[id] || id===selectedStone) return;
+  if(id!=='basic' && !(stoneAmmo[id]>0)){
+    message='사용할 수 있는 '+STONE_DEFS[id].name+'이 없습니다';
+    messageTimer=.6;
+    return;
+  }
+  selectedStone=id;
+  stoneCooldown=0;
+  message=STONE_DEFS[id].name+' 장착!';
+  messageTimer=.45;
+}
 function shootPlayer(){
-  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25));
-  if(player.skillMultiShot){
-    for(const off of [-70,0,70]){
-      const vx=off;
-      const vy=-520;
-      const len=Math.hypot(vx,vy)||1;
-      shots.push({x:player.x+off*.08,y:player.y-25,vx:vx,vy:vy,r:7,life:2,damage});
-    }
-  }else{
-    shots.push({x:player.x,y:player.y-25,vx:0,vy:-520,r:7,life:2,damage});
+  const id=(STONE_DEFS[selectedStone] && (selectedStone==='basic'||stoneAmmo[selectedStone]>0))?selectedStone:'basic';
+  const def=STONE_DEFS[id];
+  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25))*def.damage;
+  const shotsToFire=player.skillMultiShot?[[-70,-520],[0,-520],[70,-520]]:[[0,-520]];
+  for(const pair of shotsToFire){
+    const vx=pair[0],vy=pair[1];
+    shots.push({x:player.x+vx*.08,y:player.y-25,vx,vy,r:id==='bomb'?9:7,life:2,damage,stone:id});
+  }
+  if(id!=='basic'){
+    stoneAmmo[id]=Math.max(0,stoneAmmo[id]-1);
+    stoneCooldown=id==='lightning'?.20:id==='bomb'?.34:.18;
+    if(stoneAmmo[id]<=0) selectedStone='basic';
   }
 }
+function applyStoneHit(s,e){
+  const id=s.stone||'basic';
+  if(id==='ice'){
+    e.stoneSlow=Math.max(e.stoneSlow||0,2.6);
+    e.stoneSlowMul=.52;
+  }
+  hitEnemy(e,s.damage||1);
+  if(id==='bomb'){
+    for(const other of enemies){
+      if(other===e || other.dead) continue;
+      if(Math.hypot(other.x-e.x,other.y-e.y)<105) hitEnemy(other,Math.max(1,Math.round((s.damage||2)*.65)));
+    }
+    burst(e.x,e.y,24);
+  }else if(id==='lightning'){
+    let chained=0;
+    for(const other of enemies){
+      if(other===e || other.dead) continue;
+      if(Math.hypot(other.x-e.x,other.y-e.y)<150){
+        hitEnemy(other,Math.max(1,Math.round((s.damage||3)*.55)));
+        chained++;
+        if(chained>=2) break;
+      }
+    }
+    burst(e.x,e.y,20);
+  }else if(id==='fire'){
+    e.burnTimer=Math.max(e.burnTimer||0,2.4);
+    e.burnDamage=Math.max(e.burnDamage||0,1);
+    burst(e.x,e.y,16);
+  }
+}
+
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
@@ -756,6 +816,7 @@ function update(dt){
   damageTexts=damageTexts.filter(d=>d.life>0);
   if(levelFlash>0) levelFlash-=dt;
   if(skillCooldown>0) skillCooldown=Math.max(0,skillCooldown-dt);
+  if(stoneCooldown>0) stoneCooldown=Math.max(0,stoneCooldown-dt);
   if(skillFx>0) skillFx=Math.max(0,skillFx-dt);
   if(bossIntroTimer>0) bossIntroTimer=Math.max(0,bossIntroTimer-dt);
   if(bossPatternTimer>0) bossPatternTimer=Math.max(0,bossPatternTimer-dt);
@@ -790,13 +851,20 @@ function update(dt){
 
   for(const e of enemies){
     if(e.dead) continue;
+    if(e.stoneSlow>0){e.stoneSlow-=dt;} else {e.stoneSlowMul=1;}
+    if(e.burnTimer>0){
+      e.burnTimer-=dt;
+      if(Math.floor(e.burnTimer*8)!==Math.floor((e.burnTimer+dt)*8)) hitEnemy(e,e.burnDamage||1);
+    }
     if(e.hitFlash>0) e.hitFlash-=dt;
     if(e.moveFx>0) e.moveFx-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
+    const stoneSpeedMul=(e.stoneSlowMul||1);
+    const moveSpeed=e.speed*stoneSpeedMul;
     if(e.type==='charger' && !e.dead){
       if(e.chargeTimer>0){
         e.chargeTimer-=dt;
-        e.x+=dx/L*e.speed*2.8*dt; e.y+=dy/L*e.speed*2.8*dt;
+        e.x+=dx/L*moveSpeed*2.8*dt; e.y+=dy/L*moveSpeed*2.8*dt;
         e.moveFx=.12;
       }else{
         e.x+=(vw*.5-e.x)*Math.min(1,dt*1.4); e.y+=(vh*.30-e.y)*Math.min(1,dt*1.4);
@@ -804,16 +872,16 @@ function update(dt){
     }else if(e.type==='sniper'){
       // 스나이퍼는 상단에서 거리를 유지하며 공격 전조가 길다.
       const desired=300;
-      if(L<desired){ e.x-=dx/L*e.speed*.55*dt; e.y-=dy/L*e.speed*.55*dt; }
+      if(L<desired){ e.x-=dx/L*moveSpeed*.55*dt; e.y-=dy/L*moveSpeed*.55*dt; }
       else { e.x+=(vw*.5-e.x)*Math.min(1,dt*.65); }
     }else if(e.type==='bomber'){
       const desired=245;
-      if(L>desired) moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
+      if(L>desired) moveAroundCovers(e,dx/L*moveSpeed*dt,dy/L*moveSpeed*dt);
       else e.x+=(vw*.5-e.x)*Math.min(1,dt*.7);
     }else{
       const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
       if(L>desired){
-      moveAroundCovers(e,dx/L*e.speed*dt,dy/L*e.speed*dt);
+      moveAroundCovers(e,dx/L*moveSpeed*dt,dy/L*moveSpeed*dt);
     }else if(e.type==='boss'){
       e.phase+=dt;
       const bp=e.bossPhase||1;
@@ -838,7 +906,7 @@ function update(dt){
         e.y+=(desiredY-e.y)*Math.min(1,dt*4.2);
       }
     }else if(e.type==='fast'){
-      moveAroundCovers(e,-dx/L*e.speed*.35*dt,-dy/L*e.speed*.35*dt);
+      moveAroundCovers(e,-dx/L*moveSpeed*.35*dt,-dy/L*moveSpeed*.35*dt);
     }
     }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
@@ -876,7 +944,7 @@ function update(dt){
     if(s.life<=0) continue;
     for(const e of enemies){
       if(e.dead) continue;
-      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;hitEnemy(e,s.damage||1);break;}
+      if(Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r){s.life=0;applyStoneHit(s,e);break;}
     }
   }
   shots=shots.filter(s=>s.life>0 && s.y>-30);
@@ -2456,7 +2524,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           <button type="button"><b>⚡</b><small>3</small></button>
         </div>`;
       host.appendChild(bottom);
+      const stoneButtons=bottom.querySelectorAll('.v40ItemStrip button');
+      const stoneIds=['basic','fire','ice','bomb','lightning'];
+      stoneButtons.forEach((btn,i)=>{
+        btn.dataset.stone=stoneIds[i];
+        btn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectStone(stoneIds[i]);syncStonePresentation();});
+      });
     }
+    syncStonePresentation();
     let parry=$('battleParry');
     if(parry){
       parry.style.position='absolute';parry.style.right='18px';parry.style.bottom='108px';parry.style.width='88px';parry.style.height='88px';parry.style.borderRadius='50%';parry.style.zIndex='65';parry.style.pointerEvents='auto';
@@ -2470,6 +2545,22 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(skill){skill.style.right='118px';skill.style.bottom='112px';skill.style.width='78px';skill.style.height='78px';skill.style.zIndex='65';skill.style.pointerEvents='auto';}
   }
 
+  function syncStonePresentation(){
+    const strip=$('v40ItemStrip'); if(!strip) return;
+    const buttons=strip.querySelectorAll('button');
+    const ids=['basic','fire','ice','bomb','lightning'];
+    buttons.forEach((btn,i)=>{
+      const id=ids[i],def=STONE_DEFS[id];
+      const selected=id===selectedStone;
+      const count=stoneAmmo[id]===Infinity?'∞':String(stoneAmmo[id]||0);
+      btn.querySelector('b').textContent=def.icon;
+      btn.querySelector('small').textContent=count;
+      btn.style.borderColor=selected?def.color:'rgba(255,255,255,.13)';
+      btn.style.boxShadow=selected?`0 0 0 2px ${def.color},0 7px 16px rgba(0,0,0,.28)`:'0 6px 14px rgba(0,0,0,.22)';
+      btn.style.opacity=(id!=='basic'&&stoneAmmo[id]<=0)?.42:'1';
+      btn.title=def.name+' · '+def.desc;
+    });
+  }
   function syncBattlePresentation(){
     const stage=Math.max(1,Number(window.__duckStage||1)||1);
     const total=(typeof window.__duckBattleTotal==='number'?window.__duckBattleTotal:null);
@@ -2483,6 +2574,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const c=typeof getSelectedCharacter==='function'?getSelectedCharacter():null;
     if(c){$('v40PlayerFace')&&($('v40PlayerFace').textContent=c.face);$('v40PlayerName')&&($('v40PlayerName').textContent=c.name);}
     if(typeof player!=='undefined'&&player){$('v40PlayerHp')&&($('v40PlayerHp').textContent=`${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)}`);}
+    syncStonePresentation();
   }
 
   /* Hide the old joystick artwork; the underlying drag-to-move mechanic remains available. */
