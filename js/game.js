@@ -1365,15 +1365,7 @@ function draw(){
     ctx.fillRect(p.x,p.y,3,3);ctx.globalAlpha=1;
   }
 
-  // joystick
-  if(joy.active){
-    ctx.globalAlpha=.5;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(joy.baseX,joy.baseY,62,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=.8;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(joy.x,joy.y,27,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-  }else{
-    ctx.fillStyle='rgba(255,255,255,.08)';ctx.beginPath();ctx.arc(78,vh-86,52,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.13)';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.48)';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('MOVE',78,vh-82);
-  }
+  // V41: no visible MOVE joystick. Dragging on the lower battle area still moves the character.
 
   if(intro>0){
     ctx.fillStyle='rgba(5,8,12,.52)';ctx.fillRect(0,0,vw,vh);
@@ -2429,184 +2421,173 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   window.__duckV39FinalDesign=true;
 })();
 
-/* ============================================================
-   V41 — LOADOUT-FIRST WEAPON SYSTEM
-   출격 전 무기고에서 특수돌 3종을 장착하고,
-   전투에서는 장착한 아이템만 순차 사용한다.
-   기존 전투의 자동 기본돌 발사는 유지한다.
-   ============================================================ */
+
+/* ================================================================
+   DOLDOL SPECIAL FORCE V41
+   - Battle entry flow: lobby -> battle prep/equipment -> start
+   - Equipment selection is functional before combat
+   - Stage navigation uses chapter/list UI instead of a map
+   - Removes visible MOVE joystick; drag movement remains available
+   ================================================================ */
 (function(){
-  const LOADOUT_KEY='doldol_stone_loadout_v1';
-  const MAX_SLOTS=3;
-  const SPECIAL_IDS=['fire','ice','bomb','lightning'];
-  let itemCursor=0;
+  const $=id=>document.getElementById(id);
+  const lobby=$('gameLobby'), menu=$('menuScreen'), menuTitle=$('menuTitle'), menuBody=$('menuBody');
+  const lobbyStart=$('lobbyStart'), lobbyStages=$('lobbyStages'), menuClose=$('menuClose');
+  if(!lobby || !menu || !menuBody) return;
 
-  function readLoadout(){
+  // Persist the selected pre-battle stone only as a loadout choice.
+  const LOADOUT_KEY='doldol_prebattle_stone_v1';
+  function getPreparedStone(){
     try{
-      const raw=JSON.parse(localStorage.getItem(LOADOUT_KEY)||'null');
-      if(Array.isArray(raw)){
-        const clean=[...new Set(raw.filter(id=>SPECIAL_IDS.includes(id)))].slice(0,MAX_SLOTS);
-        if(clean.length)return clean;
-      }
-    }catch(e){}
-    return ['fire','ice','bomb'];
+      const id=localStorage.getItem(LOADOUT_KEY)||'basic';
+      return (window.__duckStoneDefs && window.__duckStoneDefs[id]) ? id : id;
+    }catch(e){ return 'basic'; }
   }
-  function saveLoadout(list){
-    const clean=[...new Set((list||[]).filter(id=>SPECIAL_IDS.includes(id)))].slice(0,MAX_SLOTS);
-    try{localStorage.setItem(LOADOUT_KEY,JSON.stringify(clean));}catch(e){}
-    return clean;
-  }
-  let equippedStones=readLoadout();
-  window.__duckGetStoneLoadout=()=>equippedStones.slice();
-  window.__duckSetStoneLoadout=list=>{ equippedStones=saveLoadout(list); return equippedStones.slice(); };
+  function savePreparedStone(id){ try{ localStorage.setItem(LOADOUT_KEY,id); }catch(e){} }
+  window.__duckPreparedStone=getPreparedStone();
 
-  // V41: 출격 시 보유 특수돌은 '장착한 것'만 준비한다.
-  resetStoneLoadout=function(){
-    equippedStones=readLoadout();
-    selectedStone='basic';
-    stoneAmmo={basic:Infinity};
-    SPECIAL_IDS.forEach(id=>{ stoneAmmo[id]=equippedStones.includes(id)?STONE_DEFS[id].max:0; });
-    itemCursor=0;
-  };
-
-  function nextAvailableItem(){
-    if(!equippedStones.length)return null;
-    for(let i=0;i<equippedStones.length;i++){
-      const idx=(itemCursor+i)%equippedStones.length;
-      const id=equippedStones[idx];
-      if((stoneAmmo[id]||0)>0){ itemCursor=(idx+1)%equippedStones.length; return id; }
-    }
-    return null;
-  }
-
-  const originalShootPlayer=shootPlayer;
-  // 일반 자동 발사는 항상 기본돌.
-  shootPlayer=function(){
-    const prev=selectedStone;
-    selectedStone='basic';
-    try{ originalShootPlayer(); }finally{ selectedStone=prev==='basic'?'basic':prev; }
-  };
-
-  function fireEquippedItem(){
-    if(!running || paused || !player)return false;
-    const id=nextAvailableItem();
-    if(!id){ message='사용할 아이템이 없습니다'; messageTimer=.7; return false; }
-    selectedStone=id;
-    try{
-      originalShootPlayer();
-    }finally{
-      selectedStone='basic';
-      renderStoneBar();
-    }
-    return true;
-  }
-  window.__duckFireEquippedItem=fireEquippedItem;
-
-  function ensureItemButton(){
-    const host=document.getElementById('battleControls');
-    if(!host)return null;
-    let b=document.getElementById('battleItem');
-    if(!b){
-      b=document.createElement('button');
-      b.id='battleItem'; b.type='button';
-      b.innerHTML='<strong>ITEM</strong><small>아이템 발사</small>';
-      Object.assign(b.style,{
-        position:'absolute',left:'50%',bottom:'18px',transform:'translateX(-50%)',
-        width:'92px',height:'58px',borderRadius:'18px',
-        border:'2px solid rgba(255,216,102,.68)',
-        background:'linear-gradient(180deg,#3a5962,#203640)',color:'#fff',
-        display:'none',flexDirection:'column',alignItems:'center',justifyContent:'center',
-        boxShadow:'0 8px 20px rgba(0,0,0,.28)',fontFamily:'system-ui',fontWeight:'900',
-        zIndex:'32',touchAction:'manipulation',cursor:'pointer',padding:'0'
-      });
-      const strong=b.querySelector('strong'); if(strong)strong.style.fontSize='14px';
-      const small=b.querySelector('small'); if(small)small.style.fontSize='9px';
-      b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fireEquippedItem();});
-      host.appendChild(b);
-    }
-    const id=equippedStones.length?equippedStones.find(x=>(stoneAmmo[x]||0)>0):null;
-    const d=id?STONE_DEFS[id]:null;
-    const strong=b.querySelector('strong'), small=b.querySelector('small');
-    if(strong)strong.textContent=d?`${d.icon} ${d.name}`:'ITEM';
-    if(small)small.textContent=d?`아이템 발사 ×${stoneAmmo[id]||0}`:'장착 없음';
-    b.style.display=running?'flex':'none';
-    b.style.opacity=d?'1':'.55';
-    return b;
-  }
-
-  // 기존 5종 선택바는 전투에서 제거하고 ITEM 버튼만 사용한다.
-  showStoneBar=function(){
-    const old=document.getElementById('battleStoneBar');
-    if(old)old.style.display='none';
-    ensureItemButton();
-  };
-  renderStoneBar=function(){
-    showStoneBar();
-    ensureItemButton();
-  };
-
-  function renderGearPanel(){
-    const body=document.getElementById('menuBody'), title=document.getElementById('menuTitle');
-    if(!body)return;
-    title.textContent='🧰 무기고';
-    const labels={
-      fire:{icon:'🔥',name:'불돌',desc:'추가 피해'},
-      ice:{icon:'❄️',name:'얼음돌',desc:'적 감속'},
-      bomb:{icon:'💣',name:'폭발돌',desc:'범위 피해'},
-      lightning:{icon:'⚡',name:'번개돌',desc:'연쇄 피해'}
+  // The combat engine owns these functions lexically, so wrap its public start entry.
+  const originalStart=window.__duckStartStage;
+  if(originalStart && !window.__duckV41StartWrapped){
+    window.__duckV41StartWrapped=true;
+    window.__duckStartStage=function(s){
+      originalStart(s);
+      try{
+        const id=window.__duckPreparedStone||'basic';
+        if(window.__duckSelectStone) window.__duckSelectStone(id);
+      }catch(e){ console.warn('prebattle loadout apply failed',e); }
     };
-    body.innerHTML=`
-      <div style="padding:12px 4px 8px;text-align:center">
-        <div style="font-size:13px;color:#aebdc5;font-weight:800">출격 전 특수돌을 최대 3개 장착하세요</div>
-        <div id="loadoutCount" style="margin-top:5px;font-weight:1000;color:#ffd866">장착 ${equippedStones.length}/${MAX_SLOTS}</div>
-      </div>
-      <div id="gearLoadoutSlots" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px"></div>
-      <div id="gearStoneGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px"></div>
-      <div style="margin-top:14px;padding:11px;border-radius:15px;background:rgba(255,255,255,.06);color:#cbd5dc;font-size:11px;line-height:1.5;text-align:center">
-        🪨 기본돌은 항상 자동 발사 · 특수돌은 전투의 <b style="color:#ffd866">ITEM</b> 버튼으로 사용합니다.
-      </div>`;
-    const slots=body.querySelector('#gearLoadoutSlots');
-    equippedStones.forEach((id,i)=>{
-      const d=labels[id];
-      const el=document.createElement('div');
-      el.style.cssText='min-height:64px;border-radius:14px;border:2px solid #ffd866;background:rgba(255,216,102,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff';
-      el.innerHTML=`<div style="font-size:22px">${d.icon}</div><b style="font-size:11px">${d.name}</b><small style="font-size:9px;color:#ffd866">SLOT ${i+1}</small>`;
-      slots.appendChild(el);
-    });
-    for(let i=equippedStones.length;i<MAX_SLOTS;i++){
-      const el=document.createElement('div');
-      el.style.cssText='min-height:64px;border-radius:14px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;color:#71808a;font-size:22px';
-      el.textContent='＋'; slots.appendChild(el);
-    }
-    const grid=body.querySelector('#gearStoneGrid');
-    SPECIAL_IDS.forEach(id=>{
-      const d=labels[id], on=equippedStones.includes(id);
-      const btn=document.createElement('button'); btn.type='button';
-      btn.dataset.stone=id;
-      btn.style.cssText=`min-height:92px;border-radius:17px;border:2px solid ${on?'#ffd866':'rgba(255,255,255,.13)'};background:${on?'linear-gradient(180deg,#31575b,#203d42)':'rgba(255,255,255,.045)'};color:#fff;box-shadow:${on?'0 5px 0 rgba(120,76,20,.35)':'none'};font-family:system-ui;cursor:pointer`;
-      btn.innerHTML=`<div style="font-size:28px">${d.icon}</div><b>${d.name}</b><small style="display:block;color:${on?'#ffd866':'#9ba8af'};margin-top:3px">${d.desc} · ${STONE_DEFS[id].max}회</small><span style="display:block;margin-top:5px;font-size:10px;color:${on?'#ffe69a':'#7f8b92'}">${on?'장착 중':'장착하기'}</span>`;
-      btn.addEventListener('pointerdown',e=>{
-        e.preventDefault();e.stopPropagation();
-        if(equippedStones.includes(id)) equippedStones=equippedStones.filter(x=>x!==id);
-        else if(equippedStones.length<MAX_SLOTS) equippedStones.push(id);
-        else { const c=body.querySelector('#loadoutCount'); if(c)c.textContent='장착 슬롯은 최대 3개입니다'; return; }
-        saveLoadout(equippedStones); renderGearPanel();
-      });
-      grid.appendChild(btn);
+  }
+
+  // Expose the already-defined stone helpers without changing their internals.
+  if(!window.__duckSelectStone){
+    // The V40 engine did not expose these, so use a tiny DOM-facing bridge via a prepared value.
+    window.__duckSelectStone=function(id){ window.__duckPreparedStone=id; };
+  }
+
+  function currentStage(){ return Math.max(1,Math.min(500,Number(window.__duckStage||window.__selectedDuckStage||1)||1)); }
+  function unlockedStage(){
+    try{return Math.max(1,Math.min(500,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1));}catch(e){return 1;}
+  }
+  const defs={
+    basic:{icon:'🪨',name:'기본돌',desc:'무제한 기본 투사체',count:'∞'},
+    fire:{icon:'🔥',name:'불돌',desc:'공격력 증가',count:'3'},
+    ice:{icon:'❄️',name:'얼음돌',desc:'적 이동속도 감소',count:'3'},
+    bomb:{icon:'💣',name:'폭발돌',desc:'범위 피해',count:'2'},
+    lightning:{icon:'⚡',name:'번개돌',desc:'연쇄 피해',count:'3'}
+  };
+  const order=['basic','fire','ice','bomb','lightning'];
+
+  function showMenu(){
+    menu.classList.add('show');
+    lobby.classList.add('hidden');
+  }
+  function closeMenu(){ menu.classList.remove('show'); lobby.classList.remove('hidden'); }
+
+  function renderBattlePrep(){
+    const st=currentStage();
+    let selected=window.__duckPreparedStone||getPreparedStone();
+    if(!defs[selected]) selected='basic';
+    window.__duckPreparedStone=selected;
+    menuTitle.textContent='⚔️ 전투 준비';
+    menuBody.innerHTML=''+
+      '<div class="v41PrepHeader">'+
+        '<div><strong>STAGE '+st+'</strong><small>'+(st%5===0?'🔥 BOSS STAGE':'전투 출격 준비')+'</small></div>'+
+        '<div class="v41PrepCharacter">🐥 <b>돌돌이</b><small>Lv.'+(window.__duckCharacterProgress?.('doldol')?.level||12)+'</small></div>'+ 
+      '</div>'+
+      '<div class="v41SectionTitle">🪨 장비 선택</div>'+
+      '<div class="v41GearGrid">'+order.map(id=>{
+        const d=defs[id], active=id===selected;
+        return '<button type="button" class="v41GearCard '+(active?'selected':'')+'" data-v41-stone="'+id+'">'+
+          '<span class="v41GearIcon">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';
+      }).join('')+'</div>'+
+      '<div class="v41LoadoutNote">선택한 장비는 전투 시작 시 적용되며, 전투 중에도 하단에서 변경할 수 있습니다.</div>'+
+      '<button type="button" id="v41StartBattle" class="v41StartBattle">⚔️ 전투 시작 <small>STAGE '+st+'</small></button>';
+
+    menuBody.querySelectorAll('[data-v41-stone]').forEach(btn=>btn.addEventListener('click',()=>{
+      selected=btn.dataset.v41Stone;
+      window.__duckPreparedStone=selected;
+      savePreparedStone(selected);
+      menuBody.querySelectorAll('.v41GearCard').forEach(x=>x.classList.toggle('selected',x===btn));
+    }));
+    $('v41StartBattle').addEventListener('click',()=>{
+      savePreparedStone(selected);
+      window.__duckPreparedStone=selected;
+      menu.classList.remove('show');
+      lobby.classList.add('hidden');
+      if(window.__duckStartStage) window.__duckStartStage(st);
     });
   }
 
-  // 기존 무기고 버튼이 연 메뉴를 같은 이벤트 흐름에서 최종 장비 화면으로 교체.
-  const gearBtn=document.getElementById('lobbyGear');
-  if(gearBtn)gearBtn.addEventListener('click',()=>setTimeout(renderGearPanel,0));
+  // Replace the lobby's direct-start action with the intended preparation flow.
+  lobbyStart.onclick=function(e){
+    e.preventDefault(); e.stopPropagation();
+    renderBattlePrep(); showMenu();
+  };
 
-  // 전투 진입 시 ITEM 버튼을 갱신하고, 전투 종료 시 숨긴다.
-  const oldSetControls=window.__duckSetBattleControls;
-  if(oldSetControls){
-    window.__duckSetBattleControls=function(show){
-      oldSetControls(show);
-      ensureItemButton();
-    };
+  if(menuClose) menuClose.onclick=function(e){e.preventDefault();closeMenu();};
+
+  // ---------------- Stage list (5 chapters, no map) ----------------
+  let stagePanel=$('v41StagePanel');
+  if(!stagePanel){
+    stagePanel=document.createElement('div'); stagePanel.id='v41StagePanel';
+    stagePanel.innerHTML='<div class="v41StageInner">'+
+      '<div class="v41StageTop"><button id="v41StageBack">‹</button><div><strong>스테이지</strong><small>500개의 작전 · 5개 챕터</small></div><span id="v41StageCurrent">STAGE 1</span></div>'+
+      '<div id="v41Chapters" class="v41Chapters"></div>'+
+      '<div class="v41StageSummary" id="v41StageSummary"></div>'+
+      '<div id="v41StageGrid" class="v41StageGrid"></div>'+
+      '<div class="v41StagePager"><button id="v41Prev">‹ 이전</button><span id="v41PageLabel">1 / 10</span><button id="v41Next">다음 ›</button></div>'+
+      '<button id="v41StageBattle" class="v41StartBattle">⚔️ 선택 스테이지 출격</button>'+
+    '</div>';
+    document.body.appendChild(stagePanel);
   }
-  window.__duckV41Loadout=true;
+  let chapter=1, page=1;
+  function drawStageList(){
+    const unlocked=unlockedStage();
+    const start=((page-1)*10)+1+(chapter-1)*100;
+    $('v41StageCurrent').textContent='STAGE '+currentStage();
+    $('v41Chapters').innerHTML=[1,2,3,4,5].map(c=>'<button class="v41Chapter '+(c===chapter?'active':'')+'" data-ch="'+c+'">CHAPTER '+c+'<small>'+((c-1)*100+1)+'–'+(c*100)+'</small></button>').join('');
+    $('v41Chapters').querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{chapter=Number(b.dataset.ch);page=1;drawStageList();});
+    const labels=['푸른 언덕','붉은 협곡','얼어붙은 계곡','화산 요새','최종 특공 작전'];
+    $('v41StageSummary').innerHTML='<b>CHAPTER '+chapter+' · '+labels[chapter-1]+'</b><span>STAGE '+((chapter-1)*100+1)+' ~ '+(chapter*100)+'</span>';
+    $('v41StageGrid').innerHTML=Array.from({length:10},(_,i)=>{
+      const st=start+i, locked=st>unlocked, selected=st===currentStage();
+      return '<button class="v41StageNode '+(locked?'locked ':'')+(selected?'current':'')+'" data-st="'+st+'">'+
+        '<strong>'+st+'</strong><small>'+(st%5===0?'BOSS':'STAGE')+'</small>'+(locked?'<em>🔒</em>':'')+'</button>';
+    }).join('');
+    $('v41StageGrid').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('locked'))return;
+      window.__selectedDuckStage=Number(b.dataset.st); $('v41StageCurrent').textContent='STAGE '+window.__selectedDuckStage; drawStageList();
+    });
+    $('v41PageLabel').textContent=page+' / 10';
+    $('v41Prev').disabled=page<=1; $('v41Next').disabled=page>=10;
+  }
+  function openStageList(){ chapter=Math.min(5,Math.max(1,Math.ceil(currentStage()/100))); page=Math.min(10,Math.max(1,Math.ceil((currentStage()-(chapter-1)*100)/10))); drawStageList(); stagePanel.classList.add('show'); lobby.classList.add('hidden'); }
+  $('v41StageBack').onclick=()=>{stagePanel.classList.remove('show');lobby.classList.remove('hidden');};
+  $('v41Prev').onclick=()=>{if(page>1){page--;drawStageList();}};
+  $('v41Next').onclick=()=>{if(page<10){page++;drawStageList();}};
+  $('v41StageBattle').onclick=()=>{const st=Number(window.__selectedDuckStage||currentStage())||1;stagePanel.classList.remove('show');window.__duckStage=st;renderBattlePrep();showMenu();};
+  lobbyStages.onclick=function(e){e.preventDefault();e.stopPropagation();openStageList();};
+
+  // Remove accidental direct gear behavior; gear is now reached through battle prep.
+  const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderBattlePrep();showMenu();};
+
+  // Small UI refresh: lobby button becomes "전투 준비".
+  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 준비</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
+})();
+
+/* V41 styles */
+(function(){
+  const css=document.createElement('style'); css.textContent=`
+    #v41StagePanel{position:fixed;inset:0;z-index:100000;background:linear-gradient(180deg,#0d1b22,#101b24);display:none;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:18px;overflow:auto}
+    #v41StagePanel.show{display:block}
+    .v41StageInner{max-width:620px;margin:0 auto;padding:10px 0 28px}
+    .v41StageTop{display:flex;align-items:center;gap:14px;padding:8px 0 18px}.v41StageTop button{width:46px;height:46px;border-radius:14px;border:1px solid #56656e;background:#23343c;color:#fff;font-size:32px}.v41StageTop strong{display:block;font-size:24px}.v41StageTop small{display:block;color:#9eabb2;margin-top:3px}.v41StageTop>span{margin-left:auto;background:#18272f;border:1px solid #46555d;border-radius:13px;padding:9px 12px;font-weight:900;color:#ffd75a}
+    .v41Chapters{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.v41Chapter{min-height:62px;border-radius:13px;border:1px solid #46555d;background:#1c2c34;color:#cbd4d8;font-weight:900}.v41Chapter.active{border-color:#ffd45b;background:linear-gradient(180deg,#31524d,#20363a);color:#fff;box-shadow:0 0 0 2px rgba(255,212,91,.18)}.v41Chapter small{display:block;font-size:9px;font-weight:700;color:#9aa8ad;margin-top:3px}
+    .v41StageSummary{margin:14px 0 10px;padding:14px 16px;border-radius:16px;background:#152830;border:1px solid #3e5158}.v41StageSummary b{display:block}.v41StageSummary span{display:block;color:#a9b6bb;font-size:12px;margin-top:4px}
+    .v41StageGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.v41StageNode{position:relative;min-height:72px;border-radius:15px;border:1px solid #46555d;background:#21333b;color:#fff}.v41StageNode strong{display:block;font-size:22px}.v41StageNode small{display:block;color:#a9b6bb;font-size:9px}.v41StageNode.current{border:2px solid #ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.14)}.v41StageNode.locked{opacity:.38}.v41StageNode em{position:absolute;right:6px;top:5px;font-style:normal;font-size:12px}
+    .v41StagePager{display:flex;align-items:center;justify-content:space-between;margin:16px 0}.v41StagePager button{background:#243740;color:#fff;border:1px solid #52636a;border-radius:12px;padding:11px 16px;font-weight:800}.v41StagePager button:disabled{opacity:.35}
+    .v41PrepHeader{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:15px;border-radius:18px;background:linear-gradient(180deg,#1b3840,#172a31);border:1px solid #51636a;margin-bottom:14px}.v41PrepHeader strong{font-size:25px}.v41PrepHeader small{display:block;color:#9fadb3;margin-top:3px}.v41PrepCharacter{padding:9px 12px;border-radius:14px;background:#102027;text-align:right}.v41SectionTitle{font-weight:900;font-size:17px;margin:14px 2px 10px}.v41GearGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.v41GearCard{position:relative;text-align:left;min-height:115px;border-radius:17px;border:2px solid #34464e;background:#1d3038;color:#fff;padding:13px}.v41GearCard.selected{border-color:#ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.16);background:linear-gradient(180deg,#30453e,#1e3138)}.v41GearIcon{font-size:28px;display:block}.v41GearCard b{display:block;font-size:16px;margin-top:4px}.v41GearCard small{display:block;color:#a9b6bb;margin-top:4px}.v41GearCard em{position:absolute;right:10px;top:10px;font-style:normal;font-weight:900;color:#ffd45b}.v41LoadoutNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.5}.v41StartBattle{width:100%;min-height:58px;border:0;border-radius:17px;background:linear-gradient(180deg,#ffd45c,#ffb72e);color:#182127;font-size:19px;font-weight:1000;box-shadow:0 5px 0 #a76d20;margin-top:10px}.v41StartBattle small{display:block;font-size:10px;margin-top:2px}
+    @media(max-width:430px){#v41StagePanel{padding:14px}.v41Chapters{grid-template-columns:repeat(5,1fr)}.v41Chapter{font-size:10px}.v41StageGrid{gap:7px}.v41StageNode{min-height:64px}.v41StageNode strong{font-size:19px}.v41GearGrid{gap:8px}.v41GearCard{min-height:108px}}
+  `; document.head.appendChild(css);
 })();
