@@ -2067,3 +2067,72 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   window.__duckOpenMissions=open;
   window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
+
+/* --- V37 character screen design pass --- */
+(function(){
+  const STYLE_ID='doldol-v37-character-style';
+  if(!document.getElementById(STYLE_ID)){
+    const s=document.createElement('style'); s.id=STYLE_ID;
+    s.textContent=`
+      #characterScreen.show{background:linear-gradient(180deg,#13232d 0%,#1b3039 48%,#10191f 100%) !important;color:#fff !important;}
+      #characterScreen .charHero{position:relative;overflow:hidden;border:1px solid rgba(255,216,102,.30)!important;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.035))!important;box-shadow:0 18px 40px rgba(0,0,0,.28)!important;border-radius:24px!important;}
+      #characterScreen .charHero:after{content:'';position:absolute;inset:auto -20% -55%;height:140px;background:radial-gradient(ellipse,rgba(255,216,102,.22),transparent 65%);pointer-events:none;}
+      #charHeroFace{filter:drop-shadow(0 14px 14px rgba(0,0,0,.28));transform:translateY(-2px);}
+      #charHeroName{font-weight:1000!important;letter-spacing:-.5px!important;}
+      #charHeroRole{color:#ffd866!important;font-weight:900!important;}
+      #charGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;padding:12px 2px!important;}
+      .charCard{position:relative!important;min-height:122px!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:18px!important;background:linear-gradient(180deg,rgba(255,255,255,.095),rgba(255,255,255,.035))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.16)!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;}
+      .charCard:active{transform:scale(.97)!important;}
+      .charCard.selected{border:2px solid #ffd866!important;background:linear-gradient(180deg,rgba(255,216,102,.20),rgba(255,216,102,.055))!important;box-shadow:0 0 0 3px rgba(255,216,102,.10),0 12px 24px rgba(0,0,0,.24)!important;}
+      .charCard .charFace{font-size:38px!important;filter:drop-shadow(0 7px 8px rgba(0,0,0,.22));}
+      .charCard b{font-size:13px!important;font-weight:1000!important;}
+      .charCard .charRole{font-size:9px!important;color:#b9c8d0!important;}
+      .charCard .charLv{display:inline-flex!important;margin-top:5px!important;padding:3px 7px!important;border-radius:999px!important;background:rgba(0,0,0,.25)!important;color:#ffd866!important;font-size:9px!important;font-weight:900!important;}
+      .charCard.locked{opacity:.52!important;filter:saturate(.65)!important;}
+      .charCard .charLock{position:absolute!important;right:8px!important;top:7px!important;font-size:12px!important;}
+      #charGrowthBtn{background:linear-gradient(180deg,#ffd866,#f1a92e)!important;color:#30220d!important;border:0!important;border-radius:16px!important;box-shadow:0 7px 0 #a96818,0 12px 22px rgba(0,0,0,.22)!important;font-weight:1000!important;min-height:52px!important;}
+      #charSelectBtn{border-radius:16px!important;font-weight:1000!important;min-height:52px!important;}
+      #doldolV37CharInfo{margin:2px 0 10px;padding:12px 14px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.16);}
+      #doldolV37CharInfo .v37row{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+      #doldolV37CharInfo .v37skill{font-weight:1000;color:#fff;font-size:13px;}
+      #doldolV37CharInfo .v37desc{margin-top:4px;color:#aebdc5;font-size:10px;line-height:1.45;}
+      #doldolV37CharInfo .v37pill{padding:4px 8px;border-radius:999px;background:rgba(255,216,102,.12);color:#ffd866;font-size:9px;font-weight:1000;white-space:nowrap;}
+      @media(max-width:520px){#charGrid{grid-template-columns:repeat(4,minmax(66px,1fr))!important;gap:7px!important}.charCard{min-height:108px!important}.charCard .charFace{font-size:32px!important}.charCard b{font-size:11px!important}}
+    `;
+    document.head.appendChild(s);
+  }
+
+  function selectedDef(){
+    try{
+      const id=localStorage.getItem('doldol_character_v1')||'doldol';
+      return (window.CHARACTER_DEFS||[]).find(c=>c.id===id)||window.CHARACTER_DEFS?.[0];
+    }catch(e){return window.CHARACTER_DEFS?.[0];}
+  }
+  function refreshInfo(){
+    const screen=document.getElementById('characterScreen'); if(!screen) return;
+    const grid=document.getElementById('charGrid'); if(!grid) return;
+    const d=selectedDef(); if(!d) return;
+    let box=document.getElementById('doldolV37CharInfo');
+    if(!box){
+      box=document.createElement('div'); box.id='doldolV37CharInfo';
+      grid.parentNode.insertBefore(box,grid);
+    }
+    const lvl=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id).level:1;
+    const sl=window.__duckCharacterSkillProgress?window.__duckCharacterSkillProgress(d.id).level:1;
+    box.innerHTML='<div class="v37row"><div><div class="v37skill">⚡ '+(d.skill?.name||'고유 스킬')+'</div><div class="v37desc">'+(d.skill?.desc||'캐릭터 고유 능력')+'</div></div><span class="v37pill">LV.'+sl+'/5 · 캐릭터 LV.'+lvl+'</span></div>';
+  }
+  function install(){
+    const screen=document.getElementById('characterScreen'); if(!screen) return;
+    const old=window.__duckOpenCharacters;
+    if(old && !old.__v37){
+      const wrapped=function(){const r=old.apply(this,arguments);setTimeout(refreshInfo,0);return r;}; wrapped.__v37=true; window.__duckOpenCharacters=wrapped;
+    }
+    const grid=document.getElementById('charGrid');
+    if(grid && !grid.__v37){grid.addEventListener('click',()=>setTimeout(refreshInfo,0));grid.__v37=true;}
+    const growth=document.getElementById('charGrowthBtn');
+    if(growth){growth.style.touchAction='manipulation';growth.style.cursor='pointer';}
+  }
+  install();
+  document.addEventListener('DOMContentLoaded',install,{once:true});
+  window.__duckV37RefreshCharacterDesign=refreshInfo;
+})();
