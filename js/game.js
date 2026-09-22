@@ -643,6 +643,40 @@ function startStage(n){
 function nextStage(){
   startStage(stage+1);
 }
+
+// GAME18: load result/transition styles from external CSS without requiring an HTML rewrite.
+(function(){
+  const href='CSS/result.css';
+  if(!document.querySelector('link[data-doldol-result-css]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=href;
+    link.dataset.doldolResultCss='1';
+    document.head.appendChild(link);
+  }
+})();
+
+// GAME18: lightweight transition before entering the next stage.
+function showNextStageTransition(nextStageNumber, callback){
+  let el=document.getElementById('doldolStageTransition');
+  if(!el){
+    el=document.createElement('div');
+    el.id='doldolStageTransition';
+    el.innerHTML='<div class="dstPanel"><div class="dstKicker">NEXT MISSION</div><div class="dstStage">STAGE <b id="dstStageNo">2</b></div><div class="dstSub">출격 준비</div></div>';
+    document.body.appendChild(el);
+  }
+  const n=Math.max(1,Math.min(500,Number(nextStageNumber)||1));
+  const no=el.querySelector('#dstStageNo');
+  if(no) no.textContent=n;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(function(){
+    el.classList.remove('show');
+    if(typeof callback==='function') callback();
+  },520);
+}
+
 function spawnEnemy(i){
   // V20: 스테이지가 진행될수록 전투 역할이 뚜렷한 특수 적이 섞인다.
   const pool = stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
@@ -2158,7 +2192,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           o.style.display="none";
           o.style.pointerEvents="auto";
           window.__duckPendingNextStage=0;
-          if(window.__duckStartStage)window.__duckStartStage(nextStage);
+          showNextStageTransition(nextStage,()=>{
+            if(window.__duckStartStage)window.__duckStartStage(nextStage);
+          });
         },120);
       });
       o.__rewardClickBound=true;
