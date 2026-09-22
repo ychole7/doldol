@@ -27,6 +27,7 @@ let vw=1, vh=1, dpr=1, running=false, last=0;
 let player, enemies=[], rocks=[], shots=[], particles=[], damageTexts=[];
 let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
+let farmPickupFx=0, farmLastPickup=null;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let pendingNextStage=0;
@@ -68,7 +69,7 @@ function spawnFarmDropV2(x,y){
   pickups.push({
     x:Number(x)||vw*.5,y:Number(y)||vh*.5,type:'farm',
     farmId:item.id,farmName:item.name,farmIcon:item.icon,
-    life:10,bob:Math.random()*Math.PI*2,farmPicked:false
+    life:10,bob:Math.random()*Math.PI*2,farmPicked:false,age:0
   });
   return true;
 }
@@ -1107,6 +1108,11 @@ function update(dt){
 
   for(const p of pickups){
     p.life-=dt; p.bob+=dt*4;
+    if(p.type==='farm') p.age=(p.age||0)+dt;
+  }
+  farmPickupFx=Math.max(0,farmPickupFx-dt);
+
+  for(const p of pickups){
     const d=Math.hypot(p.x-player.x,p.y-player.y);
     if(d<42){
       if(p.type==='coin'){
@@ -1115,6 +1121,8 @@ function update(dt){
         if(window.__duckSyncLobby)window.__duckSyncLobby();
       }else if(p.type==='farm'){
         const count=window.__doldolFarmV2.add(p.farmId,1);
+        farmLastPickup={id:p.farmId,name:p.farmName||'재료',icon:p.farmIcon||'⭐',count};
+        farmPickupFx=1.05;
         message=(p.farmIcon||'⭐')+' '+(p.farmName||'재료')+' +1';
         messageTimer=.65;
         p.farmPicked=true;
@@ -1150,6 +1158,10 @@ function update(dt){
       messageTimer=Math.max(messageTimer,.32);
       burst(p.x,p.y,8);
       p.life=0;
+    }else if(p.type==='farm' && d<170){
+      const dx=player.x-p.x,dy=player.y-p.y,L=Math.hypot(dx,dy)||1;
+      const speed=105+Math.max(0,170-d)*1.25;
+      p.x+=dx/L*speed*dt;p.y+=dy/L*speed*dt;
     }else if(d<130){
       const dx=player.x-p.x,dy=player.y-p.y,L=Math.hypot(dx,dy)||1;
       p.x+=dx/L*80*dt;p.y+=dy/L*80*dt;
@@ -1311,13 +1323,17 @@ function draw(){
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
     }else if(p.type==='farm'){
-      const pulse=1+Math.sin(performance.now()/150)*.08;
-      ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=1;
+      const pulse=1+Math.sin((performance.now()/150)+(p.bob||0))*.10;
+      const pop=Math.min(1,(p.age||0)*7);
+      const scale=.78+.22*pop;
+      ctx.globalAlpha=.16;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,20*pulse,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=.95;ctx.strokeStyle='rgba(255,239,170,.72)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,14*pulse,0,Math.PI*2);ctx.stroke();
+      ctx.globalAlpha=1;ctx.scale(scale,scale);
       ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText(p.farmIcon||'⭐',0,1);
       ctx.textBaseline='alphabetic';
-      ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
+      ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=3;ctx.fillText(p.farmName||'재료',0,23);
+      ctx.shadowBlur=0;
     }else{
       ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
@@ -1362,6 +1378,25 @@ function draw(){
   ctx.font='12px system-ui';ctx.fillStyle='#aeb9c4';ctx.fillText(`${kills}/${total} 처치`,28,59);
   ctx.textAlign='right';ctx.font='900 12px system-ui';ctx.fillStyle='#ffd866';
   ctx.fillText(`🪙 ${window.__duckWallet.coins.toLocaleString()}   XP ${xp}`,vw-26,59);
+
+  // FARM HUD — current persistent material total, intentionally compact.
+  const farmTotal=FARM_ITEMS_V2.reduce((sum,it)=>sum+Number(farmInventoryV2[it.id]||0),0);
+  const farmHudW=Math.min(148,vw-28), farmHudX=14, farmHudY=86;
+  ctx.fillStyle='rgba(8,13,19,.72)';roundRect(farmHudX,farmHudY,farmHudW,28,14);ctx.fill();
+  ctx.strokeStyle='rgba(255,216,102,.18)';ctx.lineWidth=1;ctx.stroke();
+  ctx.textAlign='left';ctx.font='900 10px system-ui';ctx.fillStyle='#ffd866';ctx.fillText('🧰  재료',farmHudX+10,farmHudY+18);
+  ctx.textAlign='right';ctx.font='900 12px system-ui';ctx.fillStyle='#fff';ctx.fillText(farmTotal.toLocaleString(),farmHudX+farmHudW-10,farmHudY+18);
+
+  if(farmPickupFx>0 && farmLastPickup){
+    const a=Math.min(1,farmPickupFx*2.5);
+    const rise=(1-farmPickupFx)*24;
+    ctx.save();ctx.globalAlpha=a;ctx.textAlign='center';
+    ctx.font='1000 15px system-ui';ctx.fillStyle='#ffe58a';ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=5;
+    ctx.fillText(`${farmLastPickup.icon} +1 ${farmLastPickup.name}`,vw*.5,vh*.72-rise);
+    ctx.font='800 10px system-ui';ctx.fillStyle='#fff';ctx.shadowBlur=3;
+    ctx.fillText(`보유 ${farmLastPickup.count}`,vw*.5,vh*.72+16-rise);
+    ctx.restore();
+  }
 
   ctx.fillStyle='#303943';roundRect(vw*.42,25,vw*.31,13,7);ctx.fill();
   ctx.fillStyle='#58d56c';roundRect(vw*.42,25,vw*.31*(player.hp/player.maxHp),13,7);ctx.fill();
