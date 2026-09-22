@@ -2862,7 +2862,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   style.textContent=`
     #resultScreen.doldolResultV3{background:rgba(7,13,18,.72)!important;backdrop-filter:blur(7px)!important;}
     #resultScreen.doldolResultV3 .dResultCard{
-      width:min(88vw,390px)!important;
+      width:calc(100% - 24px)!important;
+      max-width:390px!important;
       box-sizing:border-box!important;
       margin:0 auto!important;
       padding:18px 16px 16px!important;
@@ -2910,7 +2911,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       color:#8b6948;font:900 11px system-ui;letter-spacing:1px;
     }
     #resultScreen.doldolResultV3 .resultReward{
-      display:flex!important;gap:9px!important;width:100%!important;max-width:342px!important;box-sizing:border-box!important;margin:0 auto 13px!important;
+      display:flex!important;gap:9px!important;width:100%!important;max-width:none!important;box-sizing:border-box!important;margin:0 auto 13px!important;
     }
     #resultScreen.doldolResultV3 .reward{
       min-height:66px!important;padding:9px 8px!important;box-sizing:border-box!important;border-radius:17px!important;
@@ -2920,12 +2921,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #resultScreen.doldolResultV3 .reward span{font-size:11px!important;color:#907154!important;}
     #resultScreen.doldolResultV3 .reward b{font-size:22px!important;color:#49301b!important;}
     #resultScreen.doldolResultV3 #resultDetail{
-      max-width:342px!important;margin:0 auto 12px!important;padding:8px 10px!important;
+      max-width:none!important;width:100%!important;box-sizing:border-box!important;margin:0 auto 12px!important;padding:8px 10px!important;
       border:1px solid rgba(123,82,42,.12)!important;border-radius:12px!important;
       background:rgba(255,255,255,.42)!important;color:#806247!important;
       font-size:10px!important;
     }
-    #resultScreen.doldolResultV3 .resultActions{display:flex!important;flex-direction:column!important;gap:10px!important;width:100%!important;max-width:342px!important;box-sizing:border-box!important;margin:0 auto!important;}
+    #resultScreen.doldolResultV3 .resultActions{display:flex!important;flex-direction:column!important;gap:10px!important;width:100%!important;max-width:none!important;box-sizing:border-box!important;margin:0 auto!important;}
     #resultScreen.doldolResultV3 .resultBtn{min-height:55px!important;border-radius:18px!important;font-size:16px!important;}
     #resultScreen.doldolResultV3 .resultBtn.primary{
       border:2px solid #428b22!important;
