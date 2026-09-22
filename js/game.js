@@ -2862,7 +2862,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   style.textContent=`
     #resultScreen.doldolResultV3{background:rgba(7,13,18,.72)!important;backdrop-filter:blur(7px)!important;}
     #resultScreen.doldolResultV3 .dResultCard{
-      width:min(91vw,402px)!important;
+      width:min(88vw,390px)!important;
+      box-sizing:border-box!important;
+      margin:0 auto!important;
       padding:18px 16px 16px!important;
       border-radius:32px!important;
       background:linear-gradient(180deg,#fffdf7 0%,#f7edda 52%,#ead4a4 100%)!important;
@@ -2908,10 +2910,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       color:#8b6948;font:900 11px system-ui;letter-spacing:1px;
     }
     #resultScreen.doldolResultV3 .resultReward{
-      gap:9px!important;max-width:342px!important;margin-bottom:13px!important;
+      display:flex!important;gap:9px!important;width:100%!important;max-width:342px!important;box-sizing:border-box!important;margin:0 auto 13px!important;
     }
     #resultScreen.doldolResultV3 .reward{
-      min-height:66px!important;padding:9px 8px!important;border-radius:17px!important;
+      min-height:66px!important;padding:9px 8px!important;box-sizing:border-box!important;border-radius:17px!important;
       background:rgba(255,255,255,.84)!important;border:2px solid #eadfc9!important;
       box-shadow:0 5px 0 rgba(101,65,31,.08)!important;
     }
@@ -2923,7 +2925,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       background:rgba(255,255,255,.42)!important;color:#806247!important;
       font-size:10px!important;
     }
-    #resultScreen.doldolResultV3 .resultActions{gap:10px!important;max-width:342px;margin:0 auto!important;}
+    #resultScreen.doldolResultV3 .resultActions{display:flex!important;flex-direction:column!important;gap:10px!important;width:100%!important;max-width:342px!important;box-sizing:border-box!important;margin:0 auto!important;}
     #resultScreen.doldolResultV3 .resultBtn{min-height:55px!important;border-radius:18px!important;font-size:16px!important;}
     #resultScreen.doldolResultV3 .resultBtn.primary{
       border:2px solid #428b22!important;
