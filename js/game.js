@@ -3033,6 +3033,37 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       text-align:center!important;
     }
   `;
+  /* GAME17 — reward cards final inset fix only */
+  style.textContent += `
+    #resultScreen.doldolResultV3 .resultReward{
+      display:grid!important;
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      width:calc(100% - 12px)!important;
+      max-width:none!important;
+      margin:0 auto 13px!important;
+      padding:0!important;
+      gap:8px!important;
+      box-sizing:border-box!important;
+      overflow:visible!important;
+    }
+    #resultScreen.doldolResultV3 .resultReward > .reward{
+      width:100%!important;
+      max-width:none!important;
+      min-width:0!important;
+      margin:0!important;
+      box-sizing:border-box!important;
+      overflow:hidden!important;
+    }
+    #resultScreen.doldolResultV3 .resultReward > .reward b,
+    #resultScreen.doldolResultV3 .resultReward > .reward span{
+      display:block!important;
+      width:100%!important;
+      max-width:100%!important;
+      box-sizing:border-box!important;
+      text-align:center!important;
+    }
+  `;
+
   document.head.appendChild(style);
 
   const original=window.__duckShowResult;
