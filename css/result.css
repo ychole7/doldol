@@ -1,0 +1,33 @@
+/* DOLDOL SPECIAL FORCE — Result / Next Stage UI
+   GAME18: extracted external stylesheet for result-screen polish.
+   Combat, drops, gate and progression logic remain in game.js. */
+
+#resultScreen.doldolResultV3{background:rgba(7,13,18,.72)!important;backdrop-filter:blur(7px)!important;}
+#resultScreen.doldolResultV3 .dResultCard{width:390px!important;max-width:calc(100vw - 32px)!important;box-sizing:border-box!important;overflow:hidden!important;margin:0 auto!important;padding:18px 16px 16px!important;border-radius:32px!important;background:linear-gradient(180deg,#fffdf7 0%,#f7edda 52%,#ead4a4 100%)!important;border:3px solid #8a5a31!important;box-shadow:0 24px 65px rgba(0,0,0,.48),inset 0 1px 0 #fff!important;}
+#resultScreen.doldolResultV3 .dWood{top:17px!important;left:7%!important;right:7%!important;height:76px!important;border-radius:18px!important;transform:rotate(-.6deg)!important;background:linear-gradient(180deg,#b4773d,#76451f)!important;box-shadow:inset 0 3px 0 rgba(255,229,178,.5),inset 0 -5px 0 rgba(64,34,14,.3),0 6px 0 rgba(73,42,20,.2)!important;}
+#resultScreen.doldolResultV3 .dKicker{margin-top:-91px!important;margin-bottom:66px!important;font-size:13px!important;letter-spacing:3px!important;}
+#resultScreen.doldolResultV3 .dCharacter{width:116px!important;height:116px!important;margin-bottom:-3px!important;}
+#resultScreen.doldolResultV3 .resultTitle{font-size:38px!important;line-height:1!important;letter-spacing:.3px!important;margin-top:2px!important;text-align:center!important;white-space:nowrap!important;}
+#resultScreen.doldolResultV3 .resultSub{font-size:15px!important;margin-top:8px!important;color:#735033!important;text-align:center!important;width:100%!important;}
+#resultScreen.doldolResultV3 .dStageBadge{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:9px auto 2px!important;padding:6px 14px!important;border-radius:999px!important;background:#fff7df!important;border:2px solid #e1c789!important;color:#79512d!important;font:900 11px system-ui!important;letter-spacing:1.4px!important;}
+#resultScreen.doldolResultV3 .resultStars{display:block!important;width:100%!important;margin:9px auto 15px!important;font-size:39px!important;line-height:1!important;letter-spacing:3px!important;text-align:center!important;}
+#resultScreen.doldolResultV3 .dRewardLabel{width:100%!important;max-width:100%!important;text-align:left!important;margin:0 auto 7px!important;padding-left:3px!important;box-sizing:border-box!important;color:#8b6948!important;font:900 11px system-ui!important;letter-spacing:1px!important;}
+#resultScreen.doldolResultV3 .resultReward{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important;width:100%!important;max-width:100%!important;margin:0 auto 13px!important;padding:0!important;box-sizing:border-box!important;overflow:hidden!important;}
+#resultScreen.doldolResultV3 .resultReward>.reward{width:auto!important;min-width:0!important;max-width:none!important;margin:0!important;padding:9px 6px!important;box-sizing:border-box!important;overflow:hidden!important;text-align:center!important;border-radius:17px!important;background:rgba(255,255,255,.84)!important;border:2px solid #eadfc9!important;box-shadow:0 5px 0 rgba(101,65,31,.08)!important;}
+#resultScreen.doldolResultV3 .resultReward .reward span,#resultScreen.doldolResultV3 .resultReward .reward b{display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;text-align:center!important;}
+#resultScreen.doldolResultV3 .resultReward .reward b{white-space:nowrap!important;overflow:hidden!important;font-size:22px!important;color:#49301b!important;}
+#resultScreen.doldolResultV3 #resultDetail{max-width:100%!important;width:100%!important;box-sizing:border-box!important;margin:0 auto 12px!important;padding:8px 10px!important;border:1px solid rgba(123,82,42,.12)!important;border-radius:12px!important;background:rgba(255,255,255,.42)!important;color:#806247!important;font-size:10px!important;}
+#resultScreen.doldolResultV3 .resultActions{display:flex!important;flex-direction:column!important;gap:10px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;margin:0 auto!important;padding:0!important;overflow:hidden!important;}
+#resultScreen.doldolResultV3 .resultActions .resultBtn{display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;margin:0 auto!important;min-height:55px!important;border-radius:18px!important;font-size:16px!important;}
+#resultScreen.doldolResultV3 .resultBtn.primary{border:2px solid #428b22!important;background:linear-gradient(180deg,#a6ed57 0%,#62bf31 100%)!important;box-shadow:0 6px 0 #39851f,0 9px 16px rgba(60,125,28,.18)!important;}
+
+/* Next-stage transition */
+#doldolStageTransition{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,10,14,.0);opacity:0;pointer-events:none;transition:opacity .16s ease;}
+#doldolStageTransition.show{opacity:1;background:rgba(5,10,14,.82);}
+#doldolStageTransition .dstPanel{width:min(310px,78vw);padding:24px 18px 22px;border-radius:24px;text-align:center;background:linear-gradient(180deg,#fff8df,#e8cf98);border:3px solid #8a5a31;box-shadow:0 18px 50px rgba(0,0,0,.42);transform:scale(.86) translateY(12px);opacity:0;transition:transform .28s cubic-bezier(.2,.9,.25,1),opacity .2s ease;}
+#doldolStageTransition.show .dstPanel{transform:scale(1) translateY(0);opacity:1;}
+#doldolStageTransition .dstKicker{font:900 11px system-ui;letter-spacing:3px;color:#9b6a28;margin-bottom:6px;}
+#doldolStageTransition .dstStage{font:1000 34px system-ui;color:#4b301c;text-shadow:0 2px 0 #fff;}
+#doldolStageTransition .dstSub{margin-top:5px;font:900 13px system-ui;color:#806247;}
+
+@media(max-height:700px){#resultScreen.doldolResultV3 .dResultCard{transform:scale(.9);transform-origin:center!important;}}
