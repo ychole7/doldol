@@ -1131,16 +1131,30 @@ function update(dt){
   particles=particles.filter(p=>p.life>0);
 
   enemies=enemies.filter(e=>!e.dead);
-  if(enemies.length===0){
+
+  // V-GATE-FLOW: 적 전멸 → 관문 등장 → 플레이어가 관문까지 이동 → 결과 화면.
+  // 결과 화면을 적 전멸 직후 띄우지 않는다. 기존 파밍/전투/보상 로직은 그대로 유지한다.
+  if(enemies.length===0 && !gate){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
+      running=true;
+      message='관문이 열렸습니다!';
+      messageTimer=1.25;
+      burst(vw*.5,vh*.18,36);
+    }
+  }
+
+  if(gate && running){
+    const gx=vw*.5, gy=vh*.18;
+    if(Math.hypot(player.x-gx,player.y-gy)<78){
+      gate=false;
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
-      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},80);
-      burst(vw*.5,vh*.18,24);
+      burst(gx,gy,42);
+      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},180);
     }
   }
 }
@@ -1407,6 +1421,29 @@ function draw(){
     if(e.elite){
       ctx.fillStyle='#ffcf66';ctx.font='900 8px system-ui';ctx.textAlign='center';ctx.fillText('ELITE',e.x,e.y-e.r-17);
     }
+  }
+
+  // V-GATE-FLOW visual: 관문은 전투 중에도 실제 이동 목표로 보인다.
+  if(gate){
+    const gx=vw*.5, gy=vh*.18;
+    const pulse=1+Math.sin(performance.now()/180)*.035;
+    ctx.save();
+    ctx.translate(gx,gy);
+    ctx.scale(pulse,pulse);
+    ctx.globalAlpha=.22;
+    ctx.fillStyle='#ffd866';
+    ctx.beginPath();ctx.arc(0,18,72,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#6b4425';
+    roundRect(-58,-20,116,76,18);ctx.fill();
+    ctx.fillStyle='#18222b';
+    roundRect(-40,-5,80,60,12);ctx.fill();
+    ctx.strokeStyle='#d6a45d';ctx.lineWidth=5;ctx.stroke();
+    ctx.fillStyle='#ffd866';ctx.font='900 16px system-ui';ctx.textAlign='center';
+    ctx.fillText('GATE OPEN',0,-34);
+    ctx.fillStyle='#fff';ctx.font='900 11px system-ui';
+    ctx.fillText('관문으로 이동',0,72);
+    ctx.restore();
   }
 
   if(player.inv<=0 || Math.floor(performance.now()/70)%2===0) drawDuck(player.x,player.y);
