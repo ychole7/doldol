@@ -3008,6 +3008,31 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       #resultScreen.doldolResultV3 .dResultCard{transform:scale(.9);transform-origin:center!important;}
     }
   `;
+
+  /* ROOT LAYOUT FIX: explicit grid prevents inherited flex/min-width rules from pushing the second reward card outside. */
+  style.textContent += `
+    #resultScreen.doldolResultV3 .dResultCard{
+      width:390px!important;max-width:calc(100vw - 32px)!important;
+      box-sizing:border-box!important;overflow:hidden!important;
+      margin-left:auto!important;margin-right:auto!important;
+    }
+    #resultScreen.doldolResultV3 .resultReward{
+      display:grid!important;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+      gap:8px!important;width:100%!important;max-width:none!important;
+      margin:0 0 13px!important;padding:0!important;
+      box-sizing:border-box!important;overflow:hidden!important;
+    }
+    #resultScreen.doldolResultV3 .resultReward .reward{
+      display:block!important;width:auto!important;min-width:0!important;max-width:none!important;
+      flex:none!important;margin:0!important;padding:9px 6px!important;
+      box-sizing:border-box!important;overflow:hidden!important;
+    }
+    #resultScreen.doldolResultV3 .resultReward .reward b{
+      white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;
+      text-align:center!important;
+    }
+  `;
   document.head.appendChild(style);
 
   const original=window.__duckShowResult;
