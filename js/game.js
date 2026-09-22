@@ -1012,28 +1012,6 @@ function update(dt){
     }
   }
 
-  for(const p of pickups){
-    const bob=Math.sin(p.bob)*3;
-    ctx.save();ctx.translate(p.x,p.y+bob);
-    if(p.type==='coin'){
-      ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
-      ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
-    }else if(p.type==='farm'){
-      const pulse=1+Math.sin(performance.now()/150)*.08;
-      ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=1;
-      ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(p.farmIcon||'⭐',0,1);
-      ctx.textBaseline='alphabetic';
-      ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
-    }else{
-      ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
-    }
-    ctx.restore();
-  }
-
   for(const s of shots){
     s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
     for(const c of covers){
@@ -1274,6 +1252,28 @@ function draw(){
     ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;ctx.stroke();
     ctx.fillStyle='rgba(255,255,255,.08)';
     roundRect(c.x-c.w/2+7,c.y-c.h/2+6,c.w-14,7,4);ctx.fill();
+  }
+
+  for(const p of pickups){
+    const bob=Math.sin(p.bob)*3;
+    ctx.save();ctx.translate(p.x,p.y+bob);
+    if(p.type==='coin'){
+      ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
+    }else if(p.type==='farm'){
+      const pulse=1+Math.sin(performance.now()/150)*.08;
+      ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(p.farmIcon||'⭐',0,1);
+      ctx.textBaseline='alphabetic';
+      ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
+    }else{
+      ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
+    }
+    ctx.restore();
   }
 
   // V21 boss cinematic overlay / attack callout
