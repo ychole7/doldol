@@ -2849,3 +2849,122 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(next) next.textContent=clear?'다음 스테이지  ▶':'다시 도전';
   };
 })();
+
+/* =========================================================
+   DOLDOL RESULT SCREEN V3 — POLISH PASS
+   - UI/animation only. Does not change combat, drops, gate or progression logic.
+   ========================================================= */
+(function(){
+  const result=document.getElementById('resultScreen');
+  if(!result) return;
+
+  const style=document.createElement('style');
+  style.textContent=`
+    #resultScreen.doldolResultV3{background:rgba(7,13,18,.72)!important;backdrop-filter:blur(7px)!important;}
+    #resultScreen.doldolResultV3 .dResultCard{
+      width:min(91vw,402px)!important;
+      padding:18px 16px 16px!important;
+      border-radius:32px!important;
+      background:linear-gradient(180deg,#fffdf7 0%,#f7edda 52%,#ead4a4 100%)!important;
+      border:3px solid #8a5a31!important;
+      box-shadow:0 24px 65px rgba(0,0,0,.48),inset 0 1px 0 #fff!important;
+      animation:doldolResultIn .42s cubic-bezier(.2,.85,.25,1) both;
+    }
+    #resultScreen.doldolResultV3 .dWood{
+      top:17px!important;left:7%!important;right:7%!important;height:76px!important;
+      border-radius:18px!important;transform:rotate(-.6deg)!important;
+      background:linear-gradient(180deg,#b4773d,#76451f)!important;
+      box-shadow:inset 0 3px 0 rgba(255,229,178,.5),inset 0 -5px 0 rgba(64,34,14,.3),0 6px 0 rgba(73,42,20,.2)!important;
+    }
+    #resultScreen.doldolResultV3 .dKicker{
+      margin-top:-91px!important;margin-bottom:66px!important;
+      font-size:13px!important;letter-spacing:3px!important;
+    }
+    #resultScreen.doldolResultV3 .dCharacter{
+      width:116px!important;height:116px!important;
+      margin-bottom:-3px!important;
+      animation:doldolHeroPop .62s cubic-bezier(.18,.9,.25,1.2) both!important;
+    }
+    #resultScreen.doldolResultV3 .resultTitle{
+      font-size:38px!important;line-height:1!important;letter-spacing:.3px!important;
+      margin-top:2px!important;
+      text-shadow:0 3px 0 #6a3919,0 6px 14px rgba(72,37,12,.34)!important;
+    }
+    #resultScreen.doldolResultV3 .resultSub{
+      font-size:15px!important;margin-top:8px!important;color:#735033!important;
+    }
+    #resultScreen.doldolResultV3 .dStageBadge{
+      display:inline-flex;align-items:center;justify-content:center;
+      margin:9px auto 2px;padding:6px 14px;border-radius:999px;
+      background:#fff7df;border:2px solid #e1c789;color:#79512d;
+      font:900 11px system-ui;letter-spacing:1.4px;box-shadow:0 3px 0 rgba(101,65,31,.08);
+    }
+    #resultScreen.doldolResultV3 .resultStars{
+      margin:9px 0 15px!important;font-size:39px!important;line-height:1!important;
+      letter-spacing:3px!important;filter:drop-shadow(0 4px 4px rgba(190,122,0,.18));
+    }
+    #resultScreen.doldolResultV3 .dRewardLabel{
+      text-align:left;max-width:342px;margin:0 auto 7px;padding-left:3px;
+      color:#8b6948;font:900 11px system-ui;letter-spacing:1px;
+    }
+    #resultScreen.doldolResultV3 .resultReward{
+      gap:9px!important;max-width:342px!important;margin-bottom:13px!important;
+    }
+    #resultScreen.doldolResultV3 .reward{
+      min-height:66px!important;padding:9px 8px!important;border-radius:17px!important;
+      background:rgba(255,255,255,.84)!important;border:2px solid #eadfc9!important;
+      box-shadow:0 5px 0 rgba(101,65,31,.08)!important;
+    }
+    #resultScreen.doldolResultV3 .reward span{font-size:11px!important;color:#907154!important;}
+    #resultScreen.doldolResultV3 .reward b{font-size:22px!important;color:#49301b!important;}
+    #resultScreen.doldolResultV3 #resultDetail{
+      max-width:342px!important;margin:0 auto 12px!important;padding:8px 10px!important;
+      border:1px solid rgba(123,82,42,.12)!important;border-radius:12px!important;
+      background:rgba(255,255,255,.42)!important;color:#806247!important;
+      font-size:10px!important;
+    }
+    #resultScreen.doldolResultV3 .resultActions{gap:10px!important;max-width:342px;margin:0 auto!important;}
+    #resultScreen.doldolResultV3 .resultBtn{min-height:55px!important;border-radius:18px!important;font-size:16px!important;}
+    #resultScreen.doldolResultV3 .resultBtn.primary{
+      border:2px solid #428b22!important;
+      background:linear-gradient(180deg,#a6ed57 0%,#62bf31 100%)!important;
+      box-shadow:0 6px 0 #39851f,0 9px 16px rgba(60,125,28,.18)!important;
+    }
+    #resultScreen.doldolResultV3 .resultBtn.primary:active{transform:translateY(4px)!important;box-shadow:0 2px 0 #39851f!important;}
+    #resultScreen.doldolResultV3 .dConfetti i{animation-duration:2.15s!important;}
+    @keyframes doldolResultIn{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes doldolHeroPop{0%{opacity:0;transform:translateY(20px) scale(.72) rotate(-4deg)}70%{opacity:1;transform:translateY(-4px) scale(1.05) rotate(1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+    @media(max-height:700px){
+      #resultScreen.doldolResultV3 .dResultCard{transform:scale(.9);transform-origin:center!important;}
+    }
+  `;
+  document.head.appendChild(style);
+
+  const original=window.__duckShowResult;
+  window.__duckShowResult=function(clear){
+    if(typeof original==='function') original(clear);
+    result.classList.add('doldolResultV3');
+
+    const card=result.querySelector('.dResultCard');
+    if(!card) return;
+
+    let badge=card.querySelector('.dStageBadge');
+    if(!badge){
+      badge=document.createElement('div');
+      badge.className='dStageBadge';
+      const sub=document.getElementById('resultSub');
+      if(sub && sub.parentNode) sub.parentNode.insertBefore(badge,sub.nextSibling);
+    }
+    const stageNo=Math.max(1,Number(window.__duckStage||1)||1);
+    badge.textContent=clear?('STAGE '+stageNo):'MISSION FAILED';
+
+    let label=card.querySelector('.dRewardLabel');
+    if(!label){
+      label=document.createElement('div');
+      label.className='dRewardLabel';
+      const rewards=card.querySelector('.resultReward');
+      if(rewards) rewards.parentNode.insertBefore(label,rewards);
+    }
+    label.textContent=clear?'작전 보상':'전투 결과';
+  };
+})();
