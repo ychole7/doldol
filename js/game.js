@@ -2935,6 +2935,73 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     #resultScreen.doldolResultV3 .resultBtn.primary:active{transform:translateY(4px)!important;box-shadow:0 2px 0 #39851f!important;}
     #resultScreen.doldolResultV3 .dConfetti i{animation-duration:2.15s!important;}
+    /* FINAL MOBILE CENTER FIX — constrain every result child to the card content box */
+    #resultScreen.doldolResultV3 .dResultCard{overflow:hidden!important;}
+    #resultScreen.doldolResultV3 .resultTitle,
+    #resultScreen.doldolResultV3 .resultSub,
+    #resultScreen.doldolResultV3 .resultStars,
+    #resultScreen.doldolResultV3 .dStageBadge,
+    #resultScreen.doldolResultV3 .dRewardLabel,
+    #resultScreen.doldolResultV3 #resultDetail,
+    #resultScreen.doldolResultV3 .resultReward,
+    #resultScreen.doldolResultV3 .resultActions{
+      position:relative!important;
+      left:auto!important;
+      right:auto!important;
+      transform:none!important;
+      margin-left:auto!important;
+      margin-right:auto!important;
+      box-sizing:border-box!important;
+    }
+    #resultScreen.doldolResultV3 .resultTitle{
+      display:block!important;
+      width:100%!important;
+      max-width:100%!important;
+      padding:0!important;
+      text-align:center!important;
+      white-space:nowrap!important;
+      font-size:clamp(29px,8.8vw,38px)!important;
+    }
+    #resultScreen.doldolResultV3 .resultSub{
+      display:block!important;width:100%!important;max-width:100%!important;
+      text-align:center!important;padding:0!important;
+    }
+    #resultScreen.doldolResultV3 .resultStars{
+      display:block!important;width:100%!important;max-width:100%!important;text-align:center!important;
+    }
+    #resultScreen.doldolResultV3 .dStageBadge{width:max-content!important;max-width:100%!important;}
+    #resultScreen.doldolResultV3 .dRewardLabel{width:100%!important;max-width:100%!important;}
+    #resultScreen.doldolResultV3 .resultReward{
+      display:flex!important;
+      width:100%!important;
+      max-width:100%!important;
+      padding:0!important;
+      gap:8px!important;
+      overflow:hidden!important;
+    }
+    #resultScreen.doldolResultV3 .resultReward .reward{
+      flex:0 0 calc((100% - 8px)/2)!important;
+      width:calc((100% - 8px)/2)!important;
+      max-width:calc((100% - 8px)/2)!important;
+      min-width:0!important;
+      margin:0!important;
+      box-sizing:border-box!important;
+      text-align:center!important;
+    }
+    #resultScreen.doldolResultV3 .resultActions{
+      width:100%!important;
+      max-width:100%!important;
+      padding:0!important;
+      overflow:hidden!important;
+    }
+    #resultScreen.doldolResultV3 .resultActions .resultBtn{
+      display:block!important;
+      width:100%!important;
+      max-width:100%!important;
+      margin-left:auto!important;
+      margin-right:auto!important;
+      box-sizing:border-box!important;
+    }
     @keyframes doldolResultIn{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
     @keyframes doldolHeroPop{0%{opacity:0;transform:translateY(20px) scale(.72) rotate(-4deg)}70%{opacity:1;transform:translateY(-4px) scale(1.05) rotate(1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
     @media(max-height:700px){
