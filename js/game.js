@@ -2020,21 +2020,23 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(mapLobby)mapLobby.onclick=showLobby;
   if(resultLobby)resultLobby.onclick=showLobby;
 
-  // STAGE FLOW FIX: 결과 화면의 다음 스테이지는 현재 스테이지 + 1로 직접 진입한다.
-  // 보상/메뉴 UI가 stage 값을 다시 증가시키지 않도록 여기서 목표 스테이지를 고정한다.
+  // Result next button: CLEAR goes to reward selection first.
   if(resultNext)resultNext.onclick=function(e){
     e.preventDefault();
     const clear=$("resultTitle") && $("resultTitle").textContent==="CLEAR!";
-    const s=Math.max(1,Math.min(500,Number(window.__duckStage||stage||1)||1));
-    const next=clear?Math.min(500,s+1):s;
-    window.__duckPendingNextStage=0;
+    const s=Math.max(1,Math.min(500,Number(window.__duckStage||1)||1));
+    if(clear){
+      // 다음 스테이지를 클릭 시점에 고정한다. 이후 UI 이벤트가 stage 값을
+      // 바꿔도 보상 선택 후 반드시 정확히 다음 스테이지로 진행한다.
+      window.__duckPendingNextStage=Math.min(500,s+1);
+      if(window.__duckOpenStageReward){
+        window.__duckOpenStageReward();
+        return;
+      }
+    }
     try{localStorage.removeItem("doldol_run_skills_v1");}catch(e){}
     if(result)result.classList.remove("show");
-    if(window.__duckStartStage){
-      window.__duckStartStage(next);
-    }else{
-      startStage(next);
-    }
+    startBattle(clear?Math.min(500,s+1):s);
   };
 
   const battlePause=document.getElementById('battlePause');
@@ -3127,4 +3129,41 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     label.textContent=clear?'작전 보상':'전투 결과';
   };
+})();
+
+/* =========================================================
+   FINAL STAGE FLOW LOCK
+   - Keep the rich game18 combat/drop/gate/result system untouched.
+   - Remove every previous result-next click listener by replacing the button.
+   - CLEAR on STAGE N advances exactly once to STAGE N+1.
+   ========================================================= */
+(function(){
+  const oldBtn=document.getElementById('resultNext');
+  if(!oldBtn) return;
+
+  const btn=oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(btn,oldBtn);
+
+  let advancing=false;
+  btn.addEventListener('click',function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if(advancing) return;
+    advancing=true;
+
+    const result=document.getElementById('resultScreen');
+    const title=document.getElementById('resultTitle');
+    const clear=!!title && title.textContent.indexOf('CLEAR')!==-1;
+    const current=Math.max(1,Math.min(500,Number(window.__duckStage)||1));
+    const target=clear ? Math.min(500,current+1) : current;
+
+    window.__duckPendingNextStage=0;
+    if(result) result.classList.remove('show');
+
+    if(window.__duckStartStage){
+      window.__duckStartStage(target);
+    }
+
+    setTimeout(function(){ advancing=false; },500);
+  });
 })();
