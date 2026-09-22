@@ -1019,60 +1019,6 @@ function update(dt){
     }
   }
 
-  for(const p of pickups){
-    const bob=Math.sin(p.bob)*3;
-    ctx.save();ctx.translate(p.x,p.y+bob);
-    if(p.type==='coin'){
-      ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
-      ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
-    }else if(p.type==='farm'){
-      // V6: 이모지/문자 대신 실제 캔버스 오브젝트로 파밍 아이템을 그린다.
-      const pulse=1+Math.sin(performance.now()/150)*.08;
-      const id=p.farmId||'special';
-      const colors={wood:'#9a6a3a',stone:'#87929b',ember:'#ef633f',ice:'#65cfff',herb:'#63b86b',gem:'#7d8cff',vial:'#b58cff',powder:'#555b68',spark:'#ffd34f',special:'#ffcf57'};
-      const c=colors[id]||'#ffd866';
-      ctx.globalAlpha=.20;ctx.fillStyle=c;ctx.beginPath();ctx.arc(0,0,22*pulse,0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=1;
-      ctx.shadowColor=c;ctx.shadowBlur=10;
-      ctx.fillStyle=c;
-      if(id==='wood'){
-        roundRect(-13,-8,26,16,5);ctx.fill();
-        ctx.fillStyle='rgba(255,235,190,.65)';ctx.fillRect(-8,-5,3,10);ctx.fillRect(2,-5,3,10);
-      }else if(id==='stone'){
-        ctx.beginPath();ctx.moveTo(-13,5);ctx.lineTo(-8,-10);ctx.lineTo(6,-13);ctx.lineTo(14,0);ctx.lineTo(7,11);ctx.lineTo(-7,12);ctx.closePath();ctx.fill();
-        ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;ctx.stroke();
-      }else if(id==='ember'){
-        ctx.beginPath();ctx.moveTo(0,-15);ctx.bezierCurveTo(13,-5,11,7,0,13);ctx.bezierCurveTo(-11,7,-8,-2,0,-15);ctx.fill();
-        ctx.fillStyle='#fff0a0';ctx.beginPath();ctx.arc(0,3,5,0,Math.PI*2);ctx.fill();
-      }else if(id==='ice'){
-        ctx.beginPath();for(let i=0;i<6;i++){const a=-Math.PI/2+i*Math.PI/3;const x=Math.cos(a)*14,y=Math.sin(a)*14;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
-        ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.stroke();
-      }else if(id==='herb'){
-        ctx.lineWidth=4;ctx.strokeStyle='#4d8f50';ctx.beginPath();ctx.moveTo(0,12);ctx.lineTo(0,-8);ctx.stroke();
-        ctx.fillStyle='#76cf78';ctx.beginPath();ctx.ellipse(-6,-5,6,10,-.6,0,Math.PI*2);ctx.ellipse(6,-9,6,10,.6,0,Math.PI*2);ctx.fill();
-      }else if(id==='gem'){
-        ctx.beginPath();ctx.moveTo(-12,-5);ctx.lineTo(-4,-14);ctx.lineTo(8,-11);ctx.lineTo(14,0);ctx.lineTo(4,14);ctx.lineTo(-10,9);ctx.closePath();ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,.65)';ctx.beginPath();ctx.moveTo(-5,-8);ctx.lineTo(2,-9);ctx.lineTo(-1,1);ctx.closePath();ctx.fill();
-      }else if(id==='vial'){
-        roundRect(-9,-9,18,20,5);ctx.fill();ctx.fillStyle='#eee';ctx.fillRect(-5,-14,10,5);ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillRect(-5,-4,4,10);
-      }else if(id==='powder'){
-        roundRect(-12,-8,24,16,5);ctx.fill();ctx.fillStyle='#d9dde5';ctx.fillRect(-7,-11,14,4);ctx.fillStyle='#303641';ctx.beginPath();ctx.arc(5,0,3,0,Math.PI*2);ctx.fill();
-      }else if(id==='spark'){
-        ctx.beginPath();ctx.moveTo(3,-15);ctx.lineTo(-9,0);ctx.lineTo(-2,0);ctx.lineTo(-5,14);ctx.lineTo(9,-3);ctx.lineTo(2,-3);ctx.closePath();ctx.fill();
-      }else{
-        ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5;const rr=i%2?7:14;const x=Math.cos(a)*rr,y=Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
-      }
-      ctx.shadowBlur=0;
-      ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.fillStyle='#fff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText(p.farmName||'재료',0,25);
-    }else{
-      ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
-    }
-    ctx.restore();
-  }
-
   for(const s of shots){
     s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
     for(const c of covers){
@@ -1471,6 +1417,61 @@ function draw(){
       ctx.fillStyle='#ffcf66';ctx.font='900 8px system-ui';ctx.textAlign='center';ctx.fillText('ELITE',e.x,e.y-e.r-17);
     }
   }
+
+  for(const p of pickups){
+    const bob=Math.sin(p.bob)*3;
+    ctx.save();ctx.translate(p.x,p.y+bob);
+    if(p.type==='coin'){
+      ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
+    }else if(p.type==='farm'){
+      // V6: 이모지/문자 대신 실제 캔버스 오브젝트로 파밍 아이템을 그린다.
+      const pulse=1+Math.sin(performance.now()/150)*.08;
+      const id=p.farmId||'special';
+      const colors={wood:'#9a6a3a',stone:'#87929b',ember:'#ef633f',ice:'#65cfff',herb:'#63b86b',gem:'#7d8cff',vial:'#b58cff',powder:'#555b68',spark:'#ffd34f',special:'#ffcf57'};
+      const c=colors[id]||'#ffd866';
+      ctx.globalAlpha=.20;ctx.fillStyle=c;ctx.beginPath();ctx.arc(0,0,22*pulse,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.shadowColor=c;ctx.shadowBlur=10;
+      ctx.fillStyle=c;
+      if(id==='wood'){
+        roundRect(-13,-8,26,16,5);ctx.fill();
+        ctx.fillStyle='rgba(255,235,190,.65)';ctx.fillRect(-8,-5,3,10);ctx.fillRect(2,-5,3,10);
+      }else if(id==='stone'){
+        ctx.beginPath();ctx.moveTo(-13,5);ctx.lineTo(-8,-10);ctx.lineTo(6,-13);ctx.lineTo(14,0);ctx.lineTo(7,11);ctx.lineTo(-7,12);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;ctx.stroke();
+      }else if(id==='ember'){
+        ctx.beginPath();ctx.moveTo(0,-15);ctx.bezierCurveTo(13,-5,11,7,0,13);ctx.bezierCurveTo(-11,7,-8,-2,0,-15);ctx.fill();
+        ctx.fillStyle='#fff0a0';ctx.beginPath();ctx.arc(0,3,5,0,Math.PI*2);ctx.fill();
+      }else if(id==='ice'){
+        ctx.beginPath();for(let i=0;i<6;i++){const a=-Math.PI/2+i*Math.PI/3;const x=Math.cos(a)*14,y=Math.sin(a)*14;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.stroke();
+      }else if(id==='herb'){
+        ctx.lineWidth=4;ctx.strokeStyle='#4d8f50';ctx.beginPath();ctx.moveTo(0,12);ctx.lineTo(0,-8);ctx.stroke();
+        ctx.fillStyle='#76cf78';ctx.beginPath();ctx.ellipse(-6,-5,6,10,-.6,0,Math.PI*2);ctx.ellipse(6,-9,6,10,.6,0,Math.PI*2);ctx.fill();
+      }else if(id==='gem'){
+        ctx.beginPath();ctx.moveTo(-12,-5);ctx.lineTo(-4,-14);ctx.lineTo(8,-11);ctx.lineTo(14,0);ctx.lineTo(4,14);ctx.lineTo(-10,9);ctx.closePath();ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,.65)';ctx.beginPath();ctx.moveTo(-5,-8);ctx.lineTo(2,-9);ctx.lineTo(-1,1);ctx.closePath();ctx.fill();
+      }else if(id==='vial'){
+        roundRect(-9,-9,18,20,5);ctx.fill();ctx.fillStyle='#eee';ctx.fillRect(-5,-14,10,5);ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillRect(-5,-4,4,10);
+      }else if(id==='powder'){
+        roundRect(-12,-8,24,16,5);ctx.fill();ctx.fillStyle='#d9dde5';ctx.fillRect(-7,-11,14,4);ctx.fillStyle='#303641';ctx.beginPath();ctx.arc(5,0,3,0,Math.PI*2);ctx.fill();
+      }else if(id==='spark'){
+        ctx.beginPath();ctx.moveTo(3,-15);ctx.lineTo(-9,0);ctx.lineTo(-2,0);ctx.lineTo(-5,14);ctx.lineTo(9,-3);ctx.lineTo(2,-3);ctx.closePath();ctx.fill();
+      }else{
+        ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5;const rr=i%2?7:14;const x=Math.cos(a)*rr,y=Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
+      }
+      ctx.shadowBlur=0;
+      ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText(p.farmName||'재료',0,25);
+    }else{
+      ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
+    }
+    ctx.restore();
+  }
+
 
   if(player.inv<=0 || Math.floor(performance.now()/70)%2===0) drawDuck(player.x,player.y);
 
