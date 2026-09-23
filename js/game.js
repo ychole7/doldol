@@ -1211,12 +1211,15 @@ function update(dt){
           level++;
           levelXp-=nextXp;
           nextXp=Math.round(nextXp*1.28);
-          levelFlash=1.2;
-          message='LEVEL UP!';
-          messageTimer=1.2;
+          levelFlash=1.15;
+          message='';
+          messageTimer=0;
           player.hp=player.maxHp;
-          upgradeOpen=true;
-          running=false;
+          // V47: 레벨업은 전투를 멈추거나 선택창을 띄우지 않는다.
+          // 기존 자동 성장(레벨에 따른 공격 템포/HP 회복)은 유지하고,
+          // 전투 화면에는 짧은 LEVEL UP 안내만 표시한다.
+          upgradeOpen=false;
+          running=true;
           burst(player.x,player.y,24);
           feedbackV1('levelup');
         }
@@ -1665,9 +1668,11 @@ function draw(){
 
   if(levelFlash>0){
     ctx.globalAlpha=Math.min(1,levelFlash);
-    ctx.fillStyle='rgba(255,216,102,.14)';ctx.fillRect(0,0,vw,vh);
-    ctx.fillStyle='#ffd866';ctx.font='900 28px system-ui';ctx.textAlign='center';
-    ctx.fillText(`LEVEL ${level}!`,vw/2,vh*.31);
+    ctx.fillStyle='rgba(255,216,102,.10)';ctx.fillRect(0,0,vw,vh);
+    ctx.fillStyle='#ffd866';ctx.font='900 30px system-ui';ctx.textAlign='center';
+    ctx.fillText('LEVEL UP!',vw/2,vh*.31);
+    ctx.font='800 14px system-ui';
+    ctx.fillText('Lv.'+level,vw/2,vh*.345);
     ctx.globalAlpha=1;
   }
 
