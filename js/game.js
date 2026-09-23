@@ -84,6 +84,15 @@ window.__doldolFarmV2={
     try{if(window.__duckRefreshFarmInventory)window.__duckRefreshFarmInventory();}catch(e){}
     return farmInventoryV2[id];
   },
+  spend:(id,n=1)=>{
+    if(!farmInventoryV2[id]) farmInventoryV2[id]=0;
+    const cost=Math.max(0,Number(n)||0);
+    if(farmInventoryV2[id]<cost) return false;
+    farmInventoryV2[id]-=cost;
+    farmSaveV2();
+    try{if(window.__duckRefreshFarmInventory)window.__duckRefreshFarmInventory();}catch(e){}
+    return true;
+  },
   reset:()=>{
     farmInventoryV2=Object.fromEntries(FARM_ITEMS_V2.map(x=>[x.id,0]));
     farmSaveV2();
@@ -714,7 +723,7 @@ function shootPlayer(){
   // silently fall back to the basic stone because of a stale UI variable.
   if(!battleStone || !STONE_DEFS[battleStone]) battleStone=equippedStone||'basic';
   const def=STONE_DEFS[battleStone]||STONE_DEFS.basic;
-  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage));
+  const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage*(window.__duckWeaponUpgradeMul?window.__duckWeaponUpgradeMul():1)));
   const stone=battleStone;
   const addShot=(vx=0,vy=-520)=>shots.push({x:player.x,y:player.y-25,vx,vy,r:stone==='bomb'?10:7,life:2,damage,stone});
   if(player.skillMultiShot){
@@ -848,7 +857,7 @@ function parryAt(x,y){
   const reflectedSpeed=isPerfect?900:720;
   r.parried=true;
   r.owner='player';
-  r.damage=Math.max(1,Math.round((player.attack||25)/25));
+  r.damage=Math.max(1,Math.round((player.attack||25)/25*(window.__duckWeaponUpgradeMul?window.__duckWeaponUpgradeMul():1)));
   r.vx=dx/L*reflectedSpeed;
   r.vy=dy/L*reflectedSpeed;
   r.x=player.x;
@@ -864,7 +873,7 @@ function parryAt(x,y){
     perfect++;
     if(window.__duckMissionEvent){ window.__duckMissionEvent("parry",1); window.__duckMissionEvent("perfect",1); }
     r.vx*=1.35; r.vy*=1.35;
-    r.damage=Math.max(1,Math.round(Math.round(((player.attack||25)*(player.skillAttackMul||1))/25)*2*(player.perfectMultiplier||1)*(player.skillPerfectMul||1)));
+    r.damage=Math.max(1,Math.round(Math.round(((player.attack||25)*(player.skillAttackMul||1))/25)*2*(player.perfectMultiplier||1)*(player.skillPerfectMul||1)*(window.__duckWeaponUpgradeMul?window.__duckWeaponUpgradeMul():1)));
     message='PERFECT PARRY!';
     messageTimer=.62;
     shake=8;
@@ -3185,4 +3194,102 @@ window.__duckOpenFarmInventory=function(){
 };
 window.__duckRefreshFarmInventory=refresh;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',css);else css();
+})();
+
+
+/* ================================================================
+   ARMORY WEAPON UPGRADE V1 - lightweight release scope
+   - Upgrade only the currently equipped weapon
+   - Uses existing farm materials (wood + stone)
+   - Max Lv.5, +8% damage per level
+   - No new screens / no crafting / no economy expansion
+   ================================================================ */
+(function(){
+  'use strict';
+  const KEY='doldol_weapon_upgrade_v1';
+  const MAX=5;
+  function load(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{};
+      return Object.assign({},raw);
+    }catch(e){return {};}
+  }
+  let levels=load();
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(levels));}catch(e){}}
+  function stoneId(){
+    try{return window.__duckGetEquippedStone?window.__duckGetEquippedStone():(window.__duckPreparedStone||'basic');}catch(e){return 'basic';}
+  }
+  function level(id){return Math.max(1,Math.min(MAX,Number(levels[id]||1)||1));}
+  function cost(lv){return {wood:2+lv*2,stone:1+lv};}
+  function mult(id){return 1+(level(id)-1)*.08;}
+  window.__duckWeaponUpgradeLevel=id=>level(id||stoneId());
+  window.__duckWeaponUpgradeMul=()=>mult(stoneId());
+  window.__duckWeaponUpgradeCost=id=>cost(level(id||stoneId()));
+  window.__duckUpgradeWeapon=function(){
+    const id=stoneId();
+    const lv=level(id);
+    if(lv>=MAX) return {ok:false,reason:'max'};
+    const c=cost(lv);
+    const farm=window.__doldolFarmV2;
+    if(!farm) return {ok:false,reason:'farm'};
+    if(farm.get('wood')<c.wood || farm.get('stone')<c.stone) return {ok:false,reason:'material',cost:c,have:{wood:farm.get('wood'),stone:farm.get('stone')}};
+    // Consume via the existing inventory API without introducing another save system.
+    farm.spend('wood',c.wood);
+    farm.spend('stone',c.stone);
+    levels[id]=lv+1; save();
+    return {ok:true,id,level:lv+1,cost:c};
+  };
+
+  function inject(){
+    const body=document.getElementById('menuBody');
+    const panel=document.getElementById('v42ArmoryWeapons');
+    if(!body||!panel) return;
+    if(panel.querySelector('#doldolWeaponUpgradeCard')) return;
+    const id=stoneId();
+    const defs={basic:{icon:'🪨',name:'기본돌'},fire:{icon:'🔥',name:'불돌'},ice:{icon:'❄️',name:'얼음돌'},bomb:{icon:'💣',name:'폭발돌'},lightning:{icon:'⚡',name:'번개돌'}};
+    const d=defs[id]||defs.basic, lv=level(id), c=cost(lv), farm=window.__doldolFarmV2;
+    const wood=farm?farm.get('wood'):0, stone=farm?farm.get('stone'):0;
+    const can=lv<MAX&&wood>=c.wood&&stone>=c.stone;
+    const card=document.createElement('div');
+    card.id='doldolWeaponUpgradeCard';
+    card.style.cssText='margin-top:12px;padding:13px;border-radius:17px;background:rgba(255,255,255,.055);border:1px solid rgba(255,216,102,.16)';
+    card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-size:9px;opacity:.55;letter-spacing:.7px">WEAPON UPGRADE</div><b style="font-size:14px">'+d.icon+' '+d.name+'</b></div><strong style="color:#ffd866">Lv.'+lv+'/'+MAX+'</strong></div>'+
+      '<div style="font-size:10px;opacity:.65;margin:7px 0 9px">공격력 +'+((lv-1)*8)+'%'+(lv<MAX?' → 다음 +8%':' · MAX')+'</div>'+
+      '<button id="doldolWeaponUpgradeBtn" type="button" '+(can?'':'disabled')+' style="width:100%;padding:11px;border:0;border-radius:12px;background:'+(can?'#ffd866':'rgba(255,255,255,.08)')+';color:'+(can?'#30220b':'#7f8992')+';font-weight:1000;font-size:12px">'+(lv>=MAX?'✓ MAX':'강화 · 🪵 '+c.wood+'  🪨 '+c.stone)+'</button>';
+    const note=panel.querySelector('.v42EquipNote');
+    if(note) note.insertAdjacentElement('beforebegin',card); else panel.appendChild(card);
+    const btn=card.querySelector('#doldolWeaponUpgradeBtn');
+    if(btn) btn.onclick=function(e){
+      e.preventDefault(); e.stopPropagation();
+      const r=window.__duckUpgradeWeapon();
+      if(r.ok){
+        try{window.__duckMessage&&window.__duckMessage('무기 강화 완료! Lv.'+r.level);}catch(_){ }
+        const gear=document.getElementById('lobbyGear');
+        if(gear){ /* keep current menu open; re-render by reopening */ }
+        const active=document.querySelector('.v42ArmoryTab.active');
+        const evt=new Event('click');
+        // Re-render the menu through its existing button without changing navigation.
+        const done=document.getElementById('v42EquipDone');
+        if(done){ /* no-op: keep the menu stable */ }
+        inject();
+        card.remove();
+        setTimeout(inject,0);
+      }else if(r.reason==='material'){
+        btn.textContent='재료가 부족합니다';
+        setTimeout(inject,500);
+      }
+    };
+  }
+  function watch(){
+    const body=document.getElementById('menuBody');
+    if(!body) return;
+    inject();
+    if(!window.__doldolArmoryUpgradeObserver){
+      const obs=new MutationObserver(()=>inject());
+      obs.observe(body,{childList:true,subtree:true});
+      window.__doldolArmoryUpgradeObserver=obs;
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watch);else watch();
+  window.__duckRefreshArmoryUpgrade=watch;
 })();
