@@ -42,6 +42,12 @@ ENEMY_HEAVY_IMG.onload = () => { enemyHeavyReady = true; };
 ENEMY_HEAVY_IMG.onerror = () => { enemyHeavyReady = false; };
 ENEMY_HEAVY_IMG.src = "../assets/enemy_heavy.png";
 
+const ENEMY_BOSS_IMG = new Image();
+let enemyBossReady = false;
+ENEMY_BOSS_IMG.onload = () => { enemyBossReady = true; };
+ENEMY_BOSS_IMG.onerror = () => { enemyBossReady = false; };
+ENEMY_BOSS_IMG.src = "../assets/enemy_boss.png";
+
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
@@ -1282,13 +1288,21 @@ function drawEnemy(e){
   ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=9;ctx.shadowOffsetY=5;
 
   if(e.type==='boss'){
-    ctx.fillStyle='#633452';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
-    ctx.shadowColor='transparent';
-    ctx.strokeStyle='#ffd866';ctx.lineWidth=5;ctx.stroke();
-    ctx.fillStyle='#f1c3a2';ctx.beginPath();ctx.arc(-13,-6,6,0,Math.PI*2);ctx.arc(13,-6,6,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-13,-6,2.5,0,Math.PI*2);ctx.arc(13,-6,2.5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ffd866';ctx.font='900 18px system-ui';ctx.textAlign='center';ctx.fillText('★',0,-18);
-    ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.fillText('BOSS',0,19);
+    // V4: 보스도 실제 캐릭터 아트로 교체. 기존 보스 전투 수치/패턴은 그대로.
+    if(enemyBossReady && ENEMY_BOSS_IMG.naturalWidth){
+      ctx.shadowColor='rgba(0,0,0,.38)';ctx.shadowBlur=12;ctx.shadowOffsetY=7;
+      const ew=104, eh=112;
+      ctx.drawImage(ENEMY_BOSS_IMG,-ew/2,-eh*.73,ew,eh);
+      ctx.shadowColor='transparent';
+    }else{
+      ctx.fillStyle='#633452';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+      ctx.shadowColor='transparent';
+      ctx.strokeStyle='#ffd866';ctx.lineWidth=5;ctx.stroke();
+      ctx.fillStyle='#f1c3a2';ctx.beginPath();ctx.arc(-13,-6,6,0,Math.PI*2);ctx.arc(13,-6,6,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-13,-6,2.5,0,Math.PI*2);ctx.arc(13,-6,2.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ffd866';ctx.font='900 18px system-ui';ctx.textAlign='center';ctx.fillText('★',0,-18);
+      ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.fillText('BOSS',0,19);
+    }
   }else if(e.type==='normal' && enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){
     // V1: 기본 돌격병만 실제 캐릭터 아트로 교체. 나머지 적 타입은 기존 렌더링 유지.
     ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
