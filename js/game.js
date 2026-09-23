@@ -716,6 +716,13 @@ function burst(x,y,n=12){
     particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.45+Math.random()*.35});
   }
 }
+function feedbackV1(kind){
+  try{
+    if(!navigator.vibrate) return;
+    const ms=kind==='clear'?55:kind==='kill'?28:kind==='pickup'?18:kind==='parry'?22:kind==='upgrade'?30:12;
+    navigator.vibrate(ms);
+  }catch(e){}
+}
 
 function shootPlayer(){
   // V45: the pre-battle loadout is copied into battleStone at stage start.
@@ -802,12 +809,14 @@ function hitEnemy(e,damage=1){
     }
   }
   e.hitFlash=.16;
+  feedbackV1('hit');
   damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-'+damage,life:.55,vy:-34,crit:damage>1});
   burst(e.x,e.y,10);
   shake=Math.max(shake,3);
   if(e.hp<=0){
     kills++;
     if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
+    feedbackV1('kill');
     if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
     burst(e.x,e.y,18);
     e.dead=true;
@@ -883,6 +892,7 @@ function parryAt(x,y){
     shake=4;
   }
   burst(r.x,r.y,isPerfect?18:10);
+  feedbackV1('parry');
   return true;
 }
 
@@ -891,7 +901,7 @@ function chooseUpgrade(i){
   if(i===0){ player.fire=Math.max(0,player.fire-.08); player.speed+=10; }
   if(i===1){ player.maxHp+=20; player.hp=player.maxHp; }
   if(i===2){ player.parryBonus=Math.min(.2,(player.parryBonus||0)+.04); }
-  upgradeOpen=false; running=true; message='강화 완료!'; messageTimer=.55; levelFlash=.55; burst(player.x,player.y,18); shake=0; last=performance.now();
+  upgradeOpen=false; running=true; feedbackV1('upgrade'); message='강화 완료!'; messageTimer=.55; levelFlash=.55; burst(player.x,player.y,18); shake=0; last=performance.now();
 }
 
 function pointerPos(e){
@@ -1128,6 +1138,7 @@ function update(dt){
         message=(p.farmIcon||'⭐')+' '+(p.farmName||'재료')+' +1';
         messageTimer=.65;
         p.farmPicked=true;
+        feedbackV1('pickup');
       }else{
         const gained=10;
         xp+=gained;
@@ -1146,6 +1157,7 @@ function update(dt){
           running=false;
           burst(player.x,player.y,24);
           shake=6;
+          feedbackV1('levelup');
         }
         if(prog && prog.levels>0){
           player.characterLevel=prog.level;
@@ -1155,6 +1167,7 @@ function update(dt){
           applyGrowthToPlayer();
           burst(player.x,player.y,30);
           shake=7;
+          feedbackV1('levelup');
         }
       }
       messageTimer=Math.max(messageTimer,.32);
