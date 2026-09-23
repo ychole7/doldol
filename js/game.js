@@ -561,13 +561,13 @@ function applyGrowthToPlayer(){
   const effectiveSpeed=Math.max(.35,g.speed*(m.speed||1));
   player.attackInterval=Math.max(.24,1/effectiveSpeed);
   player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1);
-  player.speed=300*(m.move||1);
+  player.speed=325*(m.move||1);
   player.perfectMultiplier=m.perfect||1;
 }
 
 function reset(){
   stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
-  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
+  player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:325,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
 showSkillButton();
   applyGrowthToPlayer();
   enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
@@ -992,7 +992,7 @@ function update(dt){
     ay=clamp((joy.y-joy.baseY)/62,-1,1);
   }
   const len=Math.hypot(ax,ay)||1;
-  moveAroundCovers(player,ax/len*player.speed*dt,ay/len*player.speed*dt);
+  moveAroundCovers(player,ax/len*player.speed*1.06*dt,ay/len*player.speed*1.06*dt);
   player.x=clamp(player.x,32,vw-32);
   player.y=clamp(player.y,vh*.20,vh-90);
 
@@ -1156,7 +1156,6 @@ function update(dt){
           upgradeOpen=true;
           running=false;
           burst(player.x,player.y,24);
-          shake=6;
           feedbackV1('levelup');
         }
         if(prog && prog.levels>0){
@@ -1166,7 +1165,6 @@ function update(dt){
           levelFlash=1.35;
           applyGrowthToPlayer();
           burst(player.x,player.y,30);
-          shake=7;
           feedbackV1('levelup');
         }
       }
