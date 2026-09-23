@@ -674,6 +674,13 @@ function startStage(n){
       enraged:false,
       attackWarn:0
     });
+    // V46: 5단계 보스전은 보스 단독이 아니라 소수의 지원 병력이 함께 등장한다.
+    // 보스 자체의 HP/패턴은 그대로 유지하고, 지원 병력만 추가한다.
+    if(stage<=5){
+      const supportTypes=['normal','sniper','normal'];
+      for(let i=0;i<supportTypes.length;i++) spawnEnemy(i,{forcedType:supportTypes[i], bossSupport:true});
+      total=1+supportTypes.length;
+    }
   }else{
     for(let i=0;i<total;i++) spawnEnemy(i);
   }
@@ -728,21 +735,35 @@ function showNextStageTransition(nextStageNumber, callback){
   },520);
 }
 
-function spawnEnemy(i){
-  // V20: 스테이지가 진행될수록 전투 역할이 뚜렷한 특수 적이 섞인다.
-  const pool = stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
+function spawnEnemy(i,opts){
+  // V46: 초기 1~5 스테이지는 적 조합이 명확하게 단계적으로 늘어난다.
+  // 6스테이지 이후 기존 특수 적 해금 규칙은 그대로 유지한다.
+  const pool = stage===1 ? ['normal']
+             : stage===2 ? ['normal','sniper']
+             : stage===3 ? ['normal','sniper','tank']
+             : stage===4 ? ['normal','sniper','tank','fast']
+             : stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
              : stage>=12 ? ['normal','fast','tank','sniper','charger']
              : stage>=8  ? ['normal','fast','tank','sniper']
              : ['normal','fast','tank'];
   const difficulty=1+Math.min(2.15,(stage-1)*.075);
-  const type=pool[i%pool.length];
+  const type=(opts&&opts.forcedType)||pool[i%pool.length];
   const margin=55;
   const baseHp={tank:4,sniper:2,charger:3,bomber:3,fast:1,normal:2}[type]||2;
   const baseSpeed={tank:42,sniper:45,charger:92,bomber:50,fast:115,normal:68}[type]||68;
   const baseFire={tank:2.0,sniper:2.25,charger:1.75,bomber:2.35,fast:1.15,normal:1.55}[type]||1.55;
   const radius={tank:30,sniper:21,charger:25,bomber:27,fast:20,normal:23}[type]||23;
+  const earlyLayouts={
+    1:[.22,.38,.54,.70,.82,.30,.66],
+    2:[.18,.34,.50,.66,.82,.28,.58,.76],
+    3:[.16,.30,.44,.58,.72,.84,.24,.52,.68],
+    4:[.14,.27,.40,.53,.66,.79,.86,.34,.60,.74]
+  };
+  const layout=earlyLayouts[stage];
+  const xPos=layout ? margin+(layout[i%layout.length])*(vw-margin*2) : margin+Math.random()*(vw-margin*2);
+  const yPos=layout ? vh*.20+(0.10+((i*0.17)%0.24))*vh : vh*.20+Math.random()*vh*.32;
   enemies.push({
-    type,x:margin+Math.random()*(vw-margin*2),y:vh*.20+Math.random()*vh*.32,r:radius,
+    type,x:xPos,y:yPos,r:radius,
     hp:Math.max(1,Math.round(baseHp*difficulty)),max:Math.max(1,Math.round(baseHp*difficulty)),
     speed:baseSpeed*(1+Math.min(.48,(stage-1)*.018)),
     fire:(.7+Math.random()*1.5)/(1+Math.min(.42,(stage-1)*.018)),
