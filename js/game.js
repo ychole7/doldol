@@ -24,6 +24,12 @@ STAGE2_BG.onload = () => { window.__duckStage2BgReady = true; };
 STAGE2_BG.onerror = () => { window.__duckStage2BgReady = false; };
 STAGE2_BG.src = "../assets/stage2_training.jpg";
 
+const ENEMY_ASSAULT_IMG = new Image();
+let enemyAssaultReady = false;
+ENEMY_ASSAULT_IMG.onload = () => { enemyAssaultReady = true; };
+ENEMY_ASSAULT_IMG.onerror = () => { enemyAssaultReady = false; };
+ENEMY_ASSAULT_IMG.src = "../assets/enemy_assault.png";
+
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
@@ -1271,6 +1277,12 @@ function drawEnemy(e){
     ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-13,-6,2.5,0,Math.PI*2);ctx.arc(13,-6,2.5,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#ffd866';ctx.font='900 18px system-ui';ctx.textAlign='center';ctx.fillText('★',0,-18);
     ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.fillText('BOSS',0,19);
+  }else if(e.type==='normal' && enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){
+    // V1: 기본 돌격병만 실제 캐릭터 아트로 교체. 나머지 적 타입은 기존 렌더링 유지.
+    ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
+    const ew=58, eh=68;
+    ctx.drawImage(ENEMY_ASSAULT_IMG,-ew/2,-eh*.68,ew,eh);
+    ctx.shadowColor='transparent';
   }else{
     ctx.fillStyle=e.type==='tank'?'#56616d':e.type==='fast'?'#d65355':e.type==='sniper'?'#5578b8':e.type==='charger'?'#c66a35':e.type==='bomber'?'#8b5aa6':'#8c684a';
     ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
