@@ -30,11 +30,17 @@ ENEMY_ASSAULT_IMG.onload = () => { enemyAssaultReady = true; };
 ENEMY_ASSAULT_IMG.onerror = () => { enemyAssaultReady = false; };
 ENEMY_ASSAULT_IMG.src = "../assets/enemy_assault.png";
 
-const ENEMY_SNIPER_IMG = new Image();
-let enemySniperReady = false;
-ENEMY_SNIPER_IMG.onload = () => { enemySniperReady = true; };
-ENEMY_SNIPER_IMG.onerror = () => { enemySniperReady = false; };
-ENEMY_SNIPER_IMG.src = "../assets/enemy_sniper.png";
+const ENEMY_RIFLE_IMG = new Image();
+let enemyRifleReady = false;
+ENEMY_RIFLE_IMG.onload = () => { enemyRifleReady = true; };
+ENEMY_RIFLE_IMG.onerror = () => { enemyRifleReady = false; };
+ENEMY_RIFLE_IMG.src = "../assets/enemy_rifleman.png";
+
+const ENEMY_HEAVY_IMG = new Image();
+let enemyHeavyReady = false;
+ENEMY_HEAVY_IMG.onload = () => { enemyHeavyReady = true; };
+ENEMY_HEAVY_IMG.onerror = () => { enemyHeavyReady = false; };
+ENEMY_HEAVY_IMG.src = "../assets/enemy_heavy.png";
 
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
@@ -1289,11 +1295,17 @@ function drawEnemy(e){
     const ew=58, eh=68;
     ctx.drawImage(ENEMY_ASSAULT_IMG,-ew/2,-eh*.68,ew,eh);
     ctx.shadowColor='transparent';
-  }else if(e.type==='sniper' && enemySniperReady && ENEMY_SNIPER_IMG.naturalWidth){
-    // V2: 원거리 소총병도 실제 캐릭터 아트로 교체. 전투 수치/AI는 기존 로직 유지.
+  }else if(e.type==='sniper' && enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){
+    // V2: 원거리 소총병도 실제 캐릭터 아트로 교체. 전투 수치/AI는 기존 그대로.
     ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
-    const ew=60, eh=64;
-    ctx.drawImage(ENEMY_SNIPER_IMG,-ew/2,-eh*.70,ew,eh);
+    const ew=58, eh=74;
+    ctx.drawImage(ENEMY_RIFLE_IMG,-ew/2,-eh*.68,ew,eh);
+    ctx.shadowColor='transparent';
+  }else if(e.type==='tank' && enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){
+    // V3: 중장병만 실제 캐릭터 아트로 교체. 기존 tank 전투 수치/AI는 그대로.
+    ctx.shadowColor='rgba(0,0,0,.34)';ctx.shadowBlur=9;ctx.shadowOffsetY=6;
+    const ew=78, eh=82;
+    ctx.drawImage(ENEMY_HEAVY_IMG,-ew/2,-eh*.68,ew,eh);
     ctx.shadowColor='transparent';
   }else{
     ctx.fillStyle=e.type==='tank'?'#56616d':e.type==='fast'?'#d65355':e.type==='sniper'?'#5578b8':e.type==='charger'?'#c66a35':e.type==='bomber'?'#8b5aa6':'#8c684a';
