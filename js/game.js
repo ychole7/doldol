@@ -2657,22 +2657,30 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const current=window.__duckGetSelectedStone?window.__duckGetSelectedStone():(window.__duckPreparedStone||getPreparedStone());
     const selected=defs[current]?current:'basic';
     window.__duckPreparedStone=selected;
+    const farmItems=Array.isArray(window.__doldolFarmV2&&window.__doldolFarmV2.items)?window.__doldolFarmV2.items:[];
+    const farmInv=window.__doldolFarmV2&&typeof window.__doldolFarmV2.inventory==='function'?window.__doldolFarmV2.inventory():{};
+    const farmTotal=farmItems.reduce((sum,x)=>sum+Math.max(0,Number(farmInv[x.id])||0),0);
     menuTitle.textContent='🪨 무기고';
     menuBody.innerHTML=
-      '<div class=\"v42EquipIntro\"><strong>출격 장비</strong><small>소유한 돌을 선택해 장착하세요.</small></div>'+
-      '<div class=\"v41SectionTitle\">🪨 보유 무기</div>'+
-      '<div class=\"v41GearGrid\">'+order.map(id=>{
-        const d=defs[id], active=id===selected;
-        return '<button type=\"button\" class=\"v41GearCard '+(active?'selected':'')+'\" data-v42-stone=\"'+id+'\">'+
-          '<span class=\"v41GearIcon\">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';
-      }).join('')+'</div>'+
-      '<div class=\"v42EquipNote\">장착한 무기는 전투 시작 시 사용됩니다. 전투 중에는 장착한 무기로만 공격합니다.</div>'+
-      '<button type=\"button\" id=\"v42EquipDone\" class=\"v41StartBattle\">✓ 장착 완료</button>';
+      '<div class=\"v42EquipIntro\"><strong>출격 장비</strong><small>무기를 장착하고 보유 재료를 확인하세요.</small></div>'+
+      '<div class=\"v42ArmoryTabs\"><button type=\"button\" class=\"v42ArmoryTab active\" data-armory-tab=\"weapons\">🪨 무기</button><button type=\"button\" class=\"v42ArmoryTab\" data-armory-tab=\"materials\">🎒 재료 <em>'+farmTotal.toLocaleString()+'</em></button></div>'+
+      '<div id=\"v42ArmoryWeapons\">'+
+        '<div class=\"v41SectionTitle\">🪨 보유 무기</div>'+        '<div class=\"v41GearGrid\">'+order.map(id=>{          const d=defs[id], active=id===selected;          return '<button type=\"button\" class=\"v41GearCard '+(active?'selected':'')+'\" data-v42-stone=\"'+id+'\">'+            '<span class=\"v41GearIcon\">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';        }).join('')+'</div>'+        '<div class=\"v42EquipNote\">장착한 무기는 전투 시작 시 사용됩니다. 전투 중에는 장착한 무기로만 공격합니다.</div>'+        '<button type=\"button\" id=\"v42EquipDone\" class=\"v41StartBattle\">✓ 장착 완료</button>'+      '</div>'+      '<div id=\"v42ArmoryMaterials\" style=\"display:none\">'+
+        '<div class=\"v42MaterialSummary\"><strong>보유 재료</strong><span>총 '+farmTotal.toLocaleString()+'개</span></div>'+
+        '<div class=\"v42MaterialGrid\">'+farmItems.map(x=>'<div class=\"v42MaterialCard\"><span>'+((x.icon)||'⭐')+'</span><b>'+((x.name)||'재료')+'</b><em>'+Math.max(0,Number(farmInv[x.id])||0)+'</em></div>').join('')+'</div>'+      '</div>';
     menuBody.querySelectorAll('[data-v42-stone]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.v42Stone;
       if(window.__duckEquipStone && !window.__duckEquipStone(id)) return;
       window.__duckPreparedStone=id; savePreparedStone(id);
       menuBody.querySelectorAll('.v41GearCard').forEach(x=>x.classList.toggle('selected',x===btn));
+    }));
+    menuBody.querySelectorAll('[data-armory-tab]').forEach(tab=>tab.addEventListener('click',()=>{
+      menuBody.querySelectorAll('.v42ArmoryTab').forEach(x=>x.classList.toggle('active',x===tab));
+      const weapons=menuBody.querySelector('#v42ArmoryWeapons');
+      const materials=menuBody.querySelector('#v42ArmoryMaterials');
+      const isMaterials=tab.dataset.armoryTab==='materials';
+      if(weapons) weapons.style.display=isMaterials?'none':'';
+      if(materials) materials.style.display=isMaterials?'':'none';
     }));
     const done=document.getElementById('v42EquipDone');
     if(done) done.onclick=()=>{ savePreparedStone(window.__duckPreparedStone||'basic'); closeMenu(); };
@@ -3148,16 +3156,33 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   });
 })();
 
-/* FARM INVENTORY LIGHT V1 */
+/* FARM INVENTORY: integrated into the armory menu. No separate lobby menu. */
 (function(){
 'use strict';
-const items=()=>Array.isArray(window.__doldolFarmV2&&window.__doldolFarmV2.items)?window.__doldolFarmV2.items:[];
-const inv=()=>window.__doldolFarmV2&&typeof window.__doldolFarmV2.inventory==='function'?window.__doldolFarmV2.inventory():{};
-function css(){if(document.getElementById('doldolFarmInvStyle'))return;const s=document.createElement('style');s.id='doldolFarmInvStyle';s.textContent=`#doldolFarmInv{position:fixed;inset:0;z-index:120;background:rgba(8,14,16,.72);display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;font-family:system-ui}#doldolFarmInv.show{display:flex}#doldolFarmInv .fiCard{width:min(430px,100%);max-height:88vh;overflow:auto;border:2px solid rgba(255,255,255,.16);border-radius:22px;background:linear-gradient(180deg,#203d3a,#142c2a);box-shadow:0 20px 50px rgba(0,0,0,.4);padding:16px;color:#fff}#doldolFarmInv .fiHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}#doldolFarmInv .fiTitle{font-size:20px;font-weight:1000}#doldolFarmInv .fiTotal{font-size:11px;color:#bfd0cb;margin-top:3px}#doldolFarmInv .fiClose{width:38px;height:38px;border:0;border-radius:11px;background:rgba(255,255,255,.1);color:#fff;font-size:20px;font-weight:900}#doldolFarmInv .fiGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}#doldolFarmInv .fiItem{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08)}#doldolFarmInv .fiIcon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(0,0,0,.15);font-size:21px}#doldolFarmInv .fiName{font-size:11px;font-weight:800;flex:1;color:#dbe7e3}#doldolFarmInv .fiCount{font-size:18px;font-weight:1000;color:#ffd866}`;document.head.appendChild(s)}
-function build(){css();let o=document.getElementById('doldolFarmInv');if(o)return o;o=document.createElement('div');o.id='doldolFarmInv';o.innerHTML='<div class="fiCard"><div class="fiHead"><div><div class="fiTitle">🎒 재료 보관함</div><div class="fiTotal" id="fiTotal">보유 재료 0개</div></div><button class="fiClose" type="button">×</button></div><div class="fiGrid" id="fiGrid"></div></div>';document.body.appendChild(o);o.onclick=e=>{if(e.target===o||e.target.closest('.fiClose'))o.classList.remove('show')};return o}
-function render(){const o=build(),d=inv(),g=o.querySelector('#fiGrid');let total=0;items().forEach(x=>total+=Math.max(0,Number(d[x.id])||0));o.querySelector('#fiTotal').textContent='보유 재료 '+total.toLocaleString()+'개';g.innerHTML=items().map(x=>'<div class="fiItem"><div class="fiIcon">'+(x.icon||'⭐')+'</div><div class="fiName">'+(x.name||'재료')+'</div><div class="fiCount">'+Math.max(0,Number(d[x.id])||0)+'</div></div>').join('')}
-function open(){render();build().classList.add('show')}
-function install(){if(document.getElementById('lobbyFarmInventory'))return;const lobby=document.getElementById('gameLobby');if(!lobby)return;const a=document.getElementById('lobbyBook')||document.getElementById('lobbyGear')||document.querySelector('#gameLobby .menuItem');const b=document.createElement('button');b.id='lobbyFarmInventory';b.type='button';b.className=a?a.className:'menuItem';b.innerHTML='🎒 재료<small id="lobbyFarmInventoryCount">보유 재료 확인</small>';b.onclick=open;if(a&&a.parentNode)a.parentNode.insertBefore(b,a);else lobby.appendChild(b)}
-window.__duckOpenFarmInventory=open;window.__duckRefreshFarmInventory=function(){const c=document.getElementById('lobbyFarmInventoryCount');if(!c)return;let t=0,d=inv();items().forEach(x=>t+=Math.max(0,Number(d[x.id])||0));c.textContent='총 '+t.toLocaleString()+'개';const o=document.getElementById('doldolFarmInv');if(o&&o.classList.contains('show'))render()};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();setTimeout(install,300);
+function css(){
+  if(document.getElementById('doldolArmoryMaterialStyle')) return;
+  const st=document.createElement('style');st.id='doldolArmoryMaterialStyle';st.textContent=`
+    .v42ArmoryTabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0 14px}
+    .v42ArmoryTab{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 8px;background:rgba(255,255,255,.06);color:#cddbd7;font-weight:900;font-size:12px}
+    .v42ArmoryTab.active{background:rgba(255,216,102,.14);border-color:rgba(255,216,102,.5);color:#fff}
+    .v42ArmoryTab em{font-style:normal;color:#ffd866;margin-left:3px}
+    .v42MaterialSummary{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 10px;color:#fff}
+    .v42MaterialSummary strong{font-size:14px}.v42MaterialSummary span{font-size:11px;color:#ffd866;font-weight:900}
+    .v42MaterialGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:52vh;overflow:auto;padding-right:2px}
+    .v42MaterialCard{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:7px;min-height:48px;padding:7px 9px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+    .v42MaterialCard span{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:rgba(0,0,0,.14);font-size:19px}
+    .v42MaterialCard b{font-size:10px;color:#dbe7e3;line-height:1.2}.v42MaterialCard em{font-style:normal;font-size:16px;color:#ffd866;font-weight:1000}
+  `;document.head.appendChild(st);
+}
+function refresh(){css();}
+window.__duckOpenFarmInventory=function(){
+  const gear=document.getElementById('lobbyGear');
+  if(gear) gear.click();
+  setTimeout(function(){
+    const tab=document.querySelector('[data-armory-tab="materials"]');
+    if(tab) tab.click();
+  },0);
+};
+window.__duckRefreshFarmInventory=refresh;
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',css);else css();
 })();
