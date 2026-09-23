@@ -450,8 +450,11 @@ resize();
 
 function makeCovers(){
   covers=[];
+  // STAGE 1: the new training-camp background is decorative only for now.
+  // Do not add invisible collision rectangles over the artwork.
+  // We can introduce explicit, visible cover objects later if needed.
   const positions = stage===1
-    ? [[.27,.33],[.73,.33],[.42,.42],[.63,.44],[.20,.46]]
+    ? []
     : [
         [.18,.62],[.50,.58],[.82,.64],
         [.30,.76],[.70,.78]
