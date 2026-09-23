@@ -30,6 +30,12 @@ ENEMY_ASSAULT_IMG.onload = () => { enemyAssaultReady = true; };
 ENEMY_ASSAULT_IMG.onerror = () => { enemyAssaultReady = false; };
 ENEMY_ASSAULT_IMG.src = "../assets/enemy_assault.png";
 
+const ENEMY_SNIPER_IMG = new Image();
+let enemySniperReady = false;
+ENEMY_SNIPER_IMG.onload = () => { enemySniperReady = true; };
+ENEMY_SNIPER_IMG.onerror = () => { enemySniperReady = false; };
+ENEMY_SNIPER_IMG.src = "../assets/enemy_sniper.png";
+
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
@@ -1282,6 +1288,12 @@ function drawEnemy(e){
     ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
     const ew=58, eh=68;
     ctx.drawImage(ENEMY_ASSAULT_IMG,-ew/2,-eh*.68,ew,eh);
+    ctx.shadowColor='transparent';
+  }else if(e.type==='sniper' && enemySniperReady && ENEMY_SNIPER_IMG.naturalWidth){
+    // V2: 원거리 소총병도 실제 캐릭터 아트로 교체. 전투 수치/AI는 기존 로직 유지.
+    ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
+    const ew=60, eh=64;
+    ctx.drawImage(ENEMY_SNIPER_IMG,-ew/2,-eh*.70,ew,eh);
     ctx.shadowColor='transparent';
   }else{
     ctx.fillStyle=e.type==='tank'?'#56616d':e.type==='fast'?'#d65355':e.type==='sniper'?'#5578b8':e.type==='charger'?'#c66a35':e.type==='bomber'?'#8b5aa6':'#8c684a';
