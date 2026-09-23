@@ -81,6 +81,7 @@ window.__doldolFarmV2={
     if(!farmInventoryV2[id]) farmInventoryV2[id]=0;
     farmInventoryV2[id]+=Math.max(0,Number(n)||0);
     farmSaveV2();
+    try{if(window.__duckRefreshFarmInventory)window.__duckRefreshFarmInventory();}catch(e){}
     return farmInventoryV2[id];
   },
   reset:()=>{
@@ -3145,4 +3146,18 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
     setTimeout(function(){ advancing=false; },500);
   });
+})();
+
+/* FARM INVENTORY LIGHT V1 */
+(function(){
+'use strict';
+const items=()=>Array.isArray(window.__doldolFarmV2&&window.__doldolFarmV2.items)?window.__doldolFarmV2.items:[];
+const inv=()=>window.__doldolFarmV2&&typeof window.__doldolFarmV2.inventory==='function'?window.__doldolFarmV2.inventory():{};
+function css(){if(document.getElementById('doldolFarmInvStyle'))return;const s=document.createElement('style');s.id='doldolFarmInvStyle';s.textContent=`#doldolFarmInv{position:fixed;inset:0;z-index:120;background:rgba(8,14,16,.72);display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;font-family:system-ui}#doldolFarmInv.show{display:flex}#doldolFarmInv .fiCard{width:min(430px,100%);max-height:88vh;overflow:auto;border:2px solid rgba(255,255,255,.16);border-radius:22px;background:linear-gradient(180deg,#203d3a,#142c2a);box-shadow:0 20px 50px rgba(0,0,0,.4);padding:16px;color:#fff}#doldolFarmInv .fiHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}#doldolFarmInv .fiTitle{font-size:20px;font-weight:1000}#doldolFarmInv .fiTotal{font-size:11px;color:#bfd0cb;margin-top:3px}#doldolFarmInv .fiClose{width:38px;height:38px;border:0;border-radius:11px;background:rgba(255,255,255,.1);color:#fff;font-size:20px;font-weight:900}#doldolFarmInv .fiGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}#doldolFarmInv .fiItem{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08)}#doldolFarmInv .fiIcon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(0,0,0,.15);font-size:21px}#doldolFarmInv .fiName{font-size:11px;font-weight:800;flex:1;color:#dbe7e3}#doldolFarmInv .fiCount{font-size:18px;font-weight:1000;color:#ffd866}`;document.head.appendChild(s)}
+function build(){css();let o=document.getElementById('doldolFarmInv');if(o)return o;o=document.createElement('div');o.id='doldolFarmInv';o.innerHTML='<div class="fiCard"><div class="fiHead"><div><div class="fiTitle">🎒 재료 보관함</div><div class="fiTotal" id="fiTotal">보유 재료 0개</div></div><button class="fiClose" type="button">×</button></div><div class="fiGrid" id="fiGrid"></div></div>';document.body.appendChild(o);o.onclick=e=>{if(e.target===o||e.target.closest('.fiClose'))o.classList.remove('show')};return o}
+function render(){const o=build(),d=inv(),g=o.querySelector('#fiGrid');let total=0;items().forEach(x=>total+=Math.max(0,Number(d[x.id])||0));o.querySelector('#fiTotal').textContent='보유 재료 '+total.toLocaleString()+'개';g.innerHTML=items().map(x=>'<div class="fiItem"><div class="fiIcon">'+(x.icon||'⭐')+'</div><div class="fiName">'+(x.name||'재료')+'</div><div class="fiCount">'+Math.max(0,Number(d[x.id])||0)+'</div></div>').join('')}
+function open(){render();build().classList.add('show')}
+function install(){if(document.getElementById('lobbyFarmInventory'))return;const lobby=document.getElementById('gameLobby');if(!lobby)return;const a=document.getElementById('lobbyBook')||document.getElementById('lobbyGear')||document.querySelector('#gameLobby .menuItem');const b=document.createElement('button');b.id='lobbyFarmInventory';b.type='button';b.className=a?a.className:'menuItem';b.innerHTML='🎒 재료<small id="lobbyFarmInventoryCount">보유 재료 확인</small>';b.onclick=open;if(a&&a.parentNode)a.parentNode.insertBefore(b,a);else lobby.appendChild(b)}
+window.__duckOpenFarmInventory=open;window.__duckRefreshFarmInventory=function(){const c=document.getElementById('lobbyFarmInventoryCount');if(!c)return;let t=0,d=inv();items().forEach(x=>t+=Math.max(0,Number(d[x.id])||0));c.textContent='총 '+t.toLocaleString()+'개';const o=document.getElementById('doldolFarmInv');if(o&&o.classList.contains('show'))render()};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();setTimeout(install,300);
 })();
