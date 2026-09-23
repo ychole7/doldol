@@ -2670,10 +2670,25 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const order=['basic','fire','ice','bomb','lightning'];
 
   function showMenu(){
+    // Opening the armory is a lobby action. Never leave a stale result/map
+    // overlay underneath it, because closing the armory could reveal that
+    // old screen again.
+    const result=document.getElementById('resultScreen');
+    const map=document.getElementById('mapScreen');
+    if(result) result.classList.remove('show');
+    if(map) map.classList.remove('show');
     menu.classList.add('show');
     lobby.classList.add('hidden');
   }
-  function closeMenu(){ menu.classList.remove('show'); lobby.classList.remove('hidden'); }
+  function closeMenu(){
+    menu.classList.remove('show');
+    const result=document.getElementById('resultScreen');
+    const map=document.getElementById('mapScreen');
+    if(result) result.classList.remove('show');
+    if(map) map.classList.remove('show');
+    lobby.classList.remove('hidden');
+    if(window.__duckSyncLobby) window.__duckSyncLobby();
+  }
 
   function renderEquipmentMenu(){
     const current=window.__duckGetSelectedStone?window.__duckGetSelectedStone():(window.__duckPreparedStone||getPreparedStone());
@@ -2706,6 +2721,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }));
     const done=document.getElementById('v42EquipDone');
     if(done) done.onclick=()=>{ savePreparedStone(window.__duckPreparedStone||'basic'); closeMenu(); };
+  }
+
+  // Replace legacy menu-close listeners so closing the armory has one deterministic path.
+  if(menuClose){
+    const closeBtn=menuClose.cloneNode(true);
+    menuClose.parentNode.replaceChild(closeBtn,menuClose);
+    closeBtn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      closeMenu();
+    });
   }
 
   function startDirectBattle(){
