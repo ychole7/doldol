@@ -618,13 +618,13 @@ function startStage(n){
   makeCovers();
   enemies=[];
   if(boss){
-    const bossScale=1+Math.min(2.4,(stage-1)*.095);
+    const bossScale=1+Math.min(2.4,(stage-1)*.075);
     enemies.push({
       type:'boss',x:vw*.5,y:vh*.20,r:48,
       hp:Math.max(12,Math.round(12*bossScale)),
       max:Math.max(12,Math.round(12*bossScale)),
-      speed:38*(1+Math.min(.45,(stage-1)*.02)),
-      fire:.8/(1+Math.min(.42,(stage-1)*.018)),
+      speed:38*(1+Math.min(.45,(stage-1)*.016)),
+      fire:.8/(1+Math.min(.42,(stage-1)*.015)),
       patternIndex:0,
       bossPhase:1,
       phase:0,
@@ -688,12 +688,14 @@ function showNextStageTransition(nextStageNumber, callback){
 }
 
 function spawnEnemy(i){
+  // BALANCE V1: late-stage scaling is intentionally gentler for release.
+  // Keep the existing enemy roster and combat patterns; only growth rate is softened.
   // V20: 스테이지가 진행될수록 전투 역할이 뚜렷한 특수 적이 섞인다.
   const pool = stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
              : stage>=12 ? ['normal','fast','tank','sniper','charger']
              : stage>=8  ? ['normal','fast','tank','sniper']
              : ['normal','fast','tank'];
-  const difficulty=1+Math.min(2.15,(stage-1)*.075);
+  const difficulty=1+Math.min(2.15,(stage-1)*.065);
   const type=pool[i%pool.length];
   const margin=55;
   const baseHp={tank:4,sniper:2,charger:3,bomber:3,fast:1,normal:2}[type]||2;
@@ -703,8 +705,8 @@ function spawnEnemy(i){
   enemies.push({
     type,x:margin+Math.random()*(vw-margin*2),y:vh*.20+Math.random()*vh*.32,r:radius,
     hp:Math.max(1,Math.round(baseHp*difficulty)),max:Math.max(1,Math.round(baseHp*difficulty)),
-    speed:baseSpeed*(1+Math.min(.48,(stage-1)*.018)),
-    fire:(.7+Math.random()*1.5)/(1+Math.min(.42,(stage-1)*.018)),
+    speed:baseSpeed*(1+Math.min(.48,(stage-1)*.014)),
+    fire:(.7+Math.random()*1.5)/(1+Math.min(.42,(stage-1)*.015)),
     baseFire,telegraph:0,patternIndex:0,phase:Math.random()*6.28,moveFx:0,chargeTimer:0
   });
 }
@@ -746,7 +748,7 @@ function shootPlayer(){
 function enemyShoot(e){
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
-  const speed=190*(1+Math.min(.35,(stage-1)*.012));
+  const speed=190*(1+Math.min(.35,(stage-1)*.009));
   function addRock(angle,spd,r=10,extra={}){
     rocks.push({x:e.x,y:e.y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,r,life:4,parried:false,pattern:e.type==='boss'?'boss':e.type,source:e,...extra});
   }
