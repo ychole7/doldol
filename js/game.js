@@ -18,6 +18,12 @@ STAGE1_BG.onload = () => { window.__duckStage1BgReady = true; };
 STAGE1_BG.onerror = () => { window.__duckStage1BgReady = false; };
 STAGE1_BG.src = "../assets/stage1_training.jpg";
 
+const STAGE2_BG = new Image();
+STAGE2_BG.decoding = "async";
+STAGE2_BG.onload = () => { window.__duckStage2BgReady = true; };
+STAGE2_BG.onerror = () => { window.__duckStage2BgReady = false; };
+STAGE2_BG.src = "../assets/stage2_training.jpg";
+
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
@@ -453,7 +459,7 @@ function makeCovers(){
   // STAGE 1: the new training-camp background is decorative only for now.
   // Do not add invisible collision rectangles over the artwork.
   // We can introduce explicit, visible cover objects later if needed.
-  const positions = stage===1
+  const positions = (stage===1 || stage===2)
     ? []
     : [
         [.18,.62],[.50,.58],[.82,.64],
@@ -1307,15 +1313,16 @@ function draw(){
   ctx.save();
   ctx.translate(sx,sy);
 
-  // STAGE 1: polished training-camp background.
+  // STAGE 1/2: polished training-camp backgrounds.
   // Existing characters, enemies, drops, HUD, gate and combat effects stay untouched.
-  if(stage===1 && STAGE1_BG.complete && STAGE1_BG.naturalWidth){
-    const iw=STAGE1_BG.naturalWidth, ih=STAGE1_BG.naturalHeight;
+  const bg = stage===1 ? STAGE1_BG : (stage===2 ? STAGE2_BG : null);
+  if(bg && bg.complete && bg.naturalWidth){
+    const iw=bg.naturalWidth, ih=bg.naturalHeight;
     const scale=Math.max(vw/iw,vh/ih);
     const dw=iw*scale, dh=ih*scale;
-    ctx.drawImage(STAGE1_BG,(vw-dw)/2,(vh-dh)/2,dw,dh);
+    ctx.drawImage(bg,(vw-dw)/2,(vh-dh)/2,dw,dh);
   }else{
-    // Legacy arena background for stages 2+.
+    // Legacy arena background for stages 3+.
     const g=ctx.createLinearGradient(0,0,0,vh);
     g.addColorStop(0,'#26303a');g.addColorStop(1,'#141a22');ctx.fillStyle=g;ctx.fillRect(0,0,vw,vh);
 
