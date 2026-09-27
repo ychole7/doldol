@@ -1311,55 +1311,46 @@ function drawEnemy(e){
   if(hitFlash>0){ctx.globalAlpha=Math.min(1,hitFlash/.16);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
   ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=9;ctx.shadowOffsetY=5;
 
+  // V48: 모든 실전 적 타입은 캐릭터 아트로 렌더링한다.
+  // 이미지 로딩이 늦더라도 SNIPER/FAST 등이 예전 원형 임시 적으로 돌아가지 않도록
+  // 준비된 다른 캐릭터 아트를 안전한 fallback으로 사용한다.
+  let art=null, ew=58, eh=68, badge='';
   if(e.type==='boss'){
-    // V4: 보스도 실제 캐릭터 아트로 교체. 기존 보스 전투 수치/패턴은 그대로.
-    if(enemyBossReady && ENEMY_BOSS_IMG.naturalWidth){
-      ctx.shadowColor='rgba(0,0,0,.38)';ctx.shadowBlur=12;ctx.shadowOffsetY=7;
-      const ew=104, eh=112;
-      ctx.drawImage(ENEMY_BOSS_IMG,-ew/2,-eh*.73,ew,eh);
-      ctx.shadowColor='transparent';
-    }else{
-      ctx.fillStyle='#633452';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
-      ctx.shadowColor='transparent';
-      ctx.strokeStyle='#ffd866';ctx.lineWidth=5;ctx.stroke();
-      ctx.fillStyle='#f1c3a2';ctx.beginPath();ctx.arc(-13,-6,6,0,Math.PI*2);ctx.arc(13,-6,6,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-13,-6,2.5,0,Math.PI*2);ctx.arc(13,-6,2.5,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#ffd866';ctx.font='900 18px system-ui';ctx.textAlign='center';ctx.fillText('★',0,-18);
-      ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.fillText('BOSS',0,19);
-    }
-  }else if(e.type==='normal' && enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){
-    // V1: 기본 돌격병만 실제 캐릭터 아트로 교체. 나머지 적 타입은 기존 렌더링 유지.
-    ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
-    const ew=58, eh=68;
-    ctx.drawImage(ENEMY_ASSAULT_IMG,-ew/2,-eh*.68,ew,eh);
-    ctx.shadowColor='transparent';
-  }else if(e.type==='sniper' && enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){
-    // V2: 원거리 소총병도 실제 캐릭터 아트로 교체. 전투 수치/AI는 기존 그대로.
-    ctx.shadowColor='rgba(0,0,0,.30)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
-    const ew=58, eh=74;
-    ctx.drawImage(ENEMY_RIFLE_IMG,-ew/2,-eh*.68,ew,eh);
-    ctx.shadowColor='transparent';
-  }else if(e.type==='tank' && enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){
-    // V3: 중장병만 실제 캐릭터 아트로 교체. 기존 tank 전투 수치/AI는 그대로.
-    ctx.shadowColor='rgba(0,0,0,.34)';ctx.shadowBlur=9;ctx.shadowOffsetY=6;
-    const ew=78, eh=82;
-    ctx.drawImage(ENEMY_HEAVY_IMG,-ew/2,-eh*.68,ew,eh);
-    ctx.shadowColor='transparent';
+    if(enemyBossReady && ENEMY_BOSS_IMG.naturalWidth){ art=ENEMY_BOSS_IMG; ew=104; eh=112; }
+  }else if(e.type==='tank'){
+    if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=78; eh=82; }
+    else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=64; eh=74; }
+  }else if(e.type==='sniper'){
+    if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=58; eh=74; }
+    else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=56; eh=68; }
+  }else if(e.type==='fast'){
+    // FAST 전용 아트는 출시 후 확장. V1에서는 돌격병 아트를 재사용하되 작고 빠르게 보이게 한다.
+    if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=52; eh=62; badge='⚡'; }
+  }else if(e.type==='charger'){
+    if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=68; eh=74; badge='➜'; }
+    else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=58; eh=68; }
+  }else if(e.type==='bomber'){
+    if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=60; eh=76; badge='●'; }
+    else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=58; eh=68; }
   }else{
-    ctx.fillStyle=e.type==='tank'?'#56616d':e.type==='fast'?'#d65355':e.type==='sniper'?'#5578b8':e.type==='charger'?'#c66a35':e.type==='bomber'?'#8b5aa6':'#8c684a';
+    if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=58; eh=68; }
+  }
+
+  if(art){
+    ctx.shadowColor=e.type==='boss'?'rgba(0,0,0,.38)':'rgba(0,0,0,.30)';
+    ctx.shadowBlur=e.type==='boss'?12:8;ctx.shadowOffsetY=e.type==='boss'?7:5;
+    ctx.drawImage(art,-ew/2,-eh*.68,ew,eh);
+    ctx.shadowColor='transparent';
+    if(badge){
+      ctx.font='900 14px system-ui';ctx.textAlign='center';
+      ctx.fillStyle=e.type==='fast'?'#ffe36b':e.type==='charger'?'#ffb45f':'#d9a4ff';
+      ctx.fillText(badge,ew*.34,-eh*.48);
+    }
+  }else{
+    // 첫 프레임 등 모든 이미지가 아직 준비되지 않은 극히 짧은 순간만 사용하는 중립 fallback.
+    ctx.fillStyle=e.type==='boss'?'#633452':'#59636b';
     ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
     ctx.shadowColor='transparent';
-    ctx.fillStyle='#f0c7a8';ctx.beginPath();ctx.arc(-7,-5,5,0,Math.PI*2);ctx.arc(7,-5,5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#20252b';ctx.beginPath();ctx.arc(-7,-5,2.2,0,Math.PI*2);ctx.arc(7,-5,2.2,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font='900 10px system-ui';ctx.textAlign='center';
-    ctx.fillText(e.type==='tank'?'TANK':e.type==='fast'?'FAST':e.type==='sniper'?'SNIPER':e.type==='charger'?'CHARGE':e.type==='bomber'?'BOMB':'ROCK',0,18);
-    if(e.type==='sniper' || e.type==='bomber' || e.type==='charger'){
-      ctx.strokeStyle=e.type==='sniper'?'rgba(100,180,255,.55)':e.type==='bomber'?'rgba(210,130,255,.55)':'rgba(255,170,80,.55)';
-      ctx.lineWidth=3; ctx.stroke();
-    }
-    if(e.type==='tank'){
-      ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=3;ctx.stroke();
-    }
   }
   ctx.restore();
 }
