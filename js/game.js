@@ -644,7 +644,9 @@ function startStage(n){
   window.__selectedDuckStage=stage;
   kills=0;
   boss=(stage%5===0);
-  total=boss?1:Math.min(16,7+Math.floor(stage*.8));
+  // V50: 출시용 초반 밸런스. 6~20은 적 수가 갑자기 튀지 않도록 완만하게 증가한다.
+  const stageEnemyCounts={6:10,7:10,8:11,9:12,11:12,12:13,13:13,14:14,16:14,17:15,18:15,19:16};
+  total=boss?1:(stageEnemyCounts[stage]||Math.min(16,7+Math.floor(stage*.8)));
   clearTimer=0;
   gate=false;
   skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
@@ -674,13 +676,16 @@ function startStage(n){
       enraged:false,
       attackWarn:0
     });
-    // V46: 5단계 보스전은 보스 단독이 아니라 소수의 지원 병력이 함께 등장한다.
-    // 보스 자체의 HP/패턴은 그대로 유지하고, 지원 병력만 추가한다.
-    if(stage<=5){
-      const supportTypes=['normal','sniper','normal'];
-      for(let i=0;i<supportTypes.length;i++) spawnEnemy(i,{forcedType:supportTypes[i], bossSupport:true});
-      total=1+supportTypes.length;
-    }
+    // V50: 5스테이지마다 보스 + 소수 지원병. 보스 패턴은 그대로 두고 조합만 단계적으로 확장한다.
+    const bossSupports={
+      5:['normal','sniper','normal'],
+      10:['normal','sniper','fast'],
+      15:['normal','sniper','tank','fast'],
+      20:['normal','sniper','tank','charger']
+    };
+    const supportTypes=bossSupports[stage]||[];
+    for(let i=0;i<supportTypes.length;i++) spawnEnemy(i,{forcedType:supportTypes[i], bossSupport:true});
+    total=1+supportTypes.length;
   }else{
     for(let i=0;i<total;i++) spawnEnemy(i);
   }
@@ -742,9 +747,11 @@ function spawnEnemy(i,opts){
              : stage===2 ? ['normal','sniper']
              : stage===3 ? ['normal','sniper','tank']
              : stage===4 ? ['normal','sniper','tank','fast']
+             // V50: 6~20 적 해금. 새 타입은 한꺼번에 넣지 않고 구간별로 하나씩 추가한다.
              : stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
-             : stage>=12 ? ['normal','fast','tank','sniper','charger']
-             : stage>=8  ? ['normal','fast','tank','sniper']
+             : stage>=15 ? ['normal','fast','tank','sniper','charger']
+             : stage>=11 ? ['normal','fast','tank','sniper']
+             : stage>=8  ? ['normal','fast','sniper','tank']
              : ['normal','fast','tank'];
   const difficulty=1+Math.min(2.15,(stage-1)*.075);
   const type=(opts&&opts.forcedType)||pool[i%pool.length];
@@ -1128,6 +1135,24 @@ function update(dt){
     }
   }
 
+  // V49: 적끼리 한 점에 완전히 겹쳐 보이지 않도록 아주 약한 separation만 적용한다.
+  // 전투 AI/공격 패턴은 유지하고, 시각적 가독성만 개선한다.
+  for(let i=0;i<enemies.length;i++){
+    const a=enemies[i]; if(!a || a.dead) continue;
+    for(let j=i+1;j<enemies.length;j++){
+      const b=enemies[j]; if(!b || b.dead) continue;
+      let dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy);
+      const minD=Math.max(34,((a.r||18)+(b.r||18))*.82);
+      if(d<minD){
+        if(d<.001){ dx=(i%2?1:-1); dy=(j%2?1:-1); d=Math.hypot(dx,dy); }
+        const push=(minD-d)*.18, nx=dx/d, ny=dy/d;
+        a.x-=nx*push; a.y-=ny*push;
+        b.x+=nx*push; b.y+=ny*push;
+      }
+    }
+    a.x=clamp(a.x,30,vw-30); a.y=clamp(a.y,vh*.12,vh*.48);
+  }
+
   for(const s of shots){
     s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
     for(const c of covers){
@@ -1333,7 +1358,7 @@ function drawEnemy(e){
     if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=60; eh=76; badge='●'; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=58; eh=68; }
   }else{
-    if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=65; eh=76; }
+    if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=72; eh=84; } // V49: 돌격병 체감 크기 약 10% 추가 확대
   }
 
   if(art){
