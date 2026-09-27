@@ -1403,16 +1403,17 @@ function draw(){
   ctx.save();
   ctx.translate(sx,sy);
 
-  // STAGE 1/2: polished training-camp backgrounds.
-  // Existing characters, enemies, drops, HUD, gate and combat effects stay untouched.
-  const bg = stage===1 ? STAGE1_BG : (stage===2 ? STAGE2_BG : null);
+  // Training-camp background rotation.
+  // Stage 1/2 keep their original backgrounds; stage 3+ reuse them alternately
+  // so later stages never fall back to the old black placeholder arena.
+  const bg = stage===1 ? STAGE1_BG : (stage===2 ? STAGE2_BG : (stage % 2 === 1 ? STAGE1_BG : STAGE2_BG));
   if(bg && bg.complete && bg.naturalWidth){
     const iw=bg.naturalWidth, ih=bg.naturalHeight;
     const scale=Math.max(vw/iw,vh/ih);
     const dw=iw*scale, dh=ih*scale;
     ctx.drawImage(bg,(vw-dw)/2,(vh-dh)/2,dw,dh);
   }else{
-    // Legacy arena background for stages 3+.
+    // Fallback only if the background image fails to load.
     const g=ctx.createLinearGradient(0,0,0,vh);
     g.addColorStop(0,'#26303a');g.addColorStop(1,'#141a22');ctx.fillStyle=g;ctx.fillRect(0,0,vw,vh);
 
