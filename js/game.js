@@ -1258,9 +1258,6 @@ function update(dt){
   }
   rocks=rocks.filter(r=>r.life>0 && r.x>-50 && r.x<vw+50 && r.y>-50 && r.y<vh+50);
 
-  // Visible stage obstacles; these exactly match the collision rectangles.
-  drawVisibleCovers();
-
   for(const p of pickups){
     p.life-=dt; p.bob+=dt*4;
     const d=Math.hypot(p.x-player.x,p.y-player.y);
@@ -1487,6 +1484,11 @@ function draw(){
       roundRect(c.x-c.w/2+7,c.y-c.h/2+6,c.w-14,7,4);ctx.fill();
     }
   }
+
+  // Draw the exact collision obstacles on top of every background.
+  // This must live in draw(), not update(), otherwise clearRect erases them
+  // and they behave like invisible walls.
+  drawVisibleCovers();
 
   for(const p of pickups){
     const bob=Math.sin(p.bob)*3;
