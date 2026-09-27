@@ -480,17 +480,63 @@ resize();
 
 function makeCovers(){
   covers=[];
-  // STAGE 1: the new training-camp background is decorative only for now.
-  // Do not add invisible collision rectangles over the artwork.
-  // We can introduce explicit, visible cover objects later if needed.
-  const positions = (stage===1 || stage===2)
-    ? []
-    : [
-        [.18,.62],[.50,.58],[.82,.64],
-        [.30,.76],[.70,.78]
-      ];
-  for(const [px,py] of positions){
-    covers.push({x:vw*px,y:vh*py,w:54,h:34,r:9});
+  // Stage 1/2 stay open. Stage 3+ use visible cover patterns.
+  // The same rectangles are used for drawing AND collision: what you see is what blocks you.
+  if(stage<=2) return;
+
+  const patterns=[
+    // A: center split
+    [[.28,.59,62,34,'sand'],[.72,.59,62,34,'sand'],[.50,.73,58,36,'crate']],
+    // B: left/right zig
+    [[.20,.58,58,38,'crate'],[.78,.65,66,34,'sand'],[.34,.76,54,34,'drum']],
+    // C: narrow center lane
+    [[.27,.64,70,34,'sand'],[.73,.64,70,34,'sand'],[.18,.78,52,36,'crate'],[.82,.78,52,36,'crate']],
+    // D: diagonal
+    [[.24,.57,54,36,'drum'],[.45,.66,62,36,'crate'],[.67,.75,68,34,'sand']],
+    // E: bunker
+    [[.35,.61,70,34,'sand'],[.65,.61,70,34,'sand'],[.50,.79,62,38,'crate']]
+  ];
+  const pat=patterns[(stage-3)%patterns.length];
+  for(const [px,py,w,h,type] of pat){
+    covers.push({x:vw*px,y:vh*py,w,h,r:9,type});
+  }
+}
+function drawVisibleCovers(){
+  for(const c of covers){
+    ctx.save();
+    ctx.translate(c.x,c.y);
+    if(c.type==='sand'){
+      // sandbag barricade
+      ctx.fillStyle='rgba(55,40,24,.22)';
+      roundRect(-c.w/2+2,-c.h/2+5,c.w,c.h,9);ctx.fill();
+      const bw=c.w/3-3, bh=c.h/2-3;
+      for(let row=0;row<2;row++) for(let col=0;col<3;col++){
+        const ox=-c.w/2+3+col*(bw+2)+(row?4:0), oy=-c.h/2+2+row*(bh+1);
+        ctx.fillStyle=row ? '#a9834d' : '#bc9660';
+        roundRect(ox,oy,bw,bh,6);ctx.fill();
+        ctx.strokeStyle='rgba(74,50,25,.45)';ctx.lineWidth=1;ctx.stroke();
+      }
+    }else if(c.type==='drum'){
+      // steel drums
+      const rw=c.w*.42, gap=3;
+      for(let i=-1;i<=1;i++){
+        const x=i*(rw*.55);
+        ctx.fillStyle=i===0?'#5e735d':'#6d805f';
+        roundRect(x-rw/2,-c.h/2,rw,c.h,6);ctx.fill();
+        ctx.strokeStyle='rgba(20,28,22,.55)';ctx.lineWidth=2;ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(x-rw/2+3,-c.h*.18);ctx.lineTo(x+rw/2-3,-c.h*.18);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x-rw/2+3,c.h*.18);ctx.lineTo(x+rw/2-3,c.h*.18);ctx.stroke();
+      }
+    }else{
+      // wooden supply crate
+      ctx.fillStyle='#8b5b32';roundRect(-c.w/2,-c.h/2,c.w,c.h,6);ctx.fill();
+      ctx.strokeStyle='#4f321e';ctx.lineWidth=3;ctx.stroke();
+      ctx.strokeStyle='rgba(224,176,104,.75)';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(-c.w/2+7,-c.h/2+6);ctx.lineTo(c.w/2-7,c.h/2-6);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(c.w/2-7,-c.h/2+6);ctx.lineTo(-c.w/2+7,c.h/2-6);ctx.stroke();
+    }
+    ctx.restore();
   }
 }
 function circleRectHit(c,rect){
@@ -1211,6 +1257,9 @@ function update(dt){
     }
   }
   rocks=rocks.filter(r=>r.life>0 && r.x>-50 && r.x<vw+50 && r.y>-50 && r.y<vh+50);
+
+  // Visible stage obstacles; these exactly match the collision rectangles.
+  drawVisibleCovers();
 
   for(const p of pickups){
     p.life-=dt; p.bob+=dt*4;
