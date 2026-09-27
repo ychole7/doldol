@@ -493,17 +493,53 @@ function makeCovers(){
 }
 function drawVisibleCovers(){
   for(const c of covers){
-    const img=OBSTACLE_ART[c.type];
-    if(img && img.complete && img.naturalWidth){
-      // Artwork is intentionally larger than its foot collision rectangle.
-      // Collision remains around the physical base, avoiding invisible side walls.
-      const aspect=img.naturalWidth/img.naturalHeight;
-      const dh=Math.max(c.h*2.0,58), dw=dh*aspect;
-      ctx.drawImage(img,c.x-dw/2,c.y-dh*.76,dw,dh);
+    ctx.save(); ctx.translate(c.x,c.y);
+    // soft contact shadow only, never a rectangular sprite background
+    ctx.fillStyle='rgba(35,24,12,.18)';
+    ctx.beginPath();ctx.ellipse(0,c.h*.34,c.w*.54,c.h*.28,0,0,Math.PI*2);ctx.fill();
+
+    if(c.type==='sandbags'){
+      const bw=c.w/3.05,bh=c.h*.48;
+      for(let row=0;row<2;row++) for(let col=0;col<3;col++){
+        const xx=(col-1)*bw+(row?bw*.18:0), yy=(row-.5)*bh;
+        ctx.fillStyle=row?'#c59a5d':'#d7ad6d';
+        roundRect(xx-bw*.48,yy-bh*.42,bw*.96,bh*.84,bh*.38);ctx.fill();
+        ctx.strokeStyle='rgba(88,57,28,.55)';ctx.lineWidth=1.5;ctx.stroke();
+        ctx.strokeStyle='rgba(255,230,175,.30)';ctx.beginPath();ctx.moveTo(xx-bw*.32,yy-bh*.16);ctx.lineTo(xx+bw*.32,yy-bh*.16);ctx.stroke();
+      }
+    }else if(c.type==='concrete'){
+      ctx.fillStyle='#777a72';roundRect(-c.w/2,-c.h/2,c.w,c.h,7);ctx.fill();
+      ctx.strokeStyle='#4d504b';ctx.lineWidth=2;ctx.stroke();
+      ctx.save();roundRect(-c.w/2,-c.h/2,c.w,c.h,7);ctx.clip();
+      ctx.strokeStyle='#d2a72c';ctx.lineWidth=10;
+      for(let x=-c.w;x<c.w;x+=26){ctx.beginPath();ctx.moveTo(x,c.h/2);ctx.lineTo(x+25,-c.h/2);ctx.stroke();}
+      ctx.restore();
+      ctx.fillStyle='rgba(255,255,255,.18)';roundRect(-c.w/2+5,-c.h/2+4,c.w-10,4,2);ctx.fill();
+    }else if(c.type==='tanktrap'){
+      ctx.strokeStyle='#70472b';ctx.lineWidth=10;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(-c.w*.38,c.h*.34);ctx.lineTo(c.w*.34,-c.h*.38);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-c.w*.35,-c.h*.35);ctx.lineTo(c.w*.38,c.h*.34);ctx.stroke();
+      ctx.strokeStyle='#b88a56';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.stroke();
+    }else if(c.type==='barrels'){
+      for(let i=-1;i<=1;i++){
+        const x=i*c.w*.25;
+        ctx.fillStyle=i===0?'#65765d':'#536951';
+        roundRect(x-c.w*.16,-c.h*.52,c.w*.32,c.h*1.04,6);ctx.fill();
+        ctx.strokeStyle='#344538';ctx.lineWidth=2;ctx.stroke();
+        ctx.strokeStyle='rgba(230,240,210,.25)';ctx.lineWidth=2;
+        for(const yy of [-c.h*.27,c.h*.27]){ctx.beginPath();ctx.moveTo(x-c.w*.13,yy);ctx.lineTo(x+c.w*.13,yy);ctx.stroke();}
+      }
     }else{
-      ctx.fillStyle='rgba(120,90,55,.85)';
-      roundRect(c.x-c.w/2,c.y-c.h/2,c.w,c.h,8);ctx.fill();
+      ctx.fillStyle='#9a6536';roundRect(-c.w/2,-c.h/2,c.w,c.h,6);ctx.fill();
+      ctx.strokeStyle='#56351e';ctx.lineWidth=3;ctx.stroke();
+      ctx.strokeStyle='#d29a59';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(-c.w*.38,-c.h*.35);ctx.lineTo(c.w*.38,c.h*.35);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(c.w*.38,-c.h*.35);ctx.lineTo(-c.w*.38,c.h*.35);ctx.stroke();
+      ctx.fillStyle='#4d3a2a';
+      for(const x of [-c.w*.42,c.w*.42])for(const y of [-c.h*.38,c.h*.38]){ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();}
     }
+    ctx.restore();
   }
 }
 function circleRectHit(c,rect){
@@ -1058,7 +1094,27 @@ function update(dt){
     if(skillTimer<=0) clearSkillState();
   }
   if(player && player.skillAutoParry){
-    for(const r of rocks){
+    // V2 enemy spacing: keep large sprites readable instead of stacking into one blob.
+  // Gentle pairwise push; bosses/heavies get a little more personal space.
+  for(let i=0;i<enemies.length;i++){
+    const a=enemies[i]; if(a.dead) continue;
+    for(let j=i+1;j<enemies.length;j++){
+      const b=enemies[j]; if(b.dead) continue;
+      let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+      if(d<.01){dx=(i%2?1:-1);dy=.2;d=Math.hypot(dx,dy);}
+      const ar=(a.type==='boss'?52:(a.type==='tank'?42:34));
+      const br=(b.type==='boss'?52:(b.type==='tank'?42:34));
+      const minD=ar+br;
+      if(d<minD){
+        const push=Math.min(5.5,(minD-d)*.10),nx=dx/d,ny=dy/d;
+        a.x-=nx*push;a.y-=ny*push*.55;b.x+=nx*push;b.y+=ny*push*.55;
+        a.x=clamp(a.x,30,vw-30);b.x=clamp(b.x,30,vw-30);
+        a.y=clamp(a.y,vh*.12,vh*.78);b.y=clamp(b.y,vh*.12,vh*.78);
+      }
+    }
+  }
+
+  for(const r of rocks){
       if(!r.parried && Math.hypot(r.x-player.x,r.y-player.y)<player.parryRange*1.15){
         parryAt(player.x,player.y);
         break;
