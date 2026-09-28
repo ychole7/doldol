@@ -479,68 +479,11 @@ addEventListener('pageshow',resize);
 resize();
 
 function makeCovers(){
+  // V4: synthetic cover disabled; no hidden collision walls.
   covers=[];
-  if(stage<=2) return;
-  const patterns=[
-    [[.28,.59,68,34,'sandbags'],[.72,.59,68,34,'concrete'],[.50,.73,60,38,'crate']],
-    [[.20,.58,62,38,'barrels'],[.78,.65,70,34,'sandbags'],[.34,.76,58,38,'tanktrap']],
-    [[.27,.64,72,34,'concrete'],[.73,.64,72,34,'sandbags'],[.18,.78,58,38,'crate'],[.82,.78,58,38,'barrels']],
-    [[.24,.57,58,38,'tanktrap'],[.45,.66,64,38,'crate'],[.67,.75,70,34,'concrete']],
-    [[.35,.61,72,34,'sandbags'],[.65,.61,72,34,'concrete'],[.50,.79,62,38,'tanktrap']]
-  ];
-  const pat=patterns[(stage-3)%patterns.length];
-  for(const [px,py,w,h,type] of pat) covers.push({x:vw*px,y:vh*py,w,h,r:8,type});
 }
 function drawVisibleCovers(){
-  for(const c of covers){
-    ctx.save(); ctx.translate(c.x,c.y);
-    // soft contact shadow only, never a rectangular sprite background
-    ctx.fillStyle='rgba(35,24,12,.18)';
-    ctx.beginPath();ctx.ellipse(0,c.h*.34,c.w*.54,c.h*.28,0,0,Math.PI*2);ctx.fill();
-
-    if(c.type==='sandbags'){
-      const bw=c.w/3.05,bh=c.h*.48;
-      for(let row=0;row<2;row++) for(let col=0;col<3;col++){
-        const xx=(col-1)*bw+(row?bw*.18:0), yy=(row-.5)*bh;
-        ctx.fillStyle=row?'#c59a5d':'#d7ad6d';
-        roundRect(xx-bw*.48,yy-bh*.42,bw*.96,bh*.84,bh*.38);ctx.fill();
-        ctx.strokeStyle='rgba(88,57,28,.55)';ctx.lineWidth=1.5;ctx.stroke();
-        ctx.strokeStyle='rgba(255,230,175,.30)';ctx.beginPath();ctx.moveTo(xx-bw*.32,yy-bh*.16);ctx.lineTo(xx+bw*.32,yy-bh*.16);ctx.stroke();
-      }
-    }else if(c.type==='concrete'){
-      ctx.fillStyle='#777a72';roundRect(-c.w/2,-c.h/2,c.w,c.h,7);ctx.fill();
-      ctx.strokeStyle='#4d504b';ctx.lineWidth=2;ctx.stroke();
-      ctx.save();roundRect(-c.w/2,-c.h/2,c.w,c.h,7);ctx.clip();
-      ctx.strokeStyle='#d2a72c';ctx.lineWidth=10;
-      for(let x=-c.w;x<c.w;x+=26){ctx.beginPath();ctx.moveTo(x,c.h/2);ctx.lineTo(x+25,-c.h/2);ctx.stroke();}
-      ctx.restore();
-      ctx.fillStyle='rgba(255,255,255,.18)';roundRect(-c.w/2+5,-c.h/2+4,c.w-10,4,2);ctx.fill();
-    }else if(c.type==='tanktrap'){
-      ctx.strokeStyle='#70472b';ctx.lineWidth=10;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(-c.w*.38,c.h*.34);ctx.lineTo(c.w*.34,-c.h*.38);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(-c.w*.35,-c.h*.35);ctx.lineTo(c.w*.38,c.h*.34);ctx.stroke();
-      ctx.strokeStyle='#b88a56';ctx.lineWidth=3;
-      ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.stroke();
-    }else if(c.type==='barrels'){
-      for(let i=-1;i<=1;i++){
-        const x=i*c.w*.25;
-        ctx.fillStyle=i===0?'#65765d':'#536951';
-        roundRect(x-c.w*.16,-c.h*.52,c.w*.32,c.h*1.04,6);ctx.fill();
-        ctx.strokeStyle='#344538';ctx.lineWidth=2;ctx.stroke();
-        ctx.strokeStyle='rgba(230,240,210,.25)';ctx.lineWidth=2;
-        for(const yy of [-c.h*.27,c.h*.27]){ctx.beginPath();ctx.moveTo(x-c.w*.13,yy);ctx.lineTo(x+c.w*.13,yy);ctx.stroke();}
-      }
-    }else{
-      ctx.fillStyle='#9a6536';roundRect(-c.w/2,-c.h/2,c.w,c.h,6);ctx.fill();
-      ctx.strokeStyle='#56351e';ctx.lineWidth=3;ctx.stroke();
-      ctx.strokeStyle='#d29a59';ctx.lineWidth=3;
-      ctx.beginPath();ctx.moveTo(-c.w*.38,-c.h*.35);ctx.lineTo(c.w*.38,c.h*.35);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(c.w*.38,-c.h*.35);ctx.lineTo(-c.w*.38,c.h*.35);ctx.stroke();
-      ctx.fillStyle='#4d3a2a';
-      for(const x of [-c.w*.42,c.w*.42])for(const y of [-c.h*.38,c.h*.38]){ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();}
-    }
-    ctx.restore();
-  }
+  // V4: use the polished obstacles already painted into the battlefield background.
 }
 function circleRectHit(c,rect){
   const nx=clamp(c.x,rect.x-rect.w/2,rect.x+rect.w/2);
@@ -677,6 +620,9 @@ showSkillButton();
   running=true; last=performance.now();
 }
 function startStage(n){
+  // New stage always begins from wave 1.
+  wave=1;
+
   // V43: the weapon/equipment menu is the single source of truth for the starting stone.
   try{ equippedStone=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; }catch(e){ equippedStone='basic'; }
   if(!STONE_DEFS[equippedStone]) equippedStone='basic';
@@ -827,10 +773,10 @@ function spawnEnemy(i,opts){
     const front=i<frontCount;
     const rowIndex=front?i:i-frontCount;
     const rowCount=Math.max(1,front?frontCount:assumedTotal-frontCount);
-    const usable=Math.min(vw*.68,350);
-    const gap=rowCount>1?Math.min(84,usable/(rowCount-1)):0;
+    const usable=Math.min(vw*.78,410);
+    const gap=rowCount>1?Math.min(92,usable/(rowCount-1)):0;
     xPos=clamp(vw*.5+(rowIndex-(rowCount-1)/2)*gap+(((i*37)%11)-5),margin,vw-margin);
-    yPos=(front?vh*.43:vh*.34)+((i%2)*8-4);
+    yPos=(front?vh*.45:vh*.32)+((i%2)*8-4);
   }
   enemies.push({
     type,x:xPos,y:yPos,r:radius,
