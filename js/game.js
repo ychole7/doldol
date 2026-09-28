@@ -478,9 +478,14 @@ addEventListener('orientationchange',()=>setTimeout(resize,80));
 addEventListener('pageshow',resize);
 resize();
 
-const COVER_ART={};
+const COVER_ART={}, COVER_READY={};
 for(const id of ['sand','concrete','trap','crate','barrel']){
-  const img=new Image(); img.src='assets/obstacles/'+id+'.png'; COVER_ART[id]=img;
+  COVER_READY[id]=false;
+  const img=new Image();
+  img.onload=()=>{COVER_READY[id]=true;};
+  img.onerror=()=>{COVER_READY[id]=false;};
+  img.src='assets/obstacles/'+id+'.png';
+  COVER_ART[id]=img;
 }
 function makeCovers(){
   covers=[];
@@ -497,14 +502,16 @@ function makeCovers(){
 function drawVisibleCovers(){
   for(const c of covers){
     const img=COVER_ART[c.type];
-    if(!img || !img.complete || !img.naturalWidth) continue;
-    // V9 visual-only swap: cover x/y/w/h and collision data are untouched.
+    if(!COVER_READY[c.type] || !img || !img.naturalWidth) continue;
     const aspect=img.naturalWidth/img.naturalHeight;
-    const dh=Math.max(58,c.h*2.35), dw=dh*aspect;
-    ctx.drawImage(img,c.x-dw/2,c.y-dh*.78,dw,dh);
+    // Slightly larger art so every active cover is unmistakably visible.
+    const dh=Math.max(68,c.h*2.65), dw=dh*aspect;
+    ctx.drawImage(img,c.x-dw/2,c.y-dh*.80,dw,dh);
   }
 }
 function circleRectHit(c,rect){
+  // Safety rule: an obstacle that has not visibly loaded can never block movement.
+  if(rect && rect.type && !COVER_READY[rect.type]) return false;
   const nx=clamp(c.x,rect.x-rect.w/2,rect.x+rect.w/2);
   const ny=clamp(c.y,rect.y-rect.h/2,rect.y+rect.h/2);
   return Math.hypot(c.x-nx,c.y-ny)<c.r;
