@@ -1742,16 +1742,19 @@ function draw(){
     ctx.save();
     ctx.translate(gx,gy);
     ctx.scale(pulse,pulse);
-    ctx.fillStyle='rgba(5,10,15,.88)';
-    roundRect(-86,-58,172,126,28); ctx.fill();
-    ctx.strokeStyle='rgba(255,216,102,.72)';ctx.lineWidth=3;ctx.stroke();
-    ctx.fillStyle='#6b4425';roundRect(-54,-18,108,72,18);ctx.fill();
-    ctx.fillStyle='#111a22';roundRect(-37,-5,74,59,12);ctx.fill();
-    ctx.strokeStyle='#ffd866';ctx.lineWidth=5;ctx.stroke();
-    ctx.fillStyle='#ffd866';ctx.font='900 15px system-ui';ctx.textAlign='center';
-    ctx.fillText('GATE OPEN',0,-31);
-    ctx.fillStyle='#fff';ctx.font='900 11px system-ui';
-    ctx.fillText('관문으로 이동하세요',0,82);
+    // V12: compact battlefield gate marker instead of the large modal-like panel.
+    ctx.shadowColor='rgba(255,216,102,.42)';ctx.shadowBlur=18;
+    ctx.fillStyle='rgba(20,28,32,.80)';
+    roundRect(-48,-31,96,66,18);ctx.fill();
+    ctx.strokeStyle='rgba(255,216,102,.88)';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#704827';roundRect(-29,-9,58,39,11);ctx.fill();
+    ctx.fillStyle='#142029';roundRect(-20,-2,40,32,8);ctx.fill();
+    ctx.strokeStyle='#ffd866';ctx.lineWidth=3;ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#ffd866';ctx.font='900 11px system-ui';ctx.textAlign='center';
+    ctx.fillText('GATE OPEN',0,-17);
+    ctx.fillStyle='rgba(255,255,255,.94)';ctx.font='800 10px system-ui';
+    ctx.fillText('관문으로 이동',0,49);
     ctx.restore();
   }
 
