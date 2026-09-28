@@ -890,6 +890,21 @@ function enemyShoot(e){
     addRock(base-.075,speed,10); addRock(base+.075,speed,10);
   }else addRock(base,speed*(e.elite?1.08:1),10);
 }
+function combatImpactFx(e,damage,dead){
+  // Visual feedback only: no HP, AI, collision or stage-flow changes.
+  const power=dead?1.45:(damage>1?1.18:1);
+  for(let i=0;i<(dead?12:6);i++){
+    const a=Math.random()*Math.PI*2, sp=(dead?42:28)+Math.random()*(dead?58:32);
+    particles.push({
+      x:e.x+Math.cos(a)*5,y:e.y+Math.sin(a)*4,
+      vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-12,
+      life:(dead?.48:.28)+Math.random()*.16,
+      size:(dead?3.8:2.7)+Math.random()*2.2,
+      impact:true
+    });
+  }
+  e.impactKick=.11*power;
+}
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
   const wasBossPhase=e.bossPhase||1;
@@ -916,13 +931,15 @@ function hitEnemy(e,damage=1){
   feedbackV1('hit');
   damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-'+damage,life:.55,vy:-34,crit:damage>1});
   burst(e.x,e.y,10);
-  shake=Math.max(shake,3);
+  combatImpactFx(e,damage,false);
+  shake=Math.max(shake,damage>1?4:3);
   if(e.hp<=0){
     kills++;
     if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
     feedbackV1('kill');
     if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
     burst(e.x,e.y,18);
+    combatImpactFx(e,damage,true);
     e.dead=true;
     pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
     spawnFarmDropV2(e.x,e.y);
@@ -1386,6 +1403,11 @@ function drawDuck(x,y,scale=1){
 function drawEnemy(e){
   ctx.save();
   ctx.translate(e.x,e.y);
+  if(e.impactKick>0){
+    const k=Math.min(1,e.impactKick/.13);
+    ctx.scale(1+k*.07,1-k*.06);
+    e.impactKick=Math.max(0,e.impactKick-.018);
+  }
   const r=e.r;
   const hitFlash=e.hitFlash||0;
   if(hitFlash>0){ctx.globalAlpha=Math.min(1,hitFlash/.16);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
