@@ -1740,21 +1740,7 @@ function draw(){
     ctx.fillText(message,vw*.5,my+29);
   }
 
-  if(!running && !upgradeOpen){
-    ctx.fillStyle='rgba(5,8,12,.72)';ctx.fillRect(0,0,vw,vh);
-    ctx.fillStyle='#fff';ctx.font='900 30px system-ui';ctx.textAlign='center';
-    ctx.fillText(message==='GAME OVER'?'GAME OVER':'STAGE CLEAR!',vw/2,vh*.42);
-    if(gate){
-      ctx.fillStyle='#dfe7ee';ctx.font='bold 14px system-ui';
-      ctx.fillText(`보유 코인  🪙 ${window.__duckWallet.coins.toLocaleString()}   XP ${xp}`,vw/2,vh*.50);
-      ctx.fillStyle='#ffd866';roundRect(vw*.5-105,vh*.54,210,54,18);ctx.fill();
-      ctx.fillStyle='#3a260d';ctx.font='900 18px system-ui';
-      ctx.fillText(`STAGE ${stage+1}  ▶`,vw/2,vh*.54+35);
-    }else{
-      ctx.font='15px system-ui';ctx.fillStyle='#d9e0e7';
-      ctx.fillText('탭해서 다시 도전',vw/2,vh*.49);
-    }
-  }
+  // V6: legacy canvas result overlay removed; DOM result screen owns navigation.
   drawUpgrade();
   if(paused){
     ctx.fillStyle='rgba(5,8,12,.58)';ctx.fillRect(0,0,vw,vh);
@@ -3480,4 +3466,32 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watch);else watch();
   window.__duckRefreshArmoryUpgrade=watch;
+})();
+
+
+/* V6 RESULT FLOW HARD LOCK */
+(function(){
+ const result=document.getElementById('resultScreen'); if(!result)return;
+ window.__duckShowResult=function(clear){
+   const current=Math.max(1,Math.min(500,Number(window.__duckStage)||1));
+   const title=document.getElementById('resultTitle'),sub=document.getElementById('resultSub'),next=document.getElementById('resultNext');
+   if(title)title.textContent=clear?'STAGE CLEAR!':'GAME OVER';
+   if(sub)sub.textContent=clear?'STAGE '+current+' 클리어!':'STAGE '+current+'에서 쓰러졌습니다';
+   if(next)next.textContent=clear?'다음 스테이지  ▶':'다시 도전';
+   window.__duckResultClear=!!clear; window.__duckResultStage=current;
+   result.style.display=''; result.style.pointerEvents='auto'; result.classList.add('show','doldolResultV3');
+ };
+ const old=document.getElementById('resultNext');
+ if(old){
+   const btn=old.cloneNode(true); old.parentNode.replaceChild(btn,old);
+   let busy=false;
+   btn.addEventListener('click',function(e){
+     e.preventDefault();e.stopPropagation();if(busy)return;busy=true;
+     const current=Math.max(1,Math.min(500,Number(window.__duckResultStage||window.__duckStage)||1));
+     const target=window.__duckResultClear?Math.min(500,current+1):current;
+     result.classList.remove('show');result.style.pointerEvents='none';window.__duckPendingNextStage=0;
+     if(window.__duckStartStage)window.__duckStartStage(target);
+     setTimeout(function(){busy=false},450);
+   },true);
+ }
 })();
