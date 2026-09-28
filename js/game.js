@@ -1013,8 +1013,8 @@ cv.addEventListener('pointerdown',e=>{
     return;
   }
   if(!running){
-    if(gate){ nextStage(); }
-    else { reset(); }
+    // V5: result flow owns retry/next-stage navigation.
+    // Never call legacy reset() here: reset() sends the run back to STAGE 1.
     return;
   }
   if(p.y>vh*.55){
@@ -1228,7 +1228,7 @@ function update(dt){
       }else{
         player.hp-=18;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
-        if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}},80);}
+        if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
         r.life=0;
       }
     }
@@ -1329,7 +1329,7 @@ function update(dt){
       message='STAGE CLEAR!';
       messageTimer=999;
       burst(gx,gy,42);
-      setTimeout(function(){try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}},180);
+      try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}
     }
   }
 }
