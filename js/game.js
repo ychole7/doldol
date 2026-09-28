@@ -651,6 +651,15 @@ showSkillButton();
     }
   running=true; last=performance.now();
 }
+function stageFeatureLabel(n){
+  if(n%5===0) return n>=20?'FINAL BOSS · 정예 지원병':n>=15?'BOSS · 중장병 지원':n>=10?'BOSS · 혼성 지원병':'BOSS · 첫 지휘관';
+  if(n>=18) return '폭격병 출현 · 전면전';
+  if(n>=15) return '돌진병 출현 · 강화 혼성전';
+  if(n>=11) return '정예 혼성 부대';
+  if(n>=8) return '저격병 · 중장병 경계';
+  if(n>=6) return '적 증원 · 전투 강화';
+  return '전투 준비!';
+}
 function startStage(n){
   // V7: HUD wave is calculated from kills/total.
   // Do not assign an undeclared `wave` variable here; it aborts stage startup.
@@ -1781,7 +1790,7 @@ function draw(){
     ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
     ctx.fillText(boss?'BOSS STAGE':'STAGE '+stage,vw/2,vh*.43);
     ctx.font='bold 16px system-ui';ctx.fillStyle='#ffd866';
-    ctx.fillText(boss?'⚠️ 강력한 적 출현':'전투 준비!',vw/2,vh*.49);
+    ctx.fillText(stageFeatureLabel(stage),vw/2,vh*.49);
   }
 
   if(levelFlash>0){
