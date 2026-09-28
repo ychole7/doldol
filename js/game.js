@@ -1161,19 +1161,30 @@ function update(dt){
         e.x+=(vw*.5-e.x)*Math.min(1,dt*1.4); e.y+=(vh*.30-e.y)*Math.min(1,dt*1.4);
       }
     }else if(e.type==='sniper'){
-      // 스나이퍼는 상단에서 거리를 유지하며 공격 전조가 길다.
-      const desired=300;
-      if(L<desired){ e.x-=dx/L*e.speed*stoneSlow*.55*dt; e.y-=dy/L*e.speed*stoneSlow*.55*dt; }
-      else { e.x+=(vw*.5-e.x)*Math.min(1,dt*.65); }
+      // V14: sniper stays in the rear and holds a side firing lane.
+      const desired=315;
+      if(e.roleSide==null) e.roleSide=(e.x<vw*.5?-1:1);
+      const tx=vw*.5+e.roleSide*vw*.24, ty=vh*.255;
+      if(L<desired){ e.x-=dx/L*e.speed*stoneSlow*.48*dt; e.y-=dy/L*e.speed*stoneSlow*.48*dt; }
+      e.x+=(tx-e.x)*Math.min(1,dt*.52);
+      e.y+=(ty-e.y)*Math.min(1,dt*.30);
     }else if(e.type==='bomber'){
       const desired=245;
       if(L>desired) moveAroundCovers(e,dx/L*e.speed*stoneSlow*dt,dy/L*e.speed*stoneSlow*dt);
       else e.x+=(vw*.5-e.x)*Math.min(1,dt*.7);
     }else{
-      const desired=e.type==='boss'?260:e.type==='fast'?135:e.type==='tank'?220:175;
+      // V14: role-based spacing; combat stats and attack logic stay untouched.
+      const desired=e.type==='boss'?260:e.type==='fast'?145:e.type==='tank'?205:180;
+      if(e.roleSide==null) e.roleSide=(e.x<vw*.5?-1:1);
       if(L>desired){
-      moveAroundCovers(e,dx/L*e.speed*stoneSlow*dt,dy/L*e.speed*stoneSlow*dt);
-    }else if(e.type==='boss'){
+        const roleMul=e.type==='tank'?.78:e.type==='fast'?1.12:1;
+        moveAroundCovers(e,dx/L*e.speed*stoneSlow*roleMul*dt,dy/L*e.speed*stoneSlow*roleMul*dt);
+        if(e.type!=='boss'){
+          const spread=e.type==='tank'?.16:e.type==='fast'?.28:.22;
+          const tx=vw*.5+e.roleSide*vw*spread;
+          e.x+=(tx-e.x)*Math.min(1,dt*.24);
+        }
+      }else if(e.type==='boss'){
       e.phase+=dt;
       const bp=e.bossPhase||1;
       // 보스 이동도 페이즈별로 달라진다.
