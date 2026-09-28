@@ -620,8 +620,8 @@ showSkillButton();
   running=true; last=performance.now();
 }
 function startStage(n){
-  // New stage always begins from wave 1.
-  wave=1;
+  // V7: HUD wave is calculated from kills/total.
+  // Do not assign an undeclared `wave` variable here; it aborts stage startup.
 
   // V43: the weapon/equipment menu is the single source of truth for the starting stone.
   try{ equippedStone=localStorage.getItem('doldol_prebattle_stone_v1')||'basic'; }catch(e){ equippedStone='basic'; }
