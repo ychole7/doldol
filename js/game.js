@@ -478,6 +478,10 @@ addEventListener('orientationchange',()=>setTimeout(resize,80));
 addEventListener('pageshow',resize);
 resize();
 
+const COVER_ART={};
+for(const id of ['sand','concrete','trap','crate','barrel']){
+  const img=new Image(); img.src='assets/obstacles/'+id+'.png'; COVER_ART[id]=img;
+}
 function makeCovers(){
   covers=[];
   if(stage<2)return;
@@ -491,22 +495,14 @@ function makeCovers(){
   for(const [px,py,w,h,type] of pat)covers.push({x:vw*px,y:vh*py,w,h,r:7,type});
 }
 function drawVisibleCovers(){
- for(const c of covers){ctx.save();ctx.translate(c.x,c.y);
-  ctx.fillStyle='rgba(25,18,10,.18)';ctx.beginPath();ctx.ellipse(0,c.h*.42,c.w*.54,c.h*.23,0,0,Math.PI*2);ctx.fill();
-  if(c.type==='sand'){
-   let bw=c.w/3,bh=c.h*.55;
-   for(let r=0;r<2;r++)for(let k=0;k<3;k++){let x=(k-1)*bw+(r?bw*.14:0),y=(r-.5)*bh;ctx.fillStyle=r?'#b98c52':'#d0a465';roundRect(x-bw*.48,y-bh*.42,bw*.96,bh*.84,bh*.34);ctx.fill();ctx.strokeStyle='rgba(75,48,25,.55)';ctx.lineWidth=1;ctx.stroke();}
-  }else if(c.type==='concrete'){
-   ctx.fillStyle='#74786f';roundRect(-c.w/2,-c.h/2,c.w,c.h,6);ctx.fill();ctx.strokeStyle='#454a45';ctx.lineWidth=2;ctx.stroke();
-   ctx.save();roundRect(-c.w/2,-c.h/2,c.w,c.h,6);ctx.clip();ctx.strokeStyle='#d4aa2f';ctx.lineWidth=8;for(let x=-c.w;x<c.w;x+=24){ctx.beginPath();ctx.moveTo(x,c.h/2);ctx.lineTo(x+22,-c.h/2);ctx.stroke();}ctx.restore();
-  }else if(c.type==='crate'){
-   ctx.fillStyle='#8b5a32';roundRect(-c.w/2,-c.h/2,c.w,c.h,5);ctx.fill();ctx.strokeStyle='#4d301c';ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle='#c88a4c';ctx.beginPath();ctx.moveTo(-c.w*.38,-c.h*.32);ctx.lineTo(c.w*.38,c.h*.32);ctx.moveTo(c.w*.38,-c.h*.32);ctx.lineTo(-c.w*.38,c.h*.32);ctx.stroke();
-  }else if(c.type==='barrel'){
-   for(let i=-1;i<=1;i++){let x=i*c.w*.24;ctx.fillStyle=i?'#53684f':'#66785d';roundRect(x-c.w*.15,-c.h*.55,c.w*.30,c.h*1.1,5);ctx.fill();ctx.strokeStyle='#354537';ctx.lineWidth=2;ctx.stroke();}
-  }else{
-   ctx.strokeStyle='#70472b';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-c.w*.38,c.h*.38);ctx.lineTo(c.w*.38,-c.h*.38);ctx.moveTo(-c.w*.38,-c.h*.38);ctx.lineTo(c.w*.38,c.h*.38);ctx.stroke();
-  }ctx.restore();
- }
+  for(const c of covers){
+    const img=COVER_ART[c.type];
+    if(!img || !img.complete || !img.naturalWidth) continue;
+    // V9 visual-only swap: cover x/y/w/h and collision data are untouched.
+    const aspect=img.naturalWidth/img.naturalHeight;
+    const dh=Math.max(58,c.h*2.35), dw=dh*aspect;
+    ctx.drawImage(img,c.x-dw/2,c.y-dh*.78,dw,dh);
+  }
 }
 function circleRectHit(c,rect){
   const nx=clamp(c.x,rect.x-rect.w/2,rect.x+rect.w/2);
