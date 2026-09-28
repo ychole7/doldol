@@ -816,8 +816,22 @@ function spawnEnemy(i,opts){
     4:[.14,.27,.40,.53,.66,.79,.86,.34,.60,.74]
   };
   const layout=earlyLayouts[stage];
-  const xPos=layout ? margin+(layout[i%layout.length])*(vw-margin*2) : margin+Math.random()*(vw-margin*2);
-  const yPos=layout ? vh*.20+(0.10+((i*0.17)%0.24))*vh : vh*.20+Math.random()*vh*.32;
+  let xPos,yPos;
+  if(layout){
+    xPos=margin+(layout[i%layout.length])*(vw-margin*2);
+    yPos=vh*.20+(0.10+((i*0.17)%0.24))*vh;
+  }else{
+    // Stage 5+: readable two-row formation instead of a central/random blob.
+    const assumedTotal=Math.min(10,Math.max(5,5+Math.floor((stage-5)/3)));
+    const frontCount=Math.ceil(assumedTotal/2);
+    const front=i<frontCount;
+    const rowIndex=front?i:i-frontCount;
+    const rowCount=Math.max(1,front?frontCount:assumedTotal-frontCount);
+    const usable=Math.min(vw*.68,350);
+    const gap=rowCount>1?Math.min(84,usable/(rowCount-1)):0;
+    xPos=clamp(vw*.5+(rowIndex-(rowCount-1)/2)*gap+(((i*37)%11)-5),margin,vw-margin);
+    yPos=(front?vh*.43:vh*.34)+((i%2)*8-4);
+  }
   enemies.push({
     type,x:xPos,y:yPos,r:radius,
     hp:Math.max(1,Math.round(baseHp*difficulty)),max:Math.max(1,Math.round(baseHp*difficulty)),
@@ -1104,10 +1118,10 @@ function update(dt){
       if(d<.01){dx=(i%2?1:-1);dy=.2;d=Math.hypot(dx,dy);}
       const ar=(a.type==='boss'?52:(a.type==='tank'?42:34));
       const br=(b.type==='boss'?52:(b.type==='tank'?42:34));
-      const minD=ar+br;
+      const minD=ar+br+10;
       if(d<minD){
         const push=Math.min(5.5,(minD-d)*.10),nx=dx/d,ny=dy/d;
-        a.x-=nx*push;a.y-=ny*push*.55;b.x+=nx*push;b.y+=ny*push*.55;
+        a.x-=nx*push;a.y-=ny*push*.82;b.x+=nx*push;b.y+=ny*push*.82;
         a.x=clamp(a.x,30,vw-30);b.x=clamp(b.x,30,vw-30);
         a.y=clamp(a.y,vh*.12,vh*.78);b.y=clamp(b.y,vh*.12,vh*.78);
       }
