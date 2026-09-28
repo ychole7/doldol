@@ -2123,10 +2123,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
        '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>적 이동속도 감소</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
      menuTitle.textContent="🛒 상점";
-     body.innerHTML='<div class="shopItem"><div>🪙 코인 팩<small>코인 5,000</small></div><button class="buy">💎 300</button></div>'+
-       '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
-       '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
-       '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
+     body.innerHTML='<div class="shopItem"><div>❤️ 응급 보급품<small>다음 출격 준비용 보급품</small></div><button class="buy" data-shop-cost="500">🪙 500</button></div>'+
+       '<div class="shopItem"><div>🪨 전투 돌 보급<small>특수 돌 준비에 사용하는 보급품</small></div><button class="buy" data-shop-cost="800">🪙 800</button></div>'+
+       '<div class="shopItem"><div>🎁 특공대 보급 상자<small>성장 준비용 보급 상자</small></div><button class="buy" data-shop-cost="1500">🪙 1,500</button></div>'+
+       '<div class="shopItem"><div>⭐ 정예 보급 상자<small>고급 성장 준비용 보급 상자</small></div><button class="buy" data-shop-cost="3000">🪙 3,000</button></div>';
    }else if(kind==="mission"){
      menuTitle.textContent="📋 미션 / 업적";
      body.innerHTML='<div class="missionItem"><div>적 50마리 처치<div class="bar"><i style="width:40%"></i></div></div><b>20/50</b></div>'+
@@ -3570,4 +3570,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
      setTimeout(function(){busy=false},450);
    },true);
  }
+})();
+
+
+/* V16 SHOP: lightweight launch shop. Combat/stage code untouched. */
+(function(){
+  if(window.__doldolShopV16) return; window.__doldolShopV16=true;
+  document.addEventListener('click',function(ev){
+    const b=ev.target && ev.target.closest ? ev.target.closest('.buy[data-shop-cost]') : null;
+    if(!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const cost=Math.max(0,Number(b.dataset.shopCost)||0);
+    const wallet=window.__duckWallet;
+    if(!wallet || !wallet.spendCoins(cost)){
+      const old=b.textContent; b.textContent='코인 부족'; b.disabled=true;
+      setTimeout(()=>{b.textContent=old;b.disabled=false;},700);
+      return;
+    }
+    const old=b.textContent; b.textContent='구매 완료 ✓'; b.disabled=true;
+    try{window.dispatchEvent(new Event('storage'));}catch(e){}
+    setTimeout(()=>{b.textContent=old;b.disabled=false;},700);
+  },true);
 })();
