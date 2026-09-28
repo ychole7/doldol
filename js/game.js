@@ -478,6 +478,12 @@ addEventListener('orientationchange',()=>setTimeout(resize,80));
 addEventListener('pageshow',resize);
 resize();
 
+const EXIT_GATE_IMG=new Image();
+let EXIT_GATE_READY=false;
+EXIT_GATE_IMG.onload=()=>{EXIT_GATE_READY=true;};
+EXIT_GATE_IMG.onerror=()=>{EXIT_GATE_READY=false;};
+EXIT_GATE_IMG.src='assets/gate/exit_gate.png';
+
 const COVER_ART={}, COVER_READY={};
 for(const id of ['sand','concrete','trap','crate','barrel']){
   COVER_READY[id]=false;
@@ -1742,19 +1748,18 @@ function draw(){
     ctx.save();
     ctx.translate(gx,gy);
     ctx.scale(pulse,pulse);
-    // V12: compact battlefield gate marker instead of the large modal-like panel.
-    ctx.shadowColor='rgba(255,216,102,.42)';ctx.shadowBlur=18;
-    ctx.fillStyle='rgba(20,28,32,.80)';
-    roundRect(-48,-31,96,66,18);ctx.fill();
-    ctx.strokeStyle='rgba(255,216,102,.88)';ctx.lineWidth=3;ctx.stroke();
-    ctx.fillStyle='#704827';roundRect(-29,-9,58,39,11);ctx.fill();
-    ctx.fillStyle='#142029';roundRect(-20,-2,40,32,8);ctx.fill();
-    ctx.strokeStyle='#ffd866';ctx.lineWidth=3;ctx.stroke();
-    ctx.shadowBlur=0;
-    ctx.fillStyle='#ffd866';ctx.font='900 11px system-ui';ctx.textAlign='center';
-    ctx.fillText('GATE OPEN',0,-17);
-    ctx.fillStyle='rgba(255,255,255,.94)';ctx.font='800 10px system-ui';
-    ctx.fillText('관문으로 이동',0,49);
+    // V13: designed battlefield EXIT gate art. Gameplay position/hit radius are unchanged.
+    if(EXIT_GATE_READY && EXIT_GATE_IMG.naturalWidth){
+      const gw=190, gh=gw*(EXIT_GATE_IMG.naturalHeight/EXIT_GATE_IMG.naturalWidth);
+      ctx.shadowColor='rgba(255,210,72,.48)';ctx.shadowBlur=18;
+      ctx.drawImage(EXIT_GATE_IMG,-gw/2,-gh*.53,gw,gh);
+      ctx.shadowBlur=0;
+    }else{
+      ctx.fillStyle='rgba(20,28,32,.82)';roundRect(-42,-26,84,56,16);ctx.fill();
+      ctx.strokeStyle='#ffd866';ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle='#ffd866';ctx.font='900 11px system-ui';ctx.textAlign='center';
+      ctx.fillText('EXIT',0,4);
+    }
     ctx.restore();
   }
 
