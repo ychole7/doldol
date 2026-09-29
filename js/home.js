@@ -34,7 +34,7 @@ function ensureHomeHud(){
       <span class="ddPlayer"><b>돌돌이</b><small>Lv.12</small><i><u></u></i></span>
     </button>
     <div class="ddCurrencies">
-      <button class="ddMoney ddStone" type="button" aria-label="돌핵"><span class="ddStoneIcon" aria-hidden="true"><em></em></span><b id="doldolHudStone">0</b><i>+</i></button>
+      <button class="ddMoney ddStone" type="button" aria-label="돌핵"><span class="ddStoneIcon" aria-hidden="true"></span><b id="doldolHudStone">0</b><i>+</i></button>
       <button class="ddMoney ddGem" type="button" aria-label="다이아"><span>💎</span><b id="doldolHudGem">980</b><i>+</i></button>
     </div>
     <button class="ddSettings" type="button" aria-label="설정">⚙️</button>`;
@@ -133,14 +133,9 @@ css.textContent=`
 #doldolHomeHud .ddMoney>b{font-size:17px;white-space:nowrap}
 #doldolHomeHud .ddMoney>i{margin-left:auto;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#46a9df;font-style:normal;font-size:18px;font-weight:900}
 #doldolHomeHud .ddStoneIcon{
- width:22px;height:22px;display:grid;place-items:center;flex:none;
- filter:drop-shadow(0 1px 2px rgba(0,0,0,.35)) drop-shadow(0 0 5px rgba(255,155,47,.28));
-}
-#doldolHomeHud .ddStoneIcon em{
- display:block;width:17px;height:19px;
- background:linear-gradient(145deg,#ffd05a 0%,#f39a2f 46%,#b95d27 100%);
- clip-path:polygon(50% 0,88% 20%,100% 62%,70% 100%,25% 91%,0 55%,13% 18%);
- box-shadow:inset 3px 2px 0 rgba(255,255,255,.28),inset -3px -3px 0 rgba(104,49,24,.22);
+ width:24px;height:24px;display:block;flex:none;
+ background:url('./doldol_stone_core.png') center/contain no-repeat!important;
+ filter:drop-shadow(0 1px 2px rgba(0,0,0,.38)) drop-shadow(0 0 4px rgba(255,166,45,.30));
 }
 #doldolHomeHud .ddSettings{width:44px;height:44px;border-radius:15px;font-size:22px;padding:0;flex:none}
 @media(max-width:430px){
