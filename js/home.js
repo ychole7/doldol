@@ -157,7 +157,7 @@ css.textContent=`
 
 #gameLobby.v35cleanHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background-image:linear-gradient(rgba(10,28,24,.06),rgba(28,74,49,.10)),url('assets/home_base_bg.png')!important;background-size:cover!important;background-position:center top!important}
 #gameLobby.v35cleanHome .v35LogoOff{display:none!important}
-#gameLobby.v35cleanHome .v35HeroClean{display:none!important}
+#gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
 #gameLobby.v35cleanHome .v35HeroClean::before,#gameLobby.v35cleanHome .v35HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
 #gameLobby.v35cleanHome .v35HeroClean>div{background-color:transparent!important;box-shadow:none!important}
 #gameLobby.v35cleanHome .v35LogoShellOff{display:none!important}
@@ -168,7 +168,6 @@ css.textContent=`
  border-color:transparent!important;outline:none!important;
  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important
 }
-#gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.16)!important;transform-origin:50% 100%!important;filter:drop-shadow(0 12px 8px rgba(0,0,0,.25))!important}
 #gameLobby.v35cleanHome .v35SloganOff{display:none!important}
 #v26stage.v35OldStageOff{display:none!important}
 #gameLobby.v35cleanHome .v26start{box-sizing:border-box!important;position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;float:none!important;transform:none!important;translate:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:min(calc(100% - 48px),680px)!important;max-width:680px!important;min-width:0!important;min-height:112px!important;margin:8px auto 14px!important;padding:12px 72px!important;border:4px solid #ffe88f!important;border-radius:30px!important;background:linear-gradient(180deg,#ffdc62,#ffb72d)!important;box-shadow:0 10px 0 #9d651e,0 15px 22px rgba(0,0,0,.20)!important}
@@ -186,7 +185,6 @@ css.textContent=`
 #v35stage i{font-style:normal!important;font-size:40px!important;line-height:1!important;justify-self:center!important;color:rgba(255,255,255,.86)!important}
 @media(max-width:390px){
  #gameLobby.v35cleanHome .v35HeroClean{min-height:330px!important}
- #gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.10)!important}
  #gameLobby.v35cleanHome .v26start{width:calc(100% - 30px)!important;max-width:none!important;margin-left:auto!important;margin-right:auto!important;padding-left:58px!important;padding-right:58px!important}
  #v35stage{width:calc(100% - 30px)!important;grid-template-columns:37% minmax(0,1fr) 24px!important;gap:10px!important}
  #v35stage .v35copy b{font-size:18px!important}
