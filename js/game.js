@@ -3930,3 +3930,29 @@ const st=document.createElement('style');st.id='v36-home-mockup-css';st.textCont
 const run=()=>{apply();setTimeout(apply,450);setTimeout(apply,1000)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
+
+/* V37 HOME MOBILE LAYOUT STABILIZER — visual layout only; no gameplay/function changes. */
+(function(){
+if(window.__v37HomeLayout)return;window.__v37HomeLayout=1;
+const st=document.createElement('style');st.id='v37-home-layout-css';st.textContent=`
+#gameLobby.v36MockupHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;display:block!important;padding-left:0!important;padding-right:0!important}
+#gameLobby.v36MockupHome .v35HeroClean{box-sizing:border-box!important;width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important;transform:none!important;left:auto!important;right:auto!important}
+#gameLobby.v36MockupHome .v26start{position:relative!important;box-sizing:border-box!important;display:grid!important;float:none!important;left:auto!important;right:auto!important;transform:none!important;margin-left:auto!important;margin-right:auto!important;max-width:min(720px,calc(100vw - 28px))!important}
+#gameLobby.v36MockupHome #v35stage{position:relative!important;box-sizing:border-box!important;display:grid!important;float:none!important;left:auto!important;right:auto!important;transform:none!important;clear:both!important;align-self:center!important;width:calc(100vw - 30px)!important;max-width:720px!important;margin-left:auto!important;margin-right:auto!important;overflow:hidden!important}
+#gameLobby.v36MockupHome #v35stage .v35thumb{box-sizing:border-box!important;min-width:0!important;max-width:100%!important}
+#gameLobby.v36MockupHome #v35stage .v35copy{box-sizing:border-box!important;width:100%!important;min-width:0!important;overflow:hidden!important}
+#gameLobby.v36MockupHome #v35stage .v35copy small,#gameLobby.v36MockupHome #v35stage .v35copy b,#gameLobby.v36MockupHome #v35stage .v35copy em{max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#v26nav.v36MockupNav{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;left:0!important;right:0!important;transform:none!important}
+@media(max-width:430px){
+ #gameLobby.v36MockupHome{padding-bottom:92px!important}
+ #gameLobby.v36MockupHome .v35HeroClean{min-height:335px!important;height:40vh!important;max-height:405px!important;padding:0 12px!important}
+ #gameLobby.v36MockupHome .v35HeroClean img{max-width:88%!important;max-height:330px!important;transform:scale(1.10)!important}
+ #gameLobby.v36MockupHome .v26start{width:calc(100vw - 28px)!important;max-width:calc(100vw - 28px)!important;min-height:106px!important;margin-top:2px!important;margin-bottom:18px!important}
+ #gameLobby.v36MockupHome #v35stage{width:calc(100vw - 30px)!important;max-width:calc(100vw - 30px)!important;height:118px!important;margin:0 auto 22px!important;padding:9px!important;grid-template-columns:minmax(108px,38%) minmax(0,1fr) 22px!important;gap:9px!important;border-radius:24px!important}
+ #gameLobby.v36MockupHome #v35stage .v35thumb{height:96px!important;border-radius:17px!important}
+ #gameLobby.v36MockupHome #v35stage .v35copy small{font-size:11px!important}
+ #gameLobby.v36MockupHome #v35stage .v35copy b{font-size:17px!important;white-space:nowrap!important}
+ #gameLobby.v36MockupHome #v35stage .v35copy em{font-size:9px!important;white-space:nowrap!important}
+}
+`;document.head.appendChild(st);
+})();
