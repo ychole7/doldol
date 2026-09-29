@@ -3765,3 +3765,75 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   else setTimeout(install,0);
   setTimeout(install,250);
 })();
+
+
+/* ================================================================
+   V20 HOME — approved mockup direction
+   Clean single lobby: top resources / hero / battle CTA / stage card / 5-nav.
+   Old/duplicate lobby controls are hidden, not deleted.
+   ================================================================ */
+(function(){
+ if(window.__doldolHomeV20)return; window.__doldolHomeV20=true;
+ function apply(){
+   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+   lobby.classList.add('v20Home');
+
+   // Remove duplicate/legacy lobby chrome from view.
+   ['lobbyStages','lobbyMission','lobbyGrowth'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('v20Hide');});
+   const oldNotice=lobby.querySelector('.notice,.homeNotice,[class*="notice"],[class*="event"]');
+   if(oldNotice) oldNotice.classList.add('v20Hide');
+
+   // Keep only one bottom navigation. V18 nav becomes the canonical one.
+   let nav=lobby.querySelector('.v18Nav');
+   if(nav){
+     nav.querySelectorAll('.v18NavBtn').forEach(b=>b.classList.remove('active'));
+     const h=document.getElementById('v18Home'); if(h)h.classList.add('active');
+   }
+
+   // Stage preview card, matching the approved mockup.
+   let card=document.getElementById('v20StageCard');
+   const start=document.getElementById('lobbyStart');
+   if(!card && start){
+     card=document.createElement('button');card.id='v20StageCard';
+     card.innerHTML='<span class="v20Thumb">🗺️</span><span><small>현재 진행 중</small><b>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
+     start.insertAdjacentElement('afterend',card);
+     card.onclick=function(e){
+       e.preventDefault();
+       const st=document.getElementById('lobbyStages');
+       if(st)st.click();
+     };
+   }
+   if(start) start.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
+ }
+ const st=document.createElement('style');st.id='doldol-v20-home';
+ st.textContent=`
+  #gameLobby.v20Home{padding-bottom:84px!important}
+  #gameLobby.v20Home .v20Hide{display:none!important}
+  #gameLobby.v20Home #lobbyStart{
+    width:calc(100% - 34px)!important;margin:14px 17px 10px!important;min-height:84px!important;
+    border-radius:24px!important;font-size:25px!important;
+  }
+  #gameLobby.v20Home #lobbyStart b{display:block!important;font-size:25px!important;line-height:1!important}
+  #gameLobby.v20Home #lobbyStart small{display:block!important;font-size:11px!important;margin-top:4px!important}
+  #v20StageCard{
+    width:calc(100% - 34px);margin:8px 17px 16px;padding:10px 14px;border:2px solid rgba(255,255,255,.55);
+    border-radius:22px;background:rgba(24,55,62,.82);color:#fff;display:grid;grid-template-columns:76px 1fr 24px;
+    align-items:center;text-align:left;gap:12px;box-shadow:0 7px 18px rgba(30,55,48,.16);
+  }
+  #v20StageCard .v20Thumb{width:76px;height:55px;border-radius:13px;background:linear-gradient(145deg,#6da67c,#315b55);
+    display:grid;place-items:center;font-size:30px}
+  #v20StageCard span:nth-child(2){display:flex;flex-direction:column;min-width:0}
+  #v20StageCard small{font-size:11px;opacity:.68} #v20StageCard b{font-size:17px;margin-top:2px}
+  #v20StageCard em{font-style:normal;font-size:11px;opacity:.72;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #v20StageCard i{font-style:normal;font-size:34px;font-weight:900;opacity:.85}
+  #gameLobby.v20Home .v18Nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;margin:0!important}
+  #gameLobby.v20Home .v18NavBtn{min-height:66px!important}
+  #gameLobby.v20Home .v18NavBtn span{font-size:24px!important}
+  #gameLobby.v20Home .v18NavBtn b{font-size:11px!important}
+ `;
+ document.head.appendChild(st);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,50));
+ else setTimeout(apply,50);
+ setTimeout(apply,400);
+ window.__duckV20ApplyHome=apply;
+})();
