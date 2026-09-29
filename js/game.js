@@ -4140,3 +4140,41 @@ const css=document.createElement('style');css.id='v35-home-hero-align-css';css.t
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{align();setTimeout(align,450);setTimeout(align,1000)});else{align();setTimeout(align,450);setTimeout(align,1000)}
 })();
+
+/* HOME TOP-DOWN PASS 01 — logo removal + top HUD readability only. */
+(function(){
+ if(window.__homeTopPass01)return; window.__homeTopPass01=1;
+ const $=id=>document.getElementById(id);
+ function visible(el){if(!el)return false;const r=el.getBoundingClientRect(),s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&r.width>1&&r.height>1;}
+ function apply(){
+  const L=$('gameLobby'); if(!L)return; L.classList.add('homeTopPass01');
+  // Remove the HOME logo only. Walk upward from its actual text, avoiding the lobby root.
+  [...L.querySelectorAll('*')].forEach(el=>{
+   const own=[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').replace(/\s+/g,' ').trim();
+   const txt=(el.textContent||'').replace(/\s+/g,' ').trim();
+   if(own.includes('DOLDOL SPECIAL FORCE') || (txt.includes('DOLDOL SPECIAL FORCE')&&txt.length<120)){
+    let p=el, best=el;
+    for(let i=0;i<5&&p&&p!==L;i++,p=p.parentElement){
+      const r=p.getBoundingClientRect();
+      if(r.width>150&&r.width<innerWidth*.96&&r.height>45&&r.height<300) best=p;
+    }
+    if(best&&best!==L)best.classList.add('homeLogoRemoved');
+   }
+  });
+  // Mark the visible top HUD children only; no HTML replacement and no click-handler changes.
+  const top=[...L.querySelectorAll('button,div,a')].filter(el=>{const r=el.getBoundingClientRect();return visible(el)&&r.top>=0&&r.top<125&&r.width>42&&r.width<innerWidth*.55;});
+  top.forEach(el=>el.classList.add('homeTopHudItem'));
+  // Profile is the left-most sizeable HUD item.
+  const profile=top.filter(el=>el.getBoundingClientRect().left<innerWidth*.12&&el.getBoundingClientRect().width>120).sort((a,b)=>b.getBoundingClientRect().width-a.getBoundingClientRect().width)[0];
+  if(profile)profile.classList.add('homeTopProfile');
+ }
+ const css=document.createElement('style'); css.id='home-top-pass-01-css'; css.textContent=`
+ #gameLobby.homeTopPass01 .homeLogoRemoved{display:none!important}
+ #gameLobby.homeTopPass01 .homeTopHudItem{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.55)!important}
+ #gameLobby.homeTopPass01 .homeTopHudItem *{color:inherit!important;opacity:1!important}
+ #gameLobby.homeTopPass01 .homeTopProfile{background:linear-gradient(180deg,rgba(39,68,82,.96),rgba(24,49,62,.96))!important;border-color:rgba(255,255,255,.38)!important}
+ #gameLobby.homeTopPass01 .homeTopProfile *{opacity:1!important}
+ `; document.head.appendChild(css);
+ const run=()=>{apply();setTimeout(apply,250);setTimeout(apply,800)};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
