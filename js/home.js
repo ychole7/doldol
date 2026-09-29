@@ -362,6 +362,23 @@ css.textContent=`
  pointer-events:auto!important;
  touch-action:manipulation!important;
 }
+
+/* LOCKED 10 — kill remaining legacy translucent card shell */
+#gameLobby.v35cleanHome .v35StageClean,
+#gameLobby.v35cleanHome #v35stage,
+#gameLobby.v35cleanHome .v35DotsClean{
+ display:none!important;
+ visibility:hidden!important;
+ opacity:0!important;
+ background:none!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+#gameLobby.v35cleanHome .v35StageClean *,
+#gameLobby.v35cleanHome #v35stage *{
+ display:none!important;
+}
 `;
 document.head.appendChild(css);
 
