@@ -51,25 +51,10 @@ function ensureHomeHud(){
 
 
 
-function ensureLockedStartHit(){
- const L=document.getElementById('gameLobby');
- if(!L || document.getElementById('lockedStartHit')) return;
- const hit=document.createElement('button');
- hit.id='lockedStartHit';
- hit.type='button';
- hit.setAttribute('aria-label','전투 시작');
- hit.addEventListener('click',()=>{
-   const real=document.getElementById('lobbyStart');
-   if(real){ real.click(); return; }
-   if(typeof startBattle==='function') startBattle();
- });
- L.appendChild(hit);
-}
 
 function apply(){
  const L=$('gameLobby'); if(!L)return;
  L.classList.add('v35cleanHome');
- ensureLockedStartHit();
  retireLegacyTopHud(L);
  ensureHomeHud();
 
@@ -301,26 +286,18 @@ css.textContent=`
 
 
 
-/* FINAL LOCKED HOME — approved reference applied as the visual layer */
+/* HOME CLEAN FINAL — single source of truth */
 #gameLobby.v35cleanHome{
  position:relative!important;
- min-height:calc(100dvh - 0px)!important;
+ min-height:100dvh!important;
  background:url('./assets/home_final_locked.jpg') center top/100% 100% no-repeat!important;
  overflow:hidden!important;
 }
-/* remove all legacy visual layers; keep their DOM/event wiring */
+
+/* Approved screen is baked into home_final_locked.jpg.
+   Hide all legacy visual DOM so nothing can duplicate it. */
 #gameLobby.v35cleanHome #doldolHomeHud,
 #gameLobby.v35cleanHome .v35HeroClean,
-#gameLobby.v35cleanHome #v35stage{
- visibility:hidden!important;
-}
-
-/* hide legacy carousel/extra visuals that would sit over the locked composition */
-#gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart):not(#lockedStartHit){
- visibility:hidden!important;
-}
-
-/* LOCKED 06 — remove duplicate live overlays over approved visual */
 #gameLobby.v35cleanHome #v35stage,
 #gameLobby.v35cleanHome .v35StageClean,
 #gameLobby.v35cleanHome .v35DotsClean,
@@ -328,55 +305,33 @@ css.textContent=`
  display:none!important;
 }
 
-/* LOCKED 07 — remove only the remaining translucent stage mask */
-#gameLobby.v35cleanHome .v35StageClean::before,
-#gameLobby.v35cleanHome .v35StageClean::after,
-#gameLobby.v35cleanHome #v35stage::before,
-#gameLobby.v35cleanHome #v35stage::after{
- content:none!important;
- display:none!important;
-}
-#gameLobby.v35cleanHome .v35StageClean,
-#gameLobby.v35cleanHome #v35stage{
- background:transparent!important;
- box-shadow:none!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
-}
-
-/* LOCKED 08 — dedicated functional start hit target */
-#gameLobby.v35cleanHome #lockedStartHit{
+/* Keep the original battle button ONLY as an invisible functional hit area. */
+#gameLobby.v35cleanHome #lobbyStart{
+ display:block!important;
  visibility:visible!important;
  position:absolute!important;
  left:8%!important;
  width:84%!important;
- top:58.0%!important;
+ right:auto!important;
+ top:58%!important;
  height:10.5%!important;
- z-index:999!important;
- display:block!important;
- opacity:0!important;
- border:0!important;
- padding:0!important;
  margin:0!important;
+ padding:0!important;
+ opacity:0!important;
  background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ z-index:999!important;
  pointer-events:auto!important;
  touch-action:manipulation!important;
 }
 
-/* LOCKED 10 — kill remaining legacy translucent card shell */
-#gameLobby.v35cleanHome .v35StageClean,
-#gameLobby.v35cleanHome #v35stage,
-#gameLobby.v35cleanHome .v35DotsClean{
- display:none!important;
- visibility:hidden!important;
- opacity:0!important;
- background:none!important;
- box-shadow:none!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
-}
-#gameLobby.v35cleanHome .v35StageClean *,
-#gameLobby.v35cleanHome #v35stage *{
+/* No pseudo overlays from legacy home UI. */
+#gameLobby.v35cleanHome #lobbyStart::before,
+#gameLobby.v35cleanHome #lobbyStart::after,
+#gameLobby.v35cleanHome #v35stage::before,
+#gameLobby.v35cleanHome #v35stage::after{
+ content:none!important;
  display:none!important;
 }
 `;
