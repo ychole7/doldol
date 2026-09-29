@@ -3989,3 +3989,86 @@ const css=document.createElement('style');css.id='v35-home-cta-fix-css';css.text
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500)});else{fix();setTimeout(fix,500)}
 })();
+
+/* V35 HOME TOP HUD LAYOUT 01
+   Layout-only pass. No DOM removal/replacement and no click-handler changes. */
+(function(){
+ if(window.__v35HomeTopLayout01)return; window.__v35HomeTopLayout01=1;
+
+ function vis(el){
+   if(!el)return false;
+   const r=el.getBoundingClientRect(), cs=getComputedStyle(el);
+   return cs.display!=='none' && cs.visibility!=='hidden' && r.width>20 && r.height>20;
+ }
+ function txt(el){ return (el.innerText||el.textContent||'').replace(/\s+/g,' ').trim(); }
+
+ function apply(){
+   const L=document.getElementById('gameLobby'); if(!L)return;
+   L.classList.add('v35TopLayout01');
+
+   const candidates=[...L.querySelectorAll('button,a,div')].filter(el=>{
+     if(!vis(el))return false;
+     const r=el.getBoundingClientRect();
+     return r.top>=0 && r.top<145 && r.height>=38 && r.height<=105 && r.width>=45;
+   });
+
+   // Smallest matching containers are preferred so ancestors are not moved.
+   function smallest(pred){
+     return candidates.filter(pred).sort((a,b)=>{
+       const A=a.getBoundingClientRect(),B=b.getBoundingClientRect();
+       return (A.width*A.height)-(B.width*B.height);
+     })[0];
+   }
+
+   const energy=smallest(el=>/30\s*\/\s*30/.test(txt(el)));
+   const diamond=smallest(el=>/980/.test(txt(el)));
+   const stone=smallest(el=>/1[,\s]?0(?:9[0-9]|8[0-9])/.test(txt(el)));
+   const profile=smallest(el=>txt(el).includes('돌돌이') && txt(el).includes('Lv.12'));
+
+   if(energy) energy.classList.add('v35HudEnergyVisualOff');
+   if(stone) stone.classList.add('v35HudStoneShift');
+   if(diamond) diamond.classList.add('v35HudDiamondShift');
+   if(profile) profile.classList.add('v35HudProfileReadable');
+
+   // Settings: identify right-most top clickable control without touching its handler.
+   const settings=candidates.filter(el=>{
+     const r=el.getBoundingClientRect();
+     return r.left>innerWidth*.78 && (txt(el).includes('⚙') || txt(el).length<5);
+   }).sort((a,b)=>b.getBoundingClientRect().left-a.getBoundingClientRect().left)[0];
+   if(settings) settings.classList.add('v35HudSettingsSafe');
+ }
+
+ const css=document.createElement('style');
+ css.id='v35-home-top-layout-01-css';
+ css.textContent=`
+ #gameLobby.v35TopLayout01 .v35HudEnergyVisualOff{
+   visibility:hidden!important;
+   pointer-events:none!important;
+ }
+ #gameLobby.v35TopLayout01 .v35HudStoneShift{
+   transform:translateX(-104px)!important;
+ }
+ #gameLobby.v35TopLayout01 .v35HudDiamondShift{
+   transform:translateX(-104px)!important;
+ }
+ #gameLobby.v35TopLayout01 .v35HudSettingsSafe{
+   transform:translateX(-22px)!important;
+ }
+ #gameLobby.v35TopLayout01 .v35HudProfileReadable,
+ #gameLobby.v35TopLayout01 .v35HudProfileReadable *{
+   color:#fff!important;
+   opacity:1!important;
+   text-shadow:0 1px 2px rgba(0,0,0,.55)!important;
+ }
+ @media(max-width:390px){
+   #gameLobby.v35TopLayout01 .v35HudStoneShift,
+   #gameLobby.v35TopLayout01 .v35HudDiamondShift{transform:translateX(-92px)!important}
+   #gameLobby.v35TopLayout01 .v35HudSettingsSafe{transform:translateX(-26px)!important}
+ }
+ `;
+ document.head.appendChild(css);
+
+ const run=()=>{apply();setTimeout(apply,250);setTimeout(apply,800)};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
+ else run();
+})();
