@@ -3938,3 +3938,27 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
  window.__duckV21ApplyHome=apply;
 })();
+
+
+/* V22 — remove the legacy in-flow HOME/nav strip left above the stage card. */
+(function(){
+ if(window.__doldolHomeV22)return; window.__doldolHomeV22=true;
+ function clean(){
+   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+   const keep=lobby.querySelector('.v18Nav.v21Nav') || lobby.querySelector('.v18Nav');
+   [...lobby.querySelectorAll('.bottomNav,.navBar,.lobbyNav')].forEach(n=>{
+     if(n!==keep) n.style.setProperty('display','none','important');
+   });
+   // Catch the legacy one-item HOME strip even when it has no known nav class.
+   [...lobby.querySelectorAll('div,nav')].forEach(n=>{
+     if(n===keep || (keep&&n.contains(keep)) || (keep&&keep.contains(n)))return;
+     const t=(n.textContent||'').replace(/\s+/g,'').trim();
+     if((t==='홈' || t==='🏠홈') && n.offsetWidth>lobby.clientWidth*.65)
+       n.style.setProperty('display','none','important');
+   });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(clean,80));
+ else setTimeout(clean,80);
+ setTimeout(clean,400); setTimeout(clean,900);
+ window.__duckV22CleanHome=clean;
+})();
