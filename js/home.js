@@ -50,9 +50,26 @@ function ensureHomeHud(){
 }
 
 
+
+function ensureLockedStartHit(){
+ const L=document.getElementById('gameLobby');
+ if(!L || document.getElementById('lockedStartHit')) return;
+ const hit=document.createElement('button');
+ hit.id='lockedStartHit';
+ hit.type='button';
+ hit.setAttribute('aria-label','전투 시작');
+ hit.addEventListener('click',()=>{
+   const real=document.getElementById('lobbyStart');
+   if(real){ real.click(); return; }
+   if(typeof startBattle==='function') startBattle();
+ });
+ L.appendChild(hit);
+}
+
 function apply(){
  const L=$('gameLobby'); if(!L)return;
  L.classList.add('v35cleanHome');
+ ensureLockedStartHit();
  retireLegacyTopHud(L);
  ensureHomeHud();
 
@@ -297,16 +314,7 @@ css.textContent=`
 #gameLobby.v35cleanHome #v35stage{
  visibility:hidden!important;
 }
-/* keep the real start button clickable exactly over the reference button */
-#gameLobby.v35cleanHome #lobbyStart{
- position:absolute!important;
- left:8%!important; right:8%!important;
- top:58.5%!important; height:10.5%!important;
- margin:0!important;
- opacity:0!important;
- z-index:80!important;
- pointer-events:auto!important;
-}
+
 /* hide legacy carousel/extra visuals that would sit over the locked composition */
 #gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart){
  visibility:hidden!important;
@@ -334,6 +342,24 @@ css.textContent=`
  box-shadow:none!important;
  backdrop-filter:none!important;
  -webkit-backdrop-filter:none!important;
+}
+
+/* LOCKED 08 — dedicated functional start hit target */
+#gameLobby.v35cleanHome #lockedStartHit{
+ position:absolute!important;
+ left:8%!important;
+ width:84%!important;
+ top:58.0%!important;
+ height:10.5%!important;
+ z-index:999!important;
+ display:block!important;
+ opacity:0!important;
+ border:0!important;
+ padding:0!important;
+ margin:0!important;
+ background:transparent!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
 }
 `;
 document.head.appendChild(css);
