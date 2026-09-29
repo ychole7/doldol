@@ -4178,3 +4178,87 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const run=()=>{apply();setTimeout(apply,250);setTimeout(apply,800)};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
+
+/* HOME TOP HUD FINAL — approved: profile | stone-core | diamonds | settings. */
+(function(){
+ if(window.__homeTopHudFinal)return; window.__homeTopHudFinal=1;
+ const L=()=>document.getElementById('gameLobby');
+ const vis=el=>{if(!el)return false;const r=el.getBoundingClientRect(),s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&r.width>1&&r.height>1};
+ function ownText(el){return [...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').replace(/\s+/g,' ').trim()}
+ function mark(){
+   const lobby=L(); if(!lobby)return; lobby.classList.add('homeTopHudFinal');
+
+   // Undo the broad previous logo-hide marker, then hide only the smallest actual logo text element.
+   lobby.querySelectorAll('.homeLogoRemoved').forEach(el=>el.classList.remove('homeLogoRemoved'));
+   const logo=[...lobby.querySelectorAll('*')].filter(el=>{
+     const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+     return t.includes('DOLDOL SPECIAL FORCE') && t.length<100;
+   }).sort((a,b)=>a.getBoundingClientRect().width-b.getBoundingClientRect().width)[0];
+   if(logo)logo.classList.add('homeLogoTextOnly');
+
+   const candidates=[...lobby.querySelectorAll('button,a,div')].filter(el=>{
+     if(!vis(el))return false; const r=el.getBoundingClientRect();
+     return r.top>=0&&r.top<145&&r.width>38&&r.height>28&&r.width<innerWidth*.62;
+   });
+   candidates.forEach(el=>el.classList.remove('hudFinalProfile','hudFinalEnergy','hudFinalCore','hudFinalGem','hudFinalSettings'));
+
+   // Pick smallest visible containers carrying each resource text/icon to avoid styling ancestors.
+   const pick=(fn)=>candidates.filter(fn).sort((a,b)=>a.getBoundingClientRect().width-b.getBoundingClientRect().width)[0];
+   const profile=pick(el=>/돌돌이|Lv\.\s*12/i.test(el.textContent||''));
+   const energy=pick(el=>/30\s*\/\s*30/.test(el.textContent||'') || ownText(el).includes('⚡'));
+   const gem=pick(el=>(el.textContent||'').includes('980') || ownText(el).includes('💎'));
+   const core=pick(el=>{const t=(el.textContent||'');return /1,?09\d/.test(t) && el!==profile});
+   const settings=pick(el=>{const t=(el.textContent||'').trim();return t==='⚙️'||t==='⚙'||/setting/i.test(el.id+' '+el.className)});
+   if(profile)profile.classList.add('hudFinalProfile');
+   if(energy)energy.classList.add('hudFinalEnergy');
+   if(core)core.classList.add('hudFinalCore');
+   if(gem)gem.classList.add('hudFinalGem');
+   if(settings)settings.classList.add('hudFinalSettings');
+
+   // Add a dedicated faceted stone-core icon without changing resource logic/value.
+   if(core && !core.querySelector('.stoneCoreIcon')){
+     const icon=document.createElement('span'); icon.className='stoneCoreIcon'; icon.setAttribute('aria-hidden','true');
+     core.insertBefore(icon,core.firstChild);
+   }
+ }
+ const st=document.createElement('style');st.id='home-top-hud-final-css';st.textContent=`
+ #gameLobby.homeTopHudFinal .homeLogoTextOnly{display:none!important}
+ #gameLobby.homeTopHudFinal .hudFinalEnergy{display:none!important}
+ #gameLobby.homeTopHudFinal .hudFinalProfile,
+ #gameLobby.homeTopHudFinal .hudFinalCore,
+ #gameLobby.homeTopHudFinal .hudFinalGem,
+ #gameLobby.homeTopHudFinal .hudFinalSettings{
+   position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 10px)!important;z-index:1005!important;
+   height:58px!important;min-height:58px!important;max-height:58px!important;
+   margin:0!important;transform:none!important;box-sizing:border-box!important;
+   border:2px solid rgba(255,255,255,.28)!important;border-radius:18px!important;
+   background:linear-gradient(180deg,rgba(38,69,85,.97),rgba(24,49,63,.97))!important;
+   box-shadow:0 5px 12px rgba(0,0,0,.20)!important;color:#fff!important;
+ }
+ #gameLobby.homeTopHudFinal .hudFinalProfile{left:12px!important;width:188px!important;}
+ #gameLobby.homeTopHudFinal .hudFinalCore{left:214px!important;width:154px!important;padding-left:38px!important;}
+ #gameLobby.homeTopHudFinal .hudFinalGem{left:382px!important;width:146px!important;}
+ #gameLobby.homeTopHudFinal .hudFinalSettings{left:auto!important;right:max(12px,env(safe-area-inset-right,0px))!important;width:58px!important;min-width:58px!important;padding:0!important;}
+ #gameLobby.homeTopHudFinal .stoneCoreIcon{
+   position:absolute;left:12px;top:50%;width:25px;height:29px;transform:translateY(-50%) rotate(4deg);
+   display:block!important;clip-path:polygon(50% 0,84% 16%,100% 50%,76% 91%,35% 100%,5% 68%,12% 28%);
+   background:linear-gradient(135deg,#fff1a4 0 12%,#ffb62e 13% 42%,#f26b21 43% 70%,#9e421c 71% 100%);
+   box-shadow:0 0 10px rgba(255,163,35,.72);filter:drop-shadow(0 2px 2px rgba(0,0,0,.28));
+ }
+ @media(max-width:700px){
+   #gameLobby.homeTopHudFinal .hudFinalProfile{left:10px!important;width:190px!important;}
+   #gameLobby.homeTopHudFinal .hudFinalCore{left:214px!important;width:145px!important;}
+   #gameLobby.homeTopHudFinal .hudFinalGem{left:373px!important;width:140px!important;}
+ }
+ @media(max-width:430px){
+   #gameLobby.homeTopHudFinal .hudFinalProfile{left:8px!important;width:112px!important;height:54px!important;min-height:54px!important;}
+   #gameLobby.homeTopHudFinal .hudFinalCore{left:128px!important;width:94px!important;height:54px!important;min-height:54px!important;padding-left:29px!important;}
+   #gameLobby.homeTopHudFinal .hudFinalGem{left:230px!important;width:92px!important;height:54px!important;min-height:54px!important;}
+   #gameLobby.homeTopHudFinal .hudFinalSettings{right:8px!important;width:52px!important;min-width:52px!important;height:54px!important;min-height:54px!important;}
+   #gameLobby.homeTopHudFinal .stoneCoreIcon{left:7px;width:21px;height:24px;}
+   #gameLobby.homeTopHudFinal .hudFinalCore,#gameLobby.homeTopHudFinal .hudFinalGem{font-size:14px!important;}
+ }
+ `;document.head.appendChild(st);
+ const run=()=>{mark();setTimeout(mark,180);setTimeout(mark,650);setTimeout(mark,1400)};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
