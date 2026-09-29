@@ -4051,3 +4051,48 @@ const css=document.createElement('style');css.id='v35-home-hero-polish-css';css.
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{polish();setTimeout(polish,450);setTimeout(polish,1000)});else{polish();setTimeout(polish,450);setTimeout(polish,1000)}
 })();
+
+/* HOME HERO FINAL — remove residual translucent surfaces + hero proportion only. */
+(function(){
+if(window.__v35HomeHeroFinal)return;window.__v35HomeHeroFinal=1;
+const $=id=>document.getElementById(id);
+function apply(){
+ const L=$('gameLobby'); if(!L)return;
+ const hero=L.querySelector('.v35HeroClean');
+ if(hero) hero.classList.add('v35HeroFinal');
+ const logo=L.querySelector('.v35HeroLogoClean');
+ if(logo) logo.classList.add('v35HeroLogoFinal');
+}
+const css=document.createElement('style');css.id='v35-home-hero-final-css';css.textContent=`
+#gameLobby.v35cleanHome .v35HeroFinal,
+#gameLobby.v35cleanHome .v35HeroFinal > *,
+#gameLobby.v35cleanHome .v35HeroFinal div,
+#gameLobby.v35cleanHome .v35HeroFinal section,
+#gameLobby.v35cleanHome .v35HeroFinal article,
+#gameLobby.v35cleanHome .v35HeroFinal span:not(.v35thumb){
+ background:none!important;background-image:none!important;background-color:transparent!important;
+ border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+#gameLobby.v35cleanHome .v35HeroFinal::before,
+#gameLobby.v35cleanHome .v35HeroFinal::after,
+#gameLobby.v35cleanHome .v35HeroFinal div::before,
+#gameLobby.v35cleanHome .v35HeroFinal div::after,
+#gameLobby.v35cleanHome .v35HeroFinal section::before,
+#gameLobby.v35cleanHome .v35HeroFinal section::after{
+ background:none!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;
+}
+#gameLobby.v35cleanHome .v35HeroFinal{min-height:350px!important;margin-top:4px!important;margin-bottom:0!important;overflow:visible!important;}
+#gameLobby.v35cleanHome .v35HeroFinal img{transform:scale(1.20)!important;transform-origin:50% 100%!important;filter:drop-shadow(0 10px 8px rgba(0,0,0,.22))!important;}
+#gameLobby.v35cleanHome .v35HeroLogoFinal,
+#gameLobby.v35cleanHome .v35HeroLogoFinal > *{
+ background:none!important;background-image:none!important;background-color:transparent!important;
+ border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+@media(max-width:390px){
+ #gameLobby.v35cleanHome .v35HeroFinal{min-height:326px!important;}
+ #gameLobby.v35cleanHome .v35HeroFinal img{transform:scale(1.14)!important;}
+}
+`;
+document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450);setTimeout(apply,1000)});else{apply();setTimeout(apply,450);setTimeout(apply,1000)}
+})();
