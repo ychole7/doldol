@@ -134,7 +134,7 @@ css.textContent=`
 #doldolHomeHud .ddMoney>i{margin-left:auto;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#46a9df;font-style:normal;font-size:18px;font-weight:900}
 #doldolHomeHud .ddStoneIcon{
  width:24px;height:24px;display:block;flex:none;
- background:url('./doldol_stone_core.png') center/contain no-repeat!important;
+ background:url('./assets/doldol_stone_core.png') center/contain no-repeat!important;
  filter:drop-shadow(0 1px 2px rgba(0,0,0,.38)) drop-shadow(0 0 4px rgba(255,166,45,.30));
 }
 #doldolHomeHud .ddSettings{width:44px;height:44px;border-radius:15px;font-size:22px;padding:0;flex:none}
