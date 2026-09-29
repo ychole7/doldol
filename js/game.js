@@ -3820,3 +3820,49 @@ const st=document.createElement('style');st.id='v33-center-css';st.textContent=`
 document.head.appendChild(st);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,500)});else{apply();setTimeout(apply,500)}
 })();
+
+/* V34 CENTER CLEANUP ONLY — hero chrome removal + fresh horizontal stage card. */
+(function(){
+if(window.__v34center)return;window.__v34center=1;
+const $=id=>document.getElementById(id);
+function apply(){
+ const L=$('gameLobby'); if(!L)return; L.classList.add('v34center');
+ const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
+ if(slogan){
+   let p=slogan.parentElement,best=null;
+   for(let i=0;p&&p!==L&&i<6;i++,p=p.parentElement){
+     const r=p.getBoundingClientRect();
+     if(r.width>innerWidth*.65 && r.height>250) best=p;
+   }
+   if(best){best.classList.add('v34HeroClean'); slogan.classList.add('v34SloganOff');}
+ }
+ // V33's transformed legacy card is retired completely; use a fresh card with its own geometry.
+ const old=$('v26stage'); if(old) old.classList.add('v34OldStageOff');
+ let card=$('v34stage');
+ if(!card){
+   const start=$('lobbyStart'), stages=$('lobbyStages');
+   card=document.createElement('button'); card.id='v34stage';
+   card.innerHTML='<span class="v34thumb">🏞️</span><span class="v34copy"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
+   card.onclick=()=>{if(stages)stages.click()};
+   if(start) start.after(card); else L.appendChild(card);
+ }
+}
+const st=document.createElement('style');st.id='v34-center-css';st.textContent=`
+/* Only the existing showcase chrome is dissolved. Character artwork remains untouched. */
+#gameLobby.v34center .v34HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important}
+#gameLobby.v34center .v34HeroClean::before,#gameLobby.v34center .v34HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
+#gameLobby.v34center .v34HeroClean>div{background-color:transparent!important;box-shadow:none!important}
+#gameLobby.v34center .v34SloganOff{display:none!important}
+#v26stage.v34OldStageOff{display:none!important}
+#v34stage{position:relative!important;box-sizing:border-box!important;width:calc(100% - 48px)!important;max-width:680px!important;height:126px!important;margin:14px auto 24px!important;padding:10px 12px!important;display:grid!important;grid-template-columns:minmax(120px,40%) minmax(0,1fr) 28px!important;gap:13px!important;align-items:center!important;text-align:left!important;border:2px solid rgba(255,255,255,.48)!important;border-radius:27px!important;background:linear-gradient(180deg,rgba(35,62,70,.96),rgba(19,46,54,.96))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important;overflow:hidden!important}
+#v34stage .v34thumb{width:100%!important;height:102px!important;display:grid!important;place-items:center!important;border-radius:19px!important;background:linear-gradient(145deg,#86c98b,#3b7560)!important;font-size:36px!important;line-height:1!important}
+#v34stage .v34copy{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;writing-mode:horizontal-tb!important}
+#v34stage .v34copy small{font-size:13px!important;opacity:.72!important;white-space:nowrap!important}
+#v34stage .v34copy b{font-size:21px!important;line-height:1.2!important;margin-top:5px!important;white-space:nowrap!important}
+#v34stage .v34copy em{font-style:normal!important;font-size:11px!important;opacity:.72!important;margin-top:6px!important;white-space:nowrap!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#v34stage i{font-style:normal!important;font-size:40px!important;line-height:1!important;justify-self:center!important;color:rgba(255,255,255,.86)!important}
+@media(max-width:390px){#v34stage{width:calc(100% - 30px)!important;grid-template-columns:37% minmax(0,1fr) 24px!important;gap:10px!important}#v34stage .v34copy b{font-size:18px!important}#v34stage .v34copy em{font-size:10px!important}}
+`;
+document.head.appendChild(st);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450)});else{apply();setTimeout(apply,450)}
+})();
