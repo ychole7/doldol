@@ -3779,54 +3779,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(apply,400);setTimeout(apply,900);
 })();
 
-/* V33 HOME CENTER ONLY — hero panel + horizontal stage card. Stable V31/V32 flow untouched. */
+/* V35 CLEAN BASELINE — consolidated V33/V34/V35 HOME presentation only.
+   Function/design lock: preserves the approved V35 result while removing superseded patch layers. */
 (function(){
-if(window.__v33center)return;window.__v33center=1;
+if(window.__v35cleanHome)return;window.__v35cleanHome=1;
 const $=id=>document.getElementById(id);
 function apply(){
- const L=$('gameLobby'); if(!L)return; L.classList.add('v33center');
- // Find the existing character showcase by its fixed slogan and visually dissolve only its outer card.
- const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
- if(slogan){
-   let p=slogan.parentElement, best=null;
-   for(let i=0;p&&p!==L&&i<5;i++,p=p.parentElement){
-     const r=p.getBoundingClientRect();
-     if(r.width>innerWidth*.65 && r.height>260) best=p;
-   }
-   if(best) best.classList.add('v33HeroCard');
- }
- // The separate logo block above the character showcase is no longer needed on the home mockup.
- [...L.querySelectorAll('*')].forEach(e=>{
-   const t=(e.textContent||'').replace(/\s+/g,' ').trim();
-   if(t.includes('DOLDOL SPECIAL FORCE') && t.includes('작은 돌 하나가 세상을 바꾼다') && !e.classList.contains('v33HeroCard')){
-     const r=e.getBoundingClientRect(); if(r.height<260 && r.width>180)e.classList.add('v33LogoBlock');
-   }
- });
- const card=$('v26stage');
- if(card){card.classList.add('v33StageCard');}
-}
-const st=document.createElement('style');st.id='v33-center-css';st.textContent=`
-#gameLobby.v33center{background-image:linear-gradient(rgba(10,28,24,.12),rgba(28,74,49,.18)),url('assets/stage1_training.jpg')!important;background-size:cover!important;background-position:center top!important}
-#gameLobby.v33center .v33HeroCard{background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
-#gameLobby.v33center .v33LogoBlock{display:none!important}
-#v26stage.v33StageCard{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;box-sizing:border-box!important;width:calc(100% - 48px)!important;max-width:680px!important;height:124px!important;margin:14px auto 24px!important;padding:10px!important;display:grid!important;grid-template-columns:minmax(118px,40%) minmax(0,1fr) 30px!important;gap:13px!important;align-items:center!important;border-radius:25px!important;overflow:hidden!important}
-#v26stage.v33StageCard .pic{width:100%!important;height:100px!important;border-radius:18px!important;display:grid!important;place-items:center!important}
-#v26stage.v33StageCard .tx{display:flex!important;flex-direction:column!important;align-items:flex-start!important;min-width:0!important;writing-mode:horizontal-tb!important}
-#v26stage.v33StageCard .tx small,#v26stage.v33StageCard .tx b,#v26stage.v33StageCard .tx em{writing-mode:horizontal-tb!important;transform:none!important;white-space:nowrap!important}
-#v26stage.v33StageCard .tx b{font-size:21px!important}#v26stage.v33StageCard .tx em{font-size:11px!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#v26stage.v33StageCard i{font-size:40px!important;justify-self:center!important}
-@media(max-width:390px){#v26stage.v33StageCard{width:calc(100% - 30px)!important;grid-template-columns:38% minmax(0,1fr) 25px!important}#v26stage.v33StageCard .tx b{font-size:18px!important}}
-`;
-document.head.appendChild(st);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,500)});else{apply();setTimeout(apply,500)}
-})();
+ const L=$('gameLobby'); if(!L)return;
+ L.classList.add('v35cleanHome');
 
-/* V34 CENTER CLEANUP ONLY — hero chrome removal + fresh horizontal stage card. */
-(function(){
-if(window.__v34center)return;window.__v34center=1;
-const $=id=>document.getElementById(id);
-function apply(){
- const L=$('gameLobby'); if(!L)return; L.classList.add('v34center');
+ // Preserve the approved hero treatment and hide its slogan only.
  const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
  if(slogan){
    let p=slogan.parentElement,best=null;
@@ -3834,49 +3796,10 @@ function apply(){
      const r=p.getBoundingClientRect();
      if(r.width>innerWidth*.65 && r.height>250) best=p;
    }
-   if(best){best.classList.add('v34HeroClean'); slogan.classList.add('v34SloganOff');}
+   if(best){best.classList.add('v35HeroClean'); slogan.classList.add('v35SloganOff');}
  }
- // V33's transformed legacy card is retired completely; use a fresh card with its own geometry.
- const old=$('v26stage'); if(old) old.classList.add('v34OldStageOff');
- let card=$('v34stage');
- if(!card){
-   const start=$('lobbyStart'), stages=$('lobbyStages');
-   card=document.createElement('button'); card.id='v34stage';
-   card.innerHTML='<span class="v34thumb">🏞️</span><span class="v34copy"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
-   card.onclick=()=>{if(stages)stages.click()};
-   if(start) start.after(card); else L.appendChild(card);
- }
-}
-const st=document.createElement('style');st.id='v34-center-css';st.textContent=`
-/* Only the existing showcase chrome is dissolved. Character artwork remains untouched. */
-#gameLobby.v34center .v34HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important}
-#gameLobby.v34center .v34HeroClean::before,#gameLobby.v34center .v34HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
-#gameLobby.v34center .v34HeroClean>div{background-color:transparent!important;box-shadow:none!important}
-#gameLobby.v34center .v34SloganOff{display:none!important}
-#v26stage.v34OldStageOff{display:none!important}
-#v34stage{position:relative!important;box-sizing:border-box!important;width:calc(100% - 48px)!important;max-width:680px!important;height:126px!important;margin:14px auto 24px!important;padding:10px 12px!important;display:grid!important;grid-template-columns:minmax(120px,40%) minmax(0,1fr) 28px!important;gap:13px!important;align-items:center!important;text-align:left!important;border:2px solid rgba(255,255,255,.48)!important;border-radius:27px!important;background:linear-gradient(180deg,rgba(35,62,70,.96),rgba(19,46,54,.96))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important;overflow:hidden!important}
-#v34stage .v34thumb{width:100%!important;height:102px!important;display:grid!important;place-items:center!important;border-radius:19px!important;background:linear-gradient(145deg,#86c98b,#3b7560)!important;font-size:36px!important;line-height:1!important}
-#v34stage .v34copy{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;writing-mode:horizontal-tb!important}
-#v34stage .v34copy small{font-size:13px!important;opacity:.72!important;white-space:nowrap!important}
-#v34stage .v34copy b{font-size:21px!important;line-height:1.2!important;margin-top:5px!important;white-space:nowrap!important}
-#v34stage .v34copy em{font-style:normal!important;font-size:11px!important;opacity:.72!important;margin-top:6px!important;white-space:nowrap!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
-#v34stage i{font-style:normal!important;font-size:40px!important;line-height:1!important;justify-self:center!important;color:rgba(255,255,255,.86)!important}
-@media(max-width:390px){#v34stage{width:calc(100% - 30px)!important;grid-template-columns:37% minmax(0,1fr) 24px!important;gap:10px!important}#v34stage .v34copy b{font-size:18px!important}#v34stage .v34copy em{font-size:10px!important}}
-`;
-document.head.appendChild(st);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450)});else{apply();setTimeout(apply,450)}
-})();
 
-
-/* V35 — approved mockup visual ratio pass ONLY.
-   Locked: start screen / top HUD / 4-menu nav / battle transition / combat. */
-(function(){
-if(window.__v35mock)return;window.__v35mock=1;
-const $=id=>document.getElementById(id);
-function apply(){
- const L=$('gameLobby'); if(!L)return; L.classList.add('v35mock');
-
- // Mockup has no floating logo block: hide only the compact logo ancestor.
+ // Approved V35 has no compact floating logo block.
  [...L.querySelectorAll('*')].forEach(e=>{
    const t=(e.textContent||'').replace(/\s+/g,' ').trim();
    if(t.includes('DOLDOL SPECIAL FORCE') && t.includes('작은 돌 하나가 세상을 바꾼다')){
@@ -3890,75 +3813,51 @@ function apply(){
    }
  });
 
- // Stage card: real stage preview instead of emoji.
- const card=$('v34stage');
- if(card){
-   const th=card.querySelector('.v34thumb');
-   if(th){ th.textContent=''; th.classList.add('v35RealThumb'); }
+ // Retire the original V26 stage card and create the final V35 card directly.
+ const old=$('v26stage'); if(old) old.classList.add('v35OldStageOff');
+ let card=$('v35stage');
+ if(!card){
+   const start=$('lobbyStart'), stages=$('lobbyStages');
+   card=document.createElement('button'); card.id='v35stage';
+   card.innerHTML='<span class="v35thumb"></span><span class="v35copy"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
+   card.onclick=()=>{if(stages)stages.click()};
+   if(start) start.after(card); else L.appendChild(card);
  }
 
- // CTA keeps its existing click/function; visual arrow only.
+ // CTA keeps the existing click/function; visual arrow only.
  const start=$('lobbyStart');
  if(start && !start.querySelector('.v35Arrow')){
    const a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a);
  }
 }
-const st=document.createElement('style');st.id='v35-mock-css';st.textContent=`
-#gameLobby.v35mock .v35LogoOff{display:none!important}
-
-/* Main cast gets the visual priority shown in the approved mockup. */
-#gameLobby.v35mock .v34HeroClean{
-  min-height:360px!important;
-  margin-top:12px!important;
-  margin-bottom:4px!important;
-  display:flex!important;
-  align-items:flex-end!important;
-  justify-content:center!important;
-}
-#gameLobby.v35mock .v34HeroClean img{
-  transform:scale(1.16)!important;
-  transform-origin:50% 100%!important;
-  filter:drop-shadow(0 12px 8px rgba(0,0,0,.25))!important;
-}
-
-/* CTA: same function, closer to the approved commercial mockup proportions. */
-#gameLobby.v35mock .v26start{
-  position:relative!important;
-  width:calc(100% - 48px)!important;
-  min-height:112px!important;
-  margin:8px 24px 14px!important;
-  border:4px solid #ffe88f!important;
-  border-radius:30px!important;
-  background:linear-gradient(180deg,#ffdc62,#ffb72d)!important;
-  box-shadow:0 10px 0 #9d651e,0 15px 22px rgba(0,0,0,.20)!important;
-}
-#gameLobby.v35mock .v26start>span{font-size:36px!important}
-#gameLobby.v35mock .v26start b{font-size:31px!important}
-#gameLobby.v35mock .v26start small{font-size:14px!important;font-weight:900!important}
-#gameLobby.v35mock .v35Arrow{
-  position:absolute!important;right:24px!important;top:50%!important;transform:translateY(-52%)!important;
-  font-style:normal!important;font-size:52px!important;line-height:1!important;color:#a86a1d!important;
-}
-
-/* Stage card: real preview and mockup-like sizing. */
-#v34stage{
-  width:calc(100% - 54px)!important;max-width:680px!important;height:132px!important;
-  margin:14px auto 24px!important;border-radius:27px!important;
-}
-#v34stage .v35RealThumb{
-  height:108px!important;
-  background-image:linear-gradient(rgba(0,0,0,.04),rgba(0,0,0,.08)),url('assets/stage1_training.jpg')!important;
-  background-size:cover!important;background-position:center 58%!important;
-  border:2px solid rgba(255,255,255,.18)!important;
-}
-#v34stage .v34copy b{font-size:23px!important}
-#v34stage .v34copy small{font-size:14px!important}
-#v34stage .v34copy em{font-size:12px!important}
+const st=document.createElement('style');st.id='v35-clean-home-css';st.textContent=`
+#gameLobby.v35cleanHome{background-image:linear-gradient(rgba(10,28,24,.12),rgba(28,74,49,.18)),url('assets/stage1_training.jpg')!important;background-size:cover!important;background-position:center top!important}
+#gameLobby.v35cleanHome .v35LogoOff{display:none!important}
+#gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
+#gameLobby.v35cleanHome .v35HeroClean::before,#gameLobby.v35cleanHome .v35HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
+#gameLobby.v35cleanHome .v35HeroClean>div{background-color:transparent!important;box-shadow:none!important}
+#gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.16)!important;transform-origin:50% 100%!important;filter:drop-shadow(0 12px 8px rgba(0,0,0,.25))!important}
+#gameLobby.v35cleanHome .v35SloganOff{display:none!important}
+#v26stage.v35OldStageOff{display:none!important}
+#gameLobby.v35cleanHome .v26start{position:relative!important;width:calc(100% - 48px)!important;min-height:112px!important;margin:8px 24px 14px!important;border:4px solid #ffe88f!important;border-radius:30px!important;background:linear-gradient(180deg,#ffdc62,#ffb72d)!important;box-shadow:0 10px 0 #9d651e,0 15px 22px rgba(0,0,0,.20)!important}
+#gameLobby.v35cleanHome .v26start>span{font-size:36px!important}
+#gameLobby.v35cleanHome .v26start b{font-size:31px!important}
+#gameLobby.v35cleanHome .v26start small{font-size:14px!important;font-weight:900!important}
+#gameLobby.v35cleanHome .v35Arrow{position:absolute!important;right:24px!important;top:50%!important;transform:translateY(-52%)!important;font-style:normal!important;font-size:52px!important;line-height:1!important;color:#a86a1d!important}
+#v35stage{position:relative!important;box-sizing:border-box!important;width:calc(100% - 54px)!important;max-width:680px!important;height:132px!important;margin:14px auto 24px!important;padding:10px 12px!important;display:grid!important;grid-template-columns:minmax(120px,40%) minmax(0,1fr) 28px!important;gap:13px!important;align-items:center!important;text-align:left!important;border:2px solid rgba(255,255,255,.48)!important;border-radius:27px!important;background:linear-gradient(180deg,rgba(35,62,70,.96),rgba(19,46,54,.96))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important;overflow:hidden!important}
+#v35stage .v35thumb{width:100%!important;height:108px!important;display:grid!important;place-items:center!important;border-radius:19px!important;background-image:linear-gradient(rgba(0,0,0,.04),rgba(0,0,0,.08)),url('assets/stage1_training.jpg')!important;background-size:cover!important;background-position:center 58%!important;border:2px solid rgba(255,255,255,.18)!important;line-height:1!important}
+#v35stage .v35copy{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;writing-mode:horizontal-tb!important}
+#v35stage .v35copy small{font-size:14px!important;opacity:.72!important;white-space:nowrap!important}
+#v35stage .v35copy b{font-size:23px!important;line-height:1.2!important;margin-top:5px!important;white-space:nowrap!important}
+#v35stage .v35copy em{font-style:normal!important;font-size:12px!important;opacity:.72!important;margin-top:6px!important;white-space:nowrap!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#v35stage i{font-style:normal!important;font-size:40px!important;line-height:1!important;justify-self:center!important;color:rgba(255,255,255,.86)!important}
 @media(max-width:390px){
- #gameLobby.v35mock .v34HeroClean{min-height:330px!important}
- #gameLobby.v35mock .v34HeroClean img{transform:scale(1.10)!important}
- #gameLobby.v35mock .v26start{width:calc(100% - 30px)!important;margin-left:15px!important;margin-right:15px!important}
- #v34stage{width:calc(100% - 30px)!important}
+ #gameLobby.v35cleanHome .v35HeroClean{min-height:330px!important}
+ #gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.10)!important}
+ #gameLobby.v35cleanHome .v26start{width:calc(100% - 30px)!important;margin-left:15px!important;margin-right:15px!important}
+ #v35stage{width:calc(100% - 30px)!important;grid-template-columns:37% minmax(0,1fr) 24px!important;gap:10px!important}
+ #v35stage .v35copy b{font-size:18px!important}
+ #v35stage .v35copy em{font-size:10px!important}
 }
 `;
 document.head.appendChild(st);
