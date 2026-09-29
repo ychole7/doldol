@@ -3962,3 +3962,54 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  setTimeout(clean,400); setTimeout(clean,900);
  window.__duckV22CleanHome=clean;
 })();
+
+
+/* V23 — screenshot-confirmed fix:
+   the middle brown HOME strip is the V18 injected nav itself.
+   Hide that injected strip and keep the original full 5-item bottom nav. */
+(function(){
+ if(window.__doldolHomeV23)return; window.__doldolHomeV23=true;
+ function fix(){
+   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+
+   // This is the exact duplicate visible in the screenshot.
+   lobby.querySelectorAll('.v18Nav').forEach(n=>{
+     n.style.setProperty('display','none','important');
+     n.style.setProperty('visibility','hidden','important');
+     n.style.setProperty('height','0','important');
+     n.style.setProperty('min-height','0','important');
+     n.style.setProperty('padding','0','important');
+     n.style.setProperty('margin','0','important');
+     n.style.setProperty('border','0','important');
+   });
+
+   // Restore the original full bottom navigation that V22 may have hidden.
+   [...lobby.querySelectorAll('.bottomNav,.navBar,.lobbyNav')].forEach(n=>{
+     if(n.classList.contains('v18Nav')) return;
+     const t=(n.textContent||'').replace(/\s+/g,'');
+     if(t.includes('홈') && (t.includes('특공대')||t.includes('캐릭터')) && t.includes('장비') && t.includes('상점')){
+       n.style.removeProperty('display');
+       n.style.removeProperty('visibility');
+       n.classList.remove('v21LegacyHide','v20Hide','v18SecondaryHidden');
+     }
+   });
+
+   // The main CTA must remain visible above the stage card.
+   const start=document.getElementById('lobbyStart');
+   if(start){
+     start.style.setProperty('display','flex','important');
+     start.style.setProperty('visibility','visible','important');
+     start.classList.remove('v21LegacyHide','v20Hide','v18SecondaryHidden');
+   }
+ }
+ const css=document.createElement('style');css.id='doldol-v23-nav-fix';
+ css.textContent=`
+   #gameLobby .v18Nav{display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important}
+   #gameLobby #lobbyStart{display:flex!important;visibility:visible!important}
+ `;
+ document.head.appendChild(css);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,80));
+ else setTimeout(fix,80);
+ setTimeout(fix,350);setTimeout(fix,900);
+ window.__duckV23FixHome=fix;
+})();
