@@ -3956,3 +3956,37 @@ const st=document.createElement('style');st.id='v37-home-layout-css';st.textCont
 }
 `;document.head.appendChild(st);
 })();
+
+/* V38 HOME CTA VIEWPORT LOCK — layout only; no function/design asset changes. */
+(function(){
+if(window.__v38HomeCtaLock)return;window.__v38HomeCtaLock=1;
+const st=document.createElement('style');st.id='v38-home-cta-lock-css';st.textContent=`
+#gameLobby.v36MockupHome .v26start{
+  box-sizing:border-box!important;
+  width:calc(100vw - 30px)!important;
+  max-width:680px!important;
+  margin-left:calc((100vw - 100%)/2)!important;
+  margin-right:0!important;
+  float:none!important;
+  left:auto!important;
+  right:auto!important;
+  transform:none!important;
+}
+@media(min-width:711px){
+ #gameLobby.v36MockupHome .v26start{
+   margin-left:calc((100vw - 100%)/2 + (100vw - 680px)/2)!important;
+ }
+}
+@media(max-width:430px){
+ #gameLobby.v36MockupHome .v26start{
+   width:calc(100vw - 30px)!important;
+   max-width:calc(100vw - 30px)!important;
+   margin-left:calc((100vw - 100%)/2 + 15px)!important;
+   margin-right:0!important;
+   padding-left:46px!important;
+   padding-right:50px!important;
+ }
+}
+`;
+document.head.appendChild(st);
+})();
