@@ -319,6 +319,22 @@ css.textContent=`
 #gameLobby.v35cleanHome .v35BottomClean{
  display:none!important;
 }
+
+/* LOCKED 07 — remove only the remaining translucent stage mask */
+#gameLobby.v35cleanHome .v35StageClean::before,
+#gameLobby.v35cleanHome .v35StageClean::after,
+#gameLobby.v35cleanHome #v35stage::before,
+#gameLobby.v35cleanHome #v35stage::after{
+ content:none!important;
+ display:none!important;
+}
+#gameLobby.v35cleanHome .v35StageClean,
+#gameLobby.v35cleanHome #v35stage{
+ background:transparent!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
 `;
 document.head.appendChild(css);
 
