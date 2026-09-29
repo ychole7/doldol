@@ -3837,3 +3837,104 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  setTimeout(apply,400);
  window.__duckV20ApplyHome=apply;
 })();
+
+
+/* ================================================================
+   V21 HOME MATCH — match approved home mockup against real lobby DOM.
+   Presentation only. No battle/stage/result/economy logic changes.
+   ================================================================ */
+(function(){
+ if(window.__doldolHomeV21)return; window.__doldolHomeV21=true;
+
+ const HIDE_TEXT=['우편함','출석체크','미션','업적','도전 모드','새로운 특공대원이 합류했습니다'];
+ function txt(el){return (el.textContent||'').replace(/\s+/g,' ').trim();}
+ function apply(){
+   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+   lobby.classList.add('v21Home');
+
+   // Hide legacy home-only clutter by its visible meaning, regardless of old markup/class.
+   lobby.querySelectorAll('button,a,div').forEach(el=>{
+     const t=txt(el);
+     if(!t || t.length>80)return;
+     if(HIDE_TEXT.some(x=>t.includes(x))) el.classList.add('v21LegacyHide');
+   });
+
+   // Old left-side quick menu containers often contain several of these labels.
+   lobby.querySelectorAll('div,nav,aside').forEach(el=>{
+     const t=txt(el);
+     const hits=['우편함','출석체크','미션','업적'].filter(x=>t.includes(x)).length;
+     if(hits>=3 && !el.contains(document.getElementById('lobbyStart'))) el.classList.add('v21LegacyHide');
+   });
+
+   // Keep exactly one bottom nav.
+   const navs=[...lobby.querySelectorAll('.bottomNav,.navBar,.lobbyNav,.v18Nav')];
+   let nav=lobby.querySelector('.v18Nav') || navs[navs.length-1];
+   navs.forEach(n=>{if(n!==nav)n.classList.add('v21LegacyHide');});
+   if(nav){nav.classList.add('v21Nav');nav.classList.remove('v21LegacyHide');}
+
+   const start=document.getElementById('lobbyStart');
+   if(start){
+     start.classList.add('v21Start');
+     start.innerHTML='<span class="v21Sword">⚔️</span><b>전투 시작</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
+   }
+
+   // Re-home the stage card at lobby root so old grid/flex rules cannot squeeze it.
+   let card=document.getElementById('v20StageCard');
+   if(card){
+     card.classList.add('v21StageCard');
+     if(nav && card.parentNode!==lobby) lobby.insertBefore(card,nav);
+     else if(!nav && card.parentNode!==lobby) lobby.appendChild(card);
+     const b=card.querySelector('b'); if(b)b.textContent='1. 돌무덤 초소';
+     const sm=card.querySelector('small'); if(sm)sm.textContent='현재 진행 중';
+   }
+
+   // Hide duplicate old stage/challenge cards, while preserving the V21 card.
+   [...lobby.querySelectorAll('button,div')].forEach(el=>{
+     if(el===card || (card&&el.contains(card)) || el===start || (start&&el.contains(start)))return;
+     const t=txt(el);
+     if(t.length<60 && (t.includes('도전 모드') || (t.includes('현재 진행 중')&&t.includes('STAGE'))))
+       el.classList.add('v21LegacyHide');
+   });
+ }
+ const css=document.createElement('style');css.id='doldol-v21-home-match';
+ css.textContent=`
+  #gameLobby.v21Home{padding-bottom:88px!important;overflow-x:hidden!important}
+  #gameLobby.v21Home .v21LegacyHide{display:none!important}
+  #gameLobby.v21Home .v21Start{
+    display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    width:calc(100% - 36px)!important;max-width:none!important;margin:18px 18px 12px!important;
+    min-height:104px!important;border-radius:26px!important;
+  }
+  #gameLobby.v21Home .v21Start .v21Sword{font-size:25px!important;line-height:1!important}
+  #gameLobby.v21Home .v21Start b{font-size:28px!important;line-height:1.05!important;margin-top:2px!important}
+  #gameLobby.v21Home .v21Start small{font-size:12px!important;margin-top:5px!important;font-weight:900!important}
+  #gameLobby.v21Home #v20StageCard.v21StageCard{
+    box-sizing:border-box!important;display:grid!important;grid-template-columns:38% 1fr 24px!important;
+    width:calc(100% - 36px)!important;max-width:none!important;height:116px!important;
+    margin:10px 18px 22px!important;padding:11px!important;position:relative!important;left:auto!important;right:auto!important;
+    border-radius:24px!important;background:rgba(25,51,58,.90)!important;
+  }
+  #gameLobby.v21Home #v20StageCard .v20Thumb{width:100%!important;height:88px!important;border-radius:17px!important}
+  #gameLobby.v21Home #v20StageCard small{font-size:12px!important}
+  #gameLobby.v21Home #v20StageCard b{font-size:20px!important;white-space:nowrap!important}
+  #gameLobby.v21Home #v20StageCard em{font-size:11px!important}
+  #gameLobby.v21Home .v21Nav{
+    display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;
+    width:100%!important;height:auto!important;margin:0!important;padding:8px 5px calc(8px + env(safe-area-inset-bottom))!important;
+    z-index:999!important;border-radius:0!important;
+  }
+  #gameLobby.v21Home .v21Nav .v18NavBtn{min-height:64px!important;width:auto!important;margin:0!important;padding:4px 1px!important}
+  #gameLobby.v21Home .v21Nav .v18NavBtn span{font-size:23px!important}
+  #gameLobby.v21Home .v21Nav .v18NavBtn b{font-size:11px!important}
+  @media(max-width:390px){
+    #gameLobby.v21Home .v21Start{min-height:96px!important}
+    #gameLobby.v21Home #v20StageCard.v21StageCard{height:108px!important}
+    #gameLobby.v21Home #v20StageCard .v20Thumb{height:80px!important}
+  }
+ `;
+ document.head.appendChild(css);
+ const run=()=>{apply();setTimeout(apply,180);setTimeout(apply,650)};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+ window.__duckV21ApplyHome=apply;
+})();
