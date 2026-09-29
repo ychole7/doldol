@@ -3940,3 +3940,52 @@ const css=document.createElement('style');css.id='v35-stage-root-fix-css';css.te
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500);setTimeout(fix,1100)});else{fix();setTimeout(fix,500);setTimeout(fix,1100)}
 })();
+
+/* HOME CTA FIX — battle button only. */
+(function(){
+if(window.__v35HomeCtaFix)return;window.__v35HomeCtaFix=1;
+const $=id=>document.getElementById(id);
+function fix(){
+ const start=$('lobbyStart'); if(!start)return;
+ start.classList.add('v35CtaFixed');
+ const b=start.querySelector('b'); if(b)b.textContent='전투 준비';
+ const s=start.querySelector('small'); if(s && !/^STAGE\s/i.test(s.textContent||'')) s.textContent='STAGE 1';
+ let a=start.querySelector('.v35Arrow');
+ if(!a){a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a)}
+}
+const css=document.createElement('style');css.id='v35-home-cta-fix-css';css.textContent=`
+#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed{
+ box-sizing:border-box!important;position:relative!important;inset:auto!important;transform:none!important;float:none!important;
+ width:min(90vw,680px)!important;min-width:0!important;max-width:calc(100vw - 30px)!important;
+ min-height:0!important;height:104px!important;margin:8px auto 14px!important;padding:10px 58px 10px 34px!important;
+ display:grid!important;grid-template-columns:72px minmax(0,1fr) 34px!important;grid-template-rows:1fr 28px!important;
+ column-gap:12px!important;row-gap:0!important;align-items:center!important;justify-items:center!important;
+ border:4px solid #ffe88f!important;border-radius:27px!important;background:linear-gradient(180deg,#ffdc62,#ffb72d)!important;
+ box-shadow:0 8px 0 #9d651e,0 13px 20px rgba(0,0,0,.18)!important;color:#30220d!important;overflow:hidden!important;
+}
+#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>span{
+ grid-column:1!important;grid-row:1 / 3!important;align-self:center!important;justify-self:center!important;
+ font-size:42px!important;line-height:1!important;margin:0!important;padding:0!important;
+}
+#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>b{
+ grid-column:2!important;grid-row:1!important;align-self:end!important;justify-self:center!important;
+ font-size:31px!important;line-height:1!important;margin:0 0 5px!important;white-space:nowrap!important;
+}
+#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>small{
+ grid-column:2!important;grid-row:2!important;align-self:start!important;justify-self:center!important;
+ font-size:14px!important;line-height:1!important;font-weight:900!important;margin:0!important;white-space:nowrap!important;
+}
+#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>.v35Arrow{
+ position:static!important;grid-column:3!important;grid-row:1 / 3!important;align-self:center!important;justify-self:center!important;
+ transform:none!important;margin:0!important;font-size:52px!important;line-height:1!important;color:#a86a1d!important;
+}
+@media(max-width:390px){
+ #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed{width:calc(100vw - 30px)!important;max-width:calc(100vw - 30px)!important;height:98px!important;padding:9px 42px 9px 24px!important;grid-template-columns:62px minmax(0,1fr) 28px!important;}
+ #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>span{font-size:38px!important}
+ #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>b{font-size:27px!important}
+ #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>.v35Arrow{font-size:46px!important}
+}
+`;
+document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500)});else{fix();setTimeout(fix,500)}
+})();
