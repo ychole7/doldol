@@ -133,7 +133,7 @@ css.textContent=`
 #doldolHomeHud .ddMoney>b{font-size:17px;white-space:nowrap}
 #doldolHomeHud .ddMoney>i{margin-left:auto;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#46a9df;font-style:normal;font-size:18px;font-weight:900}
 #doldolHomeHud .ddStoneIcon{
- width:27px;height:27px;display:block;flex:none;
+ width:30px;height:30px;display:block;flex:none;
  background:url('./assets/doldol_stone_core.png') center/contain no-repeat!important;
  filter:drop-shadow(0 1px 2px rgba(0,0,0,.38)) drop-shadow(0 0 4px rgba(255,166,45,.30));
 }
