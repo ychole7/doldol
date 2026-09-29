@@ -3779,16 +3779,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(apply,400);setTimeout(apply,900);
 })();
 
-/* HOME REBUILD BASELINE — rebuilt from V35 CLEAN.
-   HOME layout only; game functions and click handlers are unchanged. */
+/* V36 CLEAN HOME — consolidated from the stable V35 HOME baseline.
+   Same HOME design/functions; one initializer, one style tag, no stacked HOME fix passes. */
 (function(){
-if(window.__v35cleanHome)return;window.__v35cleanHome=1;
+if(window.__v36CleanHome)return;window.__v36CleanHome=1;
 const $=id=>document.getElementById(id);
+
 function apply(){
  const L=$('gameLobby'); if(!L)return;
  L.classList.add('v35cleanHome');
 
- // Preserve the approved hero treatment and hide its slogan only.
  const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
  if(slogan){
    let p=slogan.parentElement,best=null;
@@ -3799,26 +3799,23 @@ function apply(){
    if(best){best.classList.add('v35HeroClean'); slogan.classList.add('v35SloganOff');}
  }
 
- // Approved V35 has no compact floating logo block.
  [...L.querySelectorAll('*')].forEach(e=>{
    const t=(e.textContent||'').replace(/\s+/g,' ').trim();
    if(t.includes('DOLDOL SPECIAL FORCE') && t.includes('작은 돌 하나가 세상을 바꾼다')){
      let p=e;
      for(let i=0;i<4 && p && p!==L;i++,p=p.parentElement){
        const r=p.getBoundingClientRect();
-       if(r.width>180 && r.width<innerWidth*.9 && r.height>90 && r.height<280){
-         p.classList.add('v35LogoOff'); break;
-       }
+       if(r.width>180 && r.width<innerWidth*.9 && r.height>90 && r.height<280){p.classList.add('v35LogoOff');break;}
      }
    }
  });
 
- // Retire the original V26 stage card and create the final V35 card directly.
  const old=$('v26stage'); if(old) old.classList.add('v35OldStageOff');
  let card=$('v35stage');
  const start=$('lobbyStart'), stages=$('lobbyStages');
- // Use a neutral div instead of a button: legacy global button rules were collapsing the card.
- if(card && card.tagName==='BUTTON'){ const fresh=document.createElement('div'); fresh.id='v35stage'; card.replaceWith(fresh); card=fresh; }
+ if(card && card.tagName==='BUTTON'){
+   const fresh=document.createElement('div'); fresh.id='v35stage'; card.replaceWith(fresh); card=fresh;
+ }
  if(!card){
    card=document.createElement('div'); card.id='v35stage';
    card.innerHTML='<span class="v35thumb"></span><span class="v35copy"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
@@ -3827,13 +3824,20 @@ function apply(){
    card.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&stages){e.preventDefault();stages.click()}};
    if(start) start.after(card); else L.appendChild(card);
  }
+ card.classList.add('v35StageRootFixed');
 
- // CTA keeps the existing click/function; visual arrow only.
- if(start && !start.querySelector('.v35Arrow')){
-   const a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a);
+ if(start){
+   start.classList.add('v35CtaFixed');
+   const b=start.querySelector('b'); if(b)b.textContent='전투 준비';
+   const sm=start.querySelector('small'); if(sm && !/^STAGE\s/i.test(sm.textContent||'')) sm.textContent='STAGE 1';
+   let a=start.querySelector('.v35Arrow');
+   if(!a){a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a)}
  }
 }
-const st=document.createElement('style');st.id='v35-clean-home-css';st.textContent=`
+
+const css=document.createElement('style');
+css.id='v36-clean-home-css';
+css.textContent=`
 #gameLobby.v35cleanHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background-image:linear-gradient(rgba(10,28,24,.06),rgba(28,74,49,.10)),url('assets/home_base_bg.png')!important;background-size:cover!important;background-position:center top!important}
 #gameLobby.v35cleanHome .v35LogoOff{display:none!important}
 #gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
@@ -3863,25 +3867,8 @@ const st=document.createElement('style');st.id='v35-clean-home-css';st.textConte
  #v35stage .v35copy b{font-size:18px!important}
  #v35stage .v35copy em{font-size:10px!important}
 }
-`;
-document.head.appendChild(st);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450)});else{apply();setTimeout(apply,450)}
-})();
 
-/* HOME STAGE CARD ROOT FIX — stage card only.
-   Root cause: the injected card inherits a narrow legacy layout track from its host.
-   Size the card from the viewport and explicitly span any grid track. */
-(function(){
-if(window.__v35StageRootFix)return;window.__v35StageRootFix=1;
-const $=id=>document.getElementById(id);
-function fix(){
- const card=$('v35stage'); if(!card)return;
- card.classList.add('v35StageRootFixed');
- // Keep the existing stage action and content; only normalize the card's own layout box.
- const copy=card.querySelector('.v35copy');
- if(copy) copy.style.removeProperty('display');
-}
-const css=document.createElement('style');css.id='v35-stage-root-fix-css';css.textContent=`
+
 #v35stage.v35StageRootFixed{
   box-sizing:border-box!important;
   grid-column:1 / -1!important;
@@ -3936,24 +3923,8 @@ const css=document.createElement('style');css.id='v35-stage-root-fix-css';css.te
    gap:9px!important;
  }
 }
-`;
-document.head.appendChild(css);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500);setTimeout(fix,1100)});else{fix();setTimeout(fix,500);setTimeout(fix,1100)}
-})();
 
-/* HOME CTA FIX — battle button only. */
-(function(){
-if(window.__v35HomeCtaFix)return;window.__v35HomeCtaFix=1;
-const $=id=>document.getElementById(id);
-function fix(){
- const start=$('lobbyStart'); if(!start)return;
- start.classList.add('v35CtaFixed');
- const b=start.querySelector('b'); if(b)b.textContent='전투 준비';
- const s=start.querySelector('small'); if(s && !/^STAGE\s/i.test(s.textContent||'')) s.textContent='STAGE 1';
- let a=start.querySelector('.v35Arrow');
- if(!a){a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a)}
-}
-const css=document.createElement('style');css.id='v35-home-cta-fix-css';css.textContent=`
+
 #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed{
  box-sizing:border-box!important;position:relative!important;inset:auto!important;transform:none!important;float:none!important;
  width:min(90vw,680px)!important;min-width:0!important;max-width:calc(100vw - 30px)!important;
@@ -3987,88 +3958,7 @@ const css=document.createElement('style');css.id='v35-home-cta-fix-css';css.text
 }
 `;
 document.head.appendChild(css);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500)});else{fix();setTimeout(fix,500)}
-})();
 
-/* V35 HOME TOP HUD LAYOUT 01
-   Layout-only pass. No DOM removal/replacement and no click-handler changes. */
-(function(){
- if(window.__v35HomeTopLayout01)return; window.__v35HomeTopLayout01=1;
-
- function vis(el){
-   if(!el)return false;
-   const r=el.getBoundingClientRect(), cs=getComputedStyle(el);
-   return cs.display!=='none' && cs.visibility!=='hidden' && r.width>20 && r.height>20;
- }
- function txt(el){ return (el.innerText||el.textContent||'').replace(/\s+/g,' ').trim(); }
-
- function apply(){
-   const L=document.getElementById('gameLobby'); if(!L)return;
-   L.classList.add('v35TopLayout01');
-
-   const candidates=[...L.querySelectorAll('button,a,div')].filter(el=>{
-     if(!vis(el))return false;
-     const r=el.getBoundingClientRect();
-     return r.top>=0 && r.top<145 && r.height>=38 && r.height<=105 && r.width>=45;
-   });
-
-   // Smallest matching containers are preferred so ancestors are not moved.
-   function smallest(pred){
-     return candidates.filter(pred).sort((a,b)=>{
-       const A=a.getBoundingClientRect(),B=b.getBoundingClientRect();
-       return (A.width*A.height)-(B.width*B.height);
-     })[0];
-   }
-
-   const energy=smallest(el=>/30\s*\/\s*30/.test(txt(el)));
-   const diamond=smallest(el=>/980/.test(txt(el)));
-   const stone=smallest(el=>/1[,\s]?0(?:9[0-9]|8[0-9])/.test(txt(el)));
-   const profile=smallest(el=>txt(el).includes('돌돌이') && txt(el).includes('Lv.12'));
-
-   if(energy) energy.classList.add('v35HudEnergyVisualOff');
-   if(stone) stone.classList.add('v35HudStoneShift');
-   if(diamond) diamond.classList.add('v35HudDiamondShift');
-   if(profile) profile.classList.add('v35HudProfileReadable');
-
-   // Settings: identify right-most top clickable control without touching its handler.
-   const settings=candidates.filter(el=>{
-     const r=el.getBoundingClientRect();
-     return r.left>innerWidth*.78 && (txt(el).includes('⚙') || txt(el).length<5);
-   }).sort((a,b)=>b.getBoundingClientRect().left-a.getBoundingClientRect().left)[0];
-   if(settings) settings.classList.add('v35HudSettingsSafe');
- }
-
- const css=document.createElement('style');
- css.id='v35-home-top-layout-01-css';
- css.textContent=`
- #gameLobby.v35TopLayout01 .v35HudEnergyVisualOff{
-   visibility:hidden!important;
-   pointer-events:none!important;
- }
- #gameLobby.v35TopLayout01 .v35HudStoneShift{
-   transform:translateX(-104px)!important;
- }
- #gameLobby.v35TopLayout01 .v35HudDiamondShift{
-   transform:translateX(-104px)!important;
- }
- #gameLobby.v35TopLayout01 .v35HudSettingsSafe{
-   transform:translateX(-22px)!important;
- }
- #gameLobby.v35TopLayout01 .v35HudProfileReadable,
- #gameLobby.v35TopLayout01 .v35HudProfileReadable *{
-   color:#fff!important;
-   opacity:1!important;
-   text-shadow:0 1px 2px rgba(0,0,0,.55)!important;
- }
- @media(max-width:390px){
-   #gameLobby.v35TopLayout01 .v35HudStoneShift,
-   #gameLobby.v35TopLayout01 .v35HudDiamondShift{transform:translateX(-92px)!important}
-   #gameLobby.v35TopLayout01 .v35HudSettingsSafe{transform:translateX(-26px)!important}
- }
- `;
- document.head.appendChild(css);
-
- const run=()=>{apply();setTimeout(apply,250);setTimeout(apply,800)};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
- else run();
+const run=()=>{apply();setTimeout(apply,500)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
