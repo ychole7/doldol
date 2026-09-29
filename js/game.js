@@ -2751,9 +2751,24 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #gameLobby [id*="player"],#gameLobby [id*="Profile"],#gameLobby .playerInfo{
       filter:drop-shadow(0 5px 8px rgba(20,45,45,.20));
     }
-    #gameLobby [id*="coin"],#gameLobby [id*="energy"],#gameLobby [id*="gem"]{
+    #gameLobby [id*="coin"],#gameLobby [id*="gem"]{
       border-color:rgba(255,255,255,.30)!important;
       box-shadow:0 5px 12px rgba(22,52,54,.18)!important;
+    }
+    /* V36 HUD source cleanup: energy is not used in the confirmed economy. */
+    #gameLobby [id*="energy" i]{display:none!important;}
+    /* Keep the right control inside the iPhone safe edge without changing its handler. */
+    #gameLobby [id*="setting" i],#gameLobby [id*="gear" i][class*="top" i]{
+      margin-right:max(10px,env(safe-area-inset-right))!important;
+      flex-shrink:0!important;
+    }
+    /* Player badge text must remain readable over the bright lobby background. */
+    #gameLobby [id*="player" i],#gameLobby [id*="profile" i],#gameLobby .playerInfo{
+      color:#fff!important;
+    }
+    #gameLobby [id*="player" i] *,#gameLobby [id*="profile" i] *,#gameLobby .playerInfo *{
+      color:inherit;
+      opacity:1;
     }
 
     /* Main hero/card area */
