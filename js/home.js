@@ -69,10 +69,11 @@ function apply(){
  [...L.querySelectorAll('*')].forEach(e=>{
    const t=(e.textContent||'').replace(/\s+/g,' ').trim();
    if(t.includes('DOLDOL SPECIAL FORCE') && t.includes('작은 돌 하나가 세상을 바꾼다')){
-     let p=e;
-     for(let i=0;i<4 && p && p!==L;i++,p=p.parentElement){
+     e.classList.add('v35LogoOff');
+     let p=e.parentElement;
+     for(let i=0;i<3 && p && p!==L;i++,p=p.parentElement){
        const r=p.getBoundingClientRect();
-       if(r.width>180 && r.width<innerWidth*.9 && r.height>90 && r.height<280){p.classList.add('v35LogoOff');break;}
+       if(r.height<300 && r.width<innerWidth*.95){p.classList.add('v35LogoShellOff');break;}
      }
    }
  });
@@ -159,6 +160,14 @@ css.textContent=`
 #gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
 #gameLobby.v35cleanHome .v35HeroClean::before,#gameLobby.v35cleanHome .v35HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
 #gameLobby.v35cleanHome .v35HeroClean>div{background-color:transparent!important;box-shadow:none!important}
+#gameLobby.v35cleanHome .v35LogoShellOff{display:none!important}
+#gameLobby.v35cleanHome .v35HeroClean,
+#gameLobby.v35cleanHome .v35HeroClean>div,
+#gameLobby.v35cleanHome .v35HeroClean>div>div{
+ background:transparent!important;background-color:transparent!important;
+ border-color:transparent!important;outline:none!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important
+}
 #gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.16)!important;transform-origin:50% 100%!important;filter:drop-shadow(0 12px 8px rgba(0,0,0,.25))!important}
 #gameLobby.v35cleanHome .v35SloganOff{display:none!important}
 #v26stage.v35OldStageOff{display:none!important}
