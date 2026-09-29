@@ -3834,7 +3834,7 @@ function apply(){
  }
 }
 const st=document.createElement('style');st.id='v35-clean-home-css';st.textContent=`
-#gameLobby.v35cleanHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background-image:linear-gradient(rgba(10,28,24,.12),rgba(28,74,49,.18)),url('assets/stage1_training.jpg')!important;background-size:cover!important;background-position:center top!important}
+#gameLobby.v35cleanHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background-image:linear-gradient(rgba(10,28,24,.06),rgba(28,74,49,.10)),url('assets/home_base_bg.png')!important;background-size:cover!important;background-position:center top!important}
 #gameLobby.v35cleanHome .v35LogoOff{display:none!important}
 #gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
 #gameLobby.v35cleanHome .v35HeroClean::before,#gameLobby.v35cleanHome .v35HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
