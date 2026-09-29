@@ -3778,3 +3778,45 @@ document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply);else apply();
 setTimeout(apply,400);setTimeout(apply,900);
 })();
+
+/* V33 HOME CENTER ONLY — hero panel + horizontal stage card. Stable V31/V32 flow untouched. */
+(function(){
+if(window.__v33center)return;window.__v33center=1;
+const $=id=>document.getElementById(id);
+function apply(){
+ const L=$('gameLobby'); if(!L)return; L.classList.add('v33center');
+ // Find the existing character showcase by its fixed slogan and visually dissolve only its outer card.
+ const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
+ if(slogan){
+   let p=slogan.parentElement, best=null;
+   for(let i=0;p&&p!==L&&i<5;i++,p=p.parentElement){
+     const r=p.getBoundingClientRect();
+     if(r.width>innerWidth*.65 && r.height>260) best=p;
+   }
+   if(best) best.classList.add('v33HeroCard');
+ }
+ // The separate logo block above the character showcase is no longer needed on the home mockup.
+ [...L.querySelectorAll('*')].forEach(e=>{
+   const t=(e.textContent||'').replace(/\s+/g,' ').trim();
+   if(t.includes('DOLDOL SPECIAL FORCE') && t.includes('작은 돌 하나가 세상을 바꾼다') && !e.classList.contains('v33HeroCard')){
+     const r=e.getBoundingClientRect(); if(r.height<260 && r.width>180)e.classList.add('v33LogoBlock');
+   }
+ });
+ const card=$('v26stage');
+ if(card){card.classList.add('v33StageCard');}
+}
+const st=document.createElement('style');st.id='v33-center-css';st.textContent=`
+#gameLobby.v33center{background-image:linear-gradient(rgba(10,28,24,.12),rgba(28,74,49,.18)),url('assets/stage1_training.jpg')!important;background-size:cover!important;background-position:center top!important}
+#gameLobby.v33center .v33HeroCard{background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+#gameLobby.v33center .v33LogoBlock{display:none!important}
+#v26stage.v33StageCard{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;box-sizing:border-box!important;width:calc(100% - 48px)!important;max-width:680px!important;height:124px!important;margin:14px auto 24px!important;padding:10px!important;display:grid!important;grid-template-columns:minmax(118px,40%) minmax(0,1fr) 30px!important;gap:13px!important;align-items:center!important;border-radius:25px!important;overflow:hidden!important}
+#v26stage.v33StageCard .pic{width:100%!important;height:100px!important;border-radius:18px!important;display:grid!important;place-items:center!important}
+#v26stage.v33StageCard .tx{display:flex!important;flex-direction:column!important;align-items:flex-start!important;min-width:0!important;writing-mode:horizontal-tb!important}
+#v26stage.v33StageCard .tx small,#v26stage.v33StageCard .tx b,#v26stage.v33StageCard .tx em{writing-mode:horizontal-tb!important;transform:none!important;white-space:nowrap!important}
+#v26stage.v33StageCard .tx b{font-size:21px!important}#v26stage.v33StageCard .tx em{font-size:11px!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#v26stage.v33StageCard i{font-size:40px!important;justify-self:center!important}
+@media(max-width:390px){#v26stage.v33StageCard{width:calc(100% - 30px)!important;grid-template-columns:38% minmax(0,1fr) 25px!important}#v26stage.v33StageCard .tx b{font-size:18px!important}}
+`;
+document.head.appendChild(st);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,500)});else{apply();setTimeout(apply,500)}
+})();
