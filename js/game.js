@@ -3741,3 +3741,69 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const go=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
+
+
+/* V28 — approved home: replace legacy lobby presentation with one clean DOM shell */
+(function(){
+if(window.__v28home)return;window.__v28home=1;
+const $=x=>document.getElementById(x);
+function build(){
+ const L=$('gameLobby'); if(!L)return;
+ L.classList.add('v28');
+
+ // Keep functional legacy nodes alive but take them out of layout.
+ const start=$('lobbyStart'), stages=$('lobbyStages'), gear=$('lobbyGear'), chars=$('lobbyBook'), shop=$('lobbyShop');
+ [...L.children].forEach(x=>{
+   if(x.id!=='v28Shell' && x.id!=='v27menu') x.classList.add('v28Legacy');
+ });
+
+ let shell=$('v28Shell');
+ if(!shell){
+   shell=document.createElement('div');shell.id='v28Shell';
+   shell.innerHTML=`
+    <section class="v28Hero">
+      <div class="v28Cast">
+        <span class="v28Ninja">🥷</span><span class="v28Cat">🐱</span>
+        <span class="v28Duck">🐥</span><span class="v28Rabbit">🐰</span><span class="v28Panda">🐼</span>
+      </div>
+    </section>
+    <button class="v28Battle"><span>⚔️</span><strong>전투 준비<small>STAGE 1</small></strong><i>›</i></button>
+    <button class="v28Stage"><span class="v28Preview">🏞️</span><span><small>현재 진행 중</small><strong>1. 돌무덤 초소</strong><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i></button>
+   `;
+   L.appendChild(shell);
+   shell.querySelector('.v28Battle').onclick=()=>start&&start.click();
+   shell.querySelector('.v28Stage').onclick=()=>stages&&stages.click();
+ }
+
+ // Use only one nav, outside lobby flow.
+ let nav=$('v28Nav');
+ if(!nav){
+   nav=document.createElement('nav');nav.id='v28Nav';
+   const items=[['🏠','홈',null],['🐥','특공대',()=>chars&&chars.click()],['🎒','장비',()=>gear&&gear.click()],['⚒️','제작',()=>window.__duckOpenCraftV17&&window.__duckOpenCraftV17()],['🛒','상점',()=>shop&&shop.click()]];
+   items.forEach((a,i)=>{let b=document.createElement('button');b.innerHTML='<span>'+a[0]+'</span><b>'+a[1]+'</b>';if(i===0)b.className='on';b.onclick=a[2]||(()=>{});nav.appendChild(b)});
+   document.body.appendChild(nav);
+ }
+ // Hide all earlier generated navs.
+ ['v26nav'].forEach(id=>{let n=$(id);if(n)n.style.setProperty('display','none','important')});
+}
+let css=document.createElement('style');css.id='v28css';css.textContent=`
+#gameLobby.v28{padding:92px 0 105px!important;min-height:100dvh!important;box-sizing:border-box!important;overflow-x:hidden!important}
+#gameLobby.v28>.v28Legacy{position:absolute!important;left:-99999px!important;top:-99999px!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
+#gameLobby.v28 #v27menu{display:block!important;position:absolute!important;left:auto!important;right:14px!important;top:14px!important}
+#v28Shell{width:100%;display:flex;flex-direction:column;align-items:center;gap:18px}
+.v28Hero{width:100%;height:53dvh;min-height:430px;max-height:650px;position:relative;background:transparent}
+.v28Cast{position:absolute;left:4%;right:4%;bottom:3%;height:42%;display:flex;align-items:flex-end;justify-content:center;gap:4%}
+.v28Cast span{filter:drop-shadow(0 8px 5px rgba(0,0,0,.25));line-height:1}
+.v28Ninja{font-size:54px}.v28Cat{font-size:62px}.v28Duck{font-size:150px}.v28Rabbit{font-size:68px}.v28Panda{font-size:70px}
+.v28Battle{width:calc(100% - 52px);height:112px;display:grid;grid-template-columns:82px 1fr 42px;align-items:center;border:4px solid #ffe68d;border-radius:30px;background:linear-gradient(#ffd85a,#ffb42b);color:#3c240b;box-shadow:0 10px 0 #9d641d,0 15px 22px rgba(0,0,0,.2)}
+.v28Battle>span{font-size:45px}.v28Battle strong{font-size:32px;line-height:1;display:flex;flex-direction:column}.v28Battle small{font-size:15px;margin-top:9px}.v28Battle i{font-size:50px;font-style:normal;color:#a86c21}
+.v28Stage{width:calc(100% - 66px);height:132px;padding:10px;display:grid;grid-template-columns:44% 1fr 28px;gap:12px;align-items:center;text-align:left;border:2px solid #748b96;border-radius:27px;background:linear-gradient(#263f4a,#172f39);color:white;box-shadow:0 8px 18px rgba(0,0,0,.2)}
+.v28Preview{height:108px;border-radius:20px;display:grid;place-items:center;font-size:42px;background:linear-gradient(145deg,#8dcc8a,#367b63)}
+.v28Stage>span:nth-child(2){display:flex;flex-direction:column;min-width:0}.v28Stage small{font-size:13px;color:#c3c9cb}.v28Stage strong{font-size:22px;margin-top:4px;white-space:nowrap}.v28Stage em{font-style:normal;font-size:12px;color:#c9cecf;margin-top:5px;white-space:nowrap}.v28Stage i{font-style:normal;font-size:42px}
+#v28Nav{position:fixed;left:0;right:0;bottom:0;z-index:100000;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(#8c542c,#57331f);border-top:4px solid #a86c38;box-shadow:0 -8px 18px rgba(0,0,0,.22)}
+#v28Nav button{min-height:78px;border:0;border-radius:20px;background:transparent;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}#v28Nav span{font-size:31px}#v28Nav b{font-size:14px}#v28Nav .on{color:#ffe36b;background:#9a5927;border:3px solid #ffe36b;box-shadow:0 0 12px rgba(255,225,90,.4)}
+@media(max-width:390px){.v28Duck{font-size:130px}.v28Ninja{font-size:45px}.v28Cat{font-size:52px}.v28Rabbit,.v28Panda{font-size:58px}.v28Hero{min-height:390px}.v28Battle{height:102px}.v28Battle strong{font-size:28px}}
+`;document.head.appendChild(css);
+const go=()=>{build();setTimeout(build,400);setTimeout(build,1000)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+})();
