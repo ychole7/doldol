@@ -2021,7 +2021,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>감속 효과</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
     title.textContent="🛒 상점";
-    body.innerHTML='<div class="shopItem"><div>🪙 코인 팩<small>코인 5,000</small></div><button class="buy">💎 300</button></div>'+
+    body.innerHTML='<div class="shopItem"><div>🔶 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
       '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -2123,10 +2123,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
        '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>적 이동속도 감소</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
      menuTitle.textContent="🛒 상점";
-     body.innerHTML='<div class="shopItem"><div>❤️ 응급 보급품<small>다음 출격 준비용 보급품</small></div><button class="buy" data-shop-cost="500">🪙 500</button></div>'+
-       '<div class="shopItem"><div>🪨 전투 돌 보급<small>특수 돌 준비에 사용하는 보급품</small></div><button class="buy" data-shop-cost="800">🪙 800</button></div>'+
-       '<div class="shopItem"><div>🎁 특공대 보급 상자<small>성장 준비용 보급 상자</small></div><button class="buy" data-shop-cost="1500">🪙 1,500</button></div>'+
-       '<div class="shopItem"><div>⭐ 정예 보급 상자<small>고급 성장 준비용 보급 상자</small></div><button class="buy" data-shop-cost="3000">🪙 3,000</button></div>';
+     body.innerHTML='<div class="shopItem"><div>🔶 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
+       '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
+       '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
+       '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
    }else if(kind==="mission"){
      menuTitle.textContent="📋 미션 / 업적";
      body.innerHTML='<div class="missionItem"><div>적 50마리 처치<div class="bar"><i style="width:40%"></i></div></div><b>20/50</b></div>'+
@@ -3573,22 +3573,94 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 
-/* V16 SHOP: lightweight launch shop. Combat/stage code untouched. */
+/* =========================================================
+   V17 STONE CORE + SPECIAL STONE CRAFT
+   - Existing doldol_coins_v1 is intentionally preserved for save compatibility.
+   - User-facing currency is now "돌핵".
+   - Crafting consumes farm materials + 돌핵 and adds special-stone ammo.
+   - Combat / stage / gate / obstacle logic is untouched.
+   ========================================================= */
 (function(){
-  if(window.__doldolShopV16) return; window.__doldolShopV16=true;
-  document.addEventListener('click',function(ev){
-    const b=ev.target && ev.target.closest ? ev.target.closest('.buy[data-shop-cost]') : null;
-    if(!b) return;
-    ev.preventDefault(); ev.stopPropagation();
-    const cost=Math.max(0,Number(b.dataset.shopCost)||0);
-    const wallet=window.__duckWallet;
-    if(!wallet || !wallet.spendCoins(cost)){
-      const old=b.textContent; b.textContent='코인 부족'; b.disabled=true;
-      setTimeout(()=>{b.textContent=old;b.disabled=false;},700);
-      return;
-    }
-    const old=b.textContent; b.textContent='구매 완료 ✓'; b.disabled=true;
-    try{window.dispatchEvent(new Event('storage'));}catch(e){}
-    setTimeout(()=>{b.textContent=old;b.disabled=false;},700);
-  },true);
+  if(window.__doldolCraftV17) return; window.__doldolCraftV17=true;
+
+  const RECIPES={
+    fire:{name:'불돌', icon:'🔥', core:200, mats:{stone:3,ember:2}, ammo:'fire'},
+    ice:{name:'얼음돌', icon:'❄️', core:200, mats:{stone:3,ice:2}, ammo:'ice'},
+    bomb:{name:'폭발돌',icon:'💥',core:300,mats:{stone:4,powder:2},ammo:'bomb'}
+  };
+  const MAT_NAMES={stone:'단단한 돌',ember:'불씨',ice:'얼음 조각',powder:'화약'};
+
+  function inv(){
+    try{return JSON.parse(localStorage.getItem('doldol_farm_inventory_v2')||'{}')||{};}catch(e){return {};}
+  }
+  function saveInv(v){try{localStorage.setItem('doldol_farm_inventory_v2',JSON.stringify(v));}catch(e){}}
+  function ammoLoad(){
+    try{return JSON.parse(localStorage.getItem('doldol_crafted_stones_v17')||'{}')||{};}catch(e){return {};}
+  }
+  function ammoSave(v){try{localStorage.setItem('doldol_crafted_stones_v17',JSON.stringify(v));}catch(e){}}
+
+  function ensurePanel(){
+    let p=document.getElementById('doldolCraftV17');
+    if(p) return p;
+    p=document.createElement('div'); p.id='doldolCraftV17';
+    p.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(5,9,13,.78);display:none;align-items:center;justify-content:center;padding:18px;font-family:system-ui,sans-serif';
+    p.innerHTML=`<div style="width:min(430px,94vw);max-height:82vh;overflow:auto;background:linear-gradient(180deg,#26333a,#121a20);border:2px solid rgba(255,210,90,.5);border-radius:24px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.45)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div><div style="font-weight:1000;font-size:22px;color:#fff">특수 돌 제작소</div><div style="font-size:12px;color:#aebbc2;margin-top:3px">전투 재료와 돌핵으로 특수 돌을 제작합니다</div></div>
+        <button data-craft-close style="border:0;border-radius:14px;padding:9px 12px;background:#3b4850;color:#fff;font-weight:900">닫기</button>
+      </div>
+      <div data-core-balance style="margin:14px 0 10px;padding:10px 12px;border-radius:14px;background:rgba(255,210,90,.10);color:#ffd866;font-weight:900"></div>
+      <div data-craft-list></div>
+      <div data-craft-msg style="min-height:20px;text-align:center;color:#ffd866;font-weight:900;margin-top:10px"></div>
+    </div>`;
+    document.body.appendChild(p);
+    p.addEventListener('click',function(e){
+      if(e.target===p || e.target.closest('[data-craft-close]')){p.style.display='none';return;}
+      const b=e.target.closest('[data-craft-id]'); if(!b)return;
+      const r=RECIPES[b.dataset.craftId], bag=inv(), wallet=window.__duckWallet;
+      const msg=p.querySelector('[data-craft-msg]');
+      if(!r||!wallet)return;
+      for(const [id,n] of Object.entries(r.mats)){
+        if((Number(bag[id])||0)<n){msg.textContent=MAT_NAMES[id]+'이 부족합니다';return;}
+      }
+      if(!wallet.spendCoins(r.core)){msg.textContent='돌핵이 부족합니다';return;}
+      for(const [id,n] of Object.entries(r.mats)) bag[id]=Math.max(0,(Number(bag[id])||0)-n);
+      saveInv(bag);
+      const a=ammoLoad(); a[r.ammo]=(Number(a[r.ammo])||0)+1; ammoSave(a);
+      // Mirror into the current battle ammo object when the matching key exists.
+      try{
+        if(typeof stoneAmmo==='object' && stoneAmmo){
+          const candidates={fire:['fire','flame'],ice:['ice','freeze'],bomb:['bomb','explosive']}[r.ammo]||[r.ammo];
+          for(const k of candidates) if(Object.prototype.hasOwnProperty.call(stoneAmmo,k)){stoneAmmo[k]=(Number(stoneAmmo[k])||0)+1;break;}
+        }
+      }catch(err){}
+      msg.textContent=r.icon+' '+r.name+' 제작 완료!';
+      render();
+    });
+    return p;
+  }
+
+  function render(){
+    const p=ensurePanel(), bag=inv(), a=ammoLoad(), wallet=window.__duckWallet;
+    p.querySelector('[data-core-balance]').textContent='🔶 보유 돌핵  '+Number(wallet?wallet.coins:0).toLocaleString();
+    p.querySelector('[data-craft-list]').innerHTML=Object.entries(RECIPES).map(([id,r])=>{
+      const mats=Object.entries(r.mats).map(([m,n])=>`${MAT_NAMES[m]} ${Number(bag[m])||0}/${n}`).join(' · ');
+      return `<div style="padding:14px;margin:9px 0;border-radius:17px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div><b style="font-size:17px;color:#fff">${r.icon} ${r.name}</b><div style="font-size:12px;color:#b8c3c9;margin-top:5px">${mats}</div><div style="font-size:12px;color:#ffd866;margin-top:3px">🔶 돌핵 ${r.core.toLocaleString()} · 보유 ${Number(a[r.ammo])||0}</div></div>
+          <button data-craft-id="${id}" style="border:0;border-radius:14px;padding:10px 13px;background:#ffd866;color:#172027;font-weight:1000">제작</button>
+        </div></div>`;
+    }).join('');
+  }
+
+  window.__duckOpenCraftV17=function(){const p=ensurePanel();render();p.style.display='flex';};
+
+  // Add a small entry button only on non-battle/menu screens when the existing shop/menu is opened.
+  document.addEventListener('click',function(e){
+    const t=e.target && e.target.closest ? e.target.closest('[data-open-craft-v17]') : null;
+    if(t){e.preventDefault();window.__duckOpenCraftV17();}
+  });
+
+  // Expose for existing UI or console integration without changing index.html.
+  window.__duckCraftRecipesV17=RECIPES;
 })();
