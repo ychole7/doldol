@@ -3664,3 +3664,104 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // Expose for existing UI or console integration without changing index.html.
   window.__duckCraftRecipesV17=RECIPES;
 })();
+
+
+/* ================================================================
+   V18 HOME CLEANUP
+   - Home focuses on hero + one battle CTA + five bottom destinations.
+   - Secondary lobby clutter is hidden, not deleted.
+   - Crafting is promoted to a real bottom-nav destination.
+   - Existing combat/stage/result systems remain untouched.
+   ================================================================ */
+(function(){
+  if(window.__doldolHomeV18) return; window.__doldolHomeV18=true;
+
+  function install(){
+    const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+
+    // Hide secondary cards that made the home screen compete with the main CTA.
+    ['lobbyStages','lobbyMission'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.classList.add('v18SecondaryHidden');
+    });
+
+    // Find the existing bottom navigation. If the markup differs, create a compact one.
+    let nav=lobby.querySelector('.bottomNav,.navBar,.lobbyNav');
+    if(!nav){
+      nav=document.createElement('div'); nav.className='lobbyNav v18Nav';
+      lobby.appendChild(nav);
+    }
+    nav.classList.add('v18Nav');
+
+    // Preserve existing destinations by reusing their buttons when possible.
+    const charBtn=document.getElementById('lobbyBook')||document.querySelector('[data-menu="character"],[data-open="character"]');
+    const gearBtn=document.getElementById('lobbyGear');
+    const shopBtn=document.getElementById('lobbyShop')||document.querySelector('[data-menu="shop"],[data-open="shop"]');
+
+    function navButton(id,icon,label){
+      let b=document.getElementById(id);
+      if(!b){b=document.createElement('button');b.id=id;}
+      b.classList.add('v18NavBtn');
+      b.innerHTML='<span>'+icon+'</span><b>'+label+'</b>';
+      return b;
+    }
+    const home=navButton('v18Home','🏠','홈');
+    const chars=charBtn||navButton('v18Chars','🐥','특공대');
+    const gear=gearBtn||navButton('v18Gear','🎒','장비');
+    const craft=navButton('v18Craft','🔧','제작소');
+    const shop=shopBtn||navButton('v18Shop','🛒','상점');
+
+    chars.classList.add('v18NavBtn'); gear.classList.add('v18NavBtn'); shop.classList.add('v18NavBtn');
+    if(chars===charBtn) chars.innerHTML='<span>🐥</span><b>특공대</b>';
+    if(gear===gearBtn) gear.innerHTML='<span>🎒</span><b>장비</b>';
+    if(shop===shopBtn) shop.innerHTML='<span>🛒</span><b>상점</b>';
+
+    nav.innerHTML='';
+    [home,chars,gear,craft,shop].forEach(b=>nav.appendChild(b));
+    home.classList.add('active');
+
+    home.onclick=function(e){e.preventDefault(); lobby.classList.remove('hidden');};
+    craft.onclick=function(e){e.preventDefault();e.stopPropagation(); if(window.__duckOpenCraftV17)window.__duckOpenCraftV17();};
+
+    // Keep the main action singular and visually explicit.
+    const start=document.getElementById('lobbyStart');
+    if(start) start.innerHTML='<span>⚔️</span><b>전투 준비</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
+
+    // Currency wording: keep old save/API, only change visible lobby text.
+    lobby.querySelectorAll('*').forEach(el=>{
+      if(el.children.length===0 && typeof el.textContent==='string' && /코인/.test(el.textContent))
+        el.textContent=el.textContent.replace(/코인/g,'돌핵');
+    });
+  }
+
+  const style=document.createElement('style'); style.id='doldol-v18-home-cleanup';
+  style.textContent=`
+    #gameLobby .v18SecondaryHidden{display:none!important}
+    #gameLobby .v18Nav{
+      display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:2px!important;
+      position:sticky!important;bottom:0!important;z-index:80!important;
+      padding:7px 5px calc(7px + env(safe-area-inset-bottom))!important;
+      background:linear-gradient(180deg,#835633,#5c3b25)!important;
+      border-top:2px solid rgba(255,225,164,.52)!important;
+      box-shadow:0 -7px 20px rgba(35,25,17,.20)!important;
+    }
+    #gameLobby .v18NavBtn{
+      min-width:0!important;min-height:58px!important;border:0!important;background:transparent!important;
+      box-shadow:none!important;border-radius:14px!important;color:#f7ead2!important;
+      display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+      gap:3px!important;padding:5px 2px!important;text-shadow:0 1px 2px rgba(0,0,0,.3)!important;
+    }
+    #gameLobby .v18NavBtn span{font-size:21px!important;line-height:1!important}
+    #gameLobby .v18NavBtn b{font-size:11px!important;line-height:1.15!important;white-space:nowrap!important}
+    #gameLobby .v18NavBtn.active{color:#ffe171!important;background:rgba(255,224,113,.08)!important}
+    #gameLobby #lobbyStart{margin-top:10px!important;margin-bottom:12px!important}
+    @media(max-width:390px){
+      #gameLobby .v18NavBtn b{font-size:10px!important}
+      #gameLobby .v18NavBtn span{font-size:19px!important}
+    }
+  `;
+  document.head.appendChild(style);
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0));
+  else setTimeout(install,0);
+  setTimeout(install,250);
+})();
