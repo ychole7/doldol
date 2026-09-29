@@ -4,9 +4,51 @@
 if(window.__v36CleanHome)return;window.__v36CleanHome=1;
 const $=id=>document.getElementById(id);
 
+
+
+function retireLegacyTopHud(L){
+ if(L.dataset.ddLegacyHudRetired==='1')return;
+ const own=$('doldolHomeHud');
+ [...L.children].forEach(el=>{
+   if(el===own)return;
+   const r=el.getBoundingClientRect();
+   if(r.top<190 && r.bottom>80 && r.height<120 && r.width>40) el.classList.add('ddLegacyTopHud');
+ });
+ L.dataset.ddLegacyHudRetired='1';
+}
+
+function ensureHomeHud(){
+ const L=$('gameLobby'); if(!L)return;
+ let hud=$('doldolHomeHud');
+ if(!hud){
+   hud=document.createElement('div');
+   hud.id='doldolHomeHud';
+   hud.innerHTML=`
+    <button class="ddProfile" type="button" aria-label="프로필">
+      <span class="ddAvatar"></span>
+      <span class="ddPlayer"><b>돌돌이</b><small>Lv.12</small><i><u></u></i></span>
+    </button>
+    <div class="ddCurrencies">
+      <button class="ddMoney ddStone" type="button" aria-label="돌핵"><span class="ddStoneIcon">◆</span><b id="doldolHudStone">0</b><i>+</i></button>
+      <button class="ddMoney ddGem" type="button" aria-label="다이아"><span>💎</span><b id="doldolHudGem">980</b><i>+</i></button>
+    </div>
+    <button class="ddSettings" type="button" aria-label="설정">⚙️</button>`;
+   L.prepend(hud);
+ }
+ const stone=$('doldolHudStone');
+ if(stone){
+   const n=Number((window.__duckWallet&&window.__duckWallet.coins)||0);
+   stone.textContent=n.toLocaleString();
+ }
+ return hud;
+}
+
+
 function apply(){
  const L=$('gameLobby'); if(!L)return;
  L.classList.add('v35cleanHome');
+ retireLegacyTopHud(L);
+ ensureHomeHud();
 
  const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
  if(slogan){
@@ -57,6 +99,50 @@ function apply(){
 const css=document.createElement('style');
 css.id='v36-clean-home-css';
 css.textContent=`
+
+/* V36 HOME-owned top HUD */
+#gameLobby.v35cleanHome>#doldolHomeHud{
+ position:absolute!important;z-index:50!important;left:14px!important;right:14px!important;
+ top:max(12px,env(safe-area-inset-top))!important;height:58px!important;
+ display:flex!important;align-items:center!important;gap:8px!important;
+ pointer-events:none!important;
+}
+#gameLobby.v35cleanHome>#doldolHomeHud>*{pointer-events:auto!important}
+#gameLobby.v35cleanHome>#doldolHomeHud~*:not(.v35HeroClean):not(#v35stage):not(#lobbyStart){
+}
+#doldolHomeHud .ddProfile,#doldolHomeHud .ddMoney,#doldolHomeHud .ddSettings{
+ border:1px solid rgba(255,255,255,.35)!important;background:rgba(22,54,66,.88)!important;
+ box-shadow:0 4px 0 rgba(0,0,0,.22),0 8px 16px rgba(0,0,0,.16)!important;color:#fff!important;
+}
+#doldolHomeHud .ddProfile{width:174px;height:58px;border-radius:20px;padding:5px 9px;display:flex;align-items:center;gap:8px}
+#doldolHomeHud .ddAvatar{width:46px;height:46px;border-radius:14px;background-image:url('assets/player.png');background-size:cover;background-position:center;border:2px solid #fff;flex:none}
+#doldolHomeHud .ddPlayer{min-width:0;text-align:left;display:flex;flex-direction:column;flex:1}
+#doldolHomeHud .ddPlayer b{font-size:15px;line-height:17px;color:#fff}
+#doldolHomeHud .ddPlayer small{font-size:11px;line-height:14px;color:#dbe7e9}
+#doldolHomeHud .ddPlayer i{height:5px;border-radius:9px;background:rgba(0,0,0,.32);overflow:hidden;margin-top:3px}
+#doldolHomeHud .ddPlayer u{display:block;width:62%;height:100%;background:#ffd54f;text-decoration:none}
+#doldolHomeHud .ddCurrencies{display:flex;gap:7px;margin-left:auto}
+#doldolHomeHud .ddMoney{height:48px;min-width:122px;border-radius:18px;padding:0 8px;display:flex;align-items:center;gap:7px}
+#doldolHomeHud .ddMoney>span{font-size:20px}
+#doldolHomeHud .ddMoney>b{font-size:17px;white-space:nowrap}
+#doldolHomeHud .ddMoney>i{margin-left:auto;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#46a9df;font-style:normal;font-size:18px;font-weight:900}
+#doldolHomeHud .ddStoneIcon{color:#ff9d32!important;text-shadow:0 0 7px rgba(255,157,50,.8);transform:rotate(45deg)}
+#doldolHomeHud .ddSettings{width:48px;height:48px;border-radius:17px;font-size:24px;padding:0;flex:none}
+@media(max-width:430px){
+ #gameLobby.v35cleanHome>#doldolHomeHud{left:10px!important;right:10px!important;gap:5px!important}
+ #doldolHomeHud .ddProfile{width:126px;padding:4px 6px;gap:5px}
+ #doldolHomeHud .ddAvatar{width:40px;height:40px}
+ #doldolHomeHud .ddPlayer b{font-size:13px}
+ #doldolHomeHud .ddPlayer small{font-size:10px}
+ #doldolHomeHud .ddMoney{min-width:88px;padding:0 6px;gap:4px}
+ #doldolHomeHud .ddMoney>b{font-size:14px}
+ #doldolHomeHud .ddMoney>i{width:23px;height:23px;font-size:15px}
+ #doldolHomeHud .ddGem{min-width:84px}
+ #doldolHomeHud .ddSettings{width:44px;height:44px}
+}
+
+#gameLobby.v35cleanHome>.ddLegacyTopHud{display:none!important}
+
 #gameLobby.v35cleanHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background-image:linear-gradient(rgba(10,28,24,.06),rgba(28,74,49,.10)),url('assets/home_base_bg.png')!important;background-size:cover!important;background-position:center top!important}
 #gameLobby.v35cleanHome .v35LogoOff{display:none!important}
 #gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
