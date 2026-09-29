@@ -50,21 +50,9 @@ function ensureHomeHud(){
 }
 
 
-
-function ensureBakedSquadScene(){
- const L=$('gameLobby'); if(!L)return;
- let scene=$('doldolSquadScene');
- if(!scene){
-   scene=document.createElement('div');
-   scene.id='doldolSquadScene';
-   L.appendChild(scene);
- }
-}
-
 function apply(){
  const L=$('gameLobby'); if(!L)return;
  L.classList.add('v35cleanHome');
- ensureBakedSquadScene();
  retireLegacyTopHud(L);
  ensureHomeHud();
 
@@ -308,19 +296,17 @@ css.textContent=`
 }
 
 
-/* CENTER MOCKUP SCENE — HUD remains locked */
-#gameLobby.v35cleanHome{position:relative!important}
-#gameLobby.v35cleanHome .v35HeroClean{visibility:hidden!important;pointer-events:none!important}
-#gameLobby.v35cleanHome #doldolSquadScene{
- position:absolute!important;z-index:4!important;
- left:0!important;right:0!important;
- top:86px!important;height:390px!important;
- background:url('./assets/home_squad_scene.png') center center/cover no-repeat!important;
- pointer-events:none!important;
+/* HOME APPLY 02 — clean restore before transparent squad asset */
+#gameLobby.v35cleanHome{
+  position:relative!important;
+  background-image:none!important;
 }
-#gameLobby.v35cleanHome #lobbyStart,
-#gameLobby.v35cleanHome #v35stage{position:relative!important;z-index:8!important}
-#gameLobby.v35cleanHome #doldolHomeHud{z-index:50!important}
+#gameLobby.v35cleanHome .v35HeroClean{
+  visibility:visible!important;
+  pointer-events:none!important;
+  overflow:visible!important;
+}
+#gameLobby.v35cleanHome #doldolSquadScene{display:none!important}
 `;
 document.head.appendChild(css);
 
