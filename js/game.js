@@ -3989,3 +3989,65 @@ const css=document.createElement('style');css.id='v35-home-cta-fix-css';css.text
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500)});else{fix();setTimeout(fix,500)}
 })();
+
+/* HOME HERO POLISH — hero area only.
+   Keeps existing artwork/content and removes nested card chrome so the party reads as one scene. */
+(function(){
+if(window.__v35HomeHeroPolish)return;window.__v35HomeHeroPolish=1;
+const $=id=>document.getElementById(id);
+function polish(){
+ const L=$('gameLobby'); if(!L)return;
+ const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
+ let hero=L.querySelector('.v35HeroClean');
+ if(!hero && slogan){
+   let p=slogan.parentElement,best=null;
+   for(let i=0;p&&p!==L&&i<7;i++,p=p.parentElement){
+     const r=p.getBoundingClientRect();
+     if(r.width>innerWidth*.65 && r.height>250) best=p;
+   }
+   if(best){hero=best;hero.classList.add('v35HeroClean');}
+ }
+ if(!hero)return;
+ hero.classList.add('v35HeroPolished');
+
+ // Clean the separate logo/promo card immediately above the party without touching the HUD.
+ const hr=hero.getBoundingClientRect();
+ let logoCandidate=null,score=1e9;
+ [...L.querySelectorAll('div,section,article')].forEach(el=>{
+   if(el===hero || hero.contains(el) || !el.querySelector('img'))return;
+   const r=el.getBoundingClientRect();
+   if(r.top<180 || r.bottom>hr.top+35 || r.width<180 || r.width>innerWidth*.62 || r.height<80 || r.height>240)return;
+   const d=Math.abs(hr.top-r.bottom);
+   if(d<score){score=d;logoCandidate=el;}
+ });
+ if(logoCandidate)logoCandidate.classList.add('v35HeroLogoClean');
+}
+const css=document.createElement('style');css.id='v35-home-hero-polish-css';css.textContent=`
+#gameLobby.v35cleanHome .v35HeroPolished{
+  background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;
+  overflow:visible!important;
+}
+#gameLobby.v35cleanHome .v35HeroPolished div,
+#gameLobby.v35cleanHome .v35HeroPolished section,
+#gameLobby.v35cleanHome .v35HeroPolished article{
+  background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;
+}
+#gameLobby.v35cleanHome .v35HeroPolished div::before,
+#gameLobby.v35cleanHome .v35HeroPolished div::after{
+  box-shadow:none!important;border-color:transparent!important;
+}
+#gameLobby.v35cleanHome .v35HeroPolished img{
+  filter:drop-shadow(0 11px 8px rgba(0,0,0,.24))!important;
+}
+#gameLobby.v35cleanHome .v35HeroLogoClean{
+  background:transparent!important;background-color:transparent!important;border-color:transparent!important;
+  box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;
+}
+#gameLobby.v35cleanHome .v35HeroLogoClean::before,
+#gameLobby.v35cleanHome .v35HeroLogoClean::after{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+`;
+document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{polish();setTimeout(polish,450);setTimeout(polish,1000)});else{polish();setTimeout(polish,450);setTimeout(polish,1000)}
+})();
