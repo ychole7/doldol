@@ -3734,3 +3734,47 @@ const css=document.createElement('style');css.textContent=`
 `;document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
+
+/* V32 HOME VISUAL STEP 1 — background + hero presentation only */
+(function(){
+if(window.__v32homeVisual)return;window.__v32homeVisual=1;
+const $=id=>document.getElementById(id);
+function apply(){
+ const L=$('gameLobby'); if(!L)return;
+ L.classList.add('v32HomeVisual');
+
+ // Hide home-only legacy side utilities / promo clutter, not functional screens.
+ [...L.querySelectorAll('button,a,div')].forEach(el=>{
+   const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+   if(t.length<70 && ['우편함','출석체크','미션','업적','도전 모드','새로운 특공대원이'].some(x=>t.includes(x))){
+     if(el.id!=='lobbyStart') el.classList.add('v32HomeClutter');
+   }
+ });
+}
+const css=document.createElement('style');css.id='v32-home-visual';
+css.textContent=`
+ #gameLobby.v32HomeVisual{
+   background-position:center top!important;
+   background-size:cover!important;
+ }
+ #gameLobby.v32HomeVisual .v32HomeClutter{display:none!important}
+ /* Remove the oversized mint-panel feeling without altering its character artwork/content. */
+ #gameLobby.v32HomeVisual .lobbyHero,
+ #gameLobby.v32HomeVisual .heroCard,
+ #gameLobby.v32HomeVisual .lobbyCenter{
+   background:transparent!important;
+   box-shadow:none!important;
+   border-color:transparent!important;
+ }
+ /* Keep actual images crisp and visually integrated with the fortress background. */
+ #gameLobby.v32HomeVisual .lobbyHero img,
+ #gameLobby.v32HomeVisual .heroCard img,
+ #gameLobby.v32HomeVisual .lobbyCenter img{
+   filter:drop-shadow(0 10px 10px rgba(0,0,0,.22));
+ }
+`;
+document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply);else apply();
+setTimeout(apply,400);setTimeout(apply,900);
+})();
