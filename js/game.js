@@ -3807,3 +3807,130 @@ let css=document.createElement('style');css.id='v28css';css.textContent=`
 const go=()=>{build();setTimeout(build,400);setTimeout(build,1000)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
+
+
+/* V29 — approved home corrections:
+   전투 시작 / 4-menu nav / 제작은 장비 내부 / home battle-canvas isolation */
+(function(){
+if(window.__v29home)return;window.__v29home=1;
+const $=id=>document.getElementById(id);
+
+function apply(){
+ const L=$('gameLobby'); if(!L)return;
+ L.classList.add('v29');
+
+ // 1) Home must never show the actual battle canvas / battle HUD.
+ const game=$('game');
+ if(game) game.classList.add('v29BattleHidden');
+ ['gameCanvas','canvas','hud','gameHud','battleHud'].forEach(id=>{
+   const e=$(id); if(e && !L.contains(e)) e.classList.add('v29BattleHidden');
+ });
+
+ // 2) CTA wording is final: 전투 시작.
+ const battle=L.querySelector('.v28Battle');
+ if(battle){
+   battle.innerHTML='<span>⚔️</span><strong>전투 시작<small>STAGE 1</small></strong><i>›</i>';
+ }
+
+ // 3) Remove V28 emoji cast. Restore the stable lobby hero artwork/character panel
+ //    as the visual source, but strip its old logo/secondary controls when possible.
+ const hero=L.querySelector('.v28Hero');
+ const oldCandidates=[...L.children].filter(x=>x.classList && x.classList.contains('v28Legacy'));
+ let visual=oldCandidates.find(x=>{
+   const t=(x.textContent||'');
+   return !/우편함|출석체크|미션|업적|도전 모드/.test(t) &&
+          (x.querySelector('img') || /던져라|되돌려라/.test(t));
+ });
+ if(hero){
+   hero.querySelector('.v28Cast')?.remove();
+   if(visual && !hero.contains(visual)){
+     visual.classList.remove('v28Legacy');
+     visual.classList.add('v29HeroSource');
+     hero.appendChild(visual);
+   }
+ }
+
+ // 4) Bottom nav final structure = HOME / 특공대 / 장비 / 상점.
+ const oldNav=$('v28Nav'); if(oldNav) oldNav.style.setProperty('display','none','important');
+ let nav=$('v29Nav');
+ if(!nav){
+   nav=document.createElement('nav');nav.id='v29Nav';
+   const legacyGear=$('lobbyGear'), chars=$('lobbyBook'), shop=$('lobbyShop');
+   const make=(ic,tx,fn,on=false)=>{
+     const b=document.createElement('button');
+     if(on)b.className='on';
+     b.innerHTML='<span>'+ic+'</span><b>'+tx+'</b>';
+     b.onclick=fn||(()=>{});
+     nav.appendChild(b); return b;
+   };
+   make('🏠','홈',null,true);
+   make('🐥','특공대',()=>chars&&chars.click());
+   make('🎒','장비',()=>{
+     if(legacyGear) legacyGear.click();
+     setTimeout(injectCraftIntoGear,80);
+   });
+   make('🛒','상점',()=>shop&&shop.click());
+   document.body.appendChild(nav);
+ }
+
+ // 5) Hide all earlier home navs.
+ ['v26nav','v28Nav'].forEach(id=>{const n=$(id);if(n)n.style.setProperty('display','none','important')});
+}
+
+function injectCraftIntoGear(){
+ // Keep crafting feature, but expose it from equipment screen rather than home nav.
+ const craftFn=window.__duckOpenCraftV17;
+ if(!craftFn)return;
+ let host=$('gearScreen')||$('equipmentScreen')||$('armoryScreen');
+ if(!host){
+   // fallback: visible modal/panel after legacy gear click
+   host=[...document.querySelectorAll('section,div')].find(e=>{
+     const st=getComputedStyle(e), t=(e.textContent||'').replace(/\s+/g,' ');
+     return st.display!=='none' && /장비|무기/.test(t) && e.offsetWidth>200 && e.offsetHeight>200;
+   });
+ }
+ if(!host)return;
+ let b=$('v29CraftInGear');
+ if(!b){
+   b=document.createElement('button'); b.id='v29CraftInGear';
+   b.innerHTML='<span>⚒️</span><b>제작</b><small>재료로 장비와 아이템 제작</small>';
+   b.onclick=()=>craftFn();
+   host.appendChild(b);
+ }
+}
+
+const css=document.createElement('style');css.id='v29css';css.textContent=`
+/* battle layer isolation while lobby is visible */
+body:has(#gameLobby.v29:not([style*="display: none"])) #game,
+body:has(#gameLobby.v29:not([style*="display: none"])) #gameCanvas,
+body:has(#gameLobby.v29:not([style*="display: none"])) .gameCanvas,
+body:has(#gameLobby.v29:not([style*="display: none"])) .battleHud{visibility:hidden!important;pointer-events:none!important}
+#gameLobby.v29 .v28Hero{height:55dvh!important;min-height:430px!important;max-height:650px!important}
+#gameLobby.v29 .v29HeroSource{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:1!important;pointer-events:none!important;overflow:hidden!important}
+#gameLobby.v29 .v29HeroSource img{max-width:100%!important}
+#gameLobby.v29 .v28Battle strong{font-size:32px!important}
+#v29Nav{
+ position:fixed;left:0;right:0;bottom:0;z-index:100001;
+ display:grid;grid-template-columns:repeat(4,1fr);
+ padding:8px 14px calc(8px + env(safe-area-inset-bottom));
+ background:linear-gradient(#8c542c,#57331f);
+ border-top:4px solid #a86c38;box-shadow:0 -8px 18px rgba(0,0,0,.22)
+}
+#v29Nav button{
+ min-height:78px;border:0;border-radius:20px;background:transparent;color:#fff;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px
+}
+#v29Nav span{font-size:31px}#v29Nav b{font-size:14px}
+#v29Nav .on{color:#ffe36b;background:#9a5927;border:3px solid #ffe36b;box-shadow:0 0 12px rgba(255,225,90,.4)}
+#v29CraftInGear{
+ width:calc(100% - 28px);margin:14px;padding:13px 16px;border:2px solid rgba(255,255,255,.3);
+ border-radius:18px;background:linear-gradient(180deg,#365b62,#203e45);color:#fff;
+ display:grid;grid-template-columns:42px 1fr;align-items:center;text-align:left
+}
+#v29CraftInGear span{font-size:28px;grid-row:1/3}#v29CraftInGear b{font-size:17px}
+#v29CraftInGear small{opacity:.7;font-size:11px}
+`;
+document.head.appendChild(css);
+const go=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+})();
