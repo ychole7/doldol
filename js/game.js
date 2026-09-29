@@ -4013,3 +4013,55 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  setTimeout(fix,350);setTimeout(fix,900);
  window.__duckV23FixHome=fix;
 })();
+
+
+/* V24 — keep duplicate middle HOME strip hidden, restore canonical 5-button bottom nav. */
+(function(){
+ if(window.__doldolHomeV24)return; window.__doldolHomeV24=true;
+ function fix(){
+   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+
+   // V23 correctly identified the injected nav; repurpose it as the ONE real fixed bottom nav.
+   const nav=lobby.querySelector('.v18Nav');
+   if(!nav)return;
+
+   nav.style.setProperty('display','grid','important');
+   nav.style.setProperty('visibility','visible','important');
+   nav.style.setProperty('height','auto','important');
+   nav.style.setProperty('min-height','74px','important');
+   nav.style.setProperty('padding','7px 5px calc(7px + env(safe-area-inset-bottom))','important');
+   nav.style.setProperty('margin','0','important');
+   nav.style.setProperty('position','fixed','important');
+   nav.style.setProperty('left','0','important');
+   nav.style.setProperty('right','0','important');
+   nav.style.setProperty('bottom','0','important');
+   nav.style.setProperty('top','auto','important');
+   nav.style.setProperty('z-index','9999','important');
+   nav.style.setProperty('grid-template-columns','repeat(5,minmax(0,1fr))','important');
+
+   // Cancel V23's blanket .v18Nav hiding specifically for this canonical nav.
+   nav.classList.add('v24CanonicalNav');
+
+   // Ensure the five entries are visible.
+   [...nav.children].forEach(x=>{
+     x.style.removeProperty('display');
+     x.style.setProperty('visibility','visible','important');
+   });
+ }
+ const css=document.createElement('style');css.id='doldol-v24-nav-restore';
+ css.textContent=`
+  #gameLobby .v18Nav.v24CanonicalNav{
+    display:grid!important;visibility:visible!important;height:auto!important;min-height:74px!important;
+    position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    padding:7px 5px calc(7px + env(safe-area-inset-bottom))!important;margin:0!important;
+    border-top:2px solid rgba(255,225,164,.52)!important;z-index:9999!important;
+  }
+  #gameLobby.v21Home{padding-bottom:94px!important}
+ `;
+ document.head.appendChild(css);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,100));
+ else setTimeout(fix,100);
+ setTimeout(fix,450);setTimeout(fix,1000);
+ window.__duckV24FixNav=fix;
+})();
