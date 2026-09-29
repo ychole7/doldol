@@ -316,7 +316,7 @@ css.textContent=`
 }
 
 /* hide legacy carousel/extra visuals that would sit over the locked composition */
-#gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart){
+#gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart):not(#lockedStartHit){
  visibility:hidden!important;
 }
 
@@ -346,6 +346,7 @@ css.textContent=`
 
 /* LOCKED 08 — dedicated functional start hit target */
 #gameLobby.v35cleanHome #lockedStartHit{
+ visibility:visible!important;
  position:absolute!important;
  left:8%!important;
  width:84%!important;
