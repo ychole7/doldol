@@ -3022,7 +3022,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderBattlePrep();showMenu();};
 
   // Small UI refresh: lobby button becomes "전투 준비".
-  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 준비</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
+  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
 })();
 
 /* V41 styles */
@@ -3724,7 +3724,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
     // Keep the main action singular and visually explicit.
     const start=document.getElementById('lobbyStart');
-    if(start) start.innerHTML='<span>⚔️</span><b>전투 준비</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
+    if(start) start.innerHTML='<span>⚔️</span><b>전투 시작</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
 
     // Currency wording: keep old save/API, only change visible lobby text.
     lobby.querySelectorAll('*').forEach(el=>{
