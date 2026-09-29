@@ -96,7 +96,7 @@ function apply(){
 
  if(start){
    start.classList.add('v35CtaFixed');
-   const b=start.querySelector('b'); if(b)b.textContent='전투 시작';
+   const b=start.querySelector('b'); if(b)b.textContent='전투 준비';
    const sm=start.querySelector('small'); if(sm && !/^STAGE\s/i.test(sm.textContent||'')) sm.textContent='STAGE 1';
    let a=start.querySelector('.v35Arrow');
    if(!a){a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a)}
@@ -168,6 +168,7 @@ css.textContent=`
  border-color:transparent!important;outline:none!important;
  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important
 }
+#gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.16)!important;transform-origin:50% 100%!important;filter:drop-shadow(0 12px 8px rgba(0,0,0,.25))!important}
 #gameLobby.v35cleanHome .v35SloganOff{display:none!important}
 #v26stage.v35OldStageOff{display:none!important}
 #gameLobby.v35cleanHome .v26start{box-sizing:border-box!important;position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;float:none!important;transform:none!important;translate:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:min(calc(100% - 48px),680px)!important;max-width:680px!important;min-width:0!important;min-height:112px!important;margin:8px auto 14px!important;padding:12px 72px!important;border:4px solid #ffe88f!important;border-radius:30px!important;background:linear-gradient(180deg,#ffdc62,#ffb72d)!important;box-shadow:0 10px 0 #9d651e,0 15px 22px rgba(0,0,0,.20)!important}
@@ -185,6 +186,7 @@ css.textContent=`
 #v35stage i{font-style:normal!important;font-size:40px!important;line-height:1!important;justify-self:center!important;color:rgba(255,255,255,.86)!important}
 @media(max-width:390px){
  #gameLobby.v35cleanHome .v35HeroClean{min-height:330px!important}
+ #gameLobby.v35cleanHome .v35HeroClean img{transform:scale(1.10)!important}
  #gameLobby.v35cleanHome .v26start{width:calc(100% - 30px)!important;max-width:none!important;margin-left:auto!important;margin-right:auto!important;padding-left:58px!important;padding-right:58px!important}
  #v35stage{width:calc(100% - 30px)!important;grid-template-columns:37% minmax(0,1fr) 24px!important;gap:10px!important}
  #v35stage .v35copy b{font-size:18px!important}
@@ -281,6 +283,34 @@ css.textContent=`
 }
 
 
+
+/* FINAL LOCKED HOME — approved reference applied as the visual layer */
+#gameLobby.v35cleanHome{
+ position:relative!important;
+ min-height:calc(100dvh - 0px)!important;
+ background:url('./assets/home_final_locked.jpg') center top/100% 100% no-repeat!important;
+ overflow:hidden!important;
+}
+/* remove all legacy visual layers; keep their DOM/event wiring */
+#gameLobby.v35cleanHome #doldolHomeHud,
+#gameLobby.v35cleanHome .v35HeroClean,
+#gameLobby.v35cleanHome #v35stage{
+ visibility:hidden!important;
+}
+/* keep the real start button clickable exactly over the reference button */
+#gameLobby.v35cleanHome #lobbyStart{
+ position:absolute!important;
+ left:8%!important; right:8%!important;
+ top:58.5%!important; height:10.5%!important;
+ margin:0!important;
+ opacity:0!important;
+ z-index:80!important;
+ pointer-events:auto!important;
+}
+/* hide legacy carousel/extra visuals that would sit over the locked composition */
+#gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart){
+ visibility:hidden!important;
+}
 `;
 document.head.appendChild(css);
 
