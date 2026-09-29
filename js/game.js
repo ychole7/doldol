@@ -3867,3 +3867,76 @@ const st=document.createElement('style');st.id='v35-clean-home-css';st.textConte
 document.head.appendChild(st);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450)});else{apply();setTimeout(apply,450)}
 })();
+
+/* HOME STAGE CARD ROOT FIX — stage card only.
+   Root cause: the injected card inherits a narrow legacy layout track from its host.
+   Size the card from the viewport and explicitly span any grid track. */
+(function(){
+if(window.__v35StageRootFix)return;window.__v35StageRootFix=1;
+const $=id=>document.getElementById(id);
+function fix(){
+ const card=$('v35stage'); if(!card)return;
+ card.classList.add('v35StageRootFixed');
+ // Keep the existing stage action and content; only normalize the card's own layout box.
+ const copy=card.querySelector('.v35copy');
+ if(copy) copy.style.removeProperty('display');
+}
+const css=document.createElement('style');css.id='v35-stage-root-fix-css';css.textContent=`
+#v35stage.v35StageRootFixed{
+  box-sizing:border-box!important;
+  grid-column:1 / -1!important;
+  justify-self:center!important;
+  align-self:auto!important;
+  flex:0 0 auto!important;
+  width:min(90vw,680px)!important;
+  min-width:min(90vw,680px)!important;
+  max-width:calc(100vw - 24px)!important;
+  height:132px!important;
+  margin:14px auto 24px!important;
+  padding:10px 12px!important;
+  display:grid!important;
+  grid-template-columns:minmax(112px,38%) minmax(0,1fr) 28px!important;
+  grid-template-rows:1fr!important;
+  gap:13px!important;
+  align-items:center!important;
+  overflow:hidden!important;
+}
+#v35stage.v35StageRootFixed .v35thumb{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  height:108px!important;
+  grid-column:1!important;
+  grid-row:1!important;
+}
+#v35stage.v35StageRootFixed .v35copy{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  grid-column:2!important;
+  grid-row:1!important;
+  overflow:visible!important;
+}
+#v35stage.v35StageRootFixed>i{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  grid-column:3!important;
+  grid-row:1!important;
+}
+@media(max-width:390px){
+ #v35stage.v35StageRootFixed{
+   width:calc(100vw - 30px)!important;
+   min-width:calc(100vw - 30px)!important;
+   max-width:calc(100vw - 30px)!important;
+   grid-template-columns:minmax(105px,36%) minmax(0,1fr) 22px!important;
+   gap:9px!important;
+ }
+}
+`;
+document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{fix();setTimeout(fix,500);setTimeout(fix,1100)});else{fix();setTimeout(fix,500);setTimeout(fix,1100)}
+})();
