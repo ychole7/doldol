@@ -130,6 +130,7 @@ css.textContent=`
 #doldolHomeHud .ddCurrencies{display:flex;gap:7px;margin-left:auto;min-width:0}
 #doldolHomeHud .ddMoney{height:44px;min-width:104px;border-radius:16px;padding:0 8px;display:flex;align-items:center;gap:7px}
 #doldolHomeHud .ddMoney>span{font-size:20px}
+#doldolHomeHud .ddGem>span{font-size:17px}
 #doldolHomeHud .ddMoney>b{font-size:17px;white-space:nowrap}
 #doldolHomeHud .ddMoney>i{margin-left:auto;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#46a9df;font-style:normal;font-size:18px;font-weight:900}
 #doldolHomeHud .ddStoneIcon{
