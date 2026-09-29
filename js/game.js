@@ -3623,3 +3623,121 @@ let st=document.createElement('style');st.textContent=`
 `;document.head.appendChild(st);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{run();setTimeout(run,500)});else{run();setTimeout(run,500)}
 })();
+
+
+/* ==========================================================
+ V27 HOME — approved fortress mockup application
+ Based on V26 clean structure. Presentation only.
+ ========================================================== */
+(function(){
+ if(window.__v27home)return; window.__v27home=1;
+ const $=x=>document.getElementById(x);
+ function apply(){
+   const L=$('gameLobby'); if(!L)return;
+   L.classList.add('v27');
+
+   // Hide legacy home-only clutter from stable lobby.
+   [...L.querySelectorAll('button,a,div')].forEach(el=>{
+     const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+     if(t.length<80 && ['우편함','출석체크','미션','업적','도전 모드','새로운 특공대원이'].some(x=>t.includes(x)))
+       el.classList.add('v27off');
+   });
+
+   // Approved mockup uses one direct preparation CTA.
+   const start=$('lobbyStart');
+   if(start){
+     start.classList.remove('v26start');
+     start.classList.add('v27start');
+     start.innerHTML='<span class="v27swords">⚔️</span><span class="v27cta"><b>전투 준비</b><small>STAGE 1</small></span><i>›</i>';
+   }
+
+   const card=$('v26stage');
+   if(card){
+     card.classList.add('v27stage');
+     card.innerHTML='<span class="pic">🏞️</span><span class="tx"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
+   }
+
+   // Menu button in top-right; replaces old left utility stack conceptually.
+   let menu=$('v27menu');
+   if(!menu){
+     menu=document.createElement('button'); menu.id='v27menu';
+     menu.innerHTML='<span>☰</span><b>1</b>';
+     L.appendChild(menu);
+   }
+
+   // Currency: visible label/icon becomes stone-core without touching save keys.
+   [...L.querySelectorAll('*')].forEach(el=>{
+     if(el.children.length===0 && /코인/.test(el.textContent||'')) el.textContent=el.textContent.replace(/코인/g,'돌핵');
+   });
+
+   // Bottom nav labels/icons per approved mockup.
+   const nav=$('v26nav');
+   if(nav){
+     nav.classList.add('v27nav');
+     const bs=[...nav.querySelectorAll('button')];
+     const vals=[['🏠','홈'],['🐥','특공대'],['🎒','장비'],['⚒️','제작'],['🛒','상점']];
+     bs.forEach((b,i)=>{ if(vals[i]) b.innerHTML='<span>'+vals[i][0]+'</span><b>'+vals[i][1]+'</b>'; });
+   }
+ }
+ const st=document.createElement('style'); st.id='v27-style';
+ st.textContent=`
+  #gameLobby.v27{
+    --v27wood1:#8a522b;--v27wood2:#57331f;
+    padding-bottom:94px!important;
+    background:
+      linear-gradient(180deg,rgba(83,190,232,.12),rgba(94,148,76,.20)),
+      radial-gradient(ellipse at 50% 48%,rgba(255,221,132,.18),transparent 44%)!important;
+  }
+  #gameLobby.v27 .v27off{display:none!important}
+  #gameLobby.v27 #v27menu{
+    position:absolute!important;right:12px!important;top:13px!important;width:54px!important;height:54px!important;
+    border:2px solid rgba(255,255,255,.28)!important;border-radius:15px!important;background:#263e49!important;
+    color:white!important;z-index:70!important;box-shadow:0 4px 0 rgba(0,0,0,.22)!important;
+  }
+  #v27menu span{font-size:28px!important;font-weight:900!important} #v27menu b{
+    position:absolute;right:-5px;top:-8px;background:#f04444;color:#fff;border-radius:20px;min-width:20px;height:20px;
+    display:grid;place-items:center;font-size:11px
+  }
+  #gameLobby.v27 .v27start{
+    box-sizing:border-box!important;width:calc(100% - 54px)!important;min-height:108px!important;margin:12px 27px 16px!important;
+    display:grid!important;grid-template-columns:86px 1fr 38px!important;align-items:center!important;
+    border:4px solid #ffe793!important;border-radius:28px!important;
+    background:linear-gradient(180deg,#ffd95e,#ffb92f)!important;color:#3b240c!important;
+    box-shadow:0 10px 0 #a96920,0 16px 24px rgba(46,32,16,.20)!important;
+  }
+  #gameLobby.v27 .v27swords{font-size:43px!important;text-align:right!important}
+  #gameLobby.v27 .v27cta{display:flex!important;flex-direction:column!important;align-items:center!important}
+  #gameLobby.v27 .v27cta b{font-size:31px!important;line-height:1!important}
+  #gameLobby.v27 .v27cta small{font-size:15px!important;font-weight:1000!important;margin-top:8px!important}
+  #gameLobby.v27 .v27start i{font-style:normal!important;font-size:48px!important;font-weight:1000!important;color:#a76a20!important}
+  #gameLobby.v27 #v26stage.v27stage{
+    width:calc(100% - 70px)!important;height:126px!important;margin:12px 35px 24px!important;
+    grid-template-columns:44% 1fr 28px!important;padding:10px!important;border-radius:25px!important;
+    background:linear-gradient(180deg,#243d48,#172f39)!important;border:2px solid #718895!important;
+    box-shadow:0 8px 16px rgba(0,0,0,.18)!important;
+  }
+  #gameLobby.v27 #v26stage .pic{
+    height:102px!important;border-radius:20px!important;background:linear-gradient(145deg,#87c886,#397c66)!important;
+    font-size:39px!important;
+  }
+  #gameLobby.v27 #v26stage small{font-size:13px!important;color:#c4c9cb!important;opacity:1!important}
+  #gameLobby.v27 #v26stage b{font-size:22px!important;color:white!important}
+  #gameLobby.v27 #v26stage em{font-size:12px!important;color:#c8cbcb!important;opacity:1!important}
+  #gameLobby.v27 #v26stage i{font-size:42px!important;color:#e7edef!important}
+  #v26nav.v27nav{
+    min-height:92px!important;padding:7px 8px calc(8px + env(safe-area-inset-bottom))!important;
+    background:linear-gradient(180deg,var(--v27wood1),var(--v27wood2))!important;
+    border-top:4px solid #a56a38!important;box-shadow:0 -8px 18px rgba(52,29,14,.24)!important;
+  }
+  #v26nav.v27nav button{min-height:78px!important;color:#fff!important;border-radius:20px!important}
+  #v26nav.v27nav button span{font-size:31px!important}
+  #v26nav.v27nav button b{font-size:14px!important}
+  #v26nav.v27nav button.on{
+    color:#ffe36c!important;background:linear-gradient(180deg,#a96427,#79431f)!important;
+    border:3px solid #ffe271!important;box-shadow:0 0 12px rgba(255,220,88,.45)!important;
+  }
+ `;
+ document.head.appendChild(st);
+ const go=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+})();
