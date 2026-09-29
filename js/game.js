@@ -4096,3 +4096,47 @@ const css=document.createElement('style');css.id='v35-home-hero-final-css';css.t
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450);setTimeout(apply,1000)});else{apply();setTimeout(apply,450);setTimeout(apply,1000)}
 })();
+
+/* HOME HERO ALIGN — composition only. Locked: HUD, CTA, stage card and bottom nav. */
+(function(){
+if(window.__v35HomeHeroAlign)return;window.__v35HomeHeroAlign=1;
+const $=id=>document.getElementById(id);
+function align(){
+ const L=$('gameLobby'); if(!L)return;
+ const hero=L.querySelector('.v35HeroFinal,.v35HeroClean');
+ const logo=L.querySelector('.v35HeroLogoFinal,.v35HeroLogoClean');
+ if(hero){
+   hero.classList.add('v35HeroAligned');
+   const imgs=[...hero.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>24&&r.height>24;});
+   if(imgs.length){
+     imgs.forEach(i=>i.classList.remove('v35HeroMain','v35HeroMate'));
+     const main=imgs.slice().sort((a,b)=>{const A=a.getBoundingClientRect(),B=b.getBoundingClientRect();return (B.width*B.height)-(A.width*A.height)})[0];
+     if(main)main.classList.add('v35HeroMain');
+     imgs.forEach(i=>{if(i!==main)i.classList.add('v35HeroMate')});
+   }
+ }
+ if(logo)logo.classList.add('v35HeroLogoAligned');
+}
+const css=document.createElement('style');css.id='v35-home-hero-align-css';css.textContent=`
+#gameLobby.v35cleanHome .v35HeroAligned{
+ position:relative!important;top:18px!important;
+}
+#gameLobby.v35cleanHome .v35HeroAligned img.v35HeroMain{
+ transform:scale(1.20)!important;transform-origin:50% 100%!important;
+}
+#gameLobby.v35cleanHome .v35HeroAligned img.v35HeroMate{
+ transform:scale(1.28)!important;transform-origin:50% 100%!important;
+}
+#gameLobby.v35cleanHome .v35HeroLogoAligned{
+ position:relative!important;transform:translateY(-24px) scale(.84)!important;transform-origin:50% 50%!important;
+}
+@media(max-width:390px){
+ #gameLobby.v35cleanHome .v35HeroAligned{top:14px!important;}
+ #gameLobby.v35cleanHome .v35HeroAligned img.v35HeroMain{transform:scale(1.14)!important;}
+ #gameLobby.v35cleanHome .v35HeroAligned img.v35HeroMate{transform:scale(1.21)!important;}
+ #gameLobby.v35cleanHome .v35HeroLogoAligned{transform:translateY(-20px) scale(.84)!important;}
+}
+`;
+document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{align();setTimeout(align,450);setTimeout(align,1000)});else{align();setTimeout(align,450);setTimeout(align,1000)}
+})();
