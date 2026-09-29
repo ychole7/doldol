@@ -2021,7 +2021,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>감속 효과</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
     title.textContent="🛒 상점";
-    body.innerHTML='<div class="shopItem"><div>🔶 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
+    body.innerHTML='<div class="shopItem"><div>🪙 코인 팩<small>코인 5,000</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
       '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -2123,7 +2123,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
        '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>적 이동속도 감소</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
      menuTitle.textContent="🛒 상점";
-     body.innerHTML='<div class="shopItem"><div>🔶 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
+     body.innerHTML='<div class="shopItem"><div>🪙 코인 팩<small>코인 5,000</small></div><button class="buy">💎 300</button></div>'+
        '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
        '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
        '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -3022,7 +3022,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderBattlePrep();showMenu();};
 
   // Small UI refresh: lobby button becomes "전투 준비".
-  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
+  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 준비</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
 })();
 
 /* V41 styles */
@@ -3573,559 +3573,53 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 
-/* =========================================================
-   V17 STONE CORE + SPECIAL STONE CRAFT
-   - Existing doldol_coins_v1 is intentionally preserved for save compatibility.
-   - User-facing currency is now "돌핵".
-   - Crafting consumes farm materials + 돌핵 and adds special-stone ammo.
-   - Combat / stage / gate / obstacle logic is untouched.
-   ========================================================= */
+/* V26 CLEAN HOME rebuilt directly from stable V15 */
 (function(){
-  if(window.__doldolCraftV17) return; window.__doldolCraftV17=true;
-
-  const RECIPES={
-    fire:{name:'불돌', icon:'🔥', core:200, mats:{stone:3,ember:2}, ammo:'fire'},
-    ice:{name:'얼음돌', icon:'❄️', core:200, mats:{stone:3,ice:2}, ammo:'ice'},
-    bomb:{name:'폭발돌',icon:'💥',core:300,mats:{stone:4,powder:2},ammo:'bomb'}
-  };
-  const MAT_NAMES={stone:'단단한 돌',ember:'불씨',ice:'얼음 조각',powder:'화약'};
-
-  function inv(){
-    try{return JSON.parse(localStorage.getItem('doldol_farm_inventory_v2')||'{}')||{};}catch(e){return {};}
-  }
-  function saveInv(v){try{localStorage.setItem('doldol_farm_inventory_v2',JSON.stringify(v));}catch(e){}}
-  function ammoLoad(){
-    try{return JSON.parse(localStorage.getItem('doldol_crafted_stones_v17')||'{}')||{};}catch(e){return {};}
-  }
-  function ammoSave(v){try{localStorage.setItem('doldol_crafted_stones_v17',JSON.stringify(v));}catch(e){}}
-
-  function ensurePanel(){
-    let p=document.getElementById('doldolCraftV17');
-    if(p) return p;
-    p=document.createElement('div'); p.id='doldolCraftV17';
-    p.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(5,9,13,.78);display:none;align-items:center;justify-content:center;padding:18px;font-family:system-ui,sans-serif';
-    p.innerHTML=`<div style="width:min(430px,94vw);max-height:82vh;overflow:auto;background:linear-gradient(180deg,#26333a,#121a20);border:2px solid rgba(255,210,90,.5);border-radius:24px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.45)">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-        <div><div style="font-weight:1000;font-size:22px;color:#fff">특수 돌 제작소</div><div style="font-size:12px;color:#aebbc2;margin-top:3px">전투 재료와 돌핵으로 특수 돌을 제작합니다</div></div>
-        <button data-craft-close style="border:0;border-radius:14px;padding:9px 12px;background:#3b4850;color:#fff;font-weight:900">닫기</button>
-      </div>
-      <div data-core-balance style="margin:14px 0 10px;padding:10px 12px;border-radius:14px;background:rgba(255,210,90,.10);color:#ffd866;font-weight:900"></div>
-      <div data-craft-list></div>
-      <div data-craft-msg style="min-height:20px;text-align:center;color:#ffd866;font-weight:900;margin-top:10px"></div>
-    </div>`;
-    document.body.appendChild(p);
-    p.addEventListener('click',function(e){
-      if(e.target===p || e.target.closest('[data-craft-close]')){p.style.display='none';return;}
-      const b=e.target.closest('[data-craft-id]'); if(!b)return;
-      const r=RECIPES[b.dataset.craftId], bag=inv(), wallet=window.__duckWallet;
-      const msg=p.querySelector('[data-craft-msg]');
-      if(!r||!wallet)return;
-      for(const [id,n] of Object.entries(r.mats)){
-        if((Number(bag[id])||0)<n){msg.textContent=MAT_NAMES[id]+'이 부족합니다';return;}
-      }
-      if(!wallet.spendCoins(r.core)){msg.textContent='돌핵이 부족합니다';return;}
-      for(const [id,n] of Object.entries(r.mats)) bag[id]=Math.max(0,(Number(bag[id])||0)-n);
-      saveInv(bag);
-      const a=ammoLoad(); a[r.ammo]=(Number(a[r.ammo])||0)+1; ammoSave(a);
-      // Mirror into the current battle ammo object when the matching key exists.
-      try{
-        if(typeof stoneAmmo==='object' && stoneAmmo){
-          const candidates={fire:['fire','flame'],ice:['ice','freeze'],bomb:['bomb','explosive']}[r.ammo]||[r.ammo];
-          for(const k of candidates) if(Object.prototype.hasOwnProperty.call(stoneAmmo,k)){stoneAmmo[k]=(Number(stoneAmmo[k])||0)+1;break;}
-        }
-      }catch(err){}
-      msg.textContent=r.icon+' '+r.name+' 제작 완료!';
-      render();
-    });
-    return p;
-  }
-
-  function render(){
-    const p=ensurePanel(), bag=inv(), a=ammoLoad(), wallet=window.__duckWallet;
-    p.querySelector('[data-core-balance]').textContent='🔶 보유 돌핵  '+Number(wallet?wallet.coins:0).toLocaleString();
-    p.querySelector('[data-craft-list]').innerHTML=Object.entries(RECIPES).map(([id,r])=>{
-      const mats=Object.entries(r.mats).map(([m,n])=>`${MAT_NAMES[m]} ${Number(bag[m])||0}/${n}`).join(' · ');
-      return `<div style="padding:14px;margin:9px 0;border-radius:17px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.08)">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div><b style="font-size:17px;color:#fff">${r.icon} ${r.name}</b><div style="font-size:12px;color:#b8c3c9;margin-top:5px">${mats}</div><div style="font-size:12px;color:#ffd866;margin-top:3px">🔶 돌핵 ${r.core.toLocaleString()} · 보유 ${Number(a[r.ammo])||0}</div></div>
-          <button data-craft-id="${id}" style="border:0;border-radius:14px;padding:10px 13px;background:#ffd866;color:#172027;font-weight:1000">제작</button>
-        </div></div>`;
-    }).join('');
-  }
-
-  window.__duckOpenCraftV17=function(){const p=ensurePanel();render();p.style.display='flex';};
-
-  // Add a small entry button only on non-battle/menu screens when the existing shop/menu is opened.
-  document.addEventListener('click',function(e){
-    const t=e.target && e.target.closest ? e.target.closest('[data-open-craft-v17]') : null;
-    if(t){e.preventDefault();window.__duckOpenCraftV17();}
-  });
-
-  // Expose for existing UI or console integration without changing index.html.
-  window.__duckCraftRecipesV17=RECIPES;
-})();
-
-
-/* ================================================================
-   V18 HOME CLEANUP
-   - Home focuses on hero + one battle CTA + five bottom destinations.
-   - Secondary lobby clutter is hidden, not deleted.
-   - Crafting is promoted to a real bottom-nav destination.
-   - Existing combat/stage/result systems remain untouched.
-   ================================================================ */
-(function(){
-  if(window.__doldolHomeV18) return; window.__doldolHomeV18=true;
-
-  function install(){
-    const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-
-    // Hide secondary cards that made the home screen compete with the main CTA.
-    ['lobbyStages','lobbyMission'].forEach(id=>{
-      const el=document.getElementById(id); if(el) el.classList.add('v18SecondaryHidden');
-    });
-
-    // Find the existing bottom navigation. If the markup differs, create a compact one.
-    let nav=lobby.querySelector('.bottomNav,.navBar,.lobbyNav');
-    if(!nav){
-      nav=document.createElement('div'); nav.className='lobbyNav v18Nav';
-      lobby.appendChild(nav);
-    }
-    nav.classList.add('v18Nav');
-
-    // Preserve existing destinations by reusing their buttons when possible.
-    const charBtn=document.getElementById('lobbyBook')||document.querySelector('[data-menu="character"],[data-open="character"]');
-    const gearBtn=document.getElementById('lobbyGear');
-    const shopBtn=document.getElementById('lobbyShop')||document.querySelector('[data-menu="shop"],[data-open="shop"]');
-
-    function navButton(id,icon,label){
-      let b=document.getElementById(id);
-      if(!b){b=document.createElement('button');b.id=id;}
-      b.classList.add('v18NavBtn');
-      b.innerHTML='<span>'+icon+'</span><b>'+label+'</b>';
-      return b;
-    }
-    const home=navButton('v18Home','🏠','홈');
-    const chars=charBtn||navButton('v18Chars','🐥','특공대');
-    const gear=gearBtn||navButton('v18Gear','🎒','장비');
-    const craft=navButton('v18Craft','🔧','제작소');
-    const shop=shopBtn||navButton('v18Shop','🛒','상점');
-
-    chars.classList.add('v18NavBtn'); gear.classList.add('v18NavBtn'); shop.classList.add('v18NavBtn');
-    if(chars===charBtn) chars.innerHTML='<span>🐥</span><b>특공대</b>';
-    if(gear===gearBtn) gear.innerHTML='<span>🎒</span><b>장비</b>';
-    if(shop===shopBtn) shop.innerHTML='<span>🛒</span><b>상점</b>';
-
-    nav.innerHTML='';
-    [home,chars,gear,craft,shop].forEach(b=>nav.appendChild(b));
-    home.classList.add('active');
-
-    home.onclick=function(e){e.preventDefault(); lobby.classList.remove('hidden');};
-    craft.onclick=function(e){e.preventDefault();e.stopPropagation(); if(window.__duckOpenCraftV17)window.__duckOpenCraftV17();};
-
-    // Keep the main action singular and visually explicit.
-    const start=document.getElementById('lobbyStart');
-    if(start) start.innerHTML='<span>⚔️</span><b>전투 시작</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
-
-    // Currency wording: keep old save/API, only change visible lobby text.
-    lobby.querySelectorAll('*').forEach(el=>{
-      if(el.children.length===0 && typeof el.textContent==='string' && /코인/.test(el.textContent))
-        el.textContent=el.textContent.replace(/코인/g,'돌핵');
-    });
-  }
-
-  const style=document.createElement('style'); style.id='doldol-v18-home-cleanup';
-  style.textContent=`
-    #gameLobby .v18SecondaryHidden{display:none!important}
-    #gameLobby .v18Nav{
-      display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:2px!important;
-      position:sticky!important;bottom:0!important;z-index:80!important;
-      padding:7px 5px calc(7px + env(safe-area-inset-bottom))!important;
-      background:linear-gradient(180deg,#835633,#5c3b25)!important;
-      border-top:2px solid rgba(255,225,164,.52)!important;
-      box-shadow:0 -7px 20px rgba(35,25,17,.20)!important;
-    }
-    #gameLobby .v18NavBtn{
-      min-width:0!important;min-height:58px!important;border:0!important;background:transparent!important;
-      box-shadow:none!important;border-radius:14px!important;color:#f7ead2!important;
-      display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
-      gap:3px!important;padding:5px 2px!important;text-shadow:0 1px 2px rgba(0,0,0,.3)!important;
-    }
-    #gameLobby .v18NavBtn span{font-size:21px!important;line-height:1!important}
-    #gameLobby .v18NavBtn b{font-size:11px!important;line-height:1.15!important;white-space:nowrap!important}
-    #gameLobby .v18NavBtn.active{color:#ffe171!important;background:rgba(255,224,113,.08)!important}
-    #gameLobby #lobbyStart{margin-top:10px!important;margin-bottom:12px!important}
-    @media(max-width:390px){
-      #gameLobby .v18NavBtn b{font-size:10px!important}
-      #gameLobby .v18NavBtn span{font-size:19px!important}
-    }
-  `;
-  document.head.appendChild(style);
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0));
-  else setTimeout(install,0);
-  setTimeout(install,250);
-})();
-
-
-/* ================================================================
-   V20 HOME — approved mockup direction
-   Clean single lobby: top resources / hero / battle CTA / stage card / 5-nav.
-   Old/duplicate lobby controls are hidden, not deleted.
-   ================================================================ */
-(function(){
- if(window.__doldolHomeV20)return; window.__doldolHomeV20=true;
- function apply(){
-   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-   lobby.classList.add('v20Home');
-
-   // Remove duplicate/legacy lobby chrome from view.
-   ['lobbyStages','lobbyMission','lobbyGrowth'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('v20Hide');});
-   const oldNotice=lobby.querySelector('.notice,.homeNotice,[class*="notice"],[class*="event"]');
-   if(oldNotice) oldNotice.classList.add('v20Hide');
-
-   // Keep only one bottom navigation. V18 nav becomes the canonical one.
-   let nav=lobby.querySelector('.v18Nav');
-   if(nav){
-     nav.querySelectorAll('.v18NavBtn').forEach(b=>b.classList.remove('active'));
-     const h=document.getElementById('v18Home'); if(h)h.classList.add('active');
-   }
-
-   // Stage preview card, matching the approved mockup.
-   let card=document.getElementById('v20StageCard');
-   const start=document.getElementById('lobbyStart');
-   if(!card && start){
-     card=document.createElement('button');card.id='v20StageCard';
-     card.innerHTML='<span class="v20Thumb">🗺️</span><span><small>현재 진행 중</small><b>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
-     start.insertAdjacentElement('afterend',card);
-     card.onclick=function(e){
-       e.preventDefault();
-       const st=document.getElementById('lobbyStages');
-       if(st)st.click();
-     };
-   }
-   if(start) start.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
+if(window.__v26clean)return;window.__v26clean=1;
+const $=x=>document.getElementById(x);
+function run(){
+ const L=$('gameLobby'); if(!L)return; L.classList.add('v26');
+ const start=$('lobbyStart'), stages=$('lobbyStages'), gear=$('lobbyGear'), chars=$('lobbyBook'), shop=$('lobbyShop');
+ // Hide old lobby navigation/secondary controls instead of repurposing them.
+ [...L.querySelectorAll('nav,.bottomNav,.navBar,.lobbyNav')].forEach(x=>x.classList.add('v26off'));
+ [stages,$('lobbyMission'),$('lobbyGrowth')].forEach(x=>{if(x)x.classList.add('v26off')});
+ // Remove any wide legacy HOME-only row.
+ [...L.querySelectorAll('div')].forEach(x=>{
+   let t=(x.textContent||'').replace(/\s+/g,'').trim(), r=x.getBoundingClientRect();
+   if((t==='홈'||t==='🏠홈')&&r.width>innerWidth*.65)x.classList.add('v26off');
+ });
+ if(start){
+   start.classList.add('v26start');
+   start.innerHTML='<span>⚔️</span><b>전투 시작</b><small>STAGE 1</small>';
  }
- const st=document.createElement('style');st.id='doldol-v20-home';
- st.textContent=`
-  #gameLobby.v20Home{padding-bottom:84px!important}
-  #gameLobby.v20Home .v20Hide{display:none!important}
-  #gameLobby.v20Home #lobbyStart{
-    width:calc(100% - 34px)!important;margin:14px 17px 10px!important;min-height:84px!important;
-    border-radius:24px!important;font-size:25px!important;
-  }
-  #gameLobby.v20Home #lobbyStart b{display:block!important;font-size:25px!important;line-height:1!important}
-  #gameLobby.v20Home #lobbyStart small{display:block!important;font-size:11px!important;margin-top:4px!important}
-  #v20StageCard{
-    width:calc(100% - 34px);margin:8px 17px 16px;padding:10px 14px;border:2px solid rgba(255,255,255,.55);
-    border-radius:22px;background:rgba(24,55,62,.82);color:#fff;display:grid;grid-template-columns:76px 1fr 24px;
-    align-items:center;text-align:left;gap:12px;box-shadow:0 7px 18px rgba(30,55,48,.16);
-  }
-  #v20StageCard .v20Thumb{width:76px;height:55px;border-radius:13px;background:linear-gradient(145deg,#6da67c,#315b55);
-    display:grid;place-items:center;font-size:30px}
-  #v20StageCard span:nth-child(2){display:flex;flex-direction:column;min-width:0}
-  #v20StageCard small{font-size:11px;opacity:.68} #v20StageCard b{font-size:17px;margin-top:2px}
-  #v20StageCard em{font-style:normal;font-size:11px;opacity:.72;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #v20StageCard i{font-style:normal;font-size:34px;font-weight:900;opacity:.85}
-  #gameLobby.v20Home .v18Nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;margin:0!important}
-  #gameLobby.v20Home .v18NavBtn{min-height:66px!important}
-  #gameLobby.v20Home .v18NavBtn span{font-size:24px!important}
-  #gameLobby.v20Home .v18NavBtn b{font-size:11px!important}
- `;
- document.head.appendChild(st);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,50));
- else setTimeout(apply,50);
- setTimeout(apply,400);
- window.__duckV20ApplyHome=apply;
-})();
-
-
-/* ================================================================
-   V21 HOME MATCH — match approved home mockup against real lobby DOM.
-   Presentation only. No battle/stage/result/economy logic changes.
-   ================================================================ */
-(function(){
- if(window.__doldolHomeV21)return; window.__doldolHomeV21=true;
-
- const HIDE_TEXT=['우편함','출석체크','미션','업적','도전 모드','새로운 특공대원이 합류했습니다'];
- function txt(el){return (el.textContent||'').replace(/\s+/g,' ').trim();}
- function apply(){
-   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-   lobby.classList.add('v21Home');
-
-   // Hide legacy home-only clutter by its visible meaning, regardless of old markup/class.
-   lobby.querySelectorAll('button,a,div').forEach(el=>{
-     const t=txt(el);
-     if(!t || t.length>80)return;
-     if(HIDE_TEXT.some(x=>t.includes(x))) el.classList.add('v21LegacyHide');
-   });
-
-   // Old left-side quick menu containers often contain several of these labels.
-   lobby.querySelectorAll('div,nav,aside').forEach(el=>{
-     const t=txt(el);
-     const hits=['우편함','출석체크','미션','업적'].filter(x=>t.includes(x)).length;
-     if(hits>=3 && !el.contains(document.getElementById('lobbyStart'))) el.classList.add('v21LegacyHide');
-   });
-
-   // Keep exactly one bottom nav.
-   const navs=[...lobby.querySelectorAll('.bottomNav,.navBar,.lobbyNav,.v18Nav')];
-   let nav=lobby.querySelector('.v18Nav') || navs[navs.length-1];
-   navs.forEach(n=>{if(n!==nav)n.classList.add('v21LegacyHide');});
-   if(nav){nav.classList.add('v21Nav');nav.classList.remove('v21LegacyHide');}
-
-   const start=document.getElementById('lobbyStart');
-   if(start){
-     start.classList.add('v21Start');
-     start.innerHTML='<span class="v21Sword">⚔️</span><b>전투 시작</b><small>STAGE '+Math.max(1,Number(window.__duckStage||1)||1)+'</small>';
-   }
-
-   // Re-home the stage card at lobby root so old grid/flex rules cannot squeeze it.
-   let card=document.getElementById('v20StageCard');
-   if(card){
-     card.classList.add('v21StageCard');
-     if(nav && card.parentNode!==lobby) lobby.insertBefore(card,nav);
-     else if(!nav && card.parentNode!==lobby) lobby.appendChild(card);
-     const b=card.querySelector('b'); if(b)b.textContent='1. 돌무덤 초소';
-     const sm=card.querySelector('small'); if(sm)sm.textContent='현재 진행 중';
-   }
-
-   // Hide duplicate old stage/challenge cards, while preserving the V21 card.
-   [...lobby.querySelectorAll('button,div')].forEach(el=>{
-     if(el===card || (card&&el.contains(card)) || el===start || (start&&el.contains(start)))return;
-     const t=txt(el);
-     if(t.length<60 && (t.includes('도전 모드') || (t.includes('현재 진행 중')&&t.includes('STAGE'))))
-       el.classList.add('v21LegacyHide');
-   });
+ let card=$('v26stage');
+ if(!card&&start){
+   card=document.createElement('button');card.id='v26stage';
+   card.innerHTML='<span class="pic">🗺️</span><span class="tx"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
+   start.after(card); card.onclick=()=>{if(stages)stages.click()};
  }
- const css=document.createElement('style');css.id='doldol-v21-home-match';
- css.textContent=`
-  #gameLobby.v21Home{padding-bottom:88px!important;overflow-x:hidden!important}
-  #gameLobby.v21Home .v21LegacyHide{display:none!important}
-  #gameLobby.v21Home .v21Start{
-    display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
-    width:calc(100% - 36px)!important;max-width:none!important;margin:18px 18px 12px!important;
-    min-height:104px!important;border-radius:26px!important;
-  }
-  #gameLobby.v21Home .v21Start .v21Sword{font-size:25px!important;line-height:1!important}
-  #gameLobby.v21Home .v21Start b{font-size:28px!important;line-height:1.05!important;margin-top:2px!important}
-  #gameLobby.v21Home .v21Start small{font-size:12px!important;margin-top:5px!important;font-weight:900!important}
-  #gameLobby.v21Home #v20StageCard.v21StageCard{
-    box-sizing:border-box!important;display:grid!important;grid-template-columns:38% 1fr 24px!important;
-    width:calc(100% - 36px)!important;max-width:none!important;height:116px!important;
-    margin:10px 18px 22px!important;padding:11px!important;position:relative!important;left:auto!important;right:auto!important;
-    border-radius:24px!important;background:rgba(25,51,58,.90)!important;
-  }
-  #gameLobby.v21Home #v20StageCard .v20Thumb{width:100%!important;height:88px!important;border-radius:17px!important}
-  #gameLobby.v21Home #v20StageCard small{font-size:12px!important}
-  #gameLobby.v21Home #v20StageCard b{font-size:20px!important;white-space:nowrap!important}
-  #gameLobby.v21Home #v20StageCard em{font-size:11px!important}
-  #gameLobby.v21Home .v21Nav{
-    display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
-    position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;
-    width:100%!important;height:auto!important;margin:0!important;padding:8px 5px calc(8px + env(safe-area-inset-bottom))!important;
-    z-index:999!important;border-radius:0!important;
-  }
-  #gameLobby.v21Home .v21Nav .v18NavBtn{min-height:64px!important;width:auto!important;margin:0!important;padding:4px 1px!important}
-  #gameLobby.v21Home .v21Nav .v18NavBtn span{font-size:23px!important}
-  #gameLobby.v21Home .v21Nav .v18NavBtn b{font-size:11px!important}
-  @media(max-width:390px){
-    #gameLobby.v21Home .v21Start{min-height:96px!important}
-    #gameLobby.v21Home #v20StageCard.v21StageCard{height:108px!important}
-    #gameLobby.v21Home #v20StageCard .v20Thumb{height:80px!important}
-  }
- `;
- document.head.appendChild(css);
- const run=()=>{apply();setTimeout(apply,180);setTimeout(apply,650)};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
- window.__duckV21ApplyHome=apply;
-})();
-
-
-/* V22 — remove the legacy in-flow HOME/nav strip left above the stage card. */
-(function(){
- if(window.__doldolHomeV22)return; window.__doldolHomeV22=true;
- function clean(){
-   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-   const keep=lobby.querySelector('.v18Nav.v21Nav') || lobby.querySelector('.v18Nav');
-   [...lobby.querySelectorAll('.bottomNav,.navBar,.lobbyNav')].forEach(n=>{
-     if(n!==keep) n.style.setProperty('display','none','important');
-   });
-   // Catch the legacy one-item HOME strip even when it has no known nav class.
-   [...lobby.querySelectorAll('div,nav')].forEach(n=>{
-     if(n===keep || (keep&&n.contains(keep)) || (keep&&keep.contains(n)))return;
-     const t=(n.textContent||'').replace(/\s+/g,'').trim();
-     if((t==='홈' || t==='🏠홈') && n.offsetWidth>lobby.clientWidth*.65)
-       n.style.setProperty('display','none','important');
-   });
+ let nav=$('v26nav');
+ if(!nav){
+   nav=document.createElement('nav');nav.id='v26nav';
+   const add=(ic,tx,fn)=>{let b=document.createElement('button');b.innerHTML='<span>'+ic+'</span><b>'+tx+'</b>';b.onclick=fn||(()=>{});nav.appendChild(b);return b};
+   add('🏠','홈').classList.add('on');
+   add('🐥','특공대',()=>chars&&chars.click());
+   add('🎒','장비',()=>gear&&gear.click());
+   add('🔧','제작소',()=>window.__duckOpenCraftV17&&window.__duckOpenCraftV17());
+   add('🛒','상점',()=>shop&&shop.click());
+   document.body.appendChild(nav);
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(clean,80));
- else setTimeout(clean,80);
- setTimeout(clean,400); setTimeout(clean,900);
- window.__duckV22CleanHome=clean;
-})();
-
-
-/* V23 — screenshot-confirmed fix:
-   the middle brown HOME strip is the V18 injected nav itself.
-   Hide that injected strip and keep the original full 5-item bottom nav. */
-(function(){
- if(window.__doldolHomeV23)return; window.__doldolHomeV23=true;
- function fix(){
-   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-
-   // This is the exact duplicate visible in the screenshot.
-   lobby.querySelectorAll('.v18Nav').forEach(n=>{
-     n.style.setProperty('display','none','important');
-     n.style.setProperty('visibility','hidden','important');
-     n.style.setProperty('height','0','important');
-     n.style.setProperty('min-height','0','important');
-     n.style.setProperty('padding','0','important');
-     n.style.setProperty('margin','0','important');
-     n.style.setProperty('border','0','important');
-   });
-
-   // Restore the original full bottom navigation that V22 may have hidden.
-   [...lobby.querySelectorAll('.bottomNav,.navBar,.lobbyNav')].forEach(n=>{
-     if(n.classList.contains('v18Nav')) return;
-     const t=(n.textContent||'').replace(/\s+/g,'');
-     if(t.includes('홈') && (t.includes('특공대')||t.includes('캐릭터')) && t.includes('장비') && t.includes('상점')){
-       n.style.removeProperty('display');
-       n.style.removeProperty('visibility');
-       n.classList.remove('v21LegacyHide','v20Hide','v18SecondaryHidden');
-     }
-   });
-
-   // The main CTA must remain visible above the stage card.
-   const start=document.getElementById('lobbyStart');
-   if(start){
-     start.style.setProperty('display','flex','important');
-     start.style.setProperty('visibility','visible','important');
-     start.classList.remove('v21LegacyHide','v20Hide','v18SecondaryHidden');
-   }
- }
- const css=document.createElement('style');css.id='doldol-v23-nav-fix';
- css.textContent=`
-   #gameLobby .v18Nav{display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important}
-   #gameLobby #lobbyStart{display:flex!important;visibility:visible!important}
- `;
- document.head.appendChild(css);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,80));
- else setTimeout(fix,80);
- setTimeout(fix,350);setTimeout(fix,900);
- window.__duckV23FixHome=fix;
-})();
-
-
-/* V24 — keep duplicate middle HOME strip hidden, restore canonical 5-button bottom nav. */
-(function(){
- if(window.__doldolHomeV24)return; window.__doldolHomeV24=true;
- function fix(){
-   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-
-   // V23 correctly identified the injected nav; repurpose it as the ONE real fixed bottom nav.
-   const nav=lobby.querySelector('.v18Nav');
-   if(!nav)return;
-
-   nav.style.setProperty('display','grid','important');
-   nav.style.setProperty('visibility','visible','important');
-   nav.style.setProperty('height','auto','important');
-   nav.style.setProperty('min-height','74px','important');
-   nav.style.setProperty('padding','7px 5px calc(7px + env(safe-area-inset-bottom))','important');
-   nav.style.setProperty('margin','0','important');
-   nav.style.setProperty('position','fixed','important');
-   nav.style.setProperty('left','0','important');
-   nav.style.setProperty('right','0','important');
-   nav.style.setProperty('bottom','0','important');
-   nav.style.setProperty('top','auto','important');
-   nav.style.setProperty('z-index','9999','important');
-   nav.style.setProperty('grid-template-columns','repeat(5,minmax(0,1fr))','important');
-
-   // Cancel V23's blanket .v18Nav hiding specifically for this canonical nav.
-   nav.classList.add('v24CanonicalNav');
-
-   // Ensure the five entries are visible.
-   [...nav.children].forEach(x=>{
-     x.style.removeProperty('display');
-     x.style.setProperty('visibility','visible','important');
-   });
- }
- const css=document.createElement('style');css.id='doldol-v24-nav-restore';
- css.textContent=`
-  #gameLobby .v18Nav.v24CanonicalNav{
-    display:grid!important;visibility:visible!important;height:auto!important;min-height:74px!important;
-    position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
-    padding:7px 5px calc(7px + env(safe-area-inset-bottom))!important;margin:0!important;
-    border-top:2px solid rgba(255,225,164,.52)!important;z-index:9999!important;
-  }
-  #gameLobby.v21Home{padding-bottom:94px!important}
- `;
- document.head.appendChild(css);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,100));
- else setTimeout(fix,100);
- setTimeout(fix,450);setTimeout(fix,1000);
- window.__duckV24FixNav=fix;
-})();
-
-
-/* V25 — remove the brown middle strip at the source.
-   Move the canonical bottom nav OUT of its old lobby wrapper; hide the now-empty wrapper. */
-(function(){
- if(window.__doldolHomeV25)return; window.__doldolHomeV25=true;
- function fix(){
-   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-   const nav=lobby.querySelector('.v18Nav.v24CanonicalNav') || lobby.querySelector('.v18Nav');
-   if(!nav)return;
-
-   const oldParent=nav.parentElement;
-   // Detach from the old brown navigation slot so that slot cannot remain in normal flow.
-   if(nav.parentElement!==document.body) document.body.appendChild(nav);
-
-   nav.classList.add('v25BottomNav');
-   nav.style.setProperty('display','grid','important');
-   nav.style.setProperty('position','fixed','important');
-   nav.style.setProperty('left','0','important');
-   nav.style.setProperty('right','0','important');
-   nav.style.setProperty('bottom','0','important');
-   nav.style.setProperty('top','auto','important');
-   nav.style.setProperty('width','100%','important');
-   nav.style.setProperty('z-index','99999','important');
-
-   // The screenshot's middle HOME strip is this old slot/wrapper.
-   if(oldParent && oldParent!==lobby && oldParent!==document.body){
-     const meaningful=[...oldParent.children].filter(x=>x!==nav && getComputedStyle(x).display!=='none');
-     const t=(oldParent.textContent||'').replace(/\s+/g,'').trim();
-     if(meaningful.length===0 || t==='' || t==='홈' || oldParent.children.length===0){
-       oldParent.style.setProperty('display','none','important');
-       oldParent.style.setProperty('height','0','important');
-       oldParent.style.setProperty('min-height','0','important');
-       oldParent.style.setProperty('padding','0','important');
-       oldParent.style.setProperty('margin','0','important');
-       oldParent.style.setProperty('background','transparent','important');
-     }
-   }
-
-   // Also eliminate any wide one-item HOME slot left in lobby flow.
-   [...lobby.querySelectorAll('div,nav,section')].forEach(el=>{
-     if(el.contains(document.getElementById('lobbyStart')) || el.contains(document.getElementById('v20StageCard'))) return;
-     const t=(el.textContent||'').replace(/\s+/g,'').trim();
-     const r=el.getBoundingClientRect();
-     if((t==='홈'||t==='🏠홈') && r.width>window.innerWidth*.75 && r.height>45){
-       el.style.setProperty('display','none','important');
-     }
-   });
- }
- const css=document.createElement('style');css.id='doldol-v25-strip-fix';
- css.textContent=`
-  body>.v18Nav.v25BottomNav{
-   display:grid!important;visibility:visible!important;position:fixed!important;
-   left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;
-   height:auto!important;min-height:74px!important;margin:0!important;
-   grid-template-columns:repeat(5,minmax(0,1fr))!important;z-index:99999!important;
-  }
- `;
- document.head.appendChild(css);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,120));
- else setTimeout(fix,120);
- setTimeout(fix,500);setTimeout(fix,1200);
- window.__duckV25FixHome=fix;
+}
+let st=document.createElement('style');st.textContent=`
+#gameLobby.v26{padding-bottom:92px!important;overflow-x:hidden!important}
+#gameLobby.v26 .v26off{display:none!important}
+#gameLobby.v26 .v26start{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:calc(100% - 36px)!important;min-height:100px!important;margin:16px 18px 12px!important;border-radius:26px!important;background:linear-gradient(#ffd866,#f2b438)!important;color:#30220d!important;box-shadow:0 8px 0 #9b641d!important}
+#gameLobby.v26 .v26start b{font-size:28px!important;line-height:1!important} #gameLobby.v26 .v26start small{font-size:12px!important;margin-top:5px!important}
+#v26stage{box-sizing:border-box;width:calc(100% - 36px);height:116px;margin:10px 18px 20px;padding:11px;display:grid;grid-template-columns:38% 1fr 24px;align-items:center;gap:12px;text-align:left;border:2px solid rgba(255,255,255,.55);border-radius:24px;background:rgba(24,51,58,.9);color:white}
+#v26stage .pic{height:90px;border-radius:17px;background:linear-gradient(145deg,#6da67c,#315b55);display:grid;place-items:center;font-size:31px}
+#v26stage .tx{display:flex;flex-direction:column;min-width:0}#v26stage small{opacity:.7}#v26stage b{font-size:20px;margin-top:3px;white-space:nowrap}#v26stage em{font-style:normal;font-size:11px;opacity:.72;margin-top:4px;white-space:nowrap}#v26stage i{font-style:normal;font-size:35px}
+#v26nav{position:fixed;left:0;right:0;bottom:0;z-index:99999;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(#8b5b35,#613d25);border-top:2px solid rgba(255,225,164,.5)}
+#v26nav button{border:0;background:transparent;color:#f8ead5;min-height:64px;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}#v26nav button span{font-size:23px}#v26nav button b{font-size:11px}#v26nav button.on{color:#ffe16d;background:rgba(255,225,109,.08)}
+`;document.head.appendChild(st);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{run();setTimeout(run,500)});else{run();setTimeout(run,500)}
 })();
