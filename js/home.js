@@ -288,6 +288,12 @@ css.textContent=`
 #gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(3){transform:translateY(28px) scale(1.10)!important;transform-origin:center bottom!important;z-index:3!important}
 #gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(4){transform:translate(-16px,52px) scale(.96)!important;transform-origin:center bottom!important}
 #gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(5){transform:translate(-18px,42px) scale(.92)!important;transform-origin:center bottom!important}
+
+#gameLobby.v35cleanHome .v35HeroClean,
+#gameLobby.v35cleanHome .v35HeroClean>div,
+#gameLobby.v35cleanHome .v35HeroClean>div>div{
+ overflow:visible!important;
+}
 `;
 document.head.appendChild(css);
 
