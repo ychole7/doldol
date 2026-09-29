@@ -4096,28 +4096,3 @@ const css=document.createElement('style');css.id='v35-home-hero-final-css';css.t
 document.head.appendChild(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450);setTimeout(apply,1000)});else{apply();setTimeout(apply,450);setTimeout(apply,1000)}
 })();
-
-/* HOME HERO COMPOSITION — hero/logo only; CTA, stage card, HUD and nav remain locked. */
-(function(){
-if(window.__v35HeroComposition)return;window.__v35HeroComposition=1;
-const $=id=>document.getElementById(id);
-function apply(){
- const L=$('gameLobby'); if(!L)return;
- const hero=L.querySelector('.v35HeroFinal')||L.querySelector('.v35HeroClean');
- if(hero) hero.classList.add('v35HeroComposition');
- const logo=L.querySelector('.v35HeroLogoFinal')||L.querySelector('.v35HeroLogoClean');
- if(logo) logo.classList.add('v35LogoComposition');
-}
-const st=document.createElement('style');st.id='v35-hero-composition-css';st.textContent=`
-#gameLobby.v35cleanHome .v35HeroComposition{min-height:370px!important;margin-top:-4px!important;margin-bottom:0!important;overflow:visible!important}
-#gameLobby.v35cleanHome .v35HeroComposition img{transform:scale(1.42)!important;transform-origin:50% 100%!important;filter:drop-shadow(0 12px 10px rgba(0,0,0,.24))!important}
-#gameLobby.v35cleanHome .v35LogoComposition{transform:translateY(-12px) scale(.84)!important;transform-origin:50% 100%!important;z-index:2!important}
-@media(max-width:390px){
- #gameLobby.v35cleanHome .v35HeroComposition{min-height:348px!important}
- #gameLobby.v35cleanHome .v35HeroComposition img{transform:scale(1.34)!important}
- #gameLobby.v35cleanHome .v35LogoComposition{transform:translateY(-10px) scale(.82)!important}
-}
-`;
-document.head.appendChild(st);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450);setTimeout(apply,1000)});else{apply();setTimeout(apply,450);setTimeout(apply,1000)}
-})();
