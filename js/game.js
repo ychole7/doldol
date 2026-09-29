@@ -4065,3 +4065,67 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  setTimeout(fix,450);setTimeout(fix,1000);
  window.__duckV24FixNav=fix;
 })();
+
+
+/* V25 — remove the brown middle strip at the source.
+   Move the canonical bottom nav OUT of its old lobby wrapper; hide the now-empty wrapper. */
+(function(){
+ if(window.__doldolHomeV25)return; window.__doldolHomeV25=true;
+ function fix(){
+   const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+   const nav=lobby.querySelector('.v18Nav.v24CanonicalNav') || lobby.querySelector('.v18Nav');
+   if(!nav)return;
+
+   const oldParent=nav.parentElement;
+   // Detach from the old brown navigation slot so that slot cannot remain in normal flow.
+   if(nav.parentElement!==document.body) document.body.appendChild(nav);
+
+   nav.classList.add('v25BottomNav');
+   nav.style.setProperty('display','grid','important');
+   nav.style.setProperty('position','fixed','important');
+   nav.style.setProperty('left','0','important');
+   nav.style.setProperty('right','0','important');
+   nav.style.setProperty('bottom','0','important');
+   nav.style.setProperty('top','auto','important');
+   nav.style.setProperty('width','100%','important');
+   nav.style.setProperty('z-index','99999','important');
+
+   // The screenshot's middle HOME strip is this old slot/wrapper.
+   if(oldParent && oldParent!==lobby && oldParent!==document.body){
+     const meaningful=[...oldParent.children].filter(x=>x!==nav && getComputedStyle(x).display!=='none');
+     const t=(oldParent.textContent||'').replace(/\s+/g,'').trim();
+     if(meaningful.length===0 || t==='' || t==='홈' || oldParent.children.length===0){
+       oldParent.style.setProperty('display','none','important');
+       oldParent.style.setProperty('height','0','important');
+       oldParent.style.setProperty('min-height','0','important');
+       oldParent.style.setProperty('padding','0','important');
+       oldParent.style.setProperty('margin','0','important');
+       oldParent.style.setProperty('background','transparent','important');
+     }
+   }
+
+   // Also eliminate any wide one-item HOME slot left in lobby flow.
+   [...lobby.querySelectorAll('div,nav,section')].forEach(el=>{
+     if(el.contains(document.getElementById('lobbyStart')) || el.contains(document.getElementById('v20StageCard'))) return;
+     const t=(el.textContent||'').replace(/\s+/g,'').trim();
+     const r=el.getBoundingClientRect();
+     if((t==='홈'||t==='🏠홈') && r.width>window.innerWidth*.75 && r.height>45){
+       el.style.setProperty('display','none','important');
+     }
+   });
+ }
+ const css=document.createElement('style');css.id='doldol-v25-strip-fix';
+ css.textContent=`
+  body>.v18Nav.v25BottomNav{
+   display:grid!important;visibility:visible!important;position:fixed!important;
+   left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;
+   height:auto!important;min-height:74px!important;margin:0!important;
+   grid-template-columns:repeat(5,minmax(0,1fr))!important;z-index:99999!important;
+  }
+ `;
+ document.head.appendChild(css);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(fix,120));
+ else setTimeout(fix,120);
+ setTimeout(fix,500);setTimeout(fix,1200);
+ window.__duckV25FixHome=fix;
+})();
