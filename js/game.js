@@ -3816,16 +3816,19 @@ function apply(){
  // Retire the original V26 stage card and create the final V35 card directly.
  const old=$('v26stage'); if(old) old.classList.add('v35OldStageOff');
  let card=$('v35stage');
+ const start=$('lobbyStart'), stages=$('lobbyStages');
+ // Use a neutral div instead of a button: legacy global button rules were collapsing the card.
+ if(card && card.tagName==='BUTTON'){ const fresh=document.createElement('div'); fresh.id='v35stage'; card.replaceWith(fresh); card=fresh; }
  if(!card){
-   const start=$('lobbyStart'), stages=$('lobbyStages');
-   card=document.createElement('button'); card.id='v35stage';
+   card=document.createElement('div'); card.id='v35stage';
    card.innerHTML='<span class="v35thumb"></span><span class="v35copy"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
+   card.setAttribute('role','button'); card.tabIndex=0;
    card.onclick=()=>{if(stages)stages.click()};
+   card.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&stages){e.preventDefault();stages.click()}};
    if(start) start.after(card); else L.appendChild(card);
  }
 
  // CTA keeps the existing click/function; visual arrow only.
- const start=$('lobbyStart');
  if(start && !start.querySelector('.v35Arrow')){
    const a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a);
  }
@@ -3844,7 +3847,8 @@ const st=document.createElement('style');st.id='v35-clean-home-css';st.textConte
 #gameLobby.v35cleanHome .v26start b{font-size:31px!important}
 #gameLobby.v35cleanHome .v26start small{font-size:14px!important;font-weight:900!important}
 #gameLobby.v35cleanHome .v35Arrow{position:absolute!important;left:auto!important;right:24px!important;top:50%!important;bottom:auto!important;margin:0!important;transform:translateY(-52%)!important;font-style:normal!important;font-size:52px!important;line-height:1!important;color:#a86a1d!important}
-#v35stage{box-sizing:border-box!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important;float:none!important;box-sizing:border-box!important;width:calc(100% - 54px)!important;max-width:680px!important;height:132px!important;margin:14px auto 24px!important;padding:10px 12px!important;display:grid!important;grid-template-columns:minmax(120px,40%) minmax(0,1fr) 28px!important;gap:13px!important;align-items:center!important;text-align:left!important;border:2px solid rgba(255,255,255,.48)!important;border-radius:27px!important;background:linear-gradient(180deg,rgba(35,62,70,.96),rgba(19,46,54,.96))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important;overflow:hidden!important}
+#v35stage{appearance:none!important;-webkit-appearance:none!important;font:inherit!important;writing-mode:horizontal-tb!important;box-sizing:border-box!important;position:relative!important;left:auto!important;right:auto!important;transform:none!important;float:none!important;box-sizing:border-box!important;width:calc(100% - 54px)!important;max-width:680px!important;height:132px!important;margin:14px auto 24px!important;padding:10px 12px!important;display:grid!important;grid-template-columns:minmax(120px,40%) minmax(0,1fr) 28px!important;gap:13px!important;align-items:center!important;text-align:left!important;border:2px solid rgba(255,255,255,.48)!important;border-radius:27px!important;background:linear-gradient(180deg,rgba(35,62,70,.96),rgba(19,46,54,.96))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important;overflow:hidden!important}
+#v35stage>*{position:static!important;float:none!important;transform:none!important;writing-mode:horizontal-tb!important}
 #v35stage .v35thumb{width:100%!important;height:108px!important;display:grid!important;place-items:center!important;border-radius:19px!important;background-image:linear-gradient(rgba(0,0,0,.04),rgba(0,0,0,.08)),url('assets/stage1_training.jpg')!important;background-size:cover!important;background-position:center 58%!important;border:2px solid rgba(255,255,255,.18)!important;line-height:1!important}
 #v35stage .v35copy{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;writing-mode:horizontal-tb!important}
 #v35stage .v35copy small{font-size:14px!important;opacity:.72!important;white-space:nowrap!important}
