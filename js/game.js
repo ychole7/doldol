@@ -3866,3 +3866,120 @@ const st=document.createElement('style');st.id='v34-center-css';st.textContent=`
 document.head.appendChild(st);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,450)});else{apply();setTimeout(apply,450)}
 })();
+
+
+/* V35 — APPROVED MOCKUP MATCH / HOME VISUAL ONLY
+   Locks: start screen, HUD logic, battle start, combat, stage flow, bottom-nav state. */
+(function(){
+if(window.__v35approvedHome)return;window.__v35approvedHome=1;
+const $=id=>document.getElementById(id);
+
+function apply(){
+ const L=$('gameLobby'); if(!L)return;
+ L.classList.add('v35ApprovedHome');
+
+ // 1) Remove the old logo block from HOME only (mockup has no floating logo panel).
+ [...L.querySelectorAll('*')].forEach(e=>{
+   const t=(e.textContent||'').replace(/\s+/g,' ').trim();
+   const r=e.getBoundingClientRect();
+   if(t.includes('DOLDOL SPECIAL FORCE') && t.includes('작은 돌 하나가 세상을 바꾼다') &&
+      r.width>180 && r.height<280){
+     e.classList.add('v35LogoOff');
+   }
+ });
+
+ // 2) Find the character showcase from its unique slogan.
+ const slogan=[...L.querySelectorAll('*')].find(e=>(e.textContent||'').trim()==='던져라! 막아라! 되돌려라!');
+ if(slogan){
+   slogan.classList.add('v35SloganOff');
+   let p=slogan.parentElement, hero=null;
+   for(let i=0;p&&p!==L&&i<7;i++,p=p.parentElement){
+     const r=p.getBoundingClientRect();
+     if(r.width>innerWidth*.65 && r.height>210) hero=p;
+   }
+   if(hero) hero.classList.add('v35HeroArtwork');
+ }
+
+ // 3) Retire every previous generated stage card. One clean card only.
+ ['v26stage','v34stage'].forEach(id=>{const e=$(id);if(e)e.classList.add('v35StageOff')});
+ let card=$('v35stage');
+ if(!card){
+   const stages=$('lobbyStages');
+   card=document.createElement('button');
+   card.id='v35stage';
+   card.innerHTML=`
+     <span class="v35thumb"></span>
+     <span class="v35copy">
+       <small>현재 진행 중</small>
+       <b>1. 돌무덤 초소</b>
+       <em>작은 돌 하나가 세상을 바꾼다!</em>
+     </span>
+     <i>›</i>`;
+   card.onclick=()=>{if(stages)stages.click()};
+   L.appendChild(card); // direct child: cannot inherit a narrow legacy parent
+ }
+}
+const css=document.createElement('style');css.id='v35-approved-home-css';css.textContent=`
+/* Background and existing top HUD stay untouched. */
+#gameLobby.v35ApprovedHome .v35LogoOff{display:none!important}
+#gameLobby.v35ApprovedHome .v35SloganOff{display:none!important}
+
+/* Dissolve ALL showcase chrome, preserving the actual character IMG artwork. */
+#gameLobby.v35ApprovedHome .v35HeroArtwork,
+#gameLobby.v35ApprovedHome .v35HeroArtwork *:not(img){
+  background:transparent!important;background-color:transparent!important;
+  border:0!important;outline:0!important;box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+#gameLobby.v35ApprovedHome .v35HeroArtwork::before,
+#gameLobby.v35ApprovedHome .v35HeroArtwork::after,
+#gameLobby.v35ApprovedHome .v35HeroArtwork *:not(img)::before,
+#gameLobby.v35ApprovedHome .v35HeroArtwork *:not(img)::after{
+  display:none!important;background:none!important;border:0!important;box-shadow:none!important
+}
+#gameLobby.v35ApprovedHome .v35HeroArtwork{overflow:visible!important}
+#gameLobby.v35ApprovedHome .v35HeroArtwork img{
+  filter:drop-shadow(0 10px 8px rgba(0,0,0,.28))!important
+}
+
+/* Kill every legacy/generated stage card before drawing the approved one. */
+#gameLobby.v35ApprovedHome #v26stage.v35StageOff,
+#gameLobby.v35ApprovedHome #v34stage.v35StageOff{display:none!important}
+
+/* Approved horizontal stage card: direct child + fixed geometry above HOME nav. */
+#gameLobby.v35ApprovedHome #v35stage{
+  position:fixed!important;z-index:99980!important;
+  left:50%!important;bottom:104px!important;transform:translateX(-50%)!important;
+  width:min(calc(100vw - 44px),680px)!important;height:122px!important;
+  box-sizing:border-box!important;padding:10px!important;margin:0!important;
+  display:grid!important;grid-template-columns:42% minmax(0,1fr) 30px!important;
+  gap:13px!important;align-items:center!important;text-align:left!important;
+  border:2px solid rgba(174,198,204,.72)!important;border-radius:27px!important;
+  background:linear-gradient(180deg,rgba(36,61,70,.97),rgba(19,45,53,.97))!important;
+  color:#fff!important;box-shadow:0 9px 20px rgba(0,0,0,.25)!important;overflow:hidden!important
+}
+#v35stage .v35thumb{
+  display:block!important;width:100%!important;height:100px!important;border-radius:19px!important;
+  background-image:linear-gradient(rgba(255,255,255,.04),rgba(0,0,0,.06)),url('assets/stage1_training.jpg')!important;
+  background-size:cover!important;background-position:center!important
+}
+#v35stage .v35copy{display:flex!important;flex-direction:column!important;min-width:0!important}
+#v35stage .v35copy small{font-size:13px!important;font-weight:800!important;color:#c8d0d2!important;white-space:nowrap!important}
+#v35stage .v35copy b{font-size:22px!important;line-height:1.15!important;margin-top:5px!important;color:#fff!important;white-space:nowrap!important}
+#v35stage .v35copy em{font-style:normal!important;font-size:11px!important;margin-top:7px!important;color:#c8d0d2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#v35stage i{font-style:normal!important;font-size:43px!important;line-height:1!important;color:#e6ecee!important;justify-self:center!important}
+
+/* Leave enough HOME space for the stage card; no effect once lobby is hidden in battle. */
+#gameLobby.v35ApprovedHome{padding-bottom:238px!important}
+
+@media(max-width:390px){
+ #gameLobby.v35ApprovedHome #v35stage{width:calc(100vw - 28px)!important;height:114px!important;grid-template-columns:39% minmax(0,1fr) 25px!important;gap:9px!important}
+ #v35stage .v35thumb{height:92px!important}
+ #v35stage .v35copy b{font-size:19px!important}
+ #v35stage .v35copy em{font-size:10px!important}
+}
+`;document.head.appendChild(css);
+
+const run=()=>{apply();setTimeout(apply,300);setTimeout(apply,800)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
