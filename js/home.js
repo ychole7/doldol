@@ -96,7 +96,7 @@ function apply(){
 
  if(start){
    start.classList.add('v35CtaFixed');
-   const b=start.querySelector('b'); if(b)b.textContent='전투 준비';
+   const b=start.querySelector('b'); if(b)b.textContent='전투 시작';
    const sm=start.querySelector('small'); if(sm && !/^STAGE\s/i.test(sm.textContent||'')) sm.textContent='STAGE 1';
    let a=start.querySelector('.v35Arrow');
    if(!a){a=document.createElement('i');a.className='v35Arrow';a.textContent='›';start.appendChild(a)}
@@ -157,7 +157,7 @@ css.textContent=`
 
 #gameLobby.v35cleanHome{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;background-image:linear-gradient(rgba(10,28,24,.06),rgba(28,74,49,.10)),url('assets/home_base_bg.png')!important;background-size:cover!important;background-position:center top!important}
 #gameLobby.v35cleanHome .v35LogoOff{display:none!important}
-#gameLobby.v35cleanHome .v35HeroClean{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important;min-height:360px!important;margin-top:12px!important;margin-bottom:4px!important;display:flex!important;align-items:flex-end!important;justify-content:center!important}
+#gameLobby.v35cleanHome .v35HeroClean{display:none!important}
 #gameLobby.v35cleanHome .v35HeroClean::before,#gameLobby.v35cleanHome .v35HeroClean::after{display:none!important;background:none!important;box-shadow:none!important;border:0!important}
 #gameLobby.v35cleanHome .v35HeroClean>div{background-color:transparent!important;box-shadow:none!important}
 #gameLobby.v35cleanHome .v35LogoShellOff{display:none!important}
@@ -282,31 +282,7 @@ css.textContent=`
  #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>.v35Arrow{font-size:46px!important}
 }
 
-#gameLobby.v35cleanHome .v35HeroClean img{position:relative!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(1){transform:translate(18px,42px) scale(.92)!important;transform-origin:center bottom!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(2){transform:translate(16px,52px) scale(.96)!important;transform-origin:center bottom!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(3){transform:translateY(28px) scale(1.10)!important;transform-origin:center bottom!important;z-index:3!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(4){transform:translate(-16px,52px) scale(.96)!important;transform-origin:center bottom!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(5){transform:translate(-18px,42px) scale(.92)!important;transform-origin:center bottom!important}
 
-#gameLobby.v35cleanHome .v35HeroClean,
-#gameLobby.v35cleanHome .v35HeroClean>div,
-#gameLobby.v35cleanHome .v35HeroClean>div>div{
- overflow:visible!important;
-}
-
-
-/* HOME APPLY 02 — clean restore before transparent squad asset */
-#gameLobby.v35cleanHome{
-  position:relative!important;
-  background-image:none!important;
-}
-#gameLobby.v35cleanHome .v35HeroClean{
-  visibility:visible!important;
-  pointer-events:none!important;
-  overflow:visible!important;
-}
-#gameLobby.v35cleanHome #doldolSquadScene{display:none!important}
 `;
 document.head.appendChild(css);
 
