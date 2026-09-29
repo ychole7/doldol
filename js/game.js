@@ -3625,312 +3625,75 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 
-/* ==========================================================
- V27 HOME — approved fortress mockup application
- Based on V26 clean structure. Presentation only.
- ========================================================== */
+/* V30 STABLE — V26 checkpoint + confirmed minimal changes only.
+   NO canvas hiding, NO lobby DOM replacement, NO battle-state interception. */
 (function(){
- if(window.__v27home)return; window.__v27home=1;
- const $=x=>document.getElementById(x);
- function apply(){
-   const L=$('gameLobby'); if(!L)return;
-   L.classList.add('v27');
-
-   // Hide legacy home-only clutter from stable lobby.
-   [...L.querySelectorAll('button,a,div')].forEach(el=>{
-     const t=(el.textContent||'').replace(/\s+/g,' ').trim();
-     if(t.length<80 && ['우편함','출석체크','미션','업적','도전 모드','새로운 특공대원이'].some(x=>t.includes(x)))
-       el.classList.add('v27off');
-   });
-
-   // Approved mockup uses one direct preparation CTA.
-   const start=$('lobbyStart');
-   if(start){
-     start.classList.remove('v26start');
-     start.classList.add('v27start');
-     start.innerHTML='<span class="v27swords">⚔️</span><span class="v27cta"><b>전투 준비</b><small>STAGE 1</small></span><i>›</i>';
-   }
-
-   const card=$('v26stage');
-   if(card){
-     card.classList.add('v27stage');
-     card.innerHTML='<span class="pic">🏞️</span><span class="tx"><small>현재 진행 중</small><b>1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i>';
-   }
-
-   // Menu button in top-right; replaces old left utility stack conceptually.
-   let menu=$('v27menu');
-   if(!menu){
-     menu=document.createElement('button'); menu.id='v27menu';
-     menu.innerHTML='<span>☰</span><b>1</b>';
-     L.appendChild(menu);
-   }
-
-   // Currency: visible label/icon becomes stone-core without touching save keys.
-   [...L.querySelectorAll('*')].forEach(el=>{
-     if(el.children.length===0 && /코인/.test(el.textContent||'')) el.textContent=el.textContent.replace(/코인/g,'돌핵');
-   });
-
-   // Bottom nav labels/icons per approved mockup.
-   const nav=$('v26nav');
-   if(nav){
-     nav.classList.add('v27nav');
-     const bs=[...nav.querySelectorAll('button')];
-     const vals=[['🏠','홈'],['🐥','특공대'],['🎒','장비'],['⚒️','제작'],['🛒','상점']];
-     bs.forEach((b,i)=>{ if(vals[i]) b.innerHTML='<span>'+vals[i][0]+'</span><b>'+vals[i][1]+'</b>'; });
-   }
- }
- const st=document.createElement('style'); st.id='v27-style';
- st.textContent=`
-  #gameLobby.v27{
-    --v27wood1:#8a522b;--v27wood2:#57331f;
-    padding-bottom:94px!important;
-    background:
-      linear-gradient(180deg,rgba(83,190,232,.12),rgba(94,148,76,.20)),
-      radial-gradient(ellipse at 50% 48%,rgba(255,221,132,.18),transparent 44%)!important;
-  }
-  #gameLobby.v27 .v27off{display:none!important}
-  #gameLobby.v27 #v27menu{
-    position:absolute!important;right:12px!important;top:13px!important;width:54px!important;height:54px!important;
-    border:2px solid rgba(255,255,255,.28)!important;border-radius:15px!important;background:#263e49!important;
-    color:white!important;z-index:70!important;box-shadow:0 4px 0 rgba(0,0,0,.22)!important;
-  }
-  #v27menu span{font-size:28px!important;font-weight:900!important} #v27menu b{
-    position:absolute;right:-5px;top:-8px;background:#f04444;color:#fff;border-radius:20px;min-width:20px;height:20px;
-    display:grid;place-items:center;font-size:11px
-  }
-  #gameLobby.v27 .v27start{
-    box-sizing:border-box!important;width:calc(100% - 54px)!important;min-height:108px!important;margin:12px 27px 16px!important;
-    display:grid!important;grid-template-columns:86px 1fr 38px!important;align-items:center!important;
-    border:4px solid #ffe793!important;border-radius:28px!important;
-    background:linear-gradient(180deg,#ffd95e,#ffb92f)!important;color:#3b240c!important;
-    box-shadow:0 10px 0 #a96920,0 16px 24px rgba(46,32,16,.20)!important;
-  }
-  #gameLobby.v27 .v27swords{font-size:43px!important;text-align:right!important}
-  #gameLobby.v27 .v27cta{display:flex!important;flex-direction:column!important;align-items:center!important}
-  #gameLobby.v27 .v27cta b{font-size:31px!important;line-height:1!important}
-  #gameLobby.v27 .v27cta small{font-size:15px!important;font-weight:1000!important;margin-top:8px!important}
-  #gameLobby.v27 .v27start i{font-style:normal!important;font-size:48px!important;font-weight:1000!important;color:#a76a20!important}
-  #gameLobby.v27 #v26stage.v27stage{
-    width:calc(100% - 70px)!important;height:126px!important;margin:12px 35px 24px!important;
-    grid-template-columns:44% 1fr 28px!important;padding:10px!important;border-radius:25px!important;
-    background:linear-gradient(180deg,#243d48,#172f39)!important;border:2px solid #718895!important;
-    box-shadow:0 8px 16px rgba(0,0,0,.18)!important;
-  }
-  #gameLobby.v27 #v26stage .pic{
-    height:102px!important;border-radius:20px!important;background:linear-gradient(145deg,#87c886,#397c66)!important;
-    font-size:39px!important;
-  }
-  #gameLobby.v27 #v26stage small{font-size:13px!important;color:#c4c9cb!important;opacity:1!important}
-  #gameLobby.v27 #v26stage b{font-size:22px!important;color:white!important}
-  #gameLobby.v27 #v26stage em{font-size:12px!important;color:#c8cbcb!important;opacity:1!important}
-  #gameLobby.v27 #v26stage i{font-size:42px!important;color:#e7edef!important}
-  #v26nav.v27nav{
-    min-height:92px!important;padding:7px 8px calc(8px + env(safe-area-inset-bottom))!important;
-    background:linear-gradient(180deg,var(--v27wood1),var(--v27wood2))!important;
-    border-top:4px solid #a56a38!important;box-shadow:0 -8px 18px rgba(52,29,14,.24)!important;
-  }
-  #v26nav.v27nav button{min-height:78px!important;color:#fff!important;border-radius:20px!important}
-  #v26nav.v27nav button span{font-size:31px!important}
-  #v26nav.v27nav button b{font-size:14px!important}
-  #v26nav.v27nav button.on{
-    color:#ffe36c!important;background:linear-gradient(180deg,#a96427,#79431f)!important;
-    border:3px solid #ffe271!important;box-shadow:0 0 12px rgba(255,220,88,.45)!important;
-  }
- `;
- document.head.appendChild(st);
- const go=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
-})();
-
-
-/* V28 — approved home: replace legacy lobby presentation with one clean DOM shell */
-(function(){
-if(window.__v28home)return;window.__v28home=1;
-const $=x=>document.getElementById(x);
-function build(){
- const L=$('gameLobby'); if(!L)return;
- L.classList.add('v28');
-
- // Keep functional legacy nodes alive but take them out of layout.
- const start=$('lobbyStart'), stages=$('lobbyStages'), gear=$('lobbyGear'), chars=$('lobbyBook'), shop=$('lobbyShop');
- [...L.children].forEach(x=>{
-   if(x.id!=='v28Shell' && x.id!=='v27menu') x.classList.add('v28Legacy');
- });
-
- let shell=$('v28Shell');
- if(!shell){
-   shell=document.createElement('div');shell.id='v28Shell';
-   shell.innerHTML=`
-    <section class="v28Hero">
-      <div class="v28Cast">
-        <span class="v28Ninja">🥷</span><span class="v28Cat">🐱</span>
-        <span class="v28Duck">🐥</span><span class="v28Rabbit">🐰</span><span class="v28Panda">🐼</span>
-      </div>
-    </section>
-    <button class="v28Battle"><span>⚔️</span><strong>전투 준비<small>STAGE 1</small></strong><i>›</i></button>
-    <button class="v28Stage"><span class="v28Preview">🏞️</span><span><small>현재 진행 중</small><strong>1. 돌무덤 초소</strong><em>작은 돌 하나가 세상을 바꾼다!</em></span><i>›</i></button>
-   `;
-   L.appendChild(shell);
-   shell.querySelector('.v28Battle').onclick=()=>start&&start.click();
-   shell.querySelector('.v28Stage').onclick=()=>stages&&stages.click();
- }
-
- // Use only one nav, outside lobby flow.
- let nav=$('v28Nav');
- if(!nav){
-   nav=document.createElement('nav');nav.id='v28Nav';
-   const items=[['🏠','홈',null],['🐥','특공대',()=>chars&&chars.click()],['🎒','장비',()=>gear&&gear.click()],['⚒️','제작',()=>window.__duckOpenCraftV17&&window.__duckOpenCraftV17()],['🛒','상점',()=>shop&&shop.click()]];
-   items.forEach((a,i)=>{let b=document.createElement('button');b.innerHTML='<span>'+a[0]+'</span><b>'+a[1]+'</b>';if(i===0)b.className='on';b.onclick=a[2]||(()=>{});nav.appendChild(b)});
-   document.body.appendChild(nav);
- }
- // Hide all earlier generated navs.
- ['v26nav'].forEach(id=>{let n=$(id);if(n)n.style.setProperty('display','none','important')});
-}
-let css=document.createElement('style');css.id='v28css';css.textContent=`
-#gameLobby.v28{padding:92px 0 105px!important;min-height:100dvh!important;box-sizing:border-box!important;overflow-x:hidden!important}
-#gameLobby.v28>.v28Legacy{position:absolute!important;left:-99999px!important;top:-99999px!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
-#gameLobby.v28 #v27menu{display:block!important;position:absolute!important;left:auto!important;right:14px!important;top:14px!important}
-#v28Shell{width:100%;display:flex;flex-direction:column;align-items:center;gap:18px}
-.v28Hero{width:100%;height:53dvh;min-height:430px;max-height:650px;position:relative;background:transparent}
-.v28Cast{position:absolute;left:4%;right:4%;bottom:3%;height:42%;display:flex;align-items:flex-end;justify-content:center;gap:4%}
-.v28Cast span{filter:drop-shadow(0 8px 5px rgba(0,0,0,.25));line-height:1}
-.v28Ninja{font-size:54px}.v28Cat{font-size:62px}.v28Duck{font-size:150px}.v28Rabbit{font-size:68px}.v28Panda{font-size:70px}
-.v28Battle{width:calc(100% - 52px);height:112px;display:grid;grid-template-columns:82px 1fr 42px;align-items:center;border:4px solid #ffe68d;border-radius:30px;background:linear-gradient(#ffd85a,#ffb42b);color:#3c240b;box-shadow:0 10px 0 #9d641d,0 15px 22px rgba(0,0,0,.2)}
-.v28Battle>span{font-size:45px}.v28Battle strong{font-size:32px;line-height:1;display:flex;flex-direction:column}.v28Battle small{font-size:15px;margin-top:9px}.v28Battle i{font-size:50px;font-style:normal;color:#a86c21}
-.v28Stage{width:calc(100% - 66px);height:132px;padding:10px;display:grid;grid-template-columns:44% 1fr 28px;gap:12px;align-items:center;text-align:left;border:2px solid #748b96;border-radius:27px;background:linear-gradient(#263f4a,#172f39);color:white;box-shadow:0 8px 18px rgba(0,0,0,.2)}
-.v28Preview{height:108px;border-radius:20px;display:grid;place-items:center;font-size:42px;background:linear-gradient(145deg,#8dcc8a,#367b63)}
-.v28Stage>span:nth-child(2){display:flex;flex-direction:column;min-width:0}.v28Stage small{font-size:13px;color:#c3c9cb}.v28Stage strong{font-size:22px;margin-top:4px;white-space:nowrap}.v28Stage em{font-style:normal;font-size:12px;color:#c9cecf;margin-top:5px;white-space:nowrap}.v28Stage i{font-style:normal;font-size:42px}
-#v28Nav{position:fixed;left:0;right:0;bottom:0;z-index:100000;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(#8c542c,#57331f);border-top:4px solid #a86c38;box-shadow:0 -8px 18px rgba(0,0,0,.22)}
-#v28Nav button{min-height:78px;border:0;border-radius:20px;background:transparent;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}#v28Nav span{font-size:31px}#v28Nav b{font-size:14px}#v28Nav .on{color:#ffe36b;background:#9a5927;border:3px solid #ffe36b;box-shadow:0 0 12px rgba(255,225,90,.4)}
-@media(max-width:390px){.v28Duck{font-size:130px}.v28Ninja{font-size:45px}.v28Cat{font-size:52px}.v28Rabbit,.v28Panda{font-size:58px}.v28Hero{min-height:390px}.v28Battle{height:102px}.v28Battle strong{font-size:28px}}
-`;document.head.appendChild(css);
-const go=()=>{build();setTimeout(build,400);setTimeout(build,1000)};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
-})();
-
-
-/* V29 — approved home corrections:
-   전투 시작 / 4-menu nav / 제작은 장비 내부 / home battle-canvas isolation */
-(function(){
-if(window.__v29home)return;window.__v29home=1;
+if(window.__v30stable)return; window.__v30stable=1;
 const $=id=>document.getElementById(id);
 
 function apply(){
  const L=$('gameLobby'); if(!L)return;
- L.classList.add('v29');
 
- // 1) Home must never show the actual battle canvas / battle HUD.
- const game=$('game');
- if(game) game.classList.add('v29BattleHidden');
- ['gameCanvas','canvas','hud','gameHud','battleHud'].forEach(id=>{
-   const e=$(id); if(e && !L.contains(e)) e.classList.add('v29BattleHidden');
- });
-
- // 2) CTA wording is final: 전투 시작.
- const battle=L.querySelector('.v28Battle');
- if(battle){
-   battle.innerHTML='<span>⚔️</span><strong>전투 시작<small>STAGE 1</small></strong><i>›</i>';
+ // Confirmed wording only.
+ const start=$('lobbyStart');
+ if(start){
+   start.innerHTML='<span>⚔️</span><b>전투 시작</b><small>STAGE 1</small>';
  }
 
- // 3) Remove V28 emoji cast. Restore the stable lobby hero artwork/character panel
- //    as the visual source, but strip its old logo/secondary controls when possible.
- const hero=L.querySelector('.v28Hero');
- const oldCandidates=[...L.children].filter(x=>x.classList && x.classList.contains('v28Legacy'));
- let visual=oldCandidates.find(x=>{
-   const t=(x.textContent||'');
-   return !/우편함|출석체크|미션|업적|도전 모드/.test(t) &&
-          (x.querySelector('img') || /던져라|되돌려라/.test(t));
- });
- if(hero){
-   hero.querySelector('.v28Cast')?.remove();
-   if(visual && !hero.contains(visual)){
-     visual.classList.remove('v28Legacy');
-     visual.classList.add('v29HeroSource');
-     hero.appendChild(visual);
+ // V26 nav stays the one and only nav; change it from 5 to 4 entries.
+ const nav=$('v26nav');
+ if(nav){
+   const buttons=[...nav.querySelectorAll('button')];
+   // V26 order: 홈 / 특공대 / 장비 / 제작소 / 상점
+   if(buttons.length>=5){
+     buttons[3].remove(); // remove 제작소 from HOME only
    }
+   nav.classList.add('v30nav');
  }
 
- // 4) Bottom nav final structure = HOME / 특공대 / 장비 / 상점.
- const oldNav=$('v28Nav'); if(oldNav) oldNav.style.setProperty('display','none','important');
- let nav=$('v29Nav');
- if(!nav){
-   nav=document.createElement('nav');nav.id='v29Nav';
-   const legacyGear=$('lobbyGear'), chars=$('lobbyBook'), shop=$('lobbyShop');
-   const make=(ic,tx,fn,on=false)=>{
-     const b=document.createElement('button');
-     if(on)b.className='on';
-     b.innerHTML='<span>'+ic+'</span><b>'+tx+'</b>';
-     b.onclick=fn||(()=>{});
-     nav.appendChild(b); return b;
-   };
-   make('🏠','홈',null,true);
-   make('🐥','특공대',()=>chars&&chars.click());
-   make('🎒','장비',()=>{
-     if(legacyGear) legacyGear.click();
-     setTimeout(injectCraftIntoGear,80);
-   });
-   make('🛒','상점',()=>shop&&shop.click());
-   document.body.appendChild(nav);
+ // Add 제작 entry inside equipment only when equipment UI is actually opened.
+ const gear=$('lobbyGear');
+ if(gear && !gear.__v30bound){
+   gear.__v30bound=true;
+   gear.addEventListener('click',()=>setTimeout(addCraftToGear,100));
  }
-
- // 5) Hide all earlier home navs.
- ['v26nav','v28Nav'].forEach(id=>{const n=$(id);if(n)n.style.setProperty('display','none','important')});
 }
 
-function injectCraftIntoGear(){
- // Keep crafting feature, but expose it from equipment screen rather than home nav.
- const craftFn=window.__duckOpenCraftV17;
- if(!craftFn)return;
+function addCraftToGear(){
+ if(!window.__duckOpenCraftV17)return;
  let host=$('gearScreen')||$('equipmentScreen')||$('armoryScreen');
  if(!host){
-   // fallback: visible modal/panel after legacy gear click
    host=[...document.querySelectorAll('section,div')].find(e=>{
-     const st=getComputedStyle(e), t=(e.textContent||'').replace(/\s+/g,' ');
-     return st.display!=='none' && /장비|무기/.test(t) && e.offsetWidth>200 && e.offsetHeight>200;
+     const cs=getComputedStyle(e);
+     const t=(e.textContent||'').replace(/\s+/g,' ');
+     return cs.display!=='none' && e.offsetWidth>240 && e.offsetHeight>240 &&
+            /장비|무기/.test(t) && e.id!=='gameLobby';
    });
  }
- if(!host)return;
- let b=$('v29CraftInGear');
- if(!b){
-   b=document.createElement('button'); b.id='v29CraftInGear';
-   b.innerHTML='<span>⚒️</span><b>제작</b><small>재료로 장비와 아이템 제작</small>';
-   b.onclick=()=>craftFn();
-   host.appendChild(b);
- }
+ if(!host || $('v30CraftInGear'))return;
+ const b=document.createElement('button');
+ b.id='v30CraftInGear';
+ b.innerHTML='<span>⚒️</span><b>제작</b><small>재료로 장비·아이템 제작</small>';
+ b.onclick=()=>window.__duckOpenCraftV17();
+ host.appendChild(b);
 }
 
-const css=document.createElement('style');css.id='v29css';css.textContent=`
-/* battle layer isolation while lobby is visible */
-body:has(#gameLobby.v29:not([style*="display: none"])) #game,
-body:has(#gameLobby.v29:not([style*="display: none"])) #gameCanvas,
-body:has(#gameLobby.v29:not([style*="display: none"])) .gameCanvas,
-body:has(#gameLobby.v29:not([style*="display: none"])) .battleHud{visibility:hidden!important;pointer-events:none!important}
-#gameLobby.v29 .v28Hero{height:55dvh!important;min-height:430px!important;max-height:650px!important}
-#gameLobby.v29 .v29HeroSource{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:1!important;pointer-events:none!important;overflow:hidden!important}
-#gameLobby.v29 .v29HeroSource img{max-width:100%!important}
-#gameLobby.v29 .v28Battle strong{font-size:32px!important}
-#v29Nav{
- position:fixed;left:0;right:0;bottom:0;z-index:100001;
- display:grid;grid-template-columns:repeat(4,1fr);
- padding:8px 14px calc(8px + env(safe-area-inset-bottom));
- background:linear-gradient(#8c542c,#57331f);
- border-top:4px solid #a86c38;box-shadow:0 -8px 18px rgba(0,0,0,.22)
-}
-#v29Nav button{
- min-height:78px;border:0;border-radius:20px;background:transparent;color:#fff;
- display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px
-}
-#v29Nav span{font-size:31px}#v29Nav b{font-size:14px}
-#v29Nav .on{color:#ffe36b;background:#9a5927;border:3px solid #ffe36b;box-shadow:0 0 12px rgba(255,225,90,.4)}
-#v29CraftInGear{
- width:calc(100% - 28px);margin:14px;padding:13px 16px;border:2px solid rgba(255,255,255,.3);
- border-radius:18px;background:linear-gradient(180deg,#365b62,#203e45);color:#fff;
- display:grid;grid-template-columns:42px 1fr;align-items:center;text-align:left
-}
-#v29CraftInGear span{font-size:28px;grid-row:1/3}#v29CraftInGear b{font-size:17px}
-#v29CraftInGear small{opacity:.7;font-size:11px}
+const css=document.createElement('style');
+css.id='v30stablecss';
+css.textContent=`
+ #v26nav.v30nav{grid-template-columns:repeat(4,1fr)!important}
+ #v30CraftInGear{
+   width:calc(100% - 28px);margin:14px;padding:12px 15px;
+   border:2px solid rgba(255,255,255,.28);border-radius:17px;
+   background:linear-gradient(180deg,#365b62,#203e45);color:#fff;
+   display:grid;grid-template-columns:42px 1fr;align-items:center;text-align:left
+ }
+ #v30CraftInGear span{font-size:27px;grid-row:1/3}
+ #v30CraftInGear b{font-size:16px}
+ #v30CraftInGear small{font-size:11px;opacity:.72}
 `;
 document.head.appendChild(css);
-const go=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+
+const run=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
