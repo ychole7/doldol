@@ -3697,3 +3697,40 @@ document.head.appendChild(css);
 const run=()=>{apply();setTimeout(apply,350);setTimeout(apply,900)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
+
+
+/* V31 — bottom nav belongs to HOME only. No gameplay logic changes. */
+(function(){
+if(window.__v31nav)return;window.__v31nav=1;
+const $=id=>document.getElementById(id);
+
+function syncNav(){
+ const nav=$('v26nav'), lobby=$('gameLobby');
+ if(!nav||!lobby)return;
+
+ // Use the actual lobby visibility as the source of truth.
+ const cs=getComputedStyle(lobby);
+ const r=lobby.getBoundingClientRect();
+ const homeVisible=cs.display!=='none' && cs.visibility!=='hidden' &&
+                   r.width>10 && r.height>10 && r.bottom>0 && r.top<innerHeight;
+
+ nav.classList.toggle('v31NavHidden',!homeVisible);
+}
+
+// Observe the existing screen state instead of intercepting start/battle logic.
+const observer=new MutationObserver(()=>requestAnimationFrame(syncNav));
+function init(){
+ const lobby=$('gameLobby');
+ if(lobby) observer.observe(lobby,{attributes:true,attributeFilter:['class','style','hidden']});
+ syncNav();
+ // State may be changed by parent/wrapper, so also resync on user transitions.
+ document.addEventListener('click',()=>setTimeout(syncNav,60),true);
+ window.addEventListener('pageshow',syncNav);
+ window.addEventListener('resize',syncNav);
+ setInterval(syncNav,500);
+}
+const css=document.createElement('style');css.textContent=`
+ #v26nav.v31NavHidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+`;document.head.appendChild(css);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
