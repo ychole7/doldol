@@ -311,6 +311,14 @@ css.textContent=`
 #gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart){
  visibility:hidden!important;
 }
+
+/* LOCKED 06 — remove duplicate live overlays over approved visual */
+#gameLobby.v35cleanHome #v35stage,
+#gameLobby.v35cleanHome .v35StageClean,
+#gameLobby.v35cleanHome .v35DotsClean,
+#gameLobby.v35cleanHome .v35BottomClean{
+ display:none!important;
+}
 `;
 document.head.appendChild(css);
 
