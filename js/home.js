@@ -295,12 +295,14 @@ css.textContent=`
  overflow:visible!important;
 }
 
-/* CENTER 04 — closer to approved mockup */
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(1){transform:translate(38px,92px) scale(.94)!important;transform-origin:center bottom!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(2){transform:translate(30px,102px) scale(.98)!important;transform-origin:center bottom!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(3){transform:translateY(82px) scale(1.48)!important;transform-origin:center bottom!important;z-index:3!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(4){transform:translate(-30px,102px) scale(.98)!important;transform-origin:center bottom!important}
-#gameLobby.v35cleanHome .v35HeroClean img:nth-of-type(5){transform:translate(-38px,92px) scale(.94)!important;transform-origin:center bottom!important}
+/* BAKED HOME SCENE 01 */
+#gameLobby.v35cleanHome{
+ background-image:url('./assets/home_squad_baked.png')!important;
+ background-size:cover!important;
+ background-position:center top!important;
+ background-repeat:no-repeat!important;
+}
+#gameLobby.v35cleanHome .v35HeroClean{visibility:hidden!important;pointer-events:none!important}
 `;
 document.head.appendChild(css);
 
