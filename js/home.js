@@ -441,6 +441,19 @@ function bindLiveState(){
     new MutationObserver(()=>{if(!lobby.classList.contains("hidden"))sync()})
       .observe(lobby,{attributes:true,attributeFilter:["class"]});
   }
+  const charScreen=$("characterScreen"),charGrid=$("charGrid"),charBack=$("charBack");
+  if(charGrid&&!charGrid.dataset.homeSyncBound){
+    charGrid.dataset.homeSyncBound="1";
+    charGrid.addEventListener("click",()=>requestAnimationFrame(sync));
+  }
+  if(charBack&&!charBack.dataset.homeSyncBound){
+    charBack.dataset.homeSyncBound="1";
+    charBack.addEventListener("click",()=>requestAnimationFrame(sync));
+  }
+  if(charScreen){
+    new MutationObserver(()=>{if(!charScreen.classList.contains("show"))sync()})
+      .observe(charScreen,{attributes:true,attributeFilter:["class"]});
+  }
   if(window.__duckWallet&&!window.__duckWallet.__homeSyncBound){
     ["addCoins","spendCoins","setCoins"].forEach(k=>{
       const fn=window.__duckWallet[k];
