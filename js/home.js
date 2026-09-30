@@ -51,25 +51,10 @@ function ensureHomeHud(){
 
 
 
-function ensureLockedStartHit(){
- const L=document.getElementById('gameLobby');
- if(!L || document.getElementById('lockedStartHit')) return;
- const hit=document.createElement('button');
- hit.id='lockedStartHit';
- hit.type='button';
- hit.setAttribute('aria-label','전투 시작');
- hit.addEventListener('click',()=>{
-   const real=document.getElementById('lobbyStart');
-   if(real){ real.click(); return; }
-   if(typeof startBattle==='function') startBattle();
- });
- L.appendChild(hit);
-}
 
 function apply(){
  const L=$('gameLobby'); if(!L)return;
  L.classList.add('v35cleanHome');
- ensureLockedStartHit();
  retireLegacyTopHud(L);
  ensureHomeHud();
 
@@ -267,46 +252,15 @@ css.textContent=`
 }
 
 
-#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed{
- box-sizing:border-box!important;position:relative!important;inset:auto!important;transform:none!important;float:none!important;
- width:min(90vw,680px)!important;min-width:0!important;max-width:calc(100vw - 30px)!important;
- min-height:0!important;height:104px!important;margin:8px auto 14px!important;padding:10px 58px 10px 34px!important;
- display:grid!important;grid-template-columns:72px minmax(0,1fr) 34px!important;grid-template-rows:1fr 28px!important;
- column-gap:12px!important;row-gap:0!important;align-items:center!important;justify-items:center!important;
- border:4px solid #ffe88f!important;border-radius:27px!important;background:linear-gradient(180deg,#ffdc62,#ffb72d)!important;
- box-shadow:0 8px 0 #9d651e,0 13px 20px rgba(0,0,0,.18)!important;color:#30220d!important;overflow:hidden!important;
-}
-#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>span{
- grid-column:1!important;grid-row:1 / 3!important;align-self:center!important;justify-self:center!important;
- font-size:42px!important;line-height:1!important;margin:0!important;padding:0!important;
-}
-#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>b{
- grid-column:2!important;grid-row:1!important;align-self:end!important;justify-self:center!important;
- font-size:31px!important;line-height:1!important;margin:0 0 5px!important;white-space:nowrap!important;
-}
-#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>small{
- grid-column:2!important;grid-row:2!important;align-self:start!important;justify-self:center!important;
- font-size:14px!important;line-height:1!important;font-weight:900!important;margin:0!important;white-space:nowrap!important;
-}
-#gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>.v35Arrow{
- position:static!important;grid-column:3!important;grid-row:1 / 3!important;align-self:center!important;justify-self:center!important;
- transform:none!important;margin:0!important;font-size:52px!important;line-height:1!important;color:#a86a1d!important;
-}
-@media(max-width:390px){
- #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed{width:calc(100vw - 30px)!important;max-width:calc(100vw - 30px)!important;height:98px!important;padding:9px 42px 9px 24px!important;grid-template-columns:62px minmax(0,1fr) 28px!important;}
- #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>span{font-size:38px!important}
- #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>b{font-size:27px!important}
- #gameLobby.v35cleanHome #lobbyStart.v35CtaFixed>.v35Arrow{font-size:46px!important}
-}
-
-
-
-/* FINAL LOCKED HOME — approved reference applied as the visual layer */
-#gameLobby.v35cleanHome{
- position:relative!important;
- min-height:calc(100dvh - 0px)!important;
- background:url('./assets/home_final_locked.jpg') center top/100% 100% no-repeat!important;
- overflow:hidden!important;
+#gameLobby.v35cleanHome #lobbyStart{
+ position:absolute!important;
+ left:8%!important; width:84%!important; right:auto!important;
+ top:58%!important; height:10.5%!important;
+ margin:0!important; padding:0!important;
+ opacity:0!important; background:transparent!important;
+ border:0!important; box-shadow:none!important;
+ z-index:999!important; pointer-events:auto!important;
+ touch-action:manipulation!important;
 }
 /* remove all legacy visual layers; keep their DOM/event wiring */
 #gameLobby.v35cleanHome #doldolHomeHud,
@@ -316,69 +270,14 @@ css.textContent=`
 }
 
 /* hide legacy carousel/extra visuals that would sit over the locked composition */
-#gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart):not(#lockedStartHit){
+#gameLobby.v35cleanHome>#doldolHomeHud~*:not(#lobbyStart){
  visibility:hidden!important;
 }
 
-/* LOCKED 06 — remove duplicate live overlays over approved visual */
-#gameLobby.v35cleanHome #v35stage,
-#gameLobby.v35cleanHome .v35StageClean,
-#gameLobby.v35cleanHome .v35DotsClean,
-#gameLobby.v35cleanHome .v35BottomClean{
- display:none!important;
-}
 
-/* LOCKED 07 — remove only the remaining translucent stage mask */
-#gameLobby.v35cleanHome .v35StageClean::before,
-#gameLobby.v35cleanHome .v35StageClean::after,
-#gameLobby.v35cleanHome #v35stage::before,
-#gameLobby.v35cleanHome #v35stage::after{
- content:none!important;
- display:none!important;
-}
-#gameLobby.v35cleanHome .v35StageClean,
-#gameLobby.v35cleanHome #v35stage{
- background:transparent!important;
- box-shadow:none!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
-}
 
-/* LOCKED 08 — dedicated functional start hit target */
-#gameLobby.v35cleanHome #lockedStartHit{
- visibility:visible!important;
- position:absolute!important;
- left:8%!important;
- width:84%!important;
- top:58.0%!important;
- height:10.5%!important;
- z-index:999!important;
- display:block!important;
- opacity:0!important;
- border:0!important;
- padding:0!important;
- margin:0!important;
- background:transparent!important;
- pointer-events:auto!important;
- touch-action:manipulation!important;
-}
 
-/* FROM09 CLEAN — visuals only; start-button wiring untouched */
-#gameLobby.v35cleanHome #v35stage,
-#gameLobby.v35cleanHome .v35StageClean,
-#gameLobby.v35cleanHome .v35DotsClean,
-#gameLobby.v35cleanHome .v35BottomClean{
- visibility:hidden!important;
- opacity:0!important;
- pointer-events:none!important;
-}
-#gameLobby.v35cleanHome #v35stage::before,
-#gameLobby.v35cleanHome #v35stage::after,
-#gameLobby.v35cleanHome .v35StageClean::before,
-#gameLobby.v35cleanHome .v35StageClean::after{
- content:none!important;
- display:none!important;
-}
+
 `;
 document.head.appendChild(css);
 
