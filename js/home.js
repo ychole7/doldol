@@ -353,9 +353,9 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   align-items:center!important;
   justify-content:center!important;
   gap:2px!important;
-  border:1px solid transparent!important;
+  border:0!important;
   border-radius:clamp(15px,2.8vw,20px)!important;
-  background:transparent!important;
+  background:none!important;
   color:#fff!important;
   box-shadow:none!important;
   font:inherit!important;
