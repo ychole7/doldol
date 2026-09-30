@@ -8,21 +8,172 @@ function sync(){const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
 window.__doldolSyncHomeHud=sync;
 function rebuild(){const l=$("gameLobby");if(!l||l.dataset.cleanHome==="1")return!!l;const ids=["lobbyStart","lobbyStages","lobbyGrowth","lobbyGear","lobbyShop","lobbyBook","lobbySettings"],saved=ids.map($).filter(Boolean);if(!$("lobbyStart"))return false;saved.forEach(e=>e.remove());l.replaceChildren();l.className="doldolHomeClean";l.dataset.cleanHome="1";
 const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar">🐥</div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
-saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙"}else{e.className="homeControl";e.innerHTML=""}l.appendChild(e)});sync();return true}
+saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e)}else{e.className="homeControl";e.innerHTML="";l.appendChild(e)}});sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
-#gameLobby .ddHomeHud{position:absolute;left:14px;right:88px;top:max(14px,env(safe-area-inset-top));height:52px;display:flex;align-items:center;gap:8px;z-index:30;color:#fff}
-#gameLobby .ddProfile{height:48px;min-width:130px;display:flex;align-items:center;gap:7px;padding:4px 9px 4px 5px;border:1px solid #ffffff55;border-radius:17px;background:#121d24d9;box-sizing:border-box;box-shadow:0 4px 12px #0005}
-#gameLobby .ddAvatar{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:#f7c94a;font-size:23px;border:2px solid #fffd;box-sizing:border-box}
-#gameLobby .ddProfileText{display:flex;flex-direction:column;min-width:69px;line-height:1.05}#gameLobby .ddProfileText b{font-size:12px;white-space:nowrap}#gameLobby .ddProfileText span{font-size:10px;color:#fff;margin-top:3px;font-weight:800}
-#gameLobby .ddXp{width:100%;height:5px;margin-top:5px;background:#ffffff2b;border-radius:5px;overflow:hidden}#gameLobby .ddXp i{display:block;height:100%;background:#ffd34e;border-radius:5px}
-#gameLobby .ddResources{margin-left:auto;margin-right:4px;display:flex;gap:7px;align-items:center}
-#gameLobby .ddRes{height:40px;min-width:96px;display:flex;align-items:center;gap:5px;padding:0 5px 0 7px;border-radius:14px;background:#123143e8;border:1px solid #ffffff42;box-shadow:0 4px 11px #0004;box-sizing:border-box;white-space:nowrap}
-#gameLobby .ddRes b{font-size:14px;margin-left:auto}.ddCore img{width:37px;height:37px;object-fit:contain;display:block}.ddGem{font-size:18px}
-#gameLobby .ddPlus{width:25px!important;height:25px!important;min-width:25px!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;background:#2196df!important;color:#fff!important;font-size:22px!important;font-weight:900!important;line-height:25px!important;display:grid!important;place-items:center!important;box-shadow:none!important}
-#gameLobby .ddSettings{position:absolute!important;right:8px!important;top:max(18px,env(safe-area-inset-top))!important;width:39px!important;height:39px!important;display:grid!important;place-items:center!important;padding:0!important;border-radius:14px!important;border:1px solid #ffffff44!important;background:#123143e8!important;color:#fff!important;font-size:19px!important;z-index:31!important;box-shadow:0 4px 11px #0004!important}
-@media(max-width:390px){#gameLobby .ddHomeHud{left:8px;right:82px;gap:4px}#gameLobby .ddProfile{min-width:118px;padding-right:5px}#gameLobby .ddRes{min-width:78px;padding-left:4px;gap:2px}#gameLobby .ddRes b{font-size:13px}.ddCore img{width:33px;height:33px}#gameLobby .ddPlus{width:24px!important;height:24px!important;min-width:24px!important;font-size:19px!important}}
+#gameLobby .ddHomeHud{
+  position:absolute;
+  left:clamp(8px,2.6vw,16px);
+  right:clamp(8px,2.6vw,16px);
+  top:max(clamp(10px,2vw,16px),env(safe-area-inset-top));
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr) minmax(0,.78fr) auto;
+  align-items:center;
+  gap:clamp(4px,1.25vw,8px);
+  z-index:30;
+  color:#fff;
+  box-sizing:border-box;
+}
+#gameLobby .ddProfile{
+  min-width:0;
+  height:clamp(44px,7.1vw,52px);
+  display:flex;
+  align-items:center;
+  gap:clamp(5px,1vw,8px);
+  padding:4px clamp(6px,1.6vw,10px) 4px 5px;
+  border:1px solid #ffffff55;
+  border-radius:clamp(14px,2.5vw,17px);
+  background:#121d24d9;
+  box-sizing:border-box;
+  box-shadow:0 4px 12px #0005;
+  overflow:hidden;
+}
+#gameLobby .ddAvatar{
+  width:clamp(36px,6.4vw,42px);
+  height:clamp(36px,6.4vw,42px);
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  border-radius:clamp(11px,1.9vw,13px);
+  background:#f7c94a;
+  font-size:clamp(21px,3.7vw,26px);
+  border:2px solid #fffd;
+  box-sizing:border-box;
+}
+#gameLobby .ddProfileText{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  line-height:1.05;
+}
+#gameLobby .ddProfileText b{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:clamp(11px,2.25vw,13px);
+}
+#gameLobby .ddProfileText span{
+  font-size:clamp(9px,1.8vw,10px);
+  color:#fff;
+  margin-top:3px;
+  font-weight:800;
+}
+#gameLobby .ddXp{
+  width:100%;
+  height:clamp(4px,.9vw,5px);
+  margin-top:5px;
+  background:#ffffff2b;
+  border-radius:5px;
+  overflow:hidden;
+}
+#gameLobby .ddXp i{
+  display:block;
+  height:100%;
+  background:#ffd34e;
+  border-radius:5px;
+}
+#gameLobby .ddResources{
+  display:contents;
+}
+#gameLobby .ddRes{
+  min-width:0;
+  height:clamp(36px,6.2vw,42px);
+  display:flex;
+  align-items:center;
+  gap:clamp(2px,.8vw,5px);
+  padding:0 clamp(4px,1vw,7px);
+  border-radius:clamp(12px,2.2vw,14px);
+  background:#123143e8;
+  border:1px solid #ffffff42;
+  box-shadow:0 4px 11px #0004;
+  box-sizing:border-box;
+  white-space:nowrap;
+  overflow:hidden;
+}
+#gameLobby .ddRes b{
+  min-width:0;
+  margin-left:auto;
+  font-size:clamp(12px,2.35vw,15px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#gameLobby .ddCore img{
+  width:clamp(30px,5.7vw,38px);
+  height:clamp(30px,5.7vw,38px);
+  object-fit:contain;
+  display:block;
+  flex:0 0 auto;
+}
+#gameLobby .ddGem{
+  font-size:clamp(17px,3.2vw,21px);
+  flex:0 0 auto;
+}
+#gameLobby .ddPlus{
+  width:clamp(22px,4.3vw,27px)!important;
+  height:clamp(22px,4.3vw,27px)!important;
+  min-width:clamp(22px,4.3vw,27px)!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:#2196df!important;
+  color:#fff!important;
+  font-size:clamp(17px,3.4vw,21px)!important;
+  font-weight:900!important;
+  line-height:1!important;
+  display:grid!important;
+  place-items:center!important;
+  box-shadow:none!important;
+  flex:0 0 auto;
+}
+#gameLobby .ddSettings{
+  position:static!important;
+  width:clamp(36px,6.2vw,42px)!important;
+  height:clamp(36px,6.2vw,42px)!important;
+  min-width:clamp(36px,6.2vw,42px)!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  border-radius:clamp(12px,2.2vw,14px)!important;
+  border:1px solid #ffffff44!important;
+  background:#123143e8!important;
+  color:#fff!important;
+  font-size:clamp(18px,3.4vw,21px)!important;
+  z-index:31!important;
+  box-shadow:0 4px 11px #0004!important;
+  justify-self:end;
+}
+
+/* Narrow phones: keep all four columns, compress content rather than overlap. */
+@media(max-width:420px){
+  #gameLobby .ddHomeHud{
+    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr) minmax(0,.76fr) auto;
+    gap:4px;
+  }
+  #gameLobby .ddProfile{padding-right:5px}
+  #gameLobby .ddRes{padding-left:4px;padding-right:4px}
+}
+@media(max-width:360px){
+  #gameLobby .ddProfileText span{display:none}
+  #gameLobby .ddProfile{height:42px}
+  #gameLobby .ddAvatar{width:34px;height:34px}
+  #gameLobby .ddRes{height:34px}
+  #gameLobby .ddCore img{width:28px;height:28px}
+  #gameLobby .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
+  #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
+}
 `;document.head.appendChild(st);
 const old=window.__duckSyncLobby;window.__duckSyncLobby=function(){if(typeof old==="function")try{old.apply(this,arguments)}catch(e){}sync()};if(!rebuild()){const mo=new MutationObserver(()=>{if(rebuild())mo.disconnect()});mo.observe(document.documentElement,{childList:true,subtree:true})}window.addEventListener("storage",sync);
 })();
