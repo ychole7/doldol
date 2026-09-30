@@ -48,6 +48,24 @@ ENEMY_BOSS_IMG.onload = () => { enemyBossReady = true; };
 ENEMY_BOSS_IMG.onerror = () => { enemyBossReady = false; };
 ENEMY_BOSS_IMG.src = "../assets/enemy_boss.png";
 
+// DOLDOL V1 combat animation assets.
+// Character images live directly under assets/characters/ by project convention.
+const DOLDOL_COMBAT_FRAMES = { idle: [], ready: [], attack: [] };
+(function preloadDoldolCombatFrames(){
+  const base = "../assets/characters/";
+  const load = (state, count) => {
+    for(let i=1;i<=count;i++){
+      const img = new Image();
+      img.decoding = "async";
+      img.src = base + "doldol_" + state + "_" + String(i).padStart(2,"0") + ".png";
+      DOLDOL_COMBAT_FRAMES[state].push(img);
+    }
+  };
+  load("idle",4);
+  load("ready",4);
+  load("attack",4);
+})();
+
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
@@ -980,6 +998,12 @@ function parryAt(x,y){
 
   const r=best;
   const nearPlayer=bestD;
+
+  // Visual state only: gameplay/parry values remain unchanged.
+  if(player.characterId==='doldol'){
+    player.combatAnimStart=performance.now();
+    player.combatAnimUntil=player.combatAnimStart+340;
+  }
   const perfectThreshold=30 + Math.min(18,Math.max(0,(player.growth?.parry||20)-20)*0.22);
   const isPerfect=nearPlayer<perfectThreshold;
 
@@ -1412,7 +1436,45 @@ function roundRect(x,y,w,h,r){
 function drawDuck(x,y,scale=1){
   ctx.save();
   ctx.translate(x,y);
-  if(window.__duckReady && DUCK_IMG.naturalWidth){
+
+  let combatImg=null;
+  if(player && player.characterId==='doldol' && DOLDOL_COMBAT_FRAMES){
+    const now=performance.now();
+    let state='idle', frame=0;
+
+    if((player.combatAnimUntil||0)>now){
+      state='attack';
+      const elapsed=Math.max(0,now-(player.combatAnimStart||now));
+      frame=Math.min(3,Math.floor(elapsed/85));
+    }else{
+      let nearest=Infinity;
+      for(const r of rocks){
+        if(r.parried) continue;
+        const d=Math.hypot(r.x-player.x,r.y-player.y);
+        if(d<nearest) nearest=d;
+      }
+      const readyRange=(player.parryRange||72)*(player.skillParryMul||1)*1.65;
+      if(nearest<=readyRange){
+        state='ready';
+        frame=Math.floor(now/105)%4;
+      }else{
+        frame=Math.floor(now/210)%4;
+      }
+    }
+
+    const frames=DOLDOL_COMBAT_FRAMES[state];
+    const candidate=frames && frames[frame%frames.length];
+    if(candidate && candidate.complete && candidate.naturalWidth) combatImg=candidate;
+  }
+
+  if(combatImg){
+    const h=76*scale;
+    const w=h*(combatImg.naturalWidth/combatImg.naturalHeight);
+    ctx.shadowColor='rgba(0,0,0,.32)';
+    ctx.shadowBlur=9;
+    ctx.shadowOffsetY=6;
+    ctx.drawImage(combatImg,-w/2,-h*.64,w,h);
+  }else if(window.__duckReady && DUCK_IMG.naturalWidth){
     const w=58*scale, h=64*scale;
     ctx.shadowColor='rgba(0,0,0,.35)';
     ctx.shadowBlur=10;
