@@ -110,8 +110,8 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   text-overflow:ellipsis;
 }
 #gameLobby .ddCore img{
-  width:clamp(35px,6.5vw,43px);
-  height:clamp(35px,6.5vw,43px);
+  width:clamp(39px,7.2vw,47px);
+  height:clamp(39px,7.2vw,47px);
   object-fit:contain;
   display:block;
   flex:0 0 auto;
@@ -170,7 +170,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   #gameLobby .ddProfile{height:42px}
   #gameLobby .ddAvatar{width:34px;height:34px}
   #gameLobby .ddRes{height:34px}
-  #gameLobby .ddCore img{width:32px;height:32px}
+  #gameLobby .ddCore img{width:36px;height:36px}
   #gameLobby .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
   #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
 }
