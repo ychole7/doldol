@@ -4,7 +4,7 @@ if(window.__doldolHomeClean)return;window.__doldolHomeClean=true;
 const $=id=>document.getElementById(id);
 window.__doldolResources=window.__doldolResources||{get gems(){return Math.max(0,Number(localStorage.getItem("doldol_gems_v1")||"980")||0)},setGems(v){localStorage.setItem("doldol_gems_v1",String(Math.max(0,Number(v)||0)));sync()}};
 function info(){let id="doldol",name="돌돌이",face="🐥",level=1,xp=0,next=50;try{id=localStorage.getItem("doldol_character_v1")||id;if(window.__duckGetSelectedCharacter){const c=window.__duckGetSelectedCharacter();if(c){id=c.id||id;name=c.name||name;face=c.face||face}}if(window.__duckCharacterProgress){const p=window.__duckCharacterProgress(id);if(p){level=p.level||1;xp=p.xp||0;next=p.next||50}}}catch(e){}return{id,name,face,level,xp,next}}
-function sync(){const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set("homePlayerAvatar",c.face);set("homePlayerName",c.name);set("homePlayerLevel","Lv."+c.level);set("lobbyCoins",(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString());set("homeGems",window.__doldolResources.gems.toLocaleString());const x=$("homePlayerXp");if(x)x.style.width=Math.min(100,c.xp/Math.max(1,c.next)*100)+"%"}
+function sync(){const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set("homePlayerAvatar",c.face);set("homePlayerName",c.name);set("homePlayerLevel","Lv."+c.level);set("lobbyCoins",(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString());set("homeGems",window.__doldolResources.gems.toLocaleString());const stage=Math.max(1,Number(window.__duckStage||window.__selectedDuckStage||1)||1);set("homeStageNo","STAGE "+stage);set("homeStageTitle",stage===1?"1. 돌무덤 초소":stage+". 특공 작전");const x=$("homePlayerXp");if(x)x.style.width=Math.min(100,c.xp/Math.max(1,c.next)*100)+"%"}
 window.__doldolSyncHomeHud=sync;
 function rebuild(){const l=$("gameLobby");if(!l||l.dataset.cleanHome==="1")return!!l;const ids=["lobbyStart","lobbyStages","lobbyGrowth","lobbyGear","lobbyShop","lobbyBook","lobbySettings"],saved=ids.map($).filter(Boolean);if(!$("lobbyStart"))return false;saved.forEach(e=>e.remove());l.replaceChildren();l.className="doldolHomeClean";l.dataset.cleanHome="1";
 const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar">🐥</div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
@@ -19,7 +19,7 @@ const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<d
    <img class="ddChar ddPanda" data-character="panda" src="./assets/home_chars/home_char_panda.png" alt="판다특공">
  `;
  l.appendChild(squad);
-saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e)}else{e.className="homeControl";e.innerHTML="";l.appendChild(e)}});sync();return true}
+saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){e.className="ddStageCard";e.innerHTML=`<img src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><strong>›</strong>`;l.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
@@ -209,6 +209,79 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
     bottom:clamp(330px,33vh,430px);
     height:160px;
   }
+}
+
+/* STEP 4 — real battle/start progress controls */
+#gameLobby.doldolHomeClean::before,
+#gameLobby.doldolHomeClean::after,
+#gameLobby.doldolHomeClean .homeHero::before,
+#gameLobby.doldolHomeClean .homeHero::after{content:none!important;display:none!important;background:none!important}
+#gameLobby.doldolHomeClean>.homeHero,
+#gameLobby.doldolHomeClean>.homeModes,
+#gameLobby.doldolHomeClean>.homeBanner,
+#gameLobby.doldolHomeClean>.homeDots,
+#gameLobby.doldolHomeClean>.homeNav,
+#gameLobby.doldolHomeClean>.homeNoticeRow,
+#gameLobby.doldolHomeClean>.homeTop{display:none!important}
+#gameLobby .ddBattleStart{
+  position:absolute!important;
+  left:50%!important;
+  bottom:clamp(205px,18.5vh,275px)!important;
+  transform:translateX(-50%)!important;
+  width:min(82vw,540px)!important;
+  min-height:clamp(76px,10.5vw,92px)!important;
+  display:grid!important;
+  grid-template-columns:auto 1fr auto!important;
+  align-items:center!important;
+  gap:clamp(10px,2vw,16px)!important;
+  padding:clamp(9px,1.8vw,13px) clamp(18px,4vw,28px)!important;
+  border:2px solid rgba(255,246,183,.95)!important;
+  border-radius:clamp(23px,4vw,31px)!important;
+  background:linear-gradient(180deg,#ffe46c 0%,#ffc53c 72%,#f1a928 100%)!important;
+  color:#35250d!important;
+  box-shadow:0 7px 0 #9a6425,0 13px 24px rgba(65,42,14,.32)!important;
+  z-index:24!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+#gameLobby .ddBattleStart:active{transform:translateX(-50%) translateY(3px)!important;box-shadow:0 4px 0 #9a6425,0 8px 18px rgba(65,42,14,.26)!important}
+#gameLobby .ddBattleIcon{font-size:clamp(29px,6vw,42px)!important;line-height:1!important}
+#gameLobby .ddBattleCopy{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;line-height:1!important}
+#gameLobby .ddBattleCopy b{font-size:clamp(24px,5vw,34px)!important;font-weight:1000!important;letter-spacing:-1.2px!important}
+#gameLobby .ddBattleCopy small{margin-top:6px!important;font-size:clamp(11px,2.2vw,14px)!important;font-weight:1000!important;color:#5b3c10!important}
+#gameLobby .ddBattleArrow{font-size:clamp(38px,7vw,50px)!important;font-weight:800!important;line-height:.8!important}
+#gameLobby .ddStageCard{
+  position:absolute!important;
+  left:50%!important;
+  bottom:clamp(82px,7.3vh,112px)!important;
+  transform:translateX(-50%)!important;
+  width:min(90vw,590px)!important;
+  min-height:clamp(96px,13vw,116px)!important;
+  display:grid!important;
+  grid-template-columns:clamp(84px,20vw,126px) minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:clamp(10px,2.3vw,16px)!important;
+  padding:clamp(8px,1.5vw,10px)!important;
+  border:1px solid rgba(255,255,255,.38)!important;
+  border-radius:clamp(22px,4vw,28px)!important;
+  background:rgba(12,47,60,.92)!important;
+  color:#fff!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.24)!important;
+  z-index:23!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+  text-align:left!important;
+}
+#gameLobby .ddStageCard img{width:100%!important;height:clamp(78px,11.5vw,96px)!important;object-fit:cover!important;border-radius:clamp(15px,2.7vw,19px)!important;display:block!important}
+#gameLobby .ddStageCopy{min-width:0!important;display:flex!important;flex-direction:column!important;gap:4px!important;font-style:normal!important}
+#gameLobby .ddStageCopy small{font-size:clamp(10px,2vw,13px)!important;color:#d2dde1!important}
+#gameLobby .ddStageCopy b{font-size:clamp(17px,3.6vw,24px)!important;font-weight:1000!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#gameLobby .ddStageCopy em{font-size:clamp(9px,1.9vw,12px)!important;font-style:normal!important;color:#d8e2e5!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#gameLobby .ddStageCard>strong{font-size:clamp(34px,6vw,44px)!important;font-weight:700!important;padding-right:5px!important}
+@media(max-height:760px){
+  #gameLobby .ddBattleStart{bottom:180px!important;min-height:68px!important}
+  #gameLobby .ddStageCard{bottom:68px!important;min-height:90px!important}
+  #gameLobby .ddStageCard img{height:74px!important}
 }
 
 /* Narrow phones: keep all four columns, compress content rather than overlap. */
