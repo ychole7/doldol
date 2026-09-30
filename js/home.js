@@ -173,7 +173,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby .ddSquad{
   position:absolute;
   left:50%;
-  bottom:clamp(245px,22vh,340px);
+  bottom:clamp(390px,35vh,520px);
   width:min(92vw,620px);
   height:clamp(180px,25vw,245px);
   transform:translateX(-50%);
@@ -190,23 +190,23 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   filter:drop-shadow(0 10px 8px rgba(35,24,10,.26));
   transform-origin:50% 100%;
 }
-#gameLobby .ddNinja{left:1%;height:64%;z-index:2}
-#gameLobby .ddCat{left:17%;height:60%;z-index:3}
-#gameLobby .ddDoldol{left:50%;height:100%;transform:translateX(-50%);z-index:5}
-#gameLobby .ddRabbit{right:17%;height:62%;z-index:3}
-#gameLobby .ddPanda{right:0;height:65%;z-index:2}
+#gameLobby .ddNinja{left:3%;height:52%;z-index:2}
+#gameLobby .ddCat{left:19%;height:49%;z-index:3}
+#gameLobby .ddDoldol{left:50%;height:82%;transform:translateX(-50%);z-index:5}
+#gameLobby .ddRabbit{right:19%;height:51%;z-index:3}
+#gameLobby .ddPanda{right:2%;height:53%;z-index:2}
 
 @media(max-width:420px){
   #gameLobby .ddSquad{
     width:94vw;
-    bottom:clamp(225px,21vh,300px);
+    bottom:clamp(360px,34vh,475px);
     height:clamp(165px,28vw,215px);
   }
 }
 @media(max-width:360px){
   #gameLobby .ddSquad{
     width:96vw;
-    bottom:210px;
+    bottom:clamp(330px,33vh,430px);
     height:160px;
   }
 }
