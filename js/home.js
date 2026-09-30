@@ -67,7 +67,7 @@ const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<d
  l.appendChild(squad);
 const nav=document.createElement("nav");nav.className="ddBottomNav";nav.setAttribute("aria-label","메인 메뉴");
 const homeBtn=document.createElement("button");homeBtn.type="button";homeBtn.className="ddNavItem isActive";homeBtn.setAttribute("aria-current","page");homeBtn.innerHTML=`<span class="ddNavIcon">🏠</span><b>홈</b>`;nav.appendChild(homeBtn);
-saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){const card=document.createElement("section");card.className="ddStageCard";card.setAttribute("aria-label","현재 진행 스테이지");card.innerHTML=`<img id="homeStageImage" src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em id="homeStageDesc">작은 돌 하나가 세상을 바꾼다!</em></span>`;l.appendChild(card);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavDuck">🐥</span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🎒</span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🏪</span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
+saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){const card=document.createElement("button");card.id="homeStageCard";card.type="button";card.className="ddStageCard";card.setAttribute("aria-label","스테이지 선택");card.innerHTML=`<img id="homeStageImage" src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em id="homeStageDesc">작은 돌 하나가 세상을 바꾼다!</em></span><strong class="ddStageArrow">›</strong>`;l.appendChild(card);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavDuck">🐥</span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🎒</span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🏪</span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
@@ -326,6 +326,22 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby .ddStageCopy small{font-size:clamp(10px,2vw,13px)!important;color:#d2dde1!important}
 #gameLobby .ddStageCopy b{font-size:clamp(17px,3.6vw,24px)!important;font-weight:1000!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 #gameLobby .ddStageCopy em{font-size:clamp(9px,1.9vw,12px)!important;font-style:normal!important;color:#d8e2e5!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#gameLobby .ddStageArrow{font-size:clamp(32px,6vw,42px)!important;font-weight:800!important;line-height:1!important;color:#fff4bf!important;padding-right:4px!important}
+#gameLobby .ddStageCard:active{transform:translateX(-50%) scale(.985)!important}
+.ddStagePicker{position:fixed;inset:0;z-index:10050;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,18,22,.56);backdrop-filter:blur(3px);padding:16px}
+.ddStagePicker[hidden]{display:none!important}
+.ddStageSheet{width:min(94vw,620px);max-height:min(72vh,680px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(255,255,255,.22);border-radius:26px;background:#123b48;color:#fff;box-shadow:0 24px 60px rgba(0,0,0,.38)}
+.ddStageSheetHead{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.ddStageSheetHead b{font-size:20px;font-weight:1000}
+.ddStageSheetHead button{width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:22px;font-weight:900}
+.ddStageList{overflow:auto;padding:12px;display:grid;gap:9px}
+.ddStagePick{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:11px;width:100%;min-height:62px;padding:9px 12px;border:1px solid rgba(255,255,255,.13);border-radius:17px;background:rgba(255,255,255,.07);color:#fff;text-align:left}
+.ddStagePick.current{border-color:#ffe16a;background:rgba(255,214,74,.16)}
+.ddStagePick .num{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:rgba(0,0,0,.20);font-weight:1000;color:#ffe16a}
+.ddStagePick .copy{min-width:0;display:flex;flex-direction:column;gap:3px}
+.ddStagePick .copy b{font-size:15px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ddStagePick .copy small{font-size:10px;color:#c8d7dc}
+.ddStagePick .check{font-size:20px;color:#ffe16a}
 @media(max-height:760px){
   #gameLobby .ddBattleStart{bottom:246px!important;min-height:68px!important}
   #gameLobby .ddStageCard{bottom:142px!important;min-height:90px!important}
@@ -424,6 +440,47 @@ window.__duckSyncLobby=function(){
   if(typeof old==="function")try{old.apply(this,arguments)}catch(e){}
   sync();
 };
+function stagePickerTitle(n){
+  if(n===1)return"돌무덤 초소";
+  if(n===2)return"훈련장 진입";
+  return n%5===0?"보스 작전":"특공 작전";
+}
+function ensureStagePicker(){
+  let wrap=$("homeStagePicker");
+  if(wrap)return wrap;
+  wrap=document.createElement("div");
+  wrap.id="homeStagePicker";
+  wrap.className="ddStagePicker";
+  wrap.hidden=true;
+  wrap.innerHTML=`<section class="ddStageSheet" role="dialog" aria-modal="true" aria-label="스테이지 선택"><header class="ddStageSheetHead"><b>스테이지 선택</b><button type="button" id="homeStagePickerClose" aria-label="닫기">×</button></header><div class="ddStageList" id="homeStageList"></div></section>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener("click",e=>{if(e.target===wrap)closeStagePicker()});
+  $("homeStagePickerClose").onclick=closeStagePicker;
+  return wrap;
+}
+function closeStagePicker(){
+  const wrap=$("homeStagePicker");if(wrap)wrap.hidden=true;
+}
+function openStagePicker(){
+  const wrap=ensureStagePicker(),list=$("homeStageList");
+  let unlocked=1;
+  try{unlocked=Math.max(1,Math.min(500,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1)||1))}catch(e){}
+  const current=getHomeStage();
+  list.innerHTML="";
+  for(let n=1;n<=unlocked;n++){
+    const b=document.createElement("button");
+    b.type="button";b.className="ddStagePick"+(n===current?" current":"");
+    b.innerHTML=`<span class="num">${n}</span><span class="copy"><b>${n}. ${stagePickerTitle(n)}</b><small>${n%5===0?"BOSS STAGE":"출격 가능"}</small></span><span class="check">${n===current?"✓":"›"}</span>`;
+    b.onclick=()=>{
+      window.__selectedDuckStage=n;
+      sync();
+      closeStagePicker();
+    };
+    list.appendChild(b);
+  }
+  wrap.hidden=false;
+  const cur=list.querySelector(".current");if(cur)requestAnimationFrame(()=>cur.scrollIntoView({block:"center"}));
+}
 function bindLiveState(){
   const lobby=$("gameLobby"),start=$("lobbyStart");
   if(start){
@@ -439,6 +496,11 @@ function bindLiveState(){
   if(lobby){
     new MutationObserver(()=>{if(!lobby.classList.contains("hidden"))sync()})
       .observe(lobby,{attributes:true,attributeFilter:["class"]});
+  }
+  const stageCard=$("homeStageCard");
+  if(stageCard&&!stageCard.dataset.stagePickerBound){
+    stageCard.dataset.stagePickerBound="1";
+    stageCard.addEventListener("click",openStagePicker);
   }
   const charScreen=$("characterScreen"),charGrid=$("charGrid"),charBack=$("charBack");
   if(charGrid&&!charGrid.dataset.homeSyncBound){
