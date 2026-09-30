@@ -59,8 +59,8 @@ const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<d
  `;
  l.appendChild(squad);
 const nav=document.createElement("nav");nav.className="ddBottomNav";nav.setAttribute("aria-label","메인 메뉴");
-const homeBtn=document.createElement("button");homeBtn.type="button";homeBtn.className="ddNavItem isActive";homeBtn.setAttribute("aria-current","page");homeBtn.innerHTML=`<span class="ddNavIcon">🏠</span><b>홈</b>`;nav.appendChild(homeBtn);
-saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.id="homeBattleStart";e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){const card=document.createElement("section");card.id="homeStageCard";card.className="ddStageCard";card.setAttribute("aria-label","현재 진행 스테이지");card.innerHTML=`<img id="homeStageImage" src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em id="homeStageDesc">작은 돌 하나가 세상을 바꾼다!</em></span>`;l.appendChild(card);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavDuck">🐥</span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🎒</span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🏪</span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
+const homeBtn=document.createElement("button");homeBtn.type="button";homeBtn.className="ddNavItem isActive";homeBtn.setAttribute("aria-current","page");homeBtn.innerHTML=`<span class="ddNavIcon ddNavHomeIcon" aria-hidden="true"><i class="ddHouseRoof"></i><i class="ddHouseBody"></i><i class="ddHouseDoor"></i></span><b>홈</b>`;nav.appendChild(homeBtn);
+saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){const card=document.createElement("section");card.id="homeStageCard";card.className="ddStageCard";card.setAttribute("aria-label","현재 진행 스테이지");card.innerHTML=`<img id="homeStageImage" src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em id="homeStageDesc">작은 돌 하나가 세상을 바꾼다!</em></span>`;l.appendChild(card);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavTroopIcon" aria-hidden="true"><i class="ddTroopHead"></i><i class="ddTroopHelmet"></i><i class="ddTroopBody"></i></span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavGearIcon" aria-hidden="true"><i class="ddBagHandle"></i><i class="ddBagBody"></i><i class="ddBagPocket"></i></span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavShopIcon" aria-hidden="true"><i class="ddShopAwning"></i><i class="ddShopBody"></i><i class="ddShopWindow"></i></span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
@@ -377,6 +377,31 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   line-height:1!important;
   filter:drop-shadow(0 4px 3px rgba(0,0,0,.28));
 }
+
+/* STEP 7 — game-style bottom navigation icons (CSS only; layout locked) */
+#gameLobby .ddNavIcon{position:relative!important;width:clamp(42px,6.7vw,50px)!important}
+#gameLobby .ddNavIcon i{position:absolute;display:block;box-sizing:border-box}
+
+/* Home */
+#gameLobby .ddHouseRoof{left:7px;top:5px;width:31px;height:31px;background:#df5a3f;border:2px solid #7c3826;border-radius:5px;transform:rotate(45deg);box-shadow:inset 3px 3px 0 #f28a61}
+#gameLobby .ddHouseBody{left:8px;top:17px;width:30px;height:25px;background:#f5dfb1;border:2px solid #7b5532;border-radius:4px;box-shadow:inset 0 -5px 0 #d5b67b}
+#gameLobby .ddHouseDoor{left:20px;top:27px;width:8px;height:15px;background:#8b552e;border:1px solid #5f381f;border-radius:2px}
+
+/* Troop */
+#gameLobby .ddTroopHead{left:13px;top:9px;width:23px;height:25px;background:#ffd24a;border:2px solid #9c681d;border-radius:48% 48% 45% 45%;box-shadow:inset 4px 2px 0 #ffe98b}
+#gameLobby .ddTroopHelmet{left:10px;top:4px;width:29px;height:17px;background:#5b6844;border:2px solid #303b27;border-radius:18px 18px 7px 7px;box-shadow:inset 0 4px 0 #7c895f}
+#gameLobby .ddTroopBody{left:10px;top:31px;width:29px;height:12px;background:#46543a;border:2px solid #283224;border-radius:7px 7px 5px 5px}
+
+/* Equipment */
+#gameLobby .ddBagHandle{left:14px;top:3px;width:22px;height:14px;border:4px solid #8c392c;border-bottom:0;border-radius:10px 10px 0 0}
+#gameLobby .ddBagBody{left:7px;top:12px;width:36px;height:31px;background:#c94635;border:2px solid #762b24;border-radius:9px;box-shadow:inset 5px 0 0 #df6752,inset 0 -6px 0 #a6322a}
+#gameLobby .ddBagPocket{left:15px;top:24px;width:20px;height:13px;background:#e45b45;border:2px solid #842f27;border-radius:4px}
+
+/* Shop */
+#gameLobby .ddShopBody{left:7px;top:17px;width:36px;height:26px;background:#d9a75c;border:2px solid #76512d;border-radius:3px;box-shadow:inset 0 -5px 0 #b87d3e}
+#gameLobby .ddShopAwning{left:5px;top:6px;width:40px;height:16px;border:2px solid #813b2d;border-radius:6px 6px 10px 10px;background:repeating-linear-gradient(90deg,#f4eee0 0 8px,#df5b43 8px 16px);box-shadow:0 3px 0 #8b5934}
+#gameLobby .ddShopWindow{left:15px;top:25px;width:20px;height:12px;background:#61b9cf;border:2px solid #5c452c;border-radius:2px;box-shadow:inset 3px 2px 0 #a7e0e8}
+
 #gameLobby .ddNavItem b{
   font-size:clamp(11px,2.35vw,14px)!important;
   line-height:1!important;
@@ -418,7 +443,7 @@ window.__duckSyncLobby=function(){
   sync();
 };
 function bindLiveState(){
-  const lobby=$("gameLobby"),start=$("homeBattleStart");
+  const lobby=$("gameLobby"),start=$("lobbyStart");
   if(start){
     start.onclick=function(e){
       e.preventDefault();
