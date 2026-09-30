@@ -19,7 +19,9 @@ const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<d
    <img class="ddChar ddPanda" data-character="panda" src="./assets/home_chars/home_char_panda.png" alt="판다특공">
  `;
  l.appendChild(squad);
-saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){e.className="ddStageCard";e.innerHTML=`<img src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><strong>›</strong>`;l.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});sync();return true}
+const nav=document.createElement("nav");nav.className="ddBottomNav";nav.setAttribute("aria-label","메인 메뉴");
+const homeBtn=document.createElement("button");homeBtn.type="button";homeBtn.className="ddNavItem isActive";homeBtn.setAttribute("aria-current","page");homeBtn.innerHTML=`<span class="ddNavIcon">🏠</span><b>홈</b>`;nav.appendChild(homeBtn);
+saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){e.className="ddStageCard";e.innerHTML=`<img src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><strong>›</strong>`;l.appendChild(e);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavDuck">🐥</span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🎒</span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🏪</span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
@@ -226,7 +228,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby .ddBattleStart{
   position:absolute!important;
   left:50%!important;
-  bottom:clamp(205px,18.5vh,275px)!important;
+  bottom:clamp(292px,25.5vh,360px)!important;
   transform:translateX(-50%)!important;
   width:min(82vw,540px)!important;
   min-height:clamp(76px,10.5vw,92px)!important;
@@ -253,7 +255,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby .ddStageCard{
   position:absolute!important;
   left:50%!important;
-  bottom:clamp(82px,7.3vh,112px)!important;
+  bottom:clamp(166px,14.2vh,205px)!important;
   transform:translateX(-50%)!important;
   width:min(90vw,590px)!important;
   min-height:clamp(96px,13vw,116px)!important;
@@ -279,9 +281,77 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby .ddStageCopy em{font-size:clamp(9px,1.9vw,12px)!important;font-style:normal!important;color:#d8e2e5!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 #gameLobby .ddStageCard>strong{font-size:clamp(34px,6vw,44px)!important;font-weight:700!important;padding-right:5px!important}
 @media(max-height:760px){
-  #gameLobby .ddBattleStart{bottom:180px!important;min-height:68px!important}
-  #gameLobby .ddStageCard{bottom:68px!important;min-height:90px!important}
+  #gameLobby .ddBattleStart{bottom:246px!important;min-height:68px!important}
+  #gameLobby .ddStageCard{bottom:142px!important;min-height:90px!important}
   #gameLobby .ddStageCard img{height:74px!important}
+}
+
+/* STEP 5 — real bottom navigation */
+#gameLobby .ddBottomNav{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  min-height:clamp(92px,11vh,112px)!important;
+  padding:clamp(8px,1.5vw,12px) clamp(12px,3vw,22px) max(clamp(9px,1.7vw,13px),env(safe-area-inset-bottom))!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:start!important;
+  gap:clamp(5px,1.5vw,10px)!important;
+  box-sizing:border-box!important;
+  background:linear-gradient(180deg,rgba(91,51,26,.94),rgba(49,27,16,.98))!important;
+  border-top:1px solid rgba(255,218,145,.38)!important;
+  box-shadow:0 -9px 24px rgba(37,21,10,.28)!important;
+  z-index:26!important;
+}
+#gameLobby .ddNavItem{
+  min-width:0!important;
+  height:clamp(72px,8.6vh,88px)!important;
+  margin:0!important;
+  padding:clamp(5px,1vw,7px) 3px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:2px!important;
+  border:1px solid transparent!important;
+  border-radius:clamp(15px,2.8vw,20px)!important;
+  background:transparent!important;
+  color:#fff!important;
+  box-shadow:none!important;
+  font:inherit!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#gameLobby .ddNavItem.isActive{
+  border:2px solid #ffd653!important;
+  background:linear-gradient(180deg,rgba(255,205,73,.20),rgba(255,171,39,.10))!important;
+  box-shadow:0 0 14px rgba(255,201,64,.58),inset 0 0 12px rgba(255,210,90,.12)!important;
+}
+#gameLobby .ddNavIcon{
+  height:clamp(42px,5.4vh,54px)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:clamp(34px,6.7vw,47px)!important;
+  line-height:1!important;
+  filter:drop-shadow(0 4px 3px rgba(0,0,0,.28));
+}
+#gameLobby .ddNavItem b{
+  font-size:clamp(11px,2.35vw,14px)!important;
+  line-height:1!important;
+  font-weight:900!important;
+  color:#fff!important;
+  text-shadow:0 2px 3px rgba(0,0,0,.55)!important;
+  white-space:nowrap!important;
+}
+#gameLobby .ddNavItem.isActive b{color:#fff6cf!important}
+#gameLobby .ddNavItem:active{transform:translateY(2px)!important}
+@media(max-height:760px){
+  #gameLobby .ddBottomNav{min-height:78px!important;padding-top:6px!important}
+  #gameLobby .ddNavItem{height:62px!important}
+  #gameLobby .ddNavIcon{height:36px!important;font-size:31px!important}
 }
 
 /* Narrow phones: keep all four columns, compress content rather than overlap. */
