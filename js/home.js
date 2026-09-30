@@ -343,7 +343,10 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   box-shadow:0 -9px 24px rgba(37,21,10,.28)!important;
   z-index:26!important;
 }
-#gameLobby .ddNavItem{
+#gameLobby .ddNavItem,
+#gameLobby #lobbyGrowth.ddNavItem,
+#gameLobby #lobbyGear.ddNavItem,
+#gameLobby #lobbyShop.ddNavItem{
   min-width:0!important;
   height:clamp(72px,8.6vh,88px)!important;
   margin:0!important;
@@ -363,7 +366,10 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   overflow:visible!important;
   -webkit-tap-highlight-color:transparent!important;
 }
-#gameLobby .ddNavItem.isActive{
+#gameLobby .ddNavItem.isActive,
+#gameLobby #lobbyGrowth.ddNavItem.isActive,
+#gameLobby #lobbyGear.ddNavItem.isActive,
+#gameLobby #lobbyShop.ddNavItem.isActive{
   border:2px solid #ffd653!important;
   background:linear-gradient(180deg,rgba(255,205,73,.20),rgba(255,171,39,.10))!important;
   box-shadow:0 0 14px rgba(255,201,64,.58),inset 0 0 12px rgba(255,210,90,.12)!important;
