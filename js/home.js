@@ -8,6 +8,9 @@ function sync(){const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
 window.__doldolSyncHomeHud=sync;
 function rebuild(){const l=$("gameLobby");if(!l||l.dataset.cleanHome==="1")return!!l;const ids=["lobbyStart","lobbyStages","lobbyGrowth","lobbyGear","lobbyShop","lobbyBook","lobbySettings"],saved=ids.map($).filter(Boolean);if(!$("lobbyStart"))return false;saved.forEach(e=>e.remove());l.replaceChildren();l.className="doldolHomeClean";l.dataset.cleanHome="1";
 const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar">🐥</div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
+const squad=document.createElement("div");squad.className="ddHomeSquad";squad.setAttribute("aria-label","현재 특공대 편성");
+squad.innerHTML=`<img src="./assets/home_squad_baked.png" alt="현재 특공대">`;
+l.appendChild(squad);
 saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e)}else{e.className="homeControl";e.innerHTML="";l.appendChild(e)}});sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
@@ -173,6 +176,40 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   #gameLobby .ddCore img{width:39px;height:39px}
   #gameLobby .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
   #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
+}
+
+#gameLobby .ddHomeSquad{
+  position:absolute;
+  left:50%;
+  bottom:clamp(23%,25vh,29%);
+  width:clamp(300px,82vw,520px);
+  height:auto;
+  transform:translateX(-50%);
+  z-index:12;
+  pointer-events:none;
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+}
+#gameLobby .ddHomeSquad img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:clamp(250px,34vh,470px);
+  object-fit:contain;
+  object-position:center bottom;
+}
+@media(max-aspect-ratio:9/19){
+  #gameLobby .ddHomeSquad{
+    width:clamp(290px,86vw,500px);
+    bottom:24%;
+  }
+}
+@media(min-aspect-ratio:9/17){
+  #gameLobby .ddHomeSquad{
+    width:clamp(280px,76vw,500px);
+    bottom:22%;
+  }
 }
 `;document.head.appendChild(st);
 const old=window.__duckSyncLobby;window.__duckSyncLobby=function(){if(typeof old==="function")try{old.apply(this,arguments)}catch(e){}sync()};if(!rebuild()){const mo=new MutationObserver(()=>{if(rebuild())mo.disconnect()});mo.observe(document.documentElement,{childList:true,subtree:true})}window.addEventListener("storage",sync);
