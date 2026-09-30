@@ -22,6 +22,19 @@ function getHomeStage(){
   let unlocked=1;
   try{
     unlocked=Math.max(1,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1)||1);
+
+    // CLEAR 후 "로비"로 돌아온 경우에도 다음 스테이지를 현재 진행으로 확정한다.
+    // 결과 화면의 실제 클리어 스테이지를 기준으로 하므로 __duckStage의 직전 값에 끌려가지 않는다.
+    const title=$("resultTitle"),sub=$("resultSub");
+    if(title&&title.textContent.trim()==="CLEAR!"&&sub){
+      const m=sub.textContent.match(/STAGE\s*(\d+)/i);
+      if(m){
+        const next=Math.min(500,(Number(m[1])||1)+1);
+        unlocked=Math.max(unlocked,next);
+        localStorage.setItem("doldol_unlocked_stage_v1",String(unlocked));
+        window.__selectedDuckStage=unlocked;
+      }
+    }
   }catch(e){}
   return Math.max(1,Math.min(500,unlocked));
 }
