@@ -2289,31 +2289,159 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 /* --- extracted script block --- */
 
 (function(){
- const screen=document.getElementById('characterScreen');
- const grid=document.getElementById('charGrid');
- const face=document.getElementById('charHeroFace');
- const name=document.getElementById('charHeroName');
- const role=document.getElementById('charHeroRole');
- function getCharRows(){return CHARACTER_DEFS.map((d)=>{const p=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id):{level:1};const unlocked=window.__duckIsCharacterUnlocked?window.__duckIsCharacterUnlocked(d):(!d.locked||p.level>=10);return [d.face,d.name,d.role,'Lv.'+p.level,unlocked?'획득':'잠금',d.id];});}
- let selected=Math.max(0,CHARACTER_DEFS.findIndex(c=>c.id===((()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})())));
- function render(){const data=getCharRows();if(selected>=data.length)selected=0;grid.innerHTML=data.map((d,i)=>`<button class="charCard ${i===selected?'selected':''} ${d[4]==='잠금'?'locked':''}" data-i="${i}"><span class="charFace">${d[0]}</span><b>${d[1]}</b><span class="charRole">${d[2]}</span><span class="charLv">${d[3]}</span>${d[4]==='잠금'?'<span class="charLock">🔒</span>':''}</button>`).join('');grid.querySelectorAll('.charCard').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);if(data[i][4]==='잠금')return;selected=i;try{localStorage.setItem('doldol_character_v1',data[i][5])}catch(e){};updateHero();render();});}
- function updateHero(){const data=getCharRows();const d=data[selected]||data[0];face.textContent=d[0];face.classList.toggle('duck',selected===0);name.textContent=d[1];role.textContent=d[2]+' · '+d[3];}
- window.__duckRefreshCharacters=function(){updateHero();render();};
- window.__duckOpenCharacters=function(){
-   if(!screen){
-     console.warn('characterScreen missing');
-     return false;
-   }
-   screen.classList.add('show');
-   updateHero(); render();
-   return true;
- };
- document.getElementById('charBack').onclick=()=>screen.classList.remove('show');
- const legacyGrowthBtn=document.getElementById('charGrowthBtn');
- if(legacyGrowthBtn) legacyGrowthBtn.onclick=null;
- document.getElementById('charSelectBtn').onclick=()=>{screen.classList.remove('show');if(window.__duckStartStage)window.__duckStartStage(Number(window.__selectedDuckStage||1)||1);};
-})();
+  const screen=document.getElementById('characterScreen');
+  if(!screen) return;
 
+  const uiRoster=[
+    {id:'doldol', face:'🐥', name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
+    {id:'nyang', face:'🐱', name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
+    {id:'rabbit', face:'🐰', name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
+    {id:'panda', face:'🐼', name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
+    {id:'king', face:'🥷', name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
+    {id:'turtle', face:'🐢', name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
+    {id:'shiba', face:'🐕', name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
+    {id:'charge', face:'🦅', name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
+  ];
+
+  let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+
+  const style=document.createElement('style');
+  style.id='doldol-squad-step1-style';
+  style.textContent=`
+    #characterScreen{position:fixed!important;inset:0!important;z-index:99998!important;display:none;overflow:auto!important;
+      background:linear-gradient(rgba(29,22,13,.18),rgba(29,22,13,.44)),url('./assets/home_base_bg.png') center/cover fixed!important;
+      color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;box-sizing:border-box}
+    #characterScreen.show{display:block!important}
+    #characterScreen *{box-sizing:border-box}
+    #characterScreen .sqWrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(12px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom))}
+    #characterScreen .sqTop{display:grid;grid-template-columns:48px 1fr auto;gap:9px;align-items:center;margin-bottom:10px}
+    #characterScreen .sqBack{width:46px;height:46px;border:2px solid #b67834;border-radius:14px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:30px;font-weight:1000;box-shadow:0 4px 0 #2b170c}
+    #characterScreen .sqTitle{min-height:48px;display:grid;place-items:center;border:2px solid #c98742;border-radius:13px;background:linear-gradient(#a9652f,#70401f);box-shadow:inset 0 1px rgba(255,255,255,.25),0 4px 0 #3e220f;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
+    #characterScreen .sqMoney{height:43px;padding:0 11px;display:flex;align-items:center;gap:6px;border-radius:14px;background:rgba(15,25,28,.88);font-weight:1000;color:#ffd866;font-size:13px}
+    #characterScreen .sqTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;border-radius:16px 16px 0 0;background:rgba(63,38,21,.93);border:2px solid rgba(194,132,66,.6);border-bottom:0}
+    #characterScreen .sqTab{border:0;border-radius:10px;padding:10px 3px;background:rgba(31,24,18,.62);color:#e8d9c7;font-size:11px;font-weight:1000}
+    #characterScreen .sqTab.on{background:linear-gradient(#ffe784,#f6c64c);color:#4a3217;box-shadow:0 3px 0 #b77b25}
+    #characterScreen .sqGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:10px;background:rgba(47,31,20,.93);border:2px solid rgba(194,132,66,.6);border-top:0;border-radius:0 0 18px 18px}
+    #characterScreen .sqCard{position:relative;min-height:136px;padding:8px 5px 7px;border:2px solid #b9884f;border-radius:14px;background:linear-gradient(#5a4937,#2d2823);color:#fff;box-shadow:inset 0 0 0 2px rgba(255,220,148,.08),0 5px 10px rgba(0,0,0,.22)}
+    #characterScreen .sqCard.selected{border:3px solid #35c7ff;background:linear-gradient(#8b642e,#44331f);box-shadow:0 0 0 2px rgba(255,216,102,.8),0 0 18px rgba(53,199,255,.45)}
+    #characterScreen .sqCard.locked{filter:grayscale(1);opacity:.64}
+    #characterScreen .sqSelected{position:absolute;top:-9px;left:50%;transform:translateX(-50%);padding:3px 9px;border-radius:9px;background:#22b8ef;color:#fff;font-size:9px;font-weight:1000;white-space:nowrap}
+    #characterScreen .sqFace{height:68px;display:grid;place-items:center;font-size:54px;filter:drop-shadow(0 7px 6px rgba(0,0,0,.3))}
+    #characterScreen .sqName{display:block;font-size:13px;font-weight:1000;line-height:1.2}
+    #characterScreen .sqRole{display:block;margin-top:2px;font-size:9px;color:#e7c690;font-weight:900}
+    #characterScreen .sqLv{display:block;margin-top:4px;font-size:10px;color:#ffe06b;font-weight:1000}
+    #characterScreen .sqLock{position:absolute;inset:0;display:grid;place-items:center;font-size:27px;background:rgba(10,10,10,.16);border-radius:12px}
+    #characterScreen .sqDetail{margin-top:10px;padding:13px;border:2px solid rgba(194,132,66,.7);border-radius:18px;background:linear-gradient(180deg,rgba(57,38,24,.96),rgba(35,29,24,.97));box-shadow:0 10px 26px rgba(0,0,0,.28)}
+    #characterScreen .sqHero{display:flex;align-items:center;gap:12px}
+    #characterScreen .sqHeroFace{width:76px;height:76px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(#e6b860,#81572b);border:2px solid #e9c77b;font-size:58px}
+    #characterScreen .sqHeroText{flex:1;min-width:0}
+    #characterScreen .sqHeroName{font-size:22px;font-weight:1000}
+    #characterScreen .sqHeroRole{margin-top:2px;color:#ffd866;font-size:11px;font-weight:1000}
+    #characterScreen .sqXp{height:9px;margin-top:8px;border-radius:99px;overflow:hidden;background:#17191a}
+    #characterScreen .sqXp>i{display:block;height:100%;background:linear-gradient(90deg,#4ecbff,#8ee7ff);border-radius:99px}
+    #characterScreen .sqStatGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}
+    #characterScreen .sqStat{padding:8px 9px;border-radius:10px;background:rgba(0,0,0,.24);font-size:11px;font-weight:900}
+    #characterScreen .sqStat b{float:right;color:#fff}
+    #characterScreen .sqSkill{margin-top:9px;padding:10px;border-radius:12px;background:#f4ead6;color:#4a3421}
+    #characterScreen .sqSkill strong{font-size:12px}
+    #characterScreen .sqSkill p{margin:3px 0 0;font-size:10px;line-height:1.4;color:#705942;font-weight:700}
+    #characterScreen .sqActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    #characterScreen .sqBtn{min-height:48px;border:0;border-radius:13px;font-size:14px;font-weight:1000}
+    #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
+    #characterScreen .sqBtn.main{background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;box-shadow:0 4px 0 #ad6c18}
+    #characterScreen .sqBtn:disabled{filter:grayscale(.8);opacity:.55;box-shadow:none}
+    @media(max-width:370px){#characterScreen .sqGrid{gap:6px;padding:7px}#characterScreen .sqCard{min-height:126px}.sqFace{font-size:48px!important}}
+  `;
+  document.head.appendChild(style);
+
+  function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
+  function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
+  function unlocked(id){
+    const def=(window.CHARACTER_DEFS||[]).find(c=>c.id===id);
+    return def ? (window.__duckIsCharacterUnlocked?window.__duckIsCharacterUnlocked(def):!def.locked) : id==='doldol';
+  }
+  function current(){return uiRoster.find(c=>c.id===selectedId)||uiRoster[0]}
+
+  function build(){
+    screen.innerHTML=`
+      <div class="sqWrap">
+        <div class="sqTop">
+          <button class="sqBack" id="charBack" aria-label="뒤로">‹</button>
+          <div class="sqTitle">특공대</div>
+          <div class="sqMoney">🪨 <span id="sqCore">0</span></div>
+        </div>
+        <div class="sqTabs">
+          <button class="sqTab on">전체</button><button class="sqTab">⚔ 공격형</button><button class="sqTab">🛡 방어형</button><button class="sqTab">✦ 특수형</button>
+        </div>
+        <div class="sqGrid" id="charGrid"></div>
+        <div class="sqDetail">
+          <div class="sqHero">
+            <div class="sqHeroFace" id="charHeroFace">🐥</div>
+            <div class="sqHeroText"><div class="sqHeroName" id="charHeroName">돌돌이</div><div class="sqHeroRole" id="charHeroRole"></div><div class="sqXp"><i id="sqXpBar"></i></div></div>
+          </div>
+          <div class="sqStatGrid" id="sqStats"></div>
+          <div class="sqSkill"><strong id="sqSkillName"></strong><p id="sqSkillDesc"></p></div>
+          <div class="sqActions"><button class="sqBtn sub" id="charGrowthBtn">레벨업</button><button class="sqBtn main" id="charSelectBtn">선택하기</button></div>
+        </div>
+      </div>`;
+    screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
+    screen.querySelector('#charGrowthBtn').onclick=()=>{if(window.__duckOpenGrowth)window.__duckOpenGrowth()};
+    screen.querySelector('#charSelectBtn').onclick=()=>{
+      const c=current(); if(!unlocked(c.id))return;
+      try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
+      render();
+    };
+    screen.querySelectorAll('.sqTab').forEach((b,i)=>b.onclick=()=>{
+      screen.querySelectorAll('.sqTab').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+      const filters=[()=>true,c=>/공격|스피드|치명타|파워/.test(c.role),c=>/탱커|방어/.test(c.role),c=>/밸런스|타이밍|콤보/.test(c.role)];
+      renderGrid(filters[i]);
+    });
+  }
+
+  function renderGrid(filter=()=>true){
+    const grid=screen.querySelector('#charGrid'); if(!grid)return;
+    const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+    grid.innerHTML=uiRoster.filter(filter).map(c=>{
+      const p=progress(c.id), lock=!unlocked(c.id);
+      return `<button class="sqCard ${c.id===selectedId?'selected':''} ${lock?'locked':''}" data-id="${c.id}">
+        ${c.id===active?'<span class="sqSelected">선택중</span>':''}
+        <span class="sqFace">${c.face}</span><span class="sqName">${c.name}</span><span class="sqRole">${c.role}</span><span class="sqLv">Lv.${p.level}</span>
+        ${lock?'<span class="sqLock">🔒</span>':''}
+      </button>`;
+    }).join('');
+    grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;renderDetail();renderGrid(filter)});
+  }
+
+  function renderDetail(){
+    const c=current(),p=progress(c.id),lock=!unlocked(c.id);
+    screen.querySelector('#charHeroFace').textContent=c.face;
+    screen.querySelector('#charHeroName').textContent=c.name;
+    screen.querySelector('#charHeroRole').textContent=c.role+' · Lv.'+p.level+(lock?' · 🔒 '+c.gate:'');
+    screen.querySelector('#sqXpBar').style.width=Math.max(0,Math.min(100,(p.xp/Math.max(1,p.next))*100))+'%';
+    screen.querySelector('#sqStats').innerHTML=`
+      <div class="sqStat">⚔ 공격력 <b>${c.atk}</b></div><div class="sqStat">❤ 체력 <b>${c.hp}</b></div>
+      <div class="sqStat">↩ 반격 <b>${'★'.repeat(c.counter)}${'☆'.repeat(5-c.counter)}</b></div><div class="sqStat">✦ 타이밍 <b>${'★'.repeat(c.timing)}${'☆'.repeat(5-c.timing)}</b></div>`;
+    screen.querySelector('#sqSkillName').textContent='⚡ '+c.skill;
+    screen.querySelector('#sqSkillDesc').textContent=c.skillDesc;
+    const select=screen.querySelector('#charSelectBtn');
+    const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+    select.disabled=lock||active===c.id;
+    select.textContent=lock?'잠금됨':active===c.id?'선택중':'선택하기';
+  }
+
+  function render(){
+    screen.querySelector('#sqCore').textContent=core().toLocaleString();
+    renderGrid();
+    renderDetail();
+  }
+
+  build();
+  window.__duckRefreshCharacters=render;
+  window.__duckOpenCharacters=function(){
+    selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+    render(); screen.classList.add('show'); return true;
+  };
+})();
 
 /* --- v10 stage reward skill choice --- */
 (function(){
@@ -2561,76 +2689,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   window.__duckOpenMissions=open;
   window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
-
-/* --- V37 character screen design pass --- */
-(function(){
-  const STYLE_ID='doldol-v37-character-style';
-  if(!document.getElementById(STYLE_ID)){
-    const s=document.createElement('style'); s.id=STYLE_ID;
-    s.textContent=`
-      #characterScreen.show{background:linear-gradient(180deg,#13232d 0%,#1b3039 48%,#10191f 100%) !important;color:#fff !important;}
-      #characterScreen .charHero{position:relative;overflow:hidden;border:1px solid rgba(255,216,102,.30)!important;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.035))!important;box-shadow:0 18px 40px rgba(0,0,0,.28)!important;border-radius:24px!important;}
-      #characterScreen .charHero:after{content:'';position:absolute;inset:auto -20% -55%;height:140px;background:radial-gradient(ellipse,rgba(255,216,102,.22),transparent 65%);pointer-events:none;}
-      #charHeroFace{filter:drop-shadow(0 14px 14px rgba(0,0,0,.28));transform:translateY(-2px);}
-      #charHeroName{font-weight:1000!important;letter-spacing:-.5px!important;}
-      #charHeroRole{color:#ffd866!important;font-weight:900!important;}
-      #charGrid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;padding:12px 2px!important;}
-      .charCard{position:relative!important;min-height:122px!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:18px!important;background:linear-gradient(180deg,rgba(255,255,255,.095),rgba(255,255,255,.035))!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.16)!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;}
-      .charCard:active{transform:scale(.97)!important;}
-      .charCard.selected{border:2px solid #ffd866!important;background:linear-gradient(180deg,rgba(255,216,102,.20),rgba(255,216,102,.055))!important;box-shadow:0 0 0 3px rgba(255,216,102,.10),0 12px 24px rgba(0,0,0,.24)!important;}
-      .charCard .charFace{font-size:38px!important;filter:drop-shadow(0 7px 8px rgba(0,0,0,.22));}
-      .charCard b{font-size:13px!important;font-weight:1000!important;}
-      .charCard .charRole{font-size:9px!important;color:#b9c8d0!important;}
-      .charCard .charLv{display:inline-flex!important;margin-top:5px!important;padding:3px 7px!important;border-radius:999px!important;background:rgba(0,0,0,.25)!important;color:#ffd866!important;font-size:9px!important;font-weight:900!important;}
-      .charCard.locked{opacity:.52!important;filter:saturate(.65)!important;}
-      .charCard .charLock{position:absolute!important;right:8px!important;top:7px!important;font-size:12px!important;}
-      #charGrowthBtn{background:linear-gradient(180deg,#ffd866,#f1a92e)!important;color:#30220d!important;border:0!important;border-radius:16px!important;box-shadow:0 7px 0 #a96818,0 12px 22px rgba(0,0,0,.22)!important;font-weight:1000!important;min-height:52px!important;}
-      #charSelectBtn{border-radius:16px!important;font-weight:1000!important;min-height:52px!important;}
-      #doldolV37CharInfo{margin:2px 0 10px;padding:12px 14px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.16);}
-      #doldolV37CharInfo .v37row{display:flex;justify-content:space-between;gap:10px;align-items:center;}
-      #doldolV37CharInfo .v37skill{font-weight:1000;color:#fff;font-size:13px;}
-      #doldolV37CharInfo .v37desc{margin-top:4px;color:#aebdc5;font-size:10px;line-height:1.45;}
-      #doldolV37CharInfo .v37pill{padding:4px 8px;border-radius:999px;background:rgba(255,216,102,.12);color:#ffd866;font-size:9px;font-weight:1000;white-space:nowrap;}
-      @media(max-width:520px){#charGrid{grid-template-columns:repeat(4,minmax(66px,1fr))!important;gap:7px!important}.charCard{min-height:108px!important}.charCard .charFace{font-size:32px!important}.charCard b{font-size:11px!important}}
-    `;
-    document.head.appendChild(s);
-  }
-
-  function selectedDef(){
-    try{
-      const id=localStorage.getItem('doldol_character_v1')||'doldol';
-      return (window.CHARACTER_DEFS||[]).find(c=>c.id===id)||window.CHARACTER_DEFS?.[0];
-    }catch(e){return window.CHARACTER_DEFS?.[0];}
-  }
-  function refreshInfo(){
-    const screen=document.getElementById('characterScreen'); if(!screen) return;
-    const grid=document.getElementById('charGrid'); if(!grid) return;
-    const d=selectedDef(); if(!d) return;
-    let box=document.getElementById('doldolV37CharInfo');
-    if(!box){
-      box=document.createElement('div'); box.id='doldolV37CharInfo';
-      grid.parentNode.insertBefore(box,grid);
-    }
-    const lvl=window.__duckCharacterProgress?window.__duckCharacterProgress(d.id).level:1;
-    const sl=window.__duckCharacterSkillProgress?window.__duckCharacterSkillProgress(d.id).level:1;
-    box.innerHTML='<div class="v37row"><div><div class="v37skill">⚡ '+(d.skill?.name||'고유 스킬')+'</div><div class="v37desc">'+(d.skill?.desc||'캐릭터 고유 능력')+'</div></div><span class="v37pill">LV.'+sl+'/5 · 캐릭터 LV.'+lvl+'</span></div>';
-  }
-  function install(){
-    const screen=document.getElementById('characterScreen'); if(!screen) return;
-    const old=window.__duckOpenCharacters;
-    if(old && !old.__v37){
-      const wrapped=function(){const r=old.apply(this,arguments);setTimeout(refreshInfo,0);return r;}; wrapped.__v37=true; window.__duckOpenCharacters=wrapped;
-    }
-    const grid=document.getElementById('charGrid');
-    if(grid && !grid.__v37){grid.addEventListener('click',()=>setTimeout(refreshInfo,0));grid.__v37=true;}
-    const growth=document.getElementById('charGrowthBtn');
-    if(growth){growth.style.touchAction='manipulation';growth.style.cursor='pointer';}
-  }
-  install();
-  document.addEventListener('DOMContentLoaded',install,{once:true});
-  window.__duckV37RefreshCharacterDesign=refreshInfo;
-})();
-
 
 /* --- V38 unified lobby design system --- */
 (function(){
