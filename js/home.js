@@ -38,31 +38,6 @@ function getHomeStage(){
   }catch(e){}
   return Math.max(1,Math.min(500,unlocked));
 }
-function commitNextStageFromResult(){
-  try{
-    const title=$("resultTitle");
-    if(!title||title.textContent.trim()!=="CLEAR!")return false;
-
-    let cleared=Math.max(1,Number(window.__duckStage)||0);
-    const sub=$("resultSub");
-    if(sub){
-      const m=sub.textContent.match(/STAGE\s*(\d+)/i);
-      if(m)cleared=Math.max(cleared,Number(m[1])||1);
-    }
-
-    const next=Math.min(500,cleared+1);
-    const saved=Math.max(1,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1)||1);
-    const target=Math.max(saved,next);
-
-    localStorage.setItem("doldol_unlocked_stage_v1",String(target));
-    window.__selectedDuckStage=target;
-    window.__duckStage=target;
-    return true;
-  }catch(e){
-    return false;
-  }
-}
-
 function stageMeta(stage){
   if(stage===1)return{title:"1. 돌무덤 초소",desc:"작은 돌 하나가 세상을 바꾼다!",img:"./assets/stage1_training.jpg"};
   if(stage===2)return{title:"2. 훈련장 진입",desc:"더 강한 적을 상대할 준비를 하자!",img:"./assets/stage2_training.jpg"};
@@ -456,17 +431,7 @@ window.__duckSyncLobby=function(){
   sync();
 };
 function bindLiveState(){
-  const lobby=$("gameLobby"),start=$("homeBattleStart"),resultLobby=$("resultLobby");
-
-  // CLEAR 후 로비 버튼을 누르는 순간 다음 스테이지를 먼저 확정한다.
-  // 기존 game.js의 로비 복귀 처리보다 앞에서 실행되어 직전 스테이지로 되돌아가는 것을 막는다.
-  if(resultLobby&&!resultLobby.dataset.homeNextStageBound){
-    resultLobby.dataset.homeNextStageBound="1";
-    resultLobby.addEventListener("click",()=>{
-      commitNextStageFromResult();
-      requestAnimationFrame(sync);
-    },true);
-  }
+  const lobby=$("gameLobby"),start=$("homeBattleStart");
   if(start){
     start.onclick=function(e){
       e.preventDefault();
