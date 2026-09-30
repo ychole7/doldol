@@ -3555,6 +3555,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    if(sub)sub.textContent=clear?'STAGE '+current+' 클리어!':'STAGE '+current+'에서 쓰러졌습니다';
    if(next)next.textContent=clear?'다음 스테이지  ▶':'다시 도전';
    window.__duckResultClear=!!clear; window.__duckResultStage=current;
+   if(clear){
+     try{
+       const unlocked=Math.min(500,current+1);
+       const saved=Math.max(1,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1);
+       localStorage.setItem('doldol_unlocked_stage_v1',String(Math.max(saved,unlocked)));
+     }catch(e){}
+   }
    result.style.display=''; result.style.pointerEvents='auto'; result.classList.add('show','doldolResultV3');
  };
  const old=document.getElementById('resultNext');
