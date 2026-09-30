@@ -2293,14 +2293,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!screen) return;
 
   const uiRoster=[
-    {id:'doldol', face:'🐥', name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
-    {id:'nyang', face:'🐱', name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
-    {id:'rabbit', face:'🐰', name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
-    {id:'panda', face:'🐼', name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
-    {id:'king', face:'🥷', name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
-    {id:'turtle', face:'🐢', name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
-    {id:'shiba', face:'🐕', name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
-    {id:'charge', face:'🦅', name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
+    {id:'doldol', face:'🐥', art:'./assets/home_chars/home_char_doldol.png', gateStage:1, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
+    {id:'nyang', face:'🐱', art:'./assets/home_chars/home_char_cat.png', gateStage:10, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
+    {id:'rabbit', face:'🐰', art:'./assets/home_chars/home_char_rabbit.png', gateStage:15, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
+    {id:'panda', face:'🐼', art:'./assets/home_chars/home_char_panda.png', gateStage:20, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
+    {id:'king', face:'🥷', art:'./assets/home_chars/home_char_ninja.png', gateStage:20, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
+    {id:'turtle', face:'🐢', gateStage:30, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
+    {id:'shiba', face:'🐕', gateStage:40, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
+    {id:'charge', face:'🦅', gateStage:50, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
   ];
 
   let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
@@ -2326,7 +2326,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqCard.selected{border:3px solid #35c7ff;background:linear-gradient(#8b642e,#44331f);box-shadow:0 0 0 2px rgba(255,216,102,.8),0 0 18px rgba(53,199,255,.45)}
     #characterScreen .sqCard.locked{filter:grayscale(1);opacity:.64}
     #characterScreen .sqSelected{position:absolute;top:-9px;left:50%;transform:translateX(-50%);padding:3px 9px;border-radius:9px;background:#22b8ef;color:#fff;font-size:9px;font-weight:1000;white-space:nowrap}
-    #characterScreen .sqFace{height:68px;display:grid;place-items:center;font-size:54px;filter:drop-shadow(0 7px 6px rgba(0,0,0,.3))}
+    #characterScreen .sqFace{height:68px;display:grid;place-items:center;font-size:54px;filter:drop-shadow(0 7px 6px rgba(0,0,0,.3));overflow:hidden}
+#characterScreen .sqFace img{width:78px;height:78px;object-fit:contain;display:block}
+#characterScreen .sqHeroFace img{width:86px;height:86px;object-fit:contain;display:block}
     #characterScreen .sqName{display:block;font-size:13px;font-weight:1000;line-height:1.2}
     #characterScreen .sqRole{display:block;margin-top:2px;font-size:9px;color:#e7c690;font-weight:900}
     #characterScreen .sqLv{display:block;margin-top:4px;font-size:10px;color:#ffe06b;font-weight:1000}
@@ -2357,8 +2359,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
   function unlocked(id){
-    const def=(window.CHARACTER_DEFS||[]).find(c=>c.id===id);
-    return def ? (window.__duckIsCharacterUnlocked?window.__duckIsCharacterUnlocked(def):!def.locked) : id==='doldol';
+    const c=uiRoster.find(x=>x.id===id);
+    if(!c || id==='doldol') return true;
+    let stage=1;
+    try{ stage=Number(localStorage.getItem('doldol_unlocked_stage_v1')||1); }catch(e){}
+    return stage>=Number(c.gateStage||999);
   }
   function current(){return uiRoster.find(c=>c.id===selectedId)||uiRoster[0]}
 
@@ -2405,8 +2410,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const p=progress(c.id), lock=!unlocked(c.id);
       return `<button class="sqCard ${c.id===selectedId?'selected':''} ${lock?'locked':''}" data-id="${c.id}">
         ${c.id===active?'<span class="sqSelected">선택중</span>':''}
-        <span class="sqFace">${c.face}</span><span class="sqName">${c.name}</span><span class="sqRole">${c.role}</span><span class="sqLv">Lv.${p.level}</span>
-        ${lock?'<span class="sqLock">🔒</span>':''}
+        <span class="sqFace">${c.art?`<img src="${c.art}" alt="${c.name}">`:c.face}</span><span class="sqName">${c.name}</span><span class="sqRole">${c.role}</span><span class="sqLv">Lv.${p.level}</span>
+        ${lock?`<span class="sqLock" title="${c.gate}">🔒</span>`:''}
       </button>`;
     }).join('');
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;renderDetail();renderGrid(filter)});
@@ -2414,7 +2419,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
   function renderDetail(){
     const c=current(),p=progress(c.id),lock=!unlocked(c.id);
-    screen.querySelector('#charHeroFace').textContent=c.face;
+    screen.querySelector('#charHeroFace').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:c.face;
     screen.querySelector('#charHeroName').textContent=c.name;
     screen.querySelector('#charHeroRole').textContent=c.role+' · Lv.'+p.level+(lock?' · 🔒 '+c.gate:'');
     screen.querySelector('#sqXpBar').style.width=Math.max(0,Math.min(100,(p.xp/Math.max(1,p.next))*100))+'%';
