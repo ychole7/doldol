@@ -3,8 +3,54 @@
 if(window.__doldolHomeClean)return;window.__doldolHomeClean=true;
 const $=id=>document.getElementById(id);
 window.__doldolResources=window.__doldolResources||{get gems(){return Math.max(0,Number(localStorage.getItem("doldol_gems_v1")||"980")||0)},setGems(v){localStorage.setItem("doldol_gems_v1",String(Math.max(0,Number(v)||0)));sync()}};
-function info(){let id="doldol",name="돌돌이",face="🐥",level=1,xp=0,next=50;try{id=localStorage.getItem("doldol_character_v1")||id;if(window.__duckGetSelectedCharacter){const c=window.__duckGetSelectedCharacter();if(c){id=c.id||id;name=c.name||name;face=c.face||face}}if(window.__duckCharacterProgress){const p=window.__duckCharacterProgress(id);if(p){level=p.level||1;xp=p.xp||0;next=p.next||50}}}catch(e){}return{id,name,face,level,xp,next}}
-function sync(){const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set("homePlayerAvatar",c.face);set("homePlayerName",c.name);set("homePlayerLevel","Lv."+c.level);set("lobbyCoins",(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString());set("homeGems",window.__doldolResources.gems.toLocaleString());const stage=Math.max(1,Number(window.__duckStage||window.__selectedDuckStage||1)||1);set("homeStageNo","STAGE "+stage);set("homeStageTitle",stage===1?"1. 돌무덤 초소":stage+". 특공 작전");const x=$("homePlayerXp");if(x)x.style.width=Math.min(100,c.xp/Math.max(1,c.next)*100)+"%"}
+function info(){
+  let id="doldol",name="돌돌이",face="🐥",level=1,xp=0,next=50;
+  try{
+    id=localStorage.getItem("doldol_character_v1")||id;
+    if(window.__duckGetSelectedCharacter){
+      const c=window.__duckGetSelectedCharacter();
+      if(c){id=c.id||id;name=c.name||name;face=c.face||face}
+    }
+    if(window.__duckCharacterProgress){
+      const p=window.__duckCharacterProgress(id);
+      if(p){level=p.level||1;xp=p.xp||0;next=p.next||50}
+    }
+  }catch(e){}
+  return{id,name,face,level,xp,next}
+}
+function getHomeStage(){
+  let active=0,selected=0,unlocked=1;
+  try{
+    active=Math.max(0,Number(window.__duckStage)||0);
+    selected=Math.max(0,Number(window.__selectedDuckStage)||0);
+    unlocked=Math.max(1,Number(localStorage.getItem("doldol_unlocked_stage_v1")||1)||1);
+    const rt=$("resultTitle");
+    if(rt&&rt.textContent==="CLEAR!"&&unlocked>active){
+      selected=unlocked;
+      window.__selectedDuckStage=selected;
+    }
+  }catch(e){}
+  return Math.max(1,Math.min(500,selected||active||unlocked));
+}
+function stageMeta(stage){
+  if(stage===1)return{title:"1. 돌무덤 초소",desc:"작은 돌 하나가 세상을 바꾼다!",img:"./assets/stage1_training.jpg"};
+  if(stage===2)return{title:"2. 훈련장 진입",desc:"더 강한 적을 상대할 준비를 하자!",img:"./assets/stage2_training.jpg"};
+  return{title:stage+". 특공 작전",desc:stage%5===0?"강력한 보스가 기다리고 있다!":"특공대의 다음 작전을 시작하자!",img:stage%2===0?"./assets/stage2_training.jpg":"./assets/stage1_training.jpg"};
+}
+function sync(){
+  const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
+  set("homePlayerAvatar",c.face);
+  set("homePlayerName",c.name);
+  set("homePlayerLevel","Lv."+c.level);
+  set("lobbyCoins",(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString());
+  set("homeGems",window.__doldolResources.gems.toLocaleString());
+  const stage=getHomeStage(),meta=stageMeta(stage);
+  set("homeStageNo","STAGE "+stage);
+  set("homeStageTitle",meta.title);
+  const desc=$("homeStageDesc");if(desc)desc.textContent=meta.desc;
+  const img=$("homeStageImage");if(img&&img.getAttribute("src")!==meta.img)img.setAttribute("src",meta.img);
+  const x=$("homePlayerXp");if(x)x.style.width=Math.min(100,c.xp/Math.max(1,c.next)*100)+"%";
+}
 window.__doldolSyncHomeHud=sync;
 function rebuild(){const l=$("gameLobby");if(!l||l.dataset.cleanHome==="1")return!!l;const ids=["lobbyStart","lobbyStages","lobbyGrowth","lobbyGear","lobbyShop","lobbyBook","lobbySettings"],saved=ids.map($).filter(Boolean);if(!$("lobbyStart"))return false;saved.forEach(e=>e.remove());l.replaceChildren();l.className="doldolHomeClean";l.dataset.cleanHome="1";
 const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar">🐥</div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
@@ -21,7 +67,7 @@ const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<d
  l.appendChild(squad);
 const nav=document.createElement("nav");nav.className="ddBottomNav";nav.setAttribute("aria-label","메인 메뉴");
 const homeBtn=document.createElement("button");homeBtn.type="button";homeBtn.className="ddNavItem isActive";homeBtn.setAttribute("aria-current","page");homeBtn.innerHTML=`<span class="ddNavIcon">🏠</span><b>홈</b>`;nav.appendChild(homeBtn);
-saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){e.className="ddStageCard";e.innerHTML=`<img src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em>작은 돌 하나가 세상을 바꾼다!</em></span><strong>›</strong>`;l.appendChild(e);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavDuck">🐥</span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🎒</span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🏪</span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
+saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTML="⚙";h.appendChild(e);return}if(e.id==="lobbyStart"){e.className="ddBattleStart";e.innerHTML=`<span class="ddBattleIcon">⚔️</span><span class="ddBattleCopy"><b>전투 시작</b><small id="homeStageNo">STAGE 1</small></span><span class="ddBattleArrow">›</span>`;l.appendChild(e);return}if(e.id==="lobbyStages"){e.className="ddStageCard";e.innerHTML=`<img id="homeStageImage" src="./assets/stage1_training.jpg" alt="현재 스테이지"><span class="ddStageCopy"><small>현재 진행 중</small><b id="homeStageTitle">1. 돌무덤 초소</b><em id="homeStageDesc">작은 돌 하나가 세상을 바꾼다!</em></span><strong>›</strong>`;l.appendChild(e);return}if(e.id==="lobbyGrowth"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon ddNavDuck">🐥</span><b>특공대</b>`;nav.appendChild(e);return}if(e.id==="lobbyGear"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🎒</span><b>장비</b>`;nav.appendChild(e);return}if(e.id==="lobbyShop"){e.className="ddNavItem";e.innerHTML=`<span class="ddNavIcon">🏪</span><b>상점</b>`;nav.appendChild(e);return}e.className="homeControl";e.innerHTML="";l.appendChild(e)});l.appendChild(nav);sync();return true}
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
@@ -374,5 +420,42 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
 }
 `;document.head.appendChild(st);
-const old=window.__duckSyncLobby;window.__duckSyncLobby=function(){if(typeof old==="function")try{old.apply(this,arguments)}catch(e){}sync()};if(!rebuild()){const mo=new MutationObserver(()=>{if(rebuild())mo.disconnect()});mo.observe(document.documentElement,{childList:true,subtree:true})}window.addEventListener("storage",sync);
+const old=window.__duckSyncLobby;
+window.__duckSyncLobby=function(){
+  if(typeof old==="function")try{old.apply(this,arguments)}catch(e){}
+  sync();
+};
+function bindLiveState(){
+  const lobby=$("gameLobby"),start=$("lobbyStart");
+  if(start){
+    start.onclick=function(e){
+      e.preventDefault();
+      const stage=getHomeStage();
+      window.__selectedDuckStage=stage;
+      try{localStorage.removeItem("doldol_run_skills_v1")}catch(_e){}
+      if(lobby)lobby.classList.add("hidden");
+      if(window.__duckStartStage)window.__duckStartStage(stage);
+    };
+  }
+  if(lobby){
+    new MutationObserver(()=>{if(!lobby.classList.contains("hidden"))sync()})
+      .observe(lobby,{attributes:true,attributeFilter:["class"]});
+  }
+  if(window.__duckWallet&&!window.__duckWallet.__homeSyncBound){
+    ["addCoins","spendCoins","setCoins"].forEach(k=>{
+      const fn=window.__duckWallet[k];
+      if(typeof fn==="function")window.__duckWallet[k]=function(){
+        const r=fn.apply(this,arguments);sync();return r;
+      };
+    });
+    Object.defineProperty(window.__duckWallet,"__homeSyncBound",{value:true,configurable:true});
+  }
+}
+if(!rebuild()){
+  const mo=new MutationObserver(()=>{if(rebuild()){bindLiveState();mo.disconnect()}});
+  mo.observe(document.documentElement,{childList:true,subtree:true});
+}else bindLiveState();
+window.addEventListener("storage",sync);
+window.addEventListener("pageshow",sync);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 })();
