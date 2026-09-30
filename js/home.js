@@ -227,10 +227,11 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby.doldolHomeClean>.homeTop{display:none!important}
 #gameLobby .ddBattleStart{
   position:absolute!important;
-  left:50%!important;
+  left:max(clamp(32px,9vw,64px),env(safe-area-inset-left))!important;
+  right:max(clamp(32px,9vw,64px),env(safe-area-inset-right))!important;
   bottom:clamp(292px,25.5vh,360px)!important;
-  transform:translateX(-50%)!important;
-  width:min(82vw,540px)!important;
+  transform:none!important;
+  width:auto!important;
   min-height:clamp(76px,10.5vw,92px)!important;
   display:grid!important;
   grid-template-columns:auto 1fr auto!important;
@@ -246,7 +247,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   overflow:hidden!important;
   box-sizing:border-box!important;
 }
-#gameLobby .ddBattleStart:active{transform:translateX(-50%) translateY(3px)!important;box-shadow:0 4px 0 #9a6425,0 8px 18px rgba(65,42,14,.26)!important}
+#gameLobby .ddBattleStart:active{transform:translateY(3px)!important;box-shadow:0 4px 0 #9a6425,0 8px 18px rgba(65,42,14,.26)!important}
 #gameLobby .ddBattleIcon{font-size:clamp(29px,6vw,42px)!important;line-height:1!important}
 #gameLobby .ddBattleCopy{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;line-height:1!important}
 #gameLobby .ddBattleCopy b{font-size:clamp(24px,5vw,34px)!important;font-weight:1000!important;letter-spacing:-1.2px!important}
