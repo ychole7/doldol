@@ -2327,8 +2327,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqCard.locked{filter:grayscale(1);opacity:.64}
     #characterScreen .sqSelected{position:absolute;top:-9px;left:50%;transform:translateX(-50%);padding:3px 9px;border-radius:9px;background:#22b8ef;color:#fff;font-size:9px;font-weight:1000;white-space:nowrap}
     #characterScreen .sqFace{height:68px;display:grid;place-items:center;font-size:54px;filter:drop-shadow(0 7px 6px rgba(0,0,0,.3));overflow:hidden}
-#characterScreen .sqFace img{width:78px;height:78px;object-fit:contain;display:block}
-#characterScreen .sqHeroFace img{width:86px;height:86px;object-fit:contain;display:block}
+#characterScreen .sqFace img{width:104px;height:86px;object-fit:contain;object-position:center;display:block;max-width:none}
+#characterScreen .sqHeroFace{overflow:hidden}
+#characterScreen .sqHeroFace img{width:112px;height:94px;object-fit:contain;object-position:center;display:block;max-width:none}
     #characterScreen .sqName{display:block;font-size:13px;font-weight:1000;line-height:1.2}
     #characterScreen .sqRole{display:block;margin-top:2px;font-size:9px;color:#e7c690;font-weight:900}
     #characterScreen .sqLv{display:block;margin-top:4px;font-size:10px;color:#ffe06b;font-weight:1000}
@@ -2361,6 +2362,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function unlocked(id){
     const c=uiRoster.find(x=>x.id===id);
     if(!c || id==='doldol') return true;
+
+    // 이미 성장 기록이 있는 캐릭터는 기존 보유 캐릭터로 유지한다.
+    const p=progress(id);
+    if(Number(p.level||1)>1 || Number(p.xp||0)>0) return true;
+
     let stage=1;
     try{ stage=Number(localStorage.getItem('doldol_unlocked_stage_v1')||1); }catch(e){}
     return stage>=Number(c.gateStage||999);
