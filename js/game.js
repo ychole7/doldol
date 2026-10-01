@@ -535,13 +535,13 @@ function moveAroundCovers(obj,dx,dy){
 }
 const CHARACTER_DEFS=[
   {id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',desc:'기본에 충실한 올라운더',skill:{name:'특공대 정신',desc:'3초간 무적 + 패링 판정 강화',cd:9},mods:{atk:1.00,speed:1.00,hp:1.00,parry:1.00,move:1.00,perfect:1.00}},
-  {id:'nyang', unlockCost:3000,face:'🐱',name:'냥특공',role:'기동형',desc:'빠르게 움직이고 연속 공격합니다.',skill:{name:'질풍돌진',desc:'3초간 이동/공격 속도 대폭 증가',cd:8},mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
-  {id:'rabbit', unlockCost:5000,face:'🐰',name:'토끼특공',role:'정밀형',desc:'완벽한 타이밍에 특화됩니다.',skill:{name:'초집중',desc:'2.5초간 PERFECT 보정 극대화',cd:8},mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
-  {id:'panda', unlockCost:7000,face:'🐼',name:'판다특공',role:'방어형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',skill:{name:'철벽 방패',desc:'5초간 보호막 1회 + HP 회복',cd:10},mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
-  {id:'king', unlockCost:10000,face:'🤖',name:'킹특공',role:'공격형',desc:'공격력은 높지만 공격 템포가 느립니다.',skill:{name:'화력 폭주',desc:'4초간 공격력 대폭 증가 + 3연발',cd:10},mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
-  {id:'turtle', unlockCost:12000,face:'🐢',name:'거북특공',role:'탱커형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',skill:{name:'거대 등껍질',desc:'2초간 무적 + 큰 폭의 즉시 회복',cd:11},mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
-  {id:'shiba', unlockCost:15000,face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
-  {id:'charge', unlockCost:20000,face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
+  {id:'nyang',face:'🐱',name:'냥특공',role:'기동형',desc:'빠르게 움직이고 연속 공격합니다.',skill:{name:'질풍돌진',desc:'3초간 이동/공격 속도 대폭 증가',cd:8},mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
+  {id:'rabbit',face:'🐰',name:'토끼특공',role:'정밀형',desc:'완벽한 타이밍에 특화됩니다.',skill:{name:'초집중',desc:'2.5초간 PERFECT 보정 극대화',cd:8},mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
+  {id:'panda',face:'🐼',name:'판다특공',role:'방어형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',skill:{name:'철벽 방패',desc:'5초간 보호막 1회 + HP 회복',cd:10},mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
+  {id:'king',face:'🤖',name:'킹특공',role:'공격형',desc:'공격력은 높지만 공격 템포가 느립니다.',skill:{name:'화력 폭주',desc:'4초간 공격력 대폭 증가 + 3연발',cd:10},mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
+  {id:'turtle',face:'🐢',name:'거북특공',role:'탱커형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',skill:{name:'거대 등껍질',desc:'2초간 무적 + 큰 폭의 즉시 회복',cd:11},mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
+  {id:'shiba',face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
+  {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
 ];
 window.CHARACTER_DEFS=CHARACTER_DEFS;
 /* --- V26 persistent character level / XP --- */
@@ -2293,14 +2293,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!screen) return;
 
   const uiRoster=[
-    {id:'doldol', face:'🐥', art:'./assets/home_chars/home_char_doldol.png', gateStage:1, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
-    {id:'nyang', face:'🐱', art:'./assets/home_chars/home_char_cat.png', gateStage:10, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
-    {id:'rabbit', face:'🐰', art:'./assets/home_chars/home_char_rabbit.png', gateStage:15, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
-    {id:'panda', face:'🐼', art:'./assets/home_chars/home_char_panda.png', gateStage:20, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
-    {id:'king', face:'🥷', art:'./assets/home_chars/home_char_ninja.png', gateStage:20, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
-    {id:'turtle', face:'🐢', gateStage:30, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
-    {id:'shiba', face:'🐕', gateStage:40, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
-    {id:'charge', face:'🦅', gateStage:50, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
+    {id:'doldol', face:'🐥', art:'./assets/home_chars/home_char_doldol.png', gateStage:1, unlockCost:0, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
+    {id:'nyang', face:'🐱', art:'./assets/home_chars/home_char_cat.png', gateStage:10, unlockCost:3000, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
+    {id:'rabbit', face:'🐰', art:'./assets/home_chars/home_char_rabbit.png', gateStage:15, unlockCost:5000, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
+    {id:'panda', face:'🐼', art:'./assets/home_chars/home_char_panda.png', gateStage:20, unlockCost:7000, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
+    {id:'king', face:'🥷', art:'./assets/home_chars/home_char_ninja.png', gateStage:20, unlockCost:10000, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
+    {id:'turtle', face:'🐢', gateStage:30, unlockCost:12000, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
+    {id:'shiba', face:'🐕', gateStage:40, unlockCost:15000, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
+    {id:'charge', face:'🦅', gateStage:50, unlockCost:20000, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
   ];
 
   let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
@@ -2313,7 +2313,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;box-sizing:border-box}
     #characterScreen.show{display:block!important}
     #characterScreen *{box-sizing:border-box}
-    #characterScreen .sqWrap{width:min(100%,540px);height:100%;min-height:100%;margin:auto;padding:calc(56px + env(safe-area-inset-top)) 7px calc(10px + env(safe-area-inset-bottom));position:relative;overflow:auto}
+    #characterScreen .sqWrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(58px + env(safe-area-inset-top)) 8px calc(18px + env(safe-area-inset-bottom));position:relative}
     #characterScreen .sqTop{display:grid;grid-template-columns:48px 1fr;gap:9px;align-items:center;margin-bottom:10px}
     #characterScreen .sqBack{width:46px;height:46px;border:2px solid #b67834;border-radius:14px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:30px;font-weight:1000;box-shadow:0 4px 0 #2b170c}
     #characterScreen .sqTitle{min-height:48px;display:grid;place-items:center;border:2px solid #c98742;border-radius:13px;background:linear-gradient(#a9652f,#70401f);box-shadow:inset 0 1px rgba(255,255,255,.25),0 4px 0 #3e220f;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
@@ -2349,21 +2349,36 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqSkill strong{font-size:12px}
     #characterScreen .sqSkill p{margin:3px 0 0;font-size:10px;line-height:1.4;color:#705942;font-weight:700}
     #characterScreen .sqActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-    #characterScreen .sqDetailPage{position:absolute;inset:calc(56px + env(safe-area-inset-top)) 0 0;padding:0 7px calc(10px + env(safe-area-inset-bottom));background:transparent;border:0;border-radius:0;overflow:auto}
+    #characterScreen .sqDetailPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;border:0;border-radius:0;overflow:auto}
     #characterScreen .sqDetailPage[hidden]{display:none!important}
+    #characterScreen .sqDetailBtns{display:flex;gap:6px}
+    #characterScreen .sqSkinPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;overflow:auto}
+    #characterScreen .sqSkinPage[hidden]{display:none!important}
+    #characterScreen .sqSkinHero{height:430px;margin:8px 14px 0;display:grid;place-items:center;overflow:hidden}
+    #characterScreen .sqSkinHero img{width:96%;height:100%;object-fit:contain}
+    #characterScreen .sqSkinHero .emoji{font-size:170px}
+    #characterScreen .sqSkinLabel{text-align:center;font-size:18px;font-weight:1000}
+    #characterScreen .sqSkinEquipped{width:max-content;margin:8px auto 14px;padding:7px 16px;border-radius:99px;background:#246f3d;color:#a7f2ba;font-size:12px;font-weight:1000}
+    #characterScreen .sqSkinRail{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 14px;padding:9px;border-radius:14px;background:rgba(0,0,0,.35)}
+    #characterScreen .sqSkinCard{position:relative;min-height:105px;padding:5px;border:2px solid #806142;border-radius:11px;background:rgba(45,35,29,.92);color:#fff}
+    #characterScreen .sqSkinCard.on{border-color:#ffd45a}
+    #characterScreen .sqSkinThumb{height:68px;display:grid;place-items:center;overflow:hidden}
+    #characterScreen .sqSkinThumb img{width:82px;height:76px;object-fit:contain}
+    #characterScreen .sqSkinCard b{display:block;margin-top:5px;font-size:10px}
+    #characterScreen .sqSkinLock{position:absolute;inset:0;display:grid;place-items:center;border-radius:9px;background:rgba(9,11,12,.66);font-size:23px}
     #characterScreen .sqDetailHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;margin-bottom:8px}
     #characterScreen .sqDetailBack{width:44px;height:44px;border:2px solid #d39a55;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000;box-shadow:0 3px 0 #321a0c}
     #characterScreen .sqDetailTitle{text-align:center;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
-    #characterScreen .sqDetailHero{height:min(43vh,360px);margin:4px 5px 0;display:grid;place-items:center;overflow:hidden;border-radius:12px;background:linear-gradient(rgba(255,255,255,.05),rgba(0,0,0,.12))}
+    #characterScreen .sqDetailHero{height:285px;margin:12px 14px 0;display:grid;place-items:center;overflow:hidden;border-radius:16px;background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.18))}
     #characterScreen .sqDetailHero img{width:88%;height:100%;object-fit:contain;display:block}
     #characterScreen .sqDetailHero .emoji{font-size:126px}
-    #characterScreen .sqDetailLevel{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;margin:6px 5px;padding:8px 9px;border-radius:11px;background:rgba(0,0,0,.28)}
+    #characterScreen .sqDetailLevel{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin:10px 14px;padding:10px;border-radius:12px;background:rgba(0,0,0,.28)}
     #characterScreen .sqDetailLevel button,#characterScreen .sqSelectBig{border:0;border-radius:11px;background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;font-weight:1000}
     #characterScreen .sqDetailLevel button{padding:10px 13px}
-    #characterScreen .sqDetailTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 5px}
+    #characterScreen .sqDetailTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 14px}
     #characterScreen .sqDetailTabs button{padding:11px 3px;border:0;border-radius:9px;background:#38291f;color:#ead9c5;font-weight:1000}
     #characterScreen .sqDetailTabs button.on{background:#f7e6ad;color:#49351f}
-    #characterScreen .sqDetailBody{margin:6px 5px 0;min-height:112px;padding:10px 12px;border-radius:11px;background:rgba(0,0,0,.23)}
+    #characterScreen .sqDetailBody{margin:8px 14px 0;min-height:118px;padding:12px;border-radius:12px;background:rgba(0,0,0,.23)}
     #characterScreen .sqDetailBody .row{display:flex;justify-content:space-between;padding:8px 3px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:900}
     #characterScreen .sqSkillCard{display:grid;grid-template-columns:56px 1fr auto;gap:9px;align-items:center;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.12)}
     #characterScreen .sqSkillCard:last-child{border-bottom:0}
@@ -2373,19 +2388,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqSkillUp:disabled{background:#756b60;color:#cbc4bc;box-shadow:none}.lockedSkill{opacity:.78}
     #characterScreen .sqDetailBody .skillBox{padding:10px;border-radius:10px;background:#f4ead6;color:#4a3421}
     #characterScreen .sqDetailBody .skillBox p{margin:5px 0 0;font-size:11px;line-height:1.45}
-    #characterScreen .sqSelectBig{width:calc(100% - 10px);min-height:52px;margin:8px 5px 0;font-size:16px}
-    #characterScreen .sqUnlockBox{margin:8px 5px 0;padding:13px;border-radius:13px;background:rgba(18,20,21,.78);border:1px solid rgba(255,255,255,.13)}
-    #characterScreen .sqUnlockBox[hidden]{display:none!important}.sqUnlockTitle{text-align:center;font-size:17px;font-weight:1000;margin-bottom:10px}.sqUnlockReq{display:grid;gap:7px}.sqUnlockReq div{display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.07);font-size:12px}.sqUnlockReq b.ok{color:#69e69b}.sqUnlockReq b.no{color:#ff9d8c}
-    #characterScreen .sqUnlockBtn{width:100%;height:50px;margin-top:11px;border:0;border-radius:13px;background:linear-gradient(#ffe16b,#ffbd2b);color:#3b2a13;font-size:16px;font-weight:1000;box-shadow:0 4px 0 #a86f22}.sqUnlockBtn:disabled{background:#7b7369;color:#bcb4aa;box-shadow:none}
-    #characterScreen .sqDetailPage.unowned .sqDetailHero{filter:grayscale(.9) brightness(.62)}#characterScreen .sqDetailPage.unowned .sqDetailLevel,#characterScreen .sqDetailPage.unowned .sqDetailTabs,#characterScreen .sqDetailPage.unowned .sqDetailBody,#characterScreen .sqDetailPage.unowned .sqHeroActions{display:none!important}
-
-    #characterScreen .sqHeroActions{display:flex;gap:7px}.sqSkinBtn{min-width:62px;height:48px;border:0;border-radius:13px;background:#4b3425;color:#fff;font-weight:1000}.sqLevelBtn{height:48px}
-    #characterScreen .sqSkinPage{position:absolute;inset:calc(56px + env(safe-area-inset-top)) 0 0;z-index:12;padding:0 7px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(rgba(29,22,13,.08),rgba(29,22,13,.24));overflow:auto}
-    #characterScreen .sqSkinPage[hidden]{display:none!important}
-    #characterScreen .sqSkinHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;margin-bottom:8px}.sqSkinHead button{width:44px;height:44px;border:2px solid #b67834;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000}.sqSkinHead b{text-align:center;font-size:23px;text-shadow:0 2px 2px #3a1d0b}
-    #characterScreen .sqSkinHero{height:min(57vh,470px);display:grid;place-items:center;overflow:hidden}.sqSkinHero img{width:145%;height:145%;object-fit:contain;max-width:none}.sqSkinHero .emoji{font-size:190px}
-    #characterScreen .sqSkinName{text-align:center;font-size:19px;font-weight:1000}.sqSkinState{width:max-content;margin:8px auto 14px;padding:7px 16px;border-radius:99px;background:rgba(25,77,42,.9);color:#8df0a8;font-weight:1000;font-size:13px}
-    #characterScreen .sqSkinRail{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:9px;border-radius:15px;background:rgba(38,27,20,.72)}.sqSkinCard{position:relative;min-height:104px;border:2px solid #806142;border-radius:12px;background:rgba(37,31,28,.9);color:#fff;padding:5px}.sqSkinCard.on{border-color:#ffd45a;box-shadow:0 0 0 2px rgba(255,212,90,.2)}.sqSkinThumb{height:65px;display:grid;place-items:center;overflow:hidden;border-radius:8px;background:rgba(255,255,255,.06)}.sqSkinThumb img{width:86px;height:78px;object-fit:contain;max-width:none}.sqSkinThumb span{font-size:42px}.sqSkinCard b{display:block;text-align:center;margin-top:5px;font-size:10px}.sqSkinLock{position:absolute;inset:0;display:grid;place-items:center;border-radius:10px;background:rgba(10,12,13,.63);font-size:22px}
+    #characterScreen .sqSelectBig{width:calc(100% - 28px);min-height:50px;margin:10px 14px 0;font-size:15px}
     #characterScreen .sqLevelModal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(8,13,15,.72);backdrop-filter:blur(7px)}
     #characterScreen .sqLevelModal[hidden]{display:none!important}
     #characterScreen .sqLevelPanel{width:min(100%,390px);overflow:hidden;border:2px solid #b9793d;border-radius:20px;background:#f5e7c7;color:#382719;box-shadow:0 18px 48px rgba(0,0,0,.48)}
@@ -2409,36 +2412,40 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqHudWho{min-width:0;line-height:1.05}#characterScreen .sqHudWho b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#characterScreen .sqHudWho small{display:block;margin-top:3px;color:#d7e5e9}
     #characterScreen .sqHudRes{white-space:nowrap;padding-inline:8px}#characterScreen .sqHudRes i{font-style:normal;font-size:17px}#characterScreen .sqHudPlus{display:grid;place-items:center;width:17px;height:17px;margin-left:1px;border-radius:50%;background:#28b8ef;color:white;font-size:14px}
     #characterScreen .sqHudSettings{height:42px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(31,44,48,.94);color:#fff;font-size:21px}
+    #characterScreen .sqUnlockBody{margin:10px 14px 0;padding:16px;border-radius:14px;background:rgba(22,25,27,.82);text-align:center}
+    #characterScreen .sqUnlockBody h3{margin:0 0 5px;font-size:18px}.sqUnlockBody p{margin:0;color:#e8dfd2;font-size:12px;line-height:1.55}
+    #characterScreen .sqUnlockReq{display:grid;gap:7px;margin-top:13px;text-align:left}.sqUnlockReq div{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.08);font-size:12px;font-weight:900}
+    #characterScreen .sqUnlockReq .ok{color:#7ee39a}.sqUnlockReq .no{color:#ffb0a5}
     @media(max-width:390px){#characterScreen .sqHud{grid-template-columns:minmax(92px,1fr) auto auto 38px;gap:3px;left:5px;right:5px}#characterScreen .sqHudRes{font-size:10px!important;padding-inline:5px!important}#characterScreen .sqHudBox{padding:4px 5px!important}}
-
-    /* squad final density lock */
-    #characterScreen .sqTop{margin-bottom:7px}
-    #characterScreen .sqTabs{margin-bottom:7px}
-    #characterScreen .sqCard{min-height:0}
-    #characterScreen .sqDetailHead{margin-bottom:3px}
-    #characterScreen .sqDetailHero img{max-height:118%;max-width:118%}
-    #characterScreen .sqHeroActions{gap:6px}
-    #characterScreen .sqSkinRail{margin-bottom:4px}
-    @media(min-height:760px){
-      #characterScreen .sqCard{padding-bottom:8px}
-      #characterScreen .sqGrid{gap:8px}
-    }
     @media(max-width:370px){#characterScreen .sqGrid{gap:6px;padding:7px}#characterScreen .sqCard{min-height:126px}.sqFace{font-size:48px!important}}
   `;
   document.head.appendChild(style);
 
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
-  function unlocked(id){
+  function clearedStage(){
+    try{return Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)}catch(e){return 1}
+  }
+  function owned(id){
     const c=uiRoster.find(x=>x.id===id);
     if(!c || id==='doldol') return true;
-    // 기존에 성장시킨 캐릭터는 보유 상태를 보존한다.
     const p=progress(id);
     if(Number(p.level||1)>1 || Number(p.xp||0)>0) return true;
-    try{return localStorage.getItem('doldol_owned_'+id)==='1'}catch(e){return false}
+    try{
+      if((localStorage.getItem('doldol_character_v1')||'doldol')===id) return true;
+      const list=JSON.parse(localStorage.getItem('doldol_character_owned_v1')||'[]');
+      return Array.isArray(list)&&list.includes(id);
+    }catch(e){return false}
   }
-  function currentStage(){try{return Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)}catch(e){return 1}}
-  function canUnlock(c){return !unlocked(c.id)&&currentStage()>=Number(c.gateStage||999)&&core()>=Number(c.unlockCost||0)}
+  function canUnlock(c){ return clearedStage()>=Number(c.gateStage||999); }
+  function markOwned(id){
+    try{
+      const list=JSON.parse(localStorage.getItem('doldol_character_owned_v1')||'[]');
+      const next=Array.isArray(list)?list:[];
+      if(!next.includes(id))next.push(id);
+      localStorage.setItem('doldol_character_owned_v1',JSON.stringify(next));
+    }catch(e){}
+  }
   function current(){return uiRoster.find(c=>c.id===selectedId)||uiRoster[0]}
 
   function build(){
@@ -2461,21 +2468,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         <div class="sqDetailPage" id="sqDetailPage" hidden>
           <div class="sqDetailHead"><button class="sqDetailBack" id="sqDetailBack">‹</button><div class="sqDetailTitle" id="sqDetailTitle"></div></div>
           <div class="sqDetailHero" id="sqDetailHero"></div>
-          <div class="sqDetailLevel"><b id="sqDetailLv"></b><div class="sqXp"><i id="sqDetailXp"></i></div><button id="sqLevelBtn">레벨업</button></div>
+          <div class="sqDetailLevel"><b id="sqDetailLv"></b><div class="sqXp"><i id="sqDetailXp"></i></div><div class="sqDetailBtns"><button id="sqSkinBtn">스킨</button><button id="sqLevelBtn">레벨업</button></div></div>
           <div class="sqDetailTabs"><button class="on">능력치</button><button>스킬</button><button>스토리</button></div>
           <div class="sqDetailBody" id="sqDetailBody"></div>
-          <div class="sqUnlockBox" id="sqUnlockBox" hidden>
-            <div class="sqUnlockTitle">캐릭터 해금</div>
-            <div class="sqUnlockReq" id="sqUnlockReq"></div>
-            <button class="sqUnlockBtn" id="sqUnlockBtn">해금하기</button>
-          </div>
           <button class="sqSelectBig" id="sqSelectBig">선택하기</button>
         </div>
         <div class="sqSkinPage" id="sqSkinPage" hidden>
-          <div class="sqSkinHead"><button id="sqSkinBack">‹</button><b>스킨</b><span></span></div>
+          <div class="sqDetailHead"><button class="sqDetailBack" id="sqSkinBack">‹</button><div class="sqDetailTitle">스킨</div></div>
           <div class="sqSkinHero" id="sqSkinHero"></div>
-          <div class="sqSkinName" id="sqSkinName"></div>
-          <div class="sqSkinState" id="sqSkinState"></div>
+          <div class="sqSkinLabel" id="sqSkinLabel">기본 스킨</div>
+          <div class="sqSkinEquipped">✓ 장착중</div>
           <div class="sqSkinRail" id="sqSkinRail"></div>
         </div>
         <div class="sqLevelModal" id="sqLevelModal" hidden>
@@ -2502,7 +2504,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.querySelector('#sqLevelClose').onclick=()=>screen.querySelector('#sqLevelModal').hidden=true;
     screen.querySelector('#sqLevelModal').onclick=e=>{if(e.target.id==='sqLevelModal')e.currentTarget.hidden=true};
     screen.querySelector('#sqSelectBig').onclick=()=>{
-      const c=current(); if(!unlocked(c.id)) return;
+      const c=current(); if(!owned(c.id)) return;
       try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
       renderHud();
       openDetail();
@@ -2533,7 +2535,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const grid=screen.querySelector('#charGrid'); if(!grid)return;
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
     grid.innerHTML=uiRoster.filter(filter).map(c=>{
-      const p=progress(c.id), lock=!unlocked(c.id);
+      const p=progress(c.id), lock=!owned(c.id);
       return `<button class="sqCard ${c.id===selectedId?'selected':''} ${lock?'locked':''}" data-id="${c.id}">
         ${c.id===active?'<span class="sqSelected">선택중</span>':''}
         <span class="sqFace">${c.art?`<img src="${c.art}" alt="${c.name}">`:c.face}</span><span class="sqName">${c.name}</span><span class="sqRole">${c.role}</span><span class="sqLv">Lv.${p.level}</span>
@@ -2543,31 +2545,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
   }
 
-  function skinKey(id){return 'doldol_skin_'+id}
-  function getSkin(id){try{return localStorage.getItem(skinKey(id))||'basic'}catch(e){return 'basic'}}
   function openSkinPage(){
-    const c=current(), page=screen.querySelector('#sqSkinPage'); if(!page)return;
-    screen.querySelector('#sqDetailPage').hidden=true;
-    page.hidden=false;
-    const active=getSkin(c.id);
+    const c=current(),page=screen.querySelector('#sqSkinPage'); if(!page)return;
+    screen.querySelector('#sqDetailPage').hidden=true; page.hidden=false;
     screen.querySelector('#sqSkinHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
-    const names={basic:'기본',pilot:'파일럿',special:'특공대',space:'우주복'};
-    screen.querySelector('#sqSkinName').textContent=(names[active]||'기본')+' 스킨';
-    screen.querySelector('#sqSkinState').textContent='✓ 장착중';
-    const skins=[
-      {id:'basic',name:'기본',owned:true},
-      {id:'pilot',name:'파일럿',owned:false},
-      {id:'special',name:'특공대',owned:false},
-      {id:'space',name:'우주복',owned:false}
-    ];
-    const rail=screen.querySelector('#sqSkinRail');
-    rail.innerHTML=skins.map(x=>`<button class="sqSkinCard ${x.id===active?'on':''}" data-skin="${x.id}" ${x.owned?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`}</span><b>${x.name}</b>${x.owned?'':'<span class="sqSkinLock">🔒</span>'}</button>`).join('');
-    rail.querySelectorAll('.sqSkinCard:not([disabled])').forEach(b=>b.onclick=()=>{try{localStorage.setItem(skinKey(c.id),b.dataset.skin)}catch(e){}openSkinPage()});
+    screen.querySelector('#sqSkinLabel').textContent='기본 스킨';
+    const skins=[['기본',true],['파일럿',false],['특공대',false],['우주복',false]];
+    screen.querySelector('#sqSkinRail').innerHTML=skins.map((x,i)=>`<button class="sqSkinCard ${i===0?'on':''}" ${x[1]?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:c.face}</span><b>${x[0]}</b>${x[1]?'':'<span class="sqSkinLock">🔒</span>'}</button>`).join('');
   }
   function closeSkinPage(){
     screen.querySelector('#sqSkinPage').hidden=true;
     screen.querySelector('#sqDetailPage').hidden=false;
-    openDetail();
   }
 
   function levelStats(c,level){
@@ -2639,44 +2627,35 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
   }
   function openDetail(){
-    const c=current(),p=progress(c.id),lock=!unlocked(c.id);
-    const skinPage=screen.querySelector('#sqSkinPage'); if(skinPage)skinPage.hidden=true;
-    const page=screen.querySelector('#sqDetailPage');
+    const c=current(),p=progress(c.id),isOwned=owned(c.id);
     screen.querySelector('.sqTop').style.display='none';
     screen.querySelector('.sqTabs').style.display='none';
     screen.querySelector('#charGrid').style.display='none';
-    page.hidden=false;
-    page.classList.toggle('unowned',lock);
+    screen.querySelector('#sqDetailPage').hidden=false;
     screen.querySelector('#sqDetailTitle').textContent=c.name;
-    screen.querySelector('#sqDetailHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
+    screen.querySelector('#sqDetailHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}" style="${isOwned?'':'filter:grayscale(1);opacity:.72'}">`:`<span class="emoji" style="${isOwned?'':'filter:grayscale(1);opacity:.72'}">${c.face}</span>`;
     screen.querySelector('#sqDetailLv').textContent='Lv.'+p.level;
     screen.querySelector('#sqDetailXp').style.width=Math.max(0,Math.min(100,(p.xp/Math.max(1,p.next))*100))+'%';
-
+    const tabs=screen.querySelector('.sqDetailTabs'), level=screen.querySelector('.sqDetailLevel'), body=screen.querySelector('#sqDetailBody');
+    const skin=screen.querySelector('#sqSkinBtn'), levelBtn=screen.querySelector('#sqLevelBtn');
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
-    const selectBtn=screen.querySelector('#sqSelectBig');
-    const unlockBox=screen.querySelector('#sqUnlockBox');
-    if(lock){
-      selectBtn.style.display='none';
-      unlockBox.hidden=false;
-      const stage=currentStage(), stageOK=stage>=Number(c.gateStage||999), cost=Number(c.unlockCost||0), coreOK=core()>=cost;
-      screen.querySelector('#sqUnlockReq').innerHTML=
-        `<div><span>스테이지 조건</span><b class="${stageOK?'ok':'no'}">${stageOK?'✓':'🔒'} STAGE ${c.gateStage}</b></div>`+
-        `<div><span>필요 돌핵</span><b class="${coreOK?'ok':'no'}">🔥 ${core().toLocaleString()} / ${cost.toLocaleString()}</b></div>`;
-      const ub=screen.querySelector('#sqUnlockBtn');
-      ub.disabled=!(stageOK&&coreOK);
-      ub.textContent=!stageOK?`STAGE ${c.gateStage} 필요`:!coreOK?'돌핵 부족':'해금하기';
-      ub.onclick=()=>{
-        if(!canUnlock(c)||!window.__duckWallet||!window.__duckWallet.spendCoins(cost))return;
-        try{localStorage.setItem('doldol_owned_'+c.id,'1')}catch(e){}
-        renderHud(); renderGrid(); openDetail();
-        if(window.__duckSyncLobby)window.__duckSyncLobby();
-      };
-    }else{
-      unlockBox.hidden=true;
-      selectBtn.style.display='';
-      selectBtn.disabled=active===c.id;
-      selectBtn.textContent=active===c.id?'선택중':'선택하기';
+    const btn=screen.querySelector('#sqSelectBig');
+    if(isOwned){
+      tabs.style.display='grid'; level.style.display='grid'; skin.style.display=''; levelBtn.style.display='';
+      btn.disabled=active===c.id; btn.textContent=active===c.id?'선택중':'선택하기';
+      btn.onclick=()=>{try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){} renderHud();openDetail();if(window.__duckSyncLobby)window.__duckSyncLobby();};
       renderDetailTab('stats');
+    }else{
+      tabs.style.display='none'; level.style.display='none';
+      const stageOk=canUnlock(c), moneyOk=core()>=Number(c.unlockCost||0);
+      body.innerHTML=`<div class="sqUnlockBody"><h3>🔒 미보유 특공대</h3><p>${c.role} · ${c.skill}</p><div class="sqUnlockReq"><div class="${stageOk?'ok':'no'}">${stageOk?'✓':'🔒'} STAGE ${c.gateStage} ${stageOk?'달성':'클리어 필요'}</div><div class="${moneyOk?'ok':'no'}">${moneyOk?'✓':'🔥'} 필요 돌핵 ${(c.unlockCost||0).toLocaleString()} · 보유 ${core().toLocaleString()}</div></div></div>`;
+      btn.disabled=!(stageOk&&moneyOk);
+      btn.textContent=!stageOk?`STAGE ${c.gateStage} 클리어 필요`:!moneyOk?'돌핵 부족':`해금하기 🔥 ${(c.unlockCost||0).toLocaleString()}`;
+      btn.onclick=()=>{
+        if(!canUnlock(c)||core()<Number(c.unlockCost||0))return;
+        if(!window.__duckWallet||!window.__duckWallet.spendCoins(Number(c.unlockCost||0)))return;
+        markOwned(c.id); renderHud(); renderGrid(); openDetail(); if(window.__duckSyncLobby)window.__duckSyncLobby();
+      };
     }
   }
   function closeDetail(){
