@@ -631,6 +631,12 @@ function getEquippedGearStats(){
 window.__duckGearStats=getEquippedGearStats;
 
 function applyGrowthToPlayer(){
+  // Preserve the current battle HP ratio when stats are recalculated.
+  // Re-applying growth after XP/gear changes must not act as a hidden full heal.
+  const hadPlayer=!!player;
+  const prevMax=hadPlayer?Math.max(1,Number(player.maxHp)||1):1;
+  const prevHp=hadPlayer?Math.max(0,Number(player.hp)||0):prevMax;
+  const prevHpRatio=Math.max(0,Math.min(1,prevHp/prevMax));
   const g=getGrowthStats();
   const c=getSelectedCharacter();
   const cp=getCharacterProgress(c.id);
@@ -646,7 +652,8 @@ function applyGrowthToPlayer(){
   player.growth=g;
   player.gearStats=gear;
   player.maxHp=Math.max(1,Math.round(g.hp*(m.hp||1)*hpMul + gear.hp));
-  player.hp=player.maxHp;
+  // A fresh run starts full; an in-battle recalculation keeps the HP ratio.
+  player.hp=(hadPlayer && running)?Math.max(0,Math.min(player.maxHp,Math.round(player.maxHp*prevHpRatio))):player.maxHp;
   player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)*levelMul + gear.atk));
   player.defense=Math.max(0,Math.round(gear.def));
   const effectiveSpeed=Math.max(.35,g.speed*(m.speed||1));
@@ -947,10 +954,11 @@ function combatImpactFx(e,damage,dead){
   e.impactKick=.11*power;
 }
 function hitEnemy(e,damage=1){
-  damage=Math.max(1,Number(damage)||1);
+  if(!e || e.dead) return;
+  damage=Math.max(1,Math.round(Number(damage)||1));
   updateGearDebugHud('공격 적중 · 실제 피해 '+damage);
   const wasBossPhase=e.bossPhase||1;
-  e.hp-=damage;
+  e.hp=Math.max(0,(Number(e.hp)||0)-damage);
   if(e.type==='boss' && e.max>0){
     const ratio=e.hp/e.max;
     const nextPhase=ratio<=.33?3:(ratio<=.66?2:1);
@@ -1324,9 +1332,13 @@ function update(dt){
       }else{
         const incomingDamage=Math.max(1,Math.round(18*(100/(100+Math.max(0,Number(player.defense)||0)))));
         updateGearDebugHud('피격 18 → DEF '+Math.round(player.defense||0)+' 적용 → '+incomingDamage);
-        player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
+        player.hp=Math.max(0,(Number(player.hp)||0)-incomingDamage);player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
-        if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
+        if(player.hp<=0){
+          player.hp=0;
+          running=false;gate=false;message='GAME OVER';messageTimer=999;
+          try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}
+        }
         r.life=0;
       }
     }
@@ -1366,7 +1378,7 @@ function update(dt){
           levelFlash=1.15;
           message='';
           messageTimer=0;
-          player.hp=player.maxHp;
+          // Level-up no longer restores HP; death pressure must remain meaningful.
           // V47: 레벨업은 전투를 멈추거나 선택창을 띄우지 않는다.
           // 기존 자동 성장(레벨에 따른 공격 템포/HP 회복)은 유지하고,
           // 전투 화면에는 짧은 LEVEL UP 안내만 표시한다.
