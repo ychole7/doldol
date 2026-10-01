@@ -2298,9 +2298,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     {id:'rabbit', face:'🐰', art:'./assets/characters/character_rabbit.png', gateStage:15, unlockCost:5000, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
     {id:'panda', face:'🐼', art:'./assets/characters/character_panda.png', gateStage:20, unlockCost:7000, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
     {id:'king', face:'🥷', art:'./assets/characters/character_shadow.png', gateStage:20, unlockCost:10000, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
-    {id:'turtle', face:'🐢', art:'./assets/characters/character_turtle.png', gateStage:30, unlockCost:12000, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
-    {id:'shiba', face:'🐕', art:'./assets/characters/character_shiba.png', gateStage:40, unlockCost:15000, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
-    {id:'charge', face:'🦅', art:'./assets/characters/character_charge.png', gateStage:50, unlockCost:20000, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
+    {id:'turtle', art:'./assets/characters/character_turtle.png', face:'🐢', gateStage:30, unlockCost:12000, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
+    {id:'shiba', art:'./assets/characters/character_shiba.png', face:'🐕', gateStage:40, unlockCost:15000, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
+    {id:'charge', art:'./assets/characters/character_charge.png', face:'🦅', gateStage:50, unlockCost:20000, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
   ];
 
   let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
@@ -2370,7 +2370,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqDetailBack{width:44px;height:44px;border:2px solid #d39a55;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000;box-shadow:0 3px 0 #321a0c}
     #characterScreen .sqDetailTitle{text-align:center;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
     #characterScreen .sqDetailHero{height:285px;margin:12px 14px 0;display:grid;place-items:center;overflow:hidden;border-radius:16px;background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.18))}
-    #characterScreen .sqDetailHero img{width:88%;height:100%;object-fit:contain;display:block}
+    #characterScreen .sqDetailHero img{width:96%;height:106%;object-fit:contain;display:block;transform:translateY(1%)}
     #characterScreen .sqDetailHero .emoji{font-size:126px}
     #characterScreen .sqDetailLevel{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin:10px 14px;padding:10px;border-radius:12px;background:rgba(0,0,0,.28)}
     #characterScreen .sqDetailLevel button,#characterScreen .sqSelectBig{border:0;border-radius:11px;background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;font-weight:1000}
@@ -2417,6 +2417,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqUnlockReq{display:grid;gap:7px;margin-top:13px;text-align:left}.sqUnlockReq div{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.08);font-size:12px;font-weight:900}
     #characterScreen .sqUnlockReq .ok{color:#7ee39a}.sqUnlockReq .no{color:#ffb0a5}
     @media(max-width:390px){#characterScreen .sqHud{grid-template-columns:minmax(92px,1fr) auto auto 38px;gap:3px;left:5px;right:5px}#characterScreen .sqHudRes{font-size:10px!important;padding-inline:5px!important}#characterScreen .sqHudBox{padding:4px 5px!important}}
+    /* character optical-size normalization */
+    #characterScreen .sqCard[data-id="nyang"] .sqArt img{transform:scale(1.08) translateY(3%)}
+    #characterScreen .sqCard[data-id="rabbit"] .sqArt img{transform:scale(1.04) translateY(2%)}
+    #characterScreen .sqCard[data-id="panda"] .sqArt img{transform:scale(1.03) translateY(2%)}
+    #characterScreen .sqCard[data-id="king"] .sqArt img{transform:scale(1.02) translateY(1%)}
+    #characterScreen .sqCard[data-id="turtle"] .sqArt img{transform:scale(.96) translateY(1%)}
+    #characterScreen .sqCard[data-id="shiba"] .sqArt img{transform:scale(1.04) translateY(2%)}
+    #characterScreen .sqCard[data-id="charge"] .sqArt img{transform:scale(.91) translateY(1%)}
     @media(max-width:370px){#characterScreen .sqGrid{gap:6px;padding:7px}#characterScreen .sqCard{min-height:126px}.sqFace{font-size:48px!important}}
   `;
   document.head.appendChild(style);
