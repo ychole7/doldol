@@ -2373,6 +2373,22 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
     #characterScreen .sqBtn.main{background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;box-shadow:0 4px 0 #ad6c18}
     #characterScreen .sqBtn:disabled{filter:grayscale(.8);opacity:.55;box-shadow:none}
+    #characterScreen .sqLevelModal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(10,15,18,.68);backdrop-filter:blur(5px)}
+    #characterScreen .sqLevelModal[hidden]{display:none}
+    #characterScreen .sqLevelCard{width:min(100%,390px);overflow:hidden;border:2px solid #8d5528;border-radius:16px;background:#f7ead0;color:#342417;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+    #characterScreen .sqLevelHead{height:54px;display:grid;grid-template-columns:1fr 44px;align-items:center;padding-left:54px;background:linear-gradient(#a9622f,#75401f);color:#fff;font-size:21px;font-weight:1000;text-align:center}
+    #characterScreen .sqLevelClose{width:38px;height:38px;border:2px solid #d49b5d;border-radius:10px;background:#603417;color:#fff;font-size:23px;font-weight:1000}
+    #characterScreen .sqLevelContent{padding:15px}
+    #characterScreen .sqLevelWho{display:grid;grid-template-columns:70px 1fr;gap:12px;align-items:center}
+    #characterScreen .sqLevelPortrait{width:70px;height:70px;display:grid;place-items:center;overflow:hidden;border:2px solid #d7a24f;border-radius:14px;background:#e9c16e}
+    #characterScreen .sqLevelPortrait img{width:100px;height:88px;max-width:none;object-fit:contain}
+    #characterScreen .sqLevelName{font-size:18px;font-weight:1000}.sqLevelChange{margin-top:7px;font-size:17px;font-weight:1000}.sqLevelChange b{color:#1b9d63}
+    #characterScreen .sqLevelStats{margin-top:13px;padding:9px 12px;border-radius:12px;background:#4b3428;color:#fff}
+    #characterScreen .sqLevelStats .row{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.12)}#characterScreen .sqLevelStats .row:last-child{border-bottom:0}
+    #characterScreen .sqLevelStats em{font-style:normal;color:#58dc8e;font-weight:1000}
+    #characterScreen .sqLevelCost{margin-top:13px;padding:13px;border-radius:12px;background:#fff7e8;text-align:center}.sqLevelCost small{display:block;margin-bottom:7px;font-weight:900}.sqLevelCost strong{font-size:19px}
+    #characterScreen .sqLevelConfirm{width:100%;height:54px;margin-top:13px;border:2px solid #d79725;border-radius:13px;background:linear-gradient(#ffd95a,#ffb72e);color:#3d2a14;font-size:19px;font-weight:1000;box-shadow:0 4px 0 #a96919}
+    #characterScreen .sqLevelConfirm:disabled{filter:grayscale(.7);opacity:.6}
     #characterScreen .sqHud{position:absolute;left:8px;right:8px;top:calc(7px + env(safe-area-inset-top));height:44px;display:grid;grid-template-columns:minmax(108px,1fr) auto auto 42px;gap:5px;z-index:8}
     #characterScreen .sqHudBox{min-width:0;height:42px;display:flex;align-items:center;gap:6px;padding:4px 7px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(18,45,55,.94);box-shadow:0 3px 8px rgba(0,0,0,.28);font-size:11px;font-weight:1000}
     #characterScreen .sqHudFace{width:31px;height:31px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#f3c955;flex:0 0 auto}
@@ -2426,6 +2442,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           <div class="sqDetailBody" id="sqDetailBody"></div>
           <button class="sqSelectBig" id="sqSelectBig">선택하기</button>
         </div>
+        <div class="sqLevelModal" id="sqLevelModal" hidden>
+          <div class="sqLevelCard">
+            <div class="sqLevelHead"><span>레벨업</span><button class="sqLevelClose" id="sqLevelClose">×</button></div>
+            <div class="sqLevelContent">
+              <div class="sqLevelWho"><div class="sqLevelPortrait" id="sqLevelPortrait"></div><div><div class="sqLevelName" id="sqLevelName"></div><div class="sqLevelChange" id="sqLevelChange"></div></div></div>
+              <div class="sqLevelStats" id="sqLevelStats"></div>
+              <div class="sqLevelCost"><small>필요 돌핵</small><strong>🔥 <span id="sqLevelHave"></span> / <span id="sqLevelCost"></span></strong></div>
+              <button class="sqLevelConfirm" id="sqLevelConfirm">레벨업</button>
+            </div>
+          </div>
+        </div>
       </div>`;
     screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
     screen.querySelector('#sqHudSettings').onclick=()=>{
@@ -2433,7 +2460,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(btn) btn.click();
     };
     screen.querySelector('#sqDetailBack').onclick=closeDetail;
-    screen.querySelector('#sqLevelBtn').onclick=()=>{if(window.__duckOpenGrowth)window.__duckOpenGrowth()};
+    screen.querySelector('#sqLevelBtn').onclick=openLevelModal;
+    screen.querySelector('#sqLevelClose').onclick=closeLevelModal;
+    screen.querySelector('#sqLevelModal').onclick=e=>{if(e.target.id==='sqLevelModal')closeLevelModal()};
+    screen.querySelector('#sqLevelConfirm').onclick=doLevelUp;
     screen.querySelector('#sqSelectBig').onclick=()=>{
       const c=current(); if(!unlocked(c.id)) return;
       try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
@@ -2474,6 +2504,40 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       </button>`;
     }).join('');
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
+  }
+
+  function levelCost(level){ return Math.min(5000,200+Math.max(0,Number(level||1)-1)*80); }
+  function scaled(base,level){ return Math.round(Number(base||0)*(1+Math.max(0,Number(level||1)-1)*.04)); }
+  function openLevelModal(){
+    const c=current(),p=progress(c.id),nextLv=Math.min(50,p.level+1),cost=levelCost(p.level);
+    const q=id=>screen.querySelector('#'+id);
+    q('sqLevelPortrait').innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span style="font-size:48px">${c.face}</span>`;
+    q('sqLevelName').textContent=c.name;
+    q('sqLevelChange').innerHTML=p.level>=50?'Lv.50 MAX':`Lv.${p.level}　›　<b>Lv.${nextLv}</b>`;
+    q('sqLevelStats').innerHTML=`<div class="row"><span>⚔ 공격력</span><b>${scaled(c.atk,p.level)}　›　<em>${scaled(c.atk,nextLv)}</em></b></div><div class="row"><span>❤ 체력</span><b>${scaled(c.hp,p.level)}　›　<em>${scaled(c.hp,nextLv)}</em></b></div>`;
+    q('sqLevelHave').textContent=core().toLocaleString(); q('sqLevelCost').textContent=cost.toLocaleString();
+    q('sqLevelConfirm').disabled=p.level>=50||core()<cost;
+    q('sqLevelConfirm').textContent=p.level>=50?'최대 레벨':core()<cost?'돌핵 부족':'레벨업';
+    q('sqLevelModal').hidden=false;
+  }
+  function closeLevelModal(){ const m=screen.querySelector('#sqLevelModal'); if(m)m.hidden=true; }
+  function doLevelUp(){
+    const c=current(),p=progress(c.id); if(p.level>=50)return;
+    const cost=levelCost(p.level); if(core()<cost)return openLevelModal();
+    let paid=false;
+    try{
+      if(window.__duckWallet&&typeof window.__duckWallet.spendCoins==='function') paid=!!window.__duckWallet.spendCoins(cost);
+      else if(window.__duckWallet&&typeof window.__duckWallet.addCoins==='function'){window.__duckWallet.addCoins(-cost);paid=true;}
+      else{const k='doldol_coins_v1',v=Number(localStorage.getItem(k)||0);if(v>=cost){localStorage.setItem(k,String(v-cost));paid=true;}}
+    }catch(e){}
+    if(!paid)return openLevelModal();
+    try{
+      const key='doldol_character_progress_v1',all=JSON.parse(localStorage.getItem(key)||'{}')||{},old=all[c.id]||p;
+      all[c.id]={level:Math.min(50,Number(p.level||1)+1),xp:Number(p.xp||0),next:Number(p.next||50)};
+      localStorage.setItem(key,JSON.stringify(all));
+    }catch(e){}
+    renderHud(); openDetail(); openLevelModal();
+    if(window.__duckSyncLobby)try{window.__duckSyncLobby()}catch(e){}
   }
 
   function renderDetailTab(tab='stats'){
