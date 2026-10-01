@@ -631,8 +631,7 @@ function getEquippedGearStats(){
 window.__duckGearStats=getEquippedGearStats;
 
 function applyGrowthToPlayer(){
-  // Preserve the current battle HP ratio when stats are recalculated.
-  // Re-applying growth after XP/gear changes must not act as a hidden full heal.
+  // Recalculating character/gear stats during combat must never heal the player.
   const hadPlayer=!!player;
   const prevMax=hadPlayer?Math.max(1,Number(player.maxHp)||1):1;
   const prevHp=hadPlayer?Math.max(0,Number(player.hp)||0):prevMax;
@@ -652,7 +651,6 @@ function applyGrowthToPlayer(){
   player.growth=g;
   player.gearStats=gear;
   player.maxHp=Math.max(1,Math.round(g.hp*(m.hp||1)*hpMul + gear.hp));
-  // A fresh run starts full; an in-battle recalculation keeps the HP ratio.
   player.hp=(hadPlayer && running)?Math.max(0,Math.min(player.maxHp,Math.round(player.maxHp*prevHpRatio))):player.maxHp;
   player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)*levelMul + gear.atk));
   player.defense=Math.max(0,Math.round(gear.def));
@@ -1334,11 +1332,7 @@ function update(dt){
         updateGearDebugHud('피격 18 → DEF '+Math.round(player.defense||0)+' 적용 → '+incomingDamage);
         player.hp=Math.max(0,(Number(player.hp)||0)-incomingDamage);player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
-        if(player.hp<=0){
-          player.hp=0;
-          running=false;gate=false;message='GAME OVER';messageTimer=999;
-          try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}
-        }
+        if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
         r.life=0;
       }
     }
@@ -1378,7 +1372,6 @@ function update(dt){
           levelFlash=1.15;
           message='';
           messageTimer=0;
-          // Level-up no longer restores HP; death pressure must remain meaningful.
           // V47: 레벨업은 전투를 멈추거나 선택창을 띄우지 않는다.
           // 기존 자동 성장(레벨에 따른 공격 템포/HP 회복)은 유지하고,
           // 전투 화면에는 짧은 LEVEL UP 안내만 표시한다.
@@ -1413,6 +1406,27 @@ function update(dt){
 
   for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;p.life-=dt;}
   particles=particles.filter(p=>p.life>0);
+
+  // Authoritative death resolution. HP <= 0 is terminal even if a hit/animation path missed its local flag.
+  for(const e of enemies){
+    if(!e.dead && Number(e.hp)<=0){
+      e.hp=0;
+      e.dead=true;
+      kills++;
+      if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
+      feedbackV1('kill');
+      if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; }
+      burst(e.x,e.y,e.type==='boss'?54:18);
+      combatImpactFx(e,1,true);
+      pickups.push({x:e.x,y:e.y,type:Math.random()<.72?'coin':'xp',life:8,bob:Math.random()*6.28});
+      spawnFarmDropV2(e.x,e.y);
+      message='격파!'; messageTimer=.28;
+    }
+  }
+  if(running && player && Number(player.hp)<=0){
+    player.hp=0; running=false; gate=false; message='GAME OVER'; messageTimer=999;
+    try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}
+  }
 
   enemies=enemies.filter(e=>!e.dead);
 
