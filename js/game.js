@@ -607,10 +607,29 @@ function getGrowthStats(){
     return {atk:25,speed:1.2,hp:120,parry:20};
   }
 }
+function getEquippedGearStats(){
+  const defs={
+    rifle:{slot:'weapon',atk:24},sniper:{slot:'weapon',atk:34},machine:{slot:'weapon',atk:28},rocket:{slot:'weapon',atk:42},
+    helmet:{slot:'armor',def:18},vest:{slot:'armor',hp:35},heavy:{slot:'armor',def:30},light:{slot:'armor',def:22,hp:18},
+    gloves:{slot:'support',special:8},boots:{slot:'support',special:10},scope:{slot:'support',atk:14,special:6},pack:{slot:'support',hp:24,special:5}
+  };
+  let loadout={weapon:'rifle',armor:'helmet',support:'gloves'};
+  try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem('doldol_gear_loadout_v1')||'{}'));}catch(e){}
+  const out={atk:0,def:0,hp:0,special:0,loadout:Object.assign({},loadout)};
+  ['weapon','armor','support'].forEach(slot=>{
+    const item=defs[loadout[slot]];
+    if(!item||item.slot!==slot)return;
+    out.atk+=Number(item.atk)||0; out.def+=Number(item.def)||0;
+    out.hp+=Number(item.hp)||0; out.special+=Number(item.special)||0;
+  });
+  return out;
+}
+window.__duckGearStats=getEquippedGearStats;
 function applyGrowthToPlayer(){
   const g=getGrowthStats();
   const c=getSelectedCharacter();
   const cp=getCharacterProgress(c.id);
+  const gear=getEquippedGearStats();
   const levelMul=1+Math.min(0.35,(cp.level-1)*0.012);
   const hpMul=1+Math.min(0.30,(cp.level-1)*0.010);
   const m=c.mods||{};
@@ -620,12 +639,14 @@ function applyGrowthToPlayer(){
   player.characterFace=c.face;
   player.characterMods=m;
   player.growth=g;
-  player.maxHp=Math.round(g.hp*(m.hp||1)*hpMul);
+  player.gearStats=gear;
+  player.maxHp=Math.max(1,Math.round(g.hp*(m.hp||1)*hpMul + gear.hp));
   player.hp=player.maxHp;
-  player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)*levelMul));
+  player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)*levelMul + gear.atk));
+  player.defense=Math.max(0,Math.round(gear.def));
   const effectiveSpeed=Math.max(.35,g.speed*(m.speed||1));
   player.attackInterval=Math.max(.24,1/effectiveSpeed);
-  player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1);
+  player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1) + gear.special;
   player.speed=325*(m.move||1);
   player.perfectMultiplier=m.perfect||1;
 }
@@ -1295,7 +1316,8 @@ function update(dt){
         messageTimer=.38;
         r.life=0;
       }else{
-        player.hp-=18;player.inv=.55;burst(player.x,player.y,14);
+        const incomingDamage=Math.max(1,Math.round(18*(100/(100+Math.max(0,Number(player.defense)||0)))));
+        player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
         if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
         r.life=0;
