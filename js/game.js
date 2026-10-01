@@ -2374,13 +2374,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqDetailBody .skillBox{padding:10px;border-radius:10px;background:#f4ead6;color:#4a3421}
     #characterScreen .sqDetailBody .skillBox p{margin:5px 0 0;font-size:11px;line-height:1.45}
     #characterScreen .sqSelectBig{width:calc(100% - 28px);min-height:50px;margin:10px 14px 0;font-size:15px}
-    #characterScreen .sqHeroActions{display:flex;gap:7px}.sqSkinBtn{min-width:62px;height:48px;border:0;border-radius:13px;background:#4b3425;color:#fff;font-weight:1000}.sqLevelBtn{height:48px}
-    #characterScreen .sqSkinPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;z-index:12;padding:0 8px 20px;background:linear-gradient(rgba(29,22,13,.10),rgba(29,22,13,.30));overflow:auto}
-    #characterScreen .sqSkinPage[hidden]{display:none!important}
-    #characterScreen .sqSkinHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;margin-bottom:8px}.sqSkinHead button{width:44px;height:44px;border:2px solid #b67834;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000}.sqSkinHead b{text-align:center;font-size:23px;text-shadow:0 2px 2px #3a1d0b}
-    #characterScreen .sqSkinHero{height:430px;display:grid;place-items:center;overflow:hidden}.sqSkinHero img{width:145%;height:145%;object-fit:contain;max-width:none}.sqSkinHero .emoji{font-size:190px}
-    #characterScreen .sqSkinName{text-align:center;font-size:19px;font-weight:1000}.sqSkinState{width:max-content;margin:8px auto 14px;padding:7px 16px;border-radius:99px;background:rgba(25,77,42,.9);color:#8df0a8;font-weight:1000;font-size:13px}
-    #characterScreen .sqSkinRail{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:9px;border-radius:15px;background:rgba(38,27,20,.72)}.sqSkinCard{position:relative;min-height:104px;border:2px solid #806142;border-radius:12px;background:rgba(37,31,28,.9);color:#fff;padding:5px}.sqSkinCard.on{border-color:#ffd45a;box-shadow:0 0 0 2px rgba(255,212,90,.2)}.sqSkinThumb{height:65px;display:grid;place-items:center;overflow:hidden;border-radius:8px;background:rgba(255,255,255,.06)}.sqSkinThumb img{width:86px;height:78px;object-fit:contain;max-width:none}.sqSkinThumb span{font-size:42px}.sqSkinCard b{display:block;text-align:center;margin-top:5px;font-size:10px}.sqSkinLock{position:absolute;inset:0;display:grid;place-items:center;border-radius:10px;background:rgba(10,12,13,.63);font-size:22px}
     #characterScreen .sqLevelModal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(8,13,15,.72);backdrop-filter:blur(7px)}
     #characterScreen .sqLevelModal[hidden]{display:none!important}
     #characterScreen .sqLevelPanel{width:min(100%,390px);overflow:hidden;border:2px solid #b9793d;border-radius:20px;background:#f5e7c7;color:#382719;box-shadow:0 18px 48px rgba(0,0,0,.48)}
@@ -2450,13 +2443,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           <div class="sqDetailBody" id="sqDetailBody"></div>
           <button class="sqSelectBig" id="sqSelectBig">선택하기</button>
         </div>
-        <div class="sqSkinPage" id="sqSkinPage" hidden>
-          <div class="sqSkinHead"><button id="sqSkinBack">‹</button><b>스킨</b><span></span></div>
-          <div class="sqSkinHero" id="sqSkinHero"></div>
-          <div class="sqSkinName" id="sqSkinName"></div>
-          <div class="sqSkinState" id="sqSkinState"></div>
-          <div class="sqSkinRail" id="sqSkinRail"></div>
-        </div>
         <div class="sqLevelModal" id="sqLevelModal" hidden>
           <div class="sqLevelPanel">
             <div class="sqLevelHead"><span></span><b>레벨업</b><button class="sqLevelClose" id="sqLevelClose">×</button></div>
@@ -2475,8 +2461,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(btn) btn.click();
     };
     screen.querySelector('#sqDetailBack').onclick=closeDetail;
-    screen.querySelector('#sqSkinBtn').onclick=openSkinPage;
-    screen.querySelector('#sqSkinBack').onclick=closeSkinPage;
     screen.querySelector('#sqLevelBtn').onclick=openLevelModal;
     screen.querySelector('#sqLevelClose').onclick=()=>screen.querySelector('#sqLevelModal').hidden=true;
     screen.querySelector('#sqLevelModal').onclick=e=>{if(e.target.id==='sqLevelModal')e.currentTarget.hidden=true};
@@ -2520,33 +2504,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       </button>`;
     }).join('');
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
-  }
-
-  function skinKey(id){return 'doldol_skin_'+id}
-  function getSkin(id){try{return localStorage.getItem(skinKey(id))||'basic'}catch(e){return 'basic'}}
-  function openSkinPage(){
-    const c=current(), page=screen.querySelector('#sqSkinPage'); if(!page)return;
-    screen.querySelector('#sqDetailPage').hidden=true;
-    page.hidden=false;
-    const active=getSkin(c.id);
-    screen.querySelector('#sqSkinHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
-    const names={basic:'기본',pilot:'파일럿',special:'특공대',space:'우주복'};
-    screen.querySelector('#sqSkinName').textContent=(names[active]||'기본')+' 스킨';
-    screen.querySelector('#sqSkinState').textContent='✓ 장착중';
-    const skins=[
-      {id:'basic',name:'기본',owned:true},
-      {id:'pilot',name:'파일럿',owned:false},
-      {id:'special',name:'특공대',owned:false},
-      {id:'space',name:'우주복',owned:false}
-    ];
-    const rail=screen.querySelector('#sqSkinRail');
-    rail.innerHTML=skins.map(x=>`<button class="sqSkinCard ${x.id===active?'on':''}" data-skin="${x.id}" ${x.owned?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`}</span><b>${x.name}</b>${x.owned?'':'<span class="sqSkinLock">🔒</span>'}</button>`).join('');
-    rail.querySelectorAll('.sqSkinCard:not([disabled])').forEach(b=>b.onclick=()=>{try{localStorage.setItem(skinKey(c.id),b.dataset.skin)}catch(e){}openSkinPage()});
-  }
-  function closeSkinPage(){
-    screen.querySelector('#sqSkinPage').hidden=true;
-    screen.querySelector('#sqDetailPage').hidden=false;
-    openDetail();
   }
 
   function levelStats(c,level){
@@ -2619,7 +2576,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function openDetail(){
     const c=current(),p=progress(c.id),lock=!unlocked(c.id);
-    const skinPage=screen.querySelector('#sqSkinPage'); if(skinPage)skinPage.hidden=true;
     screen.querySelector('.sqTop').style.display='none';
     screen.querySelector('.sqTabs').style.display='none';
     screen.querySelector('#charGrid').style.display='none';
