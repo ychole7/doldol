@@ -2351,6 +2351,21 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
     #characterScreen .sqDetailPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;border:0;border-radius:0;overflow:auto}
     #characterScreen .sqDetailPage[hidden]{display:none!important}
+    #characterScreen .sqDetailBtns{display:flex;gap:6px}
+    #characterScreen .sqSkinPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;overflow:auto}
+    #characterScreen .sqSkinPage[hidden]{display:none!important}
+    #characterScreen .sqSkinHero{height:430px;margin:8px 14px 0;display:grid;place-items:center;overflow:hidden}
+    #characterScreen .sqSkinHero img{width:96%;height:100%;object-fit:contain}
+    #characterScreen .sqSkinHero .emoji{font-size:170px}
+    #characterScreen .sqSkinLabel{text-align:center;font-size:18px;font-weight:1000}
+    #characterScreen .sqSkinEquipped{width:max-content;margin:8px auto 14px;padding:7px 16px;border-radius:99px;background:#246f3d;color:#a7f2ba;font-size:12px;font-weight:1000}
+    #characterScreen .sqSkinRail{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 14px;padding:9px;border-radius:14px;background:rgba(0,0,0,.35)}
+    #characterScreen .sqSkinCard{position:relative;min-height:105px;padding:5px;border:2px solid #806142;border-radius:11px;background:rgba(45,35,29,.92);color:#fff}
+    #characterScreen .sqSkinCard.on{border-color:#ffd45a}
+    #characterScreen .sqSkinThumb{height:68px;display:grid;place-items:center;overflow:hidden}
+    #characterScreen .sqSkinThumb img{width:82px;height:76px;object-fit:contain}
+    #characterScreen .sqSkinCard b{display:block;margin-top:5px;font-size:10px}
+    #characterScreen .sqSkinLock{position:absolute;inset:0;display:grid;place-items:center;border-radius:9px;background:rgba(9,11,12,.66);font-size:23px}
     #characterScreen .sqDetailHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;margin-bottom:8px}
     #characterScreen .sqDetailBack{width:44px;height:44px;border:2px solid #d39a55;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000;box-shadow:0 3px 0 #321a0c}
     #characterScreen .sqDetailTitle{text-align:center;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
@@ -2438,10 +2453,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         <div class="sqDetailPage" id="sqDetailPage" hidden>
           <div class="sqDetailHead"><button class="sqDetailBack" id="sqDetailBack">‹</button><div class="sqDetailTitle" id="sqDetailTitle"></div></div>
           <div class="sqDetailHero" id="sqDetailHero"></div>
-          <div class="sqDetailLevel"><b id="sqDetailLv"></b><div class="sqXp"><i id="sqDetailXp"></i></div><button id="sqLevelBtn">레벨업</button></div>
+          <div class="sqDetailLevel"><b id="sqDetailLv"></b><div class="sqXp"><i id="sqDetailXp"></i></div><div class="sqDetailBtns"><button id="sqSkinBtn">스킨</button><button id="sqLevelBtn">레벨업</button></div></div>
           <div class="sqDetailTabs"><button class="on">능력치</button><button>스킬</button><button>스토리</button></div>
           <div class="sqDetailBody" id="sqDetailBody"></div>
           <button class="sqSelectBig" id="sqSelectBig">선택하기</button>
+        </div>
+        <div class="sqSkinPage" id="sqSkinPage" hidden>
+          <div class="sqDetailHead"><button class="sqDetailBack" id="sqSkinBack">‹</button><div class="sqDetailTitle">스킨</div></div>
+          <div class="sqSkinHero" id="sqSkinHero"></div>
+          <div class="sqSkinLabel" id="sqSkinLabel">기본 스킨</div>
+          <div class="sqSkinEquipped">✓ 장착중</div>
+          <div class="sqSkinRail" id="sqSkinRail"></div>
         </div>
         <div class="sqLevelModal" id="sqLevelModal" hidden>
           <div class="sqLevelPanel">
@@ -2461,6 +2483,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(btn) btn.click();
     };
     screen.querySelector('#sqDetailBack').onclick=closeDetail;
+    screen.querySelector('#sqSkinBtn').onclick=openSkinPage;
+    screen.querySelector('#sqSkinBack').onclick=closeSkinPage;
     screen.querySelector('#sqLevelBtn').onclick=openLevelModal;
     screen.querySelector('#sqLevelClose').onclick=()=>screen.querySelector('#sqLevelModal').hidden=true;
     screen.querySelector('#sqLevelModal').onclick=e=>{if(e.target.id==='sqLevelModal')e.currentTarget.hidden=true};
@@ -2504,6 +2528,19 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       </button>`;
     }).join('');
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
+  }
+
+  function openSkinPage(){
+    const c=current(),page=screen.querySelector('#sqSkinPage'); if(!page)return;
+    screen.querySelector('#sqDetailPage').hidden=true; page.hidden=false;
+    screen.querySelector('#sqSkinHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
+    screen.querySelector('#sqSkinLabel').textContent='기본 스킨';
+    const skins=[['기본',true],['파일럿',false],['특공대',false],['우주복',false]];
+    screen.querySelector('#sqSkinRail').innerHTML=skins.map((x,i)=>`<button class="sqSkinCard ${i===0?'on':''}" ${x[1]?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:c.face}</span><b>${x[0]}</b>${x[1]?'':'<span class="sqSkinLock">🔒</span>'}</button>`).join('');
+  }
+  function closeSkinPage(){
+    screen.querySelector('#sqSkinPage').hidden=true;
+    screen.querySelector('#sqDetailPage').hidden=false;
   }
 
   function levelStats(c,level){
