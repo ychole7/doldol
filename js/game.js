@@ -3232,11 +3232,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.getElementById('gearDetailV1Style')){
     const gs=document.createElement('style'); gs.id='gearDetailV1Style'; gs.textContent=`
       .gearV1Card strong u{font-size:9px;text-decoration:none;color:#ffd866;margin-left:4px}
-      .gearDetailV1{padding:2px 0 14px}.gearDetailBack{border:0;background:none;color:#dfe9e6;font-weight:900;padding:5px 2px 12px;font-size:12px}
-      .gearDetailHero{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;padding:15px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,216,102,.18)}
-      .gearDetailHero img{width:108px;height:108px;object-fit:contain}.gearDetailHero small{font-size:10px;color:#ffd866;font-weight:900}.gearDetailHero h3{margin:3px 0 2px;font-size:21px}.gearDetailHero p{margin:0 0 8px;font-size:11px;opacity:.65}.gearDetailHero b{color:#ffd866}
-      .gearDetailStats{margin:11px 0;padding:13px 15px;border-radius:16px;background:rgba(0,0,0,.16);display:grid;gap:5px}.gearDetailStats small{opacity:.55}.gearDetailStats strong{font-size:14px}.gearDetailStats em{font-style:normal;color:#79e6a1;font-size:11px;font-weight:900}
-      .gearDetailEquip,.gearDetailUpgrade{width:100%;border:0;border-radius:14px;padding:13px;font-weight:1000;margin-top:7px}.gearDetailEquip{background:#355c67;color:#fff}.gearDetailUpgrade{background:#ffd866;color:#30220b}.gearDetailUpgrade:disabled{background:rgba(255,255,255,.09);color:#7f8992}.gearDetailNeed{text-align:center;color:#ff9f9f;font-size:10px;font-weight:900;margin-top:7px}
+      .gearDetailShell{position:fixed!important;inset:0!important;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;border-radius:0!important;box-sizing:border-box!important;overflow:auto!important}
+      .gearDetailV1{max-width:560px;margin:0 auto;padding:8px 16px 28px;min-height:calc(100vh - 92px);box-sizing:border-box}
+      .gearDetailBack{width:46px;height:46px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(0,0,0,.18);color:#fff;font-weight:1000;font-size:30px;line-height:1;padding:0;margin:0 0 14px;text-align:center}
+      .gearDetailHero{display:grid;grid-template-columns:minmax(150px,42%) 1fr;gap:18px;align-items:center;min-height:230px;padding:22px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid rgba(255,216,102,.24)}
+      .gearDetailHero img{width:100%;height:190px;object-fit:contain;filter:drop-shadow(0 10px 10px rgba(0,0,0,.22))}.gearDetailHero small{font-size:11px;color:#ffd866;font-weight:900}.gearDetailHero h3{margin:5px 0 3px;font-size:25px}.gearDetailHero p{margin:0 0 12px;font-size:12px;opacity:.68}.gearDetailHero b{color:#ffd866;font-size:17px}
+      .gearDetailStats{margin:14px 0;padding:18px;border-radius:18px;background:rgba(0,0,0,.18);display:grid;gap:7px}.gearDetailStats small{opacity:.58;font-size:11px}.gearDetailStats strong{font-size:18px}.gearDetailStats em{font-style:normal;color:#79e6a1;font-size:13px;font-weight:900}
+      .gearDetailActions{display:grid;gap:10px;margin-top:12px}.gearDetailEquip,.gearDetailUpgrade{width:100%;min-height:54px;border:0;border-radius:15px;padding:14px;font-size:15px;font-weight:1000}.gearDetailEquip{background:#355c67;color:#fff}.gearDetailUpgrade{background:#ffd866;color:#30220b;box-shadow:0 4px 0 rgba(112,73,18,.5)}.gearDetailUpgrade:disabled{background:rgba(255,255,255,.09);color:#7f8992;box-shadow:none}.gearDetailNeed{text-align:center;color:#ff9f9f;font-size:11px;font-weight:900;margin-top:9px}
+      @media(max-width:430px){.gearDetailV1{padding:6px 14px 24px}.gearDetailHero{grid-template-columns:43% 1fr;min-height:205px;padding:16px;gap:12px}.gearDetailHero img{height:165px}.gearDetailHero h3{font-size:22px}}
     `; document.head.appendChild(gs);
   }
 
@@ -3283,12 +3286,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const lv=gearLevel(id), max=lv>=MAX_GEAR_LEVEL, next=Math.min(MAX_GEAR_LEVEL,lv+1), cost=upgradeCost(id);
       const core=window.__duckWallet?window.__duckWallet.coins:0;
       menuTitle.textContent='장비 상세';
+      if(menuBody.parentElement)menuBody.parentElement.classList.add('gearDetailShell');
+      const activeClose=document.getElementById('menuClose'); if(activeClose)activeClose.style.display='none';
       menuBody.innerHTML='<div class="gearDetailV1">'+
-        '<button type="button" id="gearDetailBack" class="gearDetailBack">‹ 장비 목록</button>'+
+        '<button type="button" id="gearDetailBack" class="gearDetailBack" aria-label="장비 목록으로 돌아가기">‹</button>'+
         '<div class="gearDetailHero"><img src="'+g.art+'" alt="'+g.name+'"><div><small>'+g.rarity+' · '+slotName[g.slot]+'</small><h3>'+g.name+'</h3><p>'+g.role+'</p><b>Lv.'+lv+' / '+MAX_GEAR_LEVEL+'</b></div></div>'+
         '<div class="gearDetailStats"><small>현재 능력치</small><strong>'+statText(g)+'</strong>'+(max?'':'<em>강화 후 · '+statText(g,next)+'</em>')+'</div>'+
-        '<button type="button" id="gearEquipBtn" class="gearDetailEquip">'+(loadout[g.slot]===g.id?'✓ 장착중':'장착하기')+'</button>'+
-        '<button type="button" id="gearUpgradeBtn" class="gearDetailUpgrade" '+(max||core<cost?'disabled':'')+'>'+(max?'MAX 강화':'강화하기 · 돌핵 '+cost.toLocaleString())+'</button>'+
+        '<div class="gearDetailActions"><button type="button" id="gearEquipBtn" class="gearDetailEquip">'+(loadout[g.slot]===g.id?'✓ 장착중':'장착하기')+'</button>'+
+        '<button type="button" id="gearUpgradeBtn" class="gearDetailUpgrade" '+(max||core<cost?'disabled':'')+'>'+(max?'MAX 강화':'강화하기 · 돌핵 '+cost.toLocaleString())+'</button></div>'+
         (!max&&core<cost?'<div class="gearDetailNeed">돌핵이 부족합니다 · 보유 '+Number(core).toLocaleString()+'</div>':'')+'</div>';
       menuBody.querySelector('#gearDetailBack').onclick=()=>render(backFilter);
       menuBody.querySelector('#gearEquipBtn').onclick=()=>{loadout[g.slot]=g.id;save();renderDetail(id,backFilter);};
@@ -3303,6 +3308,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
     function render(filter='all'){
+      if(menuBody.parentElement)menuBody.parentElement.classList.remove('gearDetailShell');
+      const activeClose=document.getElementById('menuClose'); if(activeClose)activeClose.style.display='';
       menuTitle.textContent='장비';
       const slots=['weapon','armor','support'].map(slot=>{
         const g=equipped(slot);
