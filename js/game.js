@@ -2293,14 +2293,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!screen) return;
 
   const uiRoster=[
-    {id:'doldol', face:'🐥', art:'./assets/home_chars/home_char_doldol.png', gateStage:1, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
-    {id:'nyang', face:'🐱', art:'./assets/home_chars/home_char_cat.png', gateStage:10, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
-    {id:'rabbit', face:'🐰', art:'./assets/home_chars/home_char_rabbit.png', gateStage:15, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
-    {id:'panda', face:'🐼', art:'./assets/home_chars/home_char_panda.png', gateStage:20, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
-    {id:'king', face:'🥷', art:'./assets/home_chars/home_char_ninja.png', gateStage:20, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
-    {id:'turtle', face:'🐢', gateStage:30, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
-    {id:'shiba', face:'🐕', gateStage:40, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
-    {id:'charge', face:'🦅', gateStage:50, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
+    {id:'doldol', face:'🐥', art:'./assets/home_chars/home_char_doldol.png', gateStage:1, unlockCost:0, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
+    {id:'nyang', face:'🐱', art:'./assets/home_chars/home_char_cat.png', gateStage:10, unlockCost:3000, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
+    {id:'rabbit', face:'🐰', art:'./assets/home_chars/home_char_rabbit.png', gateStage:15, unlockCost:5000, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
+    {id:'panda', face:'🐼', art:'./assets/home_chars/home_char_panda.png', gateStage:20, unlockCost:7000, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
+    {id:'king', face:'🥷', art:'./assets/home_chars/home_char_ninja.png', gateStage:20, unlockCost:10000, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
+    {id:'turtle', face:'🐢', gateStage:30, unlockCost:12000, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
+    {id:'shiba', face:'🐕', gateStage:40, unlockCost:15000, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
+    {id:'charge', face:'🦅', gateStage:50, unlockCost:20000, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
   ];
 
   let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
@@ -2412,6 +2412,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqHudWho{min-width:0;line-height:1.05}#characterScreen .sqHudWho b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#characterScreen .sqHudWho small{display:block;margin-top:3px;color:#d7e5e9}
     #characterScreen .sqHudRes{white-space:nowrap;padding-inline:8px}#characterScreen .sqHudRes i{font-style:normal;font-size:17px}#characterScreen .sqHudPlus{display:grid;place-items:center;width:17px;height:17px;margin-left:1px;border-radius:50%;background:#28b8ef;color:white;font-size:14px}
     #characterScreen .sqHudSettings{height:42px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(31,44,48,.94);color:#fff;font-size:21px}
+    #characterScreen .sqUnlockBody{margin:10px 14px 0;padding:16px;border-radius:14px;background:rgba(22,25,27,.82);text-align:center}
+    #characterScreen .sqUnlockBody h3{margin:0 0 5px;font-size:18px}.sqUnlockBody p{margin:0;color:#e8dfd2;font-size:12px;line-height:1.55}
+    #characterScreen .sqUnlockReq{display:grid;gap:7px;margin-top:13px;text-align:left}.sqUnlockReq div{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.08);font-size:12px;font-weight:900}
+    #characterScreen .sqUnlockReq .ok{color:#7ee39a}.sqUnlockReq .no{color:#ffb0a5}
     @media(max-width:390px){#characterScreen .sqHud{grid-template-columns:minmax(92px,1fr) auto auto 38px;gap:3px;left:5px;right:5px}#characterScreen .sqHudRes{font-size:10px!important;padding-inline:5px!important}#characterScreen .sqHudBox{padding:4px 5px!important}}
     @media(max-width:370px){#characterScreen .sqGrid{gap:6px;padding:7px}#characterScreen .sqCard{min-height:126px}.sqFace{font-size:48px!important}}
   `;
@@ -2419,17 +2423,28 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
-  function unlocked(id){
+  function clearedStage(){
+    try{return Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)}catch(e){return 1}
+  }
+  function owned(id){
     const c=uiRoster.find(x=>x.id===id);
     if(!c || id==='doldol') return true;
-
-    // 이미 성장 기록이 있는 캐릭터는 기존 보유 캐릭터로 유지한다.
     const p=progress(id);
     if(Number(p.level||1)>1 || Number(p.xp||0)>0) return true;
-
-    let stage=1;
-    try{ stage=Number(localStorage.getItem('doldol_unlocked_stage_v1')||1); }catch(e){}
-    return stage>=Number(c.gateStage||999);
+    try{
+      if((localStorage.getItem('doldol_character_v1')||'doldol')===id) return true;
+      const list=JSON.parse(localStorage.getItem('doldol_character_owned_v1')||'[]');
+      return Array.isArray(list)&&list.includes(id);
+    }catch(e){return false}
+  }
+  function canUnlock(c){ return clearedStage()>=Number(c.gateStage||999); }
+  function markOwned(id){
+    try{
+      const list=JSON.parse(localStorage.getItem('doldol_character_owned_v1')||'[]');
+      const next=Array.isArray(list)?list:[];
+      if(!next.includes(id))next.push(id);
+      localStorage.setItem('doldol_character_owned_v1',JSON.stringify(next));
+    }catch(e){}
   }
   function current(){return uiRoster.find(c=>c.id===selectedId)||uiRoster[0]}
 
@@ -2489,7 +2504,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.querySelector('#sqLevelClose').onclick=()=>screen.querySelector('#sqLevelModal').hidden=true;
     screen.querySelector('#sqLevelModal').onclick=e=>{if(e.target.id==='sqLevelModal')e.currentTarget.hidden=true};
     screen.querySelector('#sqSelectBig').onclick=()=>{
-      const c=current(); if(!unlocked(c.id)) return;
+      const c=current(); if(!owned(c.id)) return;
       try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
       renderHud();
       openDetail();
@@ -2520,7 +2535,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const grid=screen.querySelector('#charGrid'); if(!grid)return;
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
     grid.innerHTML=uiRoster.filter(filter).map(c=>{
-      const p=progress(c.id), lock=!unlocked(c.id);
+      const p=progress(c.id), lock=!owned(c.id);
       return `<button class="sqCard ${c.id===selectedId?'selected':''} ${lock?'locked':''}" data-id="${c.id}">
         ${c.id===active?'<span class="sqSelected">선택중</span>':''}
         <span class="sqFace">${c.art?`<img src="${c.art}" alt="${c.name}">`:c.face}</span><span class="sqName">${c.name}</span><span class="sqRole">${c.role}</span><span class="sqLv">Lv.${p.level}</span>
@@ -2612,19 +2627,36 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
   }
   function openDetail(){
-    const c=current(),p=progress(c.id),lock=!unlocked(c.id);
+    const c=current(),p=progress(c.id),isOwned=owned(c.id);
     screen.querySelector('.sqTop').style.display='none';
     screen.querySelector('.sqTabs').style.display='none';
     screen.querySelector('#charGrid').style.display='none';
     screen.querySelector('#sqDetailPage').hidden=false;
     screen.querySelector('#sqDetailTitle').textContent=c.name;
-    screen.querySelector('#sqDetailHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
+    screen.querySelector('#sqDetailHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}" style="${isOwned?'':'filter:grayscale(1);opacity:.72'}">`:`<span class="emoji" style="${isOwned?'':'filter:grayscale(1);opacity:.72'}">${c.face}</span>`;
     screen.querySelector('#sqDetailLv').textContent='Lv.'+p.level;
     screen.querySelector('#sqDetailXp').style.width=Math.max(0,Math.min(100,(p.xp/Math.max(1,p.next))*100))+'%';
+    const tabs=screen.querySelector('.sqDetailTabs'), level=screen.querySelector('.sqDetailLevel'), body=screen.querySelector('#sqDetailBody');
+    const skin=screen.querySelector('#sqSkinBtn'), levelBtn=screen.querySelector('#sqLevelBtn');
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
-    const btn=screen.querySelector('#sqSelectBig'); btn.disabled=lock||active===c.id;
-    btn.textContent=lock?'🔒 '+c.gate:active===c.id?'선택중':'선택하기';
-    renderDetailTab('stats');
+    const btn=screen.querySelector('#sqSelectBig');
+    if(isOwned){
+      tabs.style.display='grid'; level.style.display='grid'; skin.style.display=''; levelBtn.style.display='';
+      btn.disabled=active===c.id; btn.textContent=active===c.id?'선택중':'선택하기';
+      btn.onclick=()=>{try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){} renderHud();openDetail();if(window.__duckSyncLobby)window.__duckSyncLobby();};
+      renderDetailTab('stats');
+    }else{
+      tabs.style.display='none'; level.style.display='none';
+      const stageOk=canUnlock(c), moneyOk=core()>=Number(c.unlockCost||0);
+      body.innerHTML=`<div class="sqUnlockBody"><h3>🔒 미보유 특공대</h3><p>${c.role} · ${c.skill}</p><div class="sqUnlockReq"><div class="${stageOk?'ok':'no'}">${stageOk?'✓':'🔒'} STAGE ${c.gateStage} ${stageOk?'달성':'클리어 필요'}</div><div class="${moneyOk?'ok':'no'}">${moneyOk?'✓':'🔥'} 필요 돌핵 ${(c.unlockCost||0).toLocaleString()} · 보유 ${core().toLocaleString()}</div></div></div>`;
+      btn.disabled=!(stageOk&&moneyOk);
+      btn.textContent=!stageOk?`STAGE ${c.gateStage} 클리어 필요`:!moneyOk?'돌핵 부족':`해금하기 🔥 ${(c.unlockCost||0).toLocaleString()}`;
+      btn.onclick=()=>{
+        if(!canUnlock(c)||core()<Number(c.unlockCost||0))return;
+        if(!window.__duckWallet||!window.__duckWallet.spendCoins(Number(c.unlockCost||0)))return;
+        markOwned(c.id); renderHud(); renderGrid(); openDetail(); if(window.__duckSyncLobby)window.__duckSyncLobby();
+      };
+    }
   }
   function closeDetail(){
     screen.querySelector('#sqDetailPage').hidden=true;
