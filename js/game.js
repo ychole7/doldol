@@ -3225,6 +3225,25 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));}catch(e){}};
     window.__duckGearLoadout=()=>Object.assign({},loadout);
 
+    let gearScreen=document.getElementById('gearScreenV2');
+    if(!gearScreen){
+      gearScreen=document.createElement('section');
+      gearScreen.id='gearScreenV2';
+      document.body.appendChild(gearScreen);
+    }
+    function selectedCharacter(){
+      const id=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+      const defs=[
+        ['doldol','돌돌이','./assets/characters/character_doldol.png'],['nyang','냥특공','./assets/characters/character_nyang.png'],
+        ['rabbit','토끼특공','./assets/characters/character_rabbit.png'],['panda','판다특공','./assets/characters/character_panda.png'],
+        ['king','그림자특공','./assets/characters/character_shadow.png'],['turtle','거북특공','./assets/characters/character_turtle.png'],
+        ['shiba','시바특공','./assets/characters/character_shiba.png'],['charge','돌격특공','./assets/characters/character_charge.png']
+      ];
+      const x=defs.find(v=>v[0]===id)||defs[0];
+      const pr=window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1};
+      return {id:x[0],name:x[1],art:x[2],level:Number(pr&&pr.level||1)};
+    }
+    function gems(){try{for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){const v=localStorage.getItem(k);if(v!==null)return Number(v)||0;}}catch(e){}return 0;}
     function statText(g){
       const a=[]; if(g.atk)a.push('공격 +'+g.atk); if(g.def)a.push('방어 +'+g.def);
       if(g.hp)a.push('체력 +'+g.hp); if(g.special)a.push('특수 +'+g.special);
@@ -3232,35 +3251,33 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
     function render(filter='all'){
-      menuTitle.textContent='장비';
+      const ch=selectedCharacter();
       const slots=['weapon','armor','support'].map(slot=>{
         const g=equipped(slot);
-        return '<button type="button" class="gearV1Slot" data-gear-slot="'+slot+'"><small>'+slotName[slot]+'</small><span>'+(g?g.icon:'＋')+'</span><b>'+(g?g.name:'미장착')+'</b><em>'+(g?statText(g):'장비를 선택하세요')+'</em></button>';
+        return '<button type="button" class="gearV2Slot" data-gear-slot="'+slot+'"><small>'+slotName[slot]+'</small><span>'+(g?g.icon:'＋')+'</span><b>'+(g?g.name:'미장착')+'</b><em>'+(g?statText(g):'장비를 선택하세요')+'</em></button>';
       }).join('');
       const list=gearDefs.filter(g=>filter==='all'||g.slot===filter).map(g=>{
         const on=loadout[g.slot]===g.id;
-        return '<button type="button" class="gearV1Card '+(on?'equipped':'')+'" data-gear-id="'+g.id+'">'+
+        return '<button type="button" class="gearV2Card '+(on?'equipped':'')+'" data-gear-id="'+g.id+'">'+
           '<i>'+g.icon+'</i><span><strong>'+g.name+'</strong><small>'+g.rarity+' · '+g.role+'</small><em>'+statText(g)+'</em></span>'+
           (on?'<b>장착중</b>':'')+'</button>';
       }).join('');
-      menuBody.innerHTML=
-        '<div class="gearV1Summary"><strong>출격 장비</strong><small>3개의 장비를 선택해 캐릭터 능력치를 강화합니다.</small></div>'+
-        '<div class="gearV1Slots">'+slots+'</div>'+
-        '<div class="gearV1Tabs">'+
-          '<button data-gear-filter="all" class="'+(filter==='all'?'on':'')+'">전체</button>'+
-          '<button data-gear-filter="weapon" class="'+(filter==='weapon'?'on':'')+'">무기</button>'+
-          '<button data-gear-filter="armor" class="'+(filter==='armor'?'on':'')+'">방어구</button>'+
-          '<button data-gear-filter="support" class="'+(filter==='support'?'on':'')+'">보조장비</button>'+
-        '</div><div class="gearV1Inventory">'+list+'</div>';
-
-      menuBody.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
-      menuBody.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
-      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>{
-        const g=gearDefs.find(x=>x.id===b.dataset.gearId); if(!g)return;
-        loadout[g.slot]=g.id; save(); render(filter);
-      });
+      gearScreen.innerHTML='<div class="gearV2Wrap">'+
+        '<div class="gearV2Hud"><div class="gearV2HudBox who"><span class="gearV2Face"><img src="'+ch.art+'"></span><span><b>'+ch.name+'</b><small>Lv.'+ch.level+'</small></span></div><div class="gearV2HudBox res">🔥 <b>'+(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString()+'</b><i>+</i></div><div class="gearV2HudBox res">💎 <b>'+gems().toLocaleString()+'</b><i>+</i></div><button class="gearV2Settings">⚙</button></div>'+
+        '<div class="gearV2Head"><button id="gearV2Back">‹</button><strong>장비</strong></div>'+
+        '<div class="gearV2Summary"><b>출격 장비</b><small>3개의 장비를 선택해 캐릭터 능력치를 강화합니다.</small></div>'+
+        '<div class="gearV2Slots">'+slots+'</div>'+
+        '<div class="gearV2Tabs"><button data-gear-filter="all" class="'+(filter==='all'?'on':'')+'">전체</button><button data-gear-filter="weapon" class="'+(filter==='weapon'?'on':'')+'">⚔ 무기</button><button data-gear-filter="armor" class="'+(filter==='armor'?'on':'')+'">🛡 방어구</button><button data-gear-filter="support" class="'+(filter==='support'?'on':'')+'">✦ 보조장비</button></div>'+
+        '<div class="gearV2Inventory">'+list+'</div></div>';
+      gearScreen.querySelector('#gearV2Back').onclick=()=>{gearScreen.classList.remove('show');lobby.classList.remove('hidden');if(window.__duckSyncLobby)window.__duckSyncLobby();};
+      gearScreen.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
+      gearScreen.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
+      gearScreen.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>{const g=gearDefs.find(x=>x.id===b.dataset.gearId);if(!g)return;loadout[g.slot]=g.id;save();render(filter);});
     }
+    menu.classList.remove('show');
+    lobby.classList.add('hidden');
     render('all');
+    gearScreen.classList.add('show');
   }
 
   // Replace legacy menu-close listeners so closing the armory has one deterministic path.
@@ -3291,7 +3308,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function handleLobbyGear(e){
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-    renderEquipmentMenu(); showMenu();
+    renderEquipmentMenu();
   }
   document.addEventListener('click',function(e){
     const t=e.target && e.target.closest ? e.target.closest('#lobbyStart,#lobbyGear') : null;
@@ -3374,20 +3391,22 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 /* V42 navigation/equipment styles */
 (function(){
   const css=document.createElement('style'); css.textContent=`
-    .v42EquipIntro{padding:15px 16px;border-radius:18px;background:linear-gradient(180deg,#243f45,#182c33);border:1px solid #52676d;margin-bottom:14px}.v42EquipIntro strong{display:block;font-size:22px}.v42EquipIntro small{display:block;color:#aebbc0;margin-top:4px}.v42EquipNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.55}
+    #gearScreenV2{position:fixed;inset:0;z-index:100001;display:none;overflow:auto;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(rgba(29,22,13,.18),rgba(29,22,13,.48)),url('./assets/home_base_bg.png') center/cover fixed}
+    #gearScreenV2.show{display:block}#gearScreenV2 *{box-sizing:border-box}
+    .gearV2Wrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(58px + env(safe-area-inset-top)) 8px calc(22px + env(safe-area-inset-bottom));position:relative}
+    .gearV2Hud{position:absolute;left:8px;right:8px;top:calc(7px + env(safe-area-inset-top));height:44px;display:grid;grid-template-columns:minmax(108px,1fr) auto auto 42px;gap:5px;z-index:4}
+    .gearV2HudBox{height:42px;min-width:0;display:flex;align-items:center;gap:6px;padding:4px 7px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(18,45,55,.94);box-shadow:0 3px 8px rgba(0,0,0,.28);font-size:11px;font-weight:1000}.gearV2HudBox.who>span:last-child{min-width:0;line-height:1.05}.gearV2HudBox.who b,.gearV2HudBox.who small{display:block}.gearV2HudBox.who small{margin-top:3px;color:#d7e5e9}.gearV2Face{width:31px;height:31px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#f3c955;flex:0 0 auto}.gearV2Face img{width:43px;height:38px;object-fit:contain;max-width:none}.gearV2HudBox.res{white-space:nowrap;padding-inline:8px}.gearV2HudBox.res i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#28b8ef;font-style:normal;color:#fff;font-size:14px}.gearV2Settings{height:42px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(31,44,48,.94);color:#fff;font-size:21px}
+    .gearV2Head{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;margin-bottom:10px}.gearV2Head button{width:46px;height:46px;border:2px solid #b67834;border-radius:14px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:30px;font-weight:1000;box-shadow:0 4px 0 #2b170c}.gearV2Head strong{grid-column:2;text-align:center;font-size:25px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
+    .gearV2Summary{padding:12px 14px;border:2px solid rgba(194,132,66,.58);border-bottom:0;border-radius:17px 17px 0 0;background:rgba(70,44,26,.92)}.gearV2Summary b{display:block;font-size:17px}.gearV2Summary small{display:block;margin-top:3px;color:#eadbc8;font-size:10px}
+    .gearV2Slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:rgba(47,31,20,.94);border-left:2px solid rgba(194,132,66,.58);border-right:2px solid rgba(194,132,66,.58)}
+    .gearV2Slot{min-height:116px;padding:8px 5px;border:2px solid #b9884f;border-radius:14px;background:linear-gradient(#60482f,#30261e);color:#fff;box-shadow:inset 0 0 0 2px rgba(255,220,148,.06)}.gearV2Slot small,.gearV2Slot b,.gearV2Slot em{display:block}.gearV2Slot small{color:#e8c990;font-size:9px;font-weight:900}.gearV2Slot span{display:block;font-size:38px;margin:4px 0}.gearV2Slot b{font-size:12px}.gearV2Slot em{margin-top:4px;color:#ffd866;font-size:8px;font-style:normal}
+    .gearV2Tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 10px;background:rgba(47,31,20,.94);border-left:2px solid rgba(194,132,66,.58);border-right:2px solid rgba(194,132,66,.58)}.gearV2Tabs button{min-height:43px;border:0;border-radius:10px;background:rgba(31,24,18,.72);color:#e8d9c7;font-size:10px;font-weight:1000}.gearV2Tabs button.on{background:linear-gradient(#ffe784,#f6c64c);color:#4a3217;box-shadow:0 3px 0 #b77b25}
+    .gearV2Inventory{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 10px 12px;background:rgba(47,31,20,.94);border:2px solid rgba(194,132,66,.58);border-top:0;border-radius:0 0 18px 18px}
+    .gearV2Card{position:relative;min-height:96px;display:grid;grid-template-columns:54px 1fr;align-items:center;gap:7px;padding:9px;border:2px solid #876542;border-radius:13px;background:linear-gradient(#4d3a2b,#29231e);color:#fff;text-align:left}.gearV2Card>i{font-style:normal;font-size:38px;text-align:center}.gearV2Card span strong,.gearV2Card span small,.gearV2Card span em{display:block}.gearV2Card span strong{font-size:13px}.gearV2Card span small{margin-top:2px;color:#d7bea0;font-size:9px}.gearV2Card span em{margin-top:6px;color:#ffd866;font-size:9px;font-style:normal}.gearV2Card>b{position:absolute;right:7px;top:6px;padding:3px 6px;border-radius:8px;background:#25b7e8;font-size:8px}.gearV2Card.equipped{border-color:#58d7ff;box-shadow:0 0 0 2px rgba(88,215,255,.18)}
+    @media(max-width:390px){.gearV2Hud{grid-template-columns:minmax(92px,1fr) auto auto 38px;gap:3px;left:5px;right:5px}.gearV2HudBox.res{font-size:10px;padding-inline:5px}.gearV2HudBox{padding:4px 5px}.gearV2Slots{gap:6px;padding-inline:7px}.gearV2Inventory{gap:6px;padding-inline:7px}.gearV2Card{grid-template-columns:46px 1fr;padding:7px}.gearV2Card>i{font-size:32px}}
 
-    .gearV1Summary{padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.07);margin-bottom:9px}
-    .gearV1Summary strong{display:block;font-size:17px}.gearV1Summary small{display:block;margin-top:3px;color:#c9d5d8;font-size:11px}
-    .gearV1Slots{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
-    .gearV1Slot{min-height:112px;padding:8px 5px;border:2px solid #9c7448;border-radius:13px;background:linear-gradient(#5a432d,#30251d);color:#fff}
-    .gearV1Slot small,.gearV1Slot b,.gearV1Slot em{display:block}.gearV1Slot small{color:#e6c99d;font-size:9px}.gearV1Slot span{display:block;font-size:34px;margin:5px 0}.gearV1Slot b{font-size:12px}.gearV1Slot em{margin-top:4px;color:#ffd86a;font-size:8px;font-style:normal}
-    .gearV1Tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
-    .gearV1Tabs button{padding:9px 2px;border:0;border-radius:9px;background:#38291f;color:#ead9c5;font-size:10px;font-weight:1000}.gearV1Tabs button.on{background:#f7d45f;color:#49351f}
-    .gearV1Inventory{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding-bottom:12px}
-    .gearV1Card{position:relative;min-height:82px;display:grid;grid-template-columns:48px 1fr;align-items:center;gap:7px;padding:8px;border:2px solid #785b3d;border-radius:12px;background:linear-gradient(#49392c,#29231e);color:#fff;text-align:left}
-    .gearV1Card>i{font-style:normal;font-size:34px;text-align:center}.gearV1Card span strong,.gearV1Card span small,.gearV1Card span em{display:block}.gearV1Card span strong{font-size:12px}.gearV1Card span small{margin-top:2px;color:#d7bea0;font-size:8px}.gearV1Card span em{margin-top:5px;color:#ffd86a;font-size:8px;font-style:normal}.gearV1Card>b{position:absolute;right:6px;top:5px;padding:2px 5px;border-radius:7px;background:#25b7e8;font-size:7px}.gearV1Card.equipped{border-color:#58d7ff;box-shadow:0 0 0 2px rgba(88,215,255,.18)}
-
-        #gameLobby #lobbyGear{cursor:pointer}
+    .gearV1Summary{padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.07);margin-bottom:9px}.gearV1Slots{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.gearV1Tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.gearV1Inventory{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    #gameLobby #lobbyGear{cursor:pointer}
   `; document.head.appendChild(css);
 })();
 
