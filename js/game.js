@@ -625,6 +625,39 @@ function getEquippedGearStats(){
   return out;
 }
 window.__duckGearStats=getEquippedGearStats;
+
+// Temporary battle verification HUD: confirms that equipped gear is affecting live combat stats.
+let gearDebugLast='장비 능력치 적용 확인 중';
+function ensureGearDebugHud(){
+  let el=document.getElementById('doldolGearDebugHud');
+  if(el)return el;
+  el=document.createElement('div');
+  el.id='doldolGearDebugHud';
+  el.style.cssText='position:fixed;left:10px;top:78px;z-index:99999;max-width:245px;padding:8px 10px;border:1px solid rgba(110,220,255,.75);border-radius:10px;background:rgba(5,18,24,.88);color:#eafcff;font:700 10px/1.45 system-ui;pointer-events:none;box-shadow:0 3px 14px rgba(0,0,0,.35);display:none;white-space:normal';
+  document.body.appendChild(el);
+  return el;
+}
+function updateGearDebugHud(eventText){
+  if(eventText)gearDebugLast=eventText;
+  const el=ensureGearDebugHud();
+  if(!player){el.style.display='none';return;}
+  const gear=player.gearStats||getEquippedGearStats();
+  const baseAtk=Math.max(1,(Number(player.attack)||1)-(Number(gear.atk)||0));
+  const baseHp=Math.max(1,(Number(player.maxHp)||1)-(Number(gear.hp)||0));
+  const baseParry=Math.max(0,(Number(player.parryRange)||0)-(Number(gear.special)||0));
+  el.innerHTML='<b style="color:#65dcff">[DEV] 장비 전투 검증</b><br>'+ 
+    'ATK '+baseAtk+' <b style="color:#ffd866">+'+(gear.atk||0)+'</b> = '+Math.round(player.attack||0)+'<br>'+ 
+    'HP '+baseHp+' <b style="color:#ffd866">+'+(gear.hp||0)+'</b> = '+Math.round(player.maxHp||0)+'<br>'+ 
+    'DEF <b style="color:#ffd866">+'+(gear.def||0)+'</b> · PARRY '+Math.round(baseParry)+' <b style="color:#ffd866">+'+(gear.special||0)+'</b> = '+Math.round(player.parryRange||0)+'<br>'+ 
+    '<span style="color:#9ee7b2">'+gearDebugLast+'</span>';
+  el.style.display=running?'block':'none';
+}
+function syncGearDebugHud(){
+  const el=document.getElementById('doldolGearDebugHud');
+  if(!running){if(el)el.style.display='none';return;}
+  updateGearDebugHud();
+}
+
 function applyGrowthToPlayer(){
   const g=getGrowthStats();
   const c=getSelectedCharacter();
@@ -649,6 +682,7 @@ function applyGrowthToPlayer(){
   player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1) + gear.special;
   player.speed=325*(m.move||1);
   player.perfectMultiplier=m.perfect||1;
+  updateGearDebugHud('출격 능력치 적용 완료');
 }
 
 function reset(){
@@ -943,6 +977,7 @@ function combatImpactFx(e,damage,dead){
 }
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
+  updateGearDebugHud('공격 적중 · 실제 피해 '+damage);
   const wasBossPhase=e.bossPhase||1;
   e.hp-=damage;
   if(e.type==='boss' && e.max>0){
@@ -1317,6 +1352,7 @@ function update(dt){
         r.life=0;
       }else{
         const incomingDamage=Math.max(1,Math.round(18*(100/(100+Math.max(0,Number(player.defense)||0)))));
+        updateGearDebugHud('피격 18 → DEF '+Math.round(player.defense||0)+' 적용 → '+incomingDamage);
         player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
         if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
@@ -1521,6 +1557,7 @@ function drawUpgrade(){
   ctx.restore();
 }
 function draw(){
+  syncGearDebugHud();
   ctx.clearRect(0,0,vw,vh);
 
   const sx=shake?(Math.random()-.5)*shake:0;
