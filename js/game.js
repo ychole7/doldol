@@ -3201,36 +3201,66 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
 
   function renderEquipmentMenu(){
-    const current=window.__duckGetSelectedStone?window.__duckGetSelectedStone():(window.__duckPreparedStone||getPreparedStone());
-    const selected=defs[current]?current:'basic';
-    window.__duckPreparedStone=selected;
-    const farmItems=Array.isArray(window.__doldolFarmV2&&window.__doldolFarmV2.items)?window.__doldolFarmV2.items:[];
-    const farmInv=window.__doldolFarmV2&&typeof window.__doldolFarmV2.inventory==='function'?window.__doldolFarmV2.inventory():{};
-    const farmTotal=farmItems.reduce((sum,x)=>sum+Math.max(0,Number(farmInv[x.id])||0),0);
-    menuTitle.textContent='🪨 무기고';
-    menuBody.innerHTML=
-      '<div class=\"v42EquipIntro\"><strong>출격 장비</strong><small>무기를 장착하고 보유 재료를 확인하세요.</small></div>'+
-      '<div class=\"v42ArmoryTabs\"><button type=\"button\" class=\"v42ArmoryTab active\" data-armory-tab=\"weapons\">🪨 무기</button><button type=\"button\" class=\"v42ArmoryTab\" data-armory-tab=\"materials\">🎒 재료 <em>'+farmTotal.toLocaleString()+'</em></button></div>'+
-      '<div id=\"v42ArmoryWeapons\">'+
-        '<div class=\"v41SectionTitle\">🪨 보유 무기</div>'+        '<div class=\"v41GearGrid\">'+order.map(id=>{          const d=defs[id], active=id===selected;          return '<button type=\"button\" class=\"v41GearCard '+(active?'selected':'')+'\" data-v42-stone=\"'+id+'\">'+            '<span class=\"v41GearIcon\">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.desc+'</small><em>'+d.count+'</em></button>';        }).join('')+'</div>'+        '<div class=\"v42EquipNote\">장착한 무기는 전투 시작 시 사용됩니다. 전투 중에는 장착한 무기로만 공격합니다.</div>'+        '<button type=\"button\" id=\"v42EquipDone\" class=\"v41StartBattle\">✓ 장착 완료</button>'+      '</div>'+      '<div id=\"v42ArmoryMaterials\" style=\"display:none\">'+
-        '<div class=\"v42MaterialSummary\"><strong>보유 재료</strong><span>총 '+farmTotal.toLocaleString()+'개</span></div>'+
-        '<div class=\"v42MaterialGrid\">'+farmItems.map(x=>'<div class=\"v42MaterialCard\"><span>'+((x.icon)||'⭐')+'</span><b>'+((x.name)||'재료')+'</b><em>'+Math.max(0,Number(farmInv[x.id])||0)+'</em></div>').join('')+'</div>'+      '</div>';
-    menuBody.querySelectorAll('[data-v42-stone]').forEach(btn=>btn.addEventListener('click',()=>{
-      const id=btn.dataset.v42Stone;
-      if(window.__duckEquipStone && !window.__duckEquipStone(id)) return;
-      window.__duckPreparedStone=id; savePreparedStone(id);
-      menuBody.querySelectorAll('.v41GearCard').forEach(x=>x.classList.toggle('selected',x===btn));
-    }));
-    menuBody.querySelectorAll('[data-armory-tab]').forEach(tab=>tab.addEventListener('click',()=>{
-      menuBody.querySelectorAll('.v42ArmoryTab').forEach(x=>x.classList.toggle('active',x===tab));
-      const weapons=menuBody.querySelector('#v42ArmoryWeapons');
-      const materials=menuBody.querySelector('#v42ArmoryMaterials');
-      const isMaterials=tab.dataset.armoryTab==='materials';
-      if(weapons) weapons.style.display=isMaterials?'none':'';
-      if(materials) materials.style.display=isMaterials?'':'none';
-    }));
-    const done=document.getElementById('v42EquipDone');
-    if(done) done.onclick=()=>{ savePreparedStone(window.__duckPreparedStone||'basic'); closeMenu(); };
+    const GEAR_KEY='doldol_gear_loadout_v1';
+    const OWN_KEY='doldol_gear_owned_v1';
+    const gearDefs=[
+      {id:'rifle',slot:'weapon',icon:'🔫',name:'돌격총',role:'균형 화력',rarity:'희귀',atk:24},
+      {id:'sniper',slot:'weapon',icon:'🎯',name:'저격총',role:'강한 한 방',rarity:'영웅',atk:34},
+      {id:'machine',slot:'weapon',icon:'💥',name:'기관총',role:'연속 화력',rarity:'희귀',atk:28},
+      {id:'rocket',slot:'weapon',icon:'🚀',name:'로켓런처',role:'폭발 화력',rarity:'전설',atk:42},
+      {id:'helmet',slot:'armor',icon:'🪖',name:'전술 헬멧',role:'기본 방어',rarity:'희귀',def:18},
+      {id:'vest',slot:'armor',icon:'🦺',name:'전투조끼',role:'체력 보강',rarity:'희귀',hp:35},
+      {id:'heavy',slot:'armor',icon:'🛡️',name:'중장갑',role:'높은 방어',rarity:'영웅',def:30},
+      {id:'light',slot:'armor',icon:'🥋',name:'경량장갑',role:'기동 방어',rarity:'영웅',def:22,hp:18},
+      {id:'gloves',slot:'support',icon:'🧤',name:'전술 장갑',role:'반격 보조',rarity:'희귀',special:8},
+      {id:'boots',slot:'support',icon:'🥾',name:'전투화',role:'타이밍 보조',rarity:'희귀',special:10},
+      {id:'scope',slot:'support',icon:'🔭',name:'조준경',role:'공격 보조',rarity:'영웅',atk:14,special:6},
+      {id:'pack',slot:'support',icon:'🎒',name:'전술 배낭',role:'생존 보조',rarity:'영웅',hp:24,special:5}
+    ];
+    const slotName={weapon:'무기',armor:'방어구',support:'보조장비'};
+    let loadout={weapon:'rifle',armor:'helmet',support:'gloves'};
+    let owned=gearDefs.map(x=>x.id);
+    try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem(GEAR_KEY)||'{}'));}catch(e){}
+    try{const v=JSON.parse(localStorage.getItem(OWN_KEY)||'null');if(Array.isArray(v)&&v.length)owned=v;}catch(e){}
+    const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));}catch(e){}};
+    window.__duckGearLoadout=()=>Object.assign({},loadout);
+
+    function statText(g){
+      const a=[]; if(g.atk)a.push('공격 +'+g.atk); if(g.def)a.push('방어 +'+g.def);
+      if(g.hp)a.push('체력 +'+g.hp); if(g.special)a.push('특수 +'+g.special);
+      return a.join(' · ')||'기본 장비';
+    }
+    function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
+    function render(filter='all'){
+      menuTitle.textContent='장비';
+      const slots=['weapon','armor','support'].map(slot=>{
+        const g=equipped(slot);
+        return '<button type="button" class="gearV1Slot" data-gear-slot="'+slot+'"><small>'+slotName[slot]+'</small><span>'+(g?g.icon:'＋')+'</span><b>'+(g?g.name:'미장착')+'</b><em>'+(g?statText(g):'장비를 선택하세요')+'</em></button>';
+      }).join('');
+      const list=gearDefs.filter(g=>filter==='all'||g.slot===filter).map(g=>{
+        const on=loadout[g.slot]===g.id;
+        return '<button type="button" class="gearV1Card '+(on?'equipped':'')+'" data-gear-id="'+g.id+'">'+
+          '<i>'+g.icon+'</i><span><strong>'+g.name+'</strong><small>'+g.rarity+' · '+g.role+'</small><em>'+statText(g)+'</em></span>'+
+          (on?'<b>장착중</b>':'')+'</button>';
+      }).join('');
+      menuBody.innerHTML=
+        '<div class="gearV1Summary"><strong>출격 장비</strong><small>3개의 장비를 선택해 캐릭터 능력치를 강화합니다.</small></div>'+
+        '<div class="gearV1Slots">'+slots+'</div>'+
+        '<div class="gearV1Tabs">'+
+          '<button data-gear-filter="all" class="'+(filter==='all'?'on':'')+'">전체</button>'+
+          '<button data-gear-filter="weapon" class="'+(filter==='weapon'?'on':'')+'">무기</button>'+
+          '<button data-gear-filter="armor" class="'+(filter==='armor'?'on':'')+'">방어구</button>'+
+          '<button data-gear-filter="support" class="'+(filter==='support'?'on':'')+'">보조장비</button>'+
+        '</div><div class="gearV1Inventory">'+list+'</div>';
+
+      menuBody.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
+      menuBody.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
+      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>{
+        const g=gearDefs.find(x=>x.id===b.dataset.gearId); if(!g)return;
+        loadout[g.slot]=g.id; save(); render(filter);
+      });
+    }
+    render('all');
   }
 
   // Replace legacy menu-close listeners so closing the armory has one deterministic path.
@@ -3273,7 +3303,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   // Keep labels consistent with the new navigation.
   try{ lobbyStart.innerHTML='<span style=\"font-size:24px\">⚔️</span><b>전투 시작</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
   const gearButton=$('lobbyGear');
-  if(gearButton) gearButton.innerHTML='<span style=\"font-size:22px\">🪨</span><b>무기고</b><small>돌 장착</small>';
+  if(gearButton) gearButton.innerHTML='<span style=\"font-size:22px\">🎒</span><b>장비</b><small>장착 · 강화</small>';
 
   // ---------------- Stage list (5 chapters, no map) ----------------
   let stagePanel=$('v41StagePanel');
@@ -3345,7 +3375,19 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 (function(){
   const css=document.createElement('style'); css.textContent=`
     .v42EquipIntro{padding:15px 16px;border-radius:18px;background:linear-gradient(180deg,#243f45,#182c33);border:1px solid #52676d;margin-bottom:14px}.v42EquipIntro strong{display:block;font-size:22px}.v42EquipIntro small{display:block;color:#aebbc0;margin-top:4px}.v42EquipNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.55}
-    #gameLobby #lobbyGear{cursor:pointer}
+
+    .gearV1Summary{padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.07);margin-bottom:9px}
+    .gearV1Summary strong{display:block;font-size:17px}.gearV1Summary small{display:block;margin-top:3px;color:#c9d5d8;font-size:11px}
+    .gearV1Slots{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+    .gearV1Slot{min-height:112px;padding:8px 5px;border:2px solid #9c7448;border-radius:13px;background:linear-gradient(#5a432d,#30251d);color:#fff}
+    .gearV1Slot small,.gearV1Slot b,.gearV1Slot em{display:block}.gearV1Slot small{color:#e6c99d;font-size:9px}.gearV1Slot span{display:block;font-size:34px;margin:5px 0}.gearV1Slot b{font-size:12px}.gearV1Slot em{margin-top:4px;color:#ffd86a;font-size:8px;font-style:normal}
+    .gearV1Tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
+    .gearV1Tabs button{padding:9px 2px;border:0;border-radius:9px;background:#38291f;color:#ead9c5;font-size:10px;font-weight:1000}.gearV1Tabs button.on{background:#f7d45f;color:#49351f}
+    .gearV1Inventory{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding-bottom:12px}
+    .gearV1Card{position:relative;min-height:82px;display:grid;grid-template-columns:48px 1fr;align-items:center;gap:7px;padding:8px;border:2px solid #785b3d;border-radius:12px;background:linear-gradient(#49392c,#29231e);color:#fff;text-align:left}
+    .gearV1Card>i{font-style:normal;font-size:34px;text-align:center}.gearV1Card span strong,.gearV1Card span small,.gearV1Card span em{display:block}.gearV1Card span strong{font-size:12px}.gearV1Card span small{margin-top:2px;color:#d7bea0;font-size:8px}.gearV1Card span em{margin-top:5px;color:#ffd86a;font-size:8px;font-style:normal}.gearV1Card>b{position:absolute;right:6px;top:5px;padding:2px 5px;border-radius:7px;background:#25b7e8;font-size:7px}.gearV1Card.equipped{border-color:#58d7ff;box-shadow:0 0 0 2px rgba(88,215,255,.18)}
+
+        #gameLobby #lobbyGear{cursor:pointer}
   `; document.head.appendChild(css);
 })();
 
