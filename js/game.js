@@ -2314,7 +2314,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen.show{display:block!important}
     #characterScreen *{box-sizing:border-box}
     #characterScreen .sqWrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(12px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom))}
-    #characterScreen .sqTop{display:grid;grid-template-columns:48px 1fr auto;gap:9px;align-items:center;margin-bottom:10px}
+    #characterScreen .sqTop{display:grid;grid-template-columns:48px 1fr;gap:9px;align-items:center;margin-bottom:10px}
     #characterScreen .sqBack{width:46px;height:46px;border:2px solid #b67834;border-radius:14px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:30px;font-weight:1000;box-shadow:0 4px 0 #2b170c}
     #characterScreen .sqTitle{min-height:48px;display:grid;place-items:center;border:2px solid #c98742;border-radius:13px;background:linear-gradient(#a9652f,#70401f);box-shadow:inset 0 1px rgba(255,255,255,.25),0 4px 0 #3e220f;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
     #characterScreen .sqMoney{height:43px;padding:0 11px;display:flex;align-items:center;gap:6px;border-radius:14px;background:rgba(15,25,28,.88);font-weight:1000;color:#ffd866;font-size:13px}
@@ -2349,6 +2349,26 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqSkill strong{font-size:12px}
     #characterScreen .sqSkill p{margin:3px 0 0;font-size:10px;line-height:1.4;color:#705942;font-weight:700}
     #characterScreen .sqActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    #characterScreen .sqDetailPage{padding:12px 10px 18px;background:rgba(47,31,20,.95);border:2px solid rgba(194,132,66,.6);border-radius:18px}
+    #characterScreen .sqDetailPage[hidden]{display:none!important}
+    #characterScreen .sqDetailHead{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;margin-bottom:8px}
+    #characterScreen .sqDetailBack{width:40px;height:40px;border:2px solid #b67834;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:27px;font-weight:1000}
+    #characterScreen .sqDetailTitle{text-align:center;font-size:22px;font-weight:1000}
+    #characterScreen .sqDetailHero{height:230px;display:grid;place-items:center;overflow:hidden;border-radius:16px;background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.12))}
+    #characterScreen .sqDetailHero img{width:88%;height:100%;object-fit:contain;display:block}
+    #characterScreen .sqDetailHero .emoji{font-size:126px}
+    #characterScreen .sqDetailLevel{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin:10px 0;padding:10px;border-radius:12px;background:rgba(0,0,0,.28)}
+    #characterScreen .sqDetailLevel button,#characterScreen .sqSelectBig{border:0;border-radius:11px;background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;font-weight:1000}
+    #characterScreen .sqDetailLevel button{padding:10px 13px}
+    #characterScreen .sqDetailTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    #characterScreen .sqDetailTabs button{padding:11px 3px;border:0;border-radius:9px;background:#38291f;color:#ead9c5;font-weight:1000}
+    #characterScreen .sqDetailTabs button.on{background:#f7e6ad;color:#49351f}
+    #characterScreen .sqDetailBody{margin-top:8px;min-height:118px;padding:12px;border-radius:12px;background:rgba(0,0,0,.23)}
+    #characterScreen .sqDetailBody .row{display:flex;justify-content:space-between;padding:8px 3px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:900}
+    #characterScreen .sqDetailBody .skillBox{padding:10px;border-radius:10px;background:#f4ead6;color:#4a3421}
+    #characterScreen .sqDetailBody .skillBox p{margin:5px 0 0;font-size:11px;line-height:1.45}
+    #characterScreen .sqSelectBig{width:100%;min-height:50px;margin-top:10px;font-size:15px}
+
     #characterScreen .sqBtn{min-height:48px;border:0;border-radius:13px;font-size:14px;font-weight:1000}
     #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
     #characterScreen .sqBtn.main{background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;box-shadow:0 4px 0 #ad6c18}
@@ -2379,29 +2399,29 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         <div class="sqTop">
           <button class="sqBack" id="charBack" aria-label="뒤로">‹</button>
           <div class="sqTitle">특공대</div>
-          <div class="sqMoney">🪨 <span id="sqCore">0</span></div>
         </div>
         <div class="sqTabs">
           <button class="sqTab on">전체</button><button class="sqTab">⚔ 공격형</button><button class="sqTab">🛡 방어형</button><button class="sqTab">✦ 특수형</button>
         </div>
         <div class="sqGrid" id="charGrid"></div>
-        <div class="sqDetail">
-          <div class="sqHero">
-            <div class="sqHeroFace" id="charHeroFace">🐥</div>
-            <div class="sqHeroText"><div class="sqHeroName" id="charHeroName">돌돌이</div><div class="sqHeroRole" id="charHeroRole"></div><div class="sqXp"><i id="sqXpBar"></i></div></div>
-          </div>
-          <div class="sqStatGrid" id="sqStats"></div>
-          <div class="sqSkill"><strong id="sqSkillName"></strong><p id="sqSkillDesc"></p></div>
-          <div class="sqActions"><button class="sqBtn sub" id="charGrowthBtn">레벨업</button><button class="sqBtn main" id="charSelectBtn">선택하기</button></div>
+        <div class="sqDetailPage" id="sqDetailPage" hidden>
+          <div class="sqDetailHead"><button class="sqDetailBack" id="sqDetailBack">‹</button><div class="sqDetailTitle" id="sqDetailTitle"></div></div>
+          <div class="sqDetailHero" id="sqDetailHero"></div>
+          <div class="sqDetailLevel"><b id="sqDetailLv"></b><div class="sqXp"><i id="sqDetailXp"></i></div><button id="sqLevelBtn">레벨업</button></div>
+          <div class="sqDetailTabs"><button class="on">능력치</button><button>스킬</button><button>스토리</button></div>
+          <div class="sqDetailBody" id="sqDetailBody"></div>
+          <button class="sqSelectBig" id="sqSelectBig">선택하기</button>
         </div>
       </div>`;
     screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
-    screen.querySelector('#charGrowthBtn').onclick=()=>{if(window.__duckOpenGrowth)window.__duckOpenGrowth()};
-    screen.querySelector('#charSelectBtn').onclick=()=>{
-      const c=current(); if(!unlocked(c.id))return;
+    screen.querySelector('#sqDetailBack').onclick=closeDetail;
+    screen.querySelector('#sqLevelBtn').onclick=()=>{if(window.__duckOpenGrowth)window.__duckOpenGrowth()};
+    screen.querySelector('#sqSelectBig').onclick=()=>{
+      const c=current(); if(!unlocked(c.id)) return;
       try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
-      render();
+      openDetail();
     };
+    screen.querySelectorAll('.sqDetailTabs button').forEach((b,i)=>b.onclick=()=>renderDetailTab(['stats','skill','story'][i]));
     screen.querySelectorAll('.sqTab').forEach((b,i)=>b.onclick=()=>{
       screen.querySelectorAll('.sqTab').forEach(x=>x.classList.remove('on')); b.classList.add('on');
       const filters=[()=>true,c=>/공격|스피드|치명타|파워/.test(c.role),c=>/탱커|방어/.test(c.role),c=>/밸런스|타이밍|콤보/.test(c.role)];
@@ -2420,31 +2440,38 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         ${lock?`<span class="sqLock" title="${c.gate}">🔒</span>`:''}
       </button>`;
     }).join('');
-    grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;renderDetail();renderGrid(filter)});
+    grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
   }
 
-  function renderDetail(){
+  function renderDetailTab(tab='stats'){
+    const c=current(), body=screen.querySelector('#sqDetailBody');
+    screen.querySelectorAll('.sqDetailTabs button').forEach((x,i)=>x.classList.toggle('on',['stats','skill','story'][i]===tab));
+    if(tab==='skill') body.innerHTML=`<div class="skillBox"><strong>⚡ ${c.skill}</strong><p>${c.skillDesc}</p></div>`;
+    else if(tab==='story') body.innerHTML=`<div class="skillBox"><strong>${c.name}</strong><p>${c.role} 특공대원입니다.</p></div>`;
+    else body.innerHTML=`<div class="row"><span>⚔ 공격력</span><b>${c.atk}</b></div><div class="row"><span>❤ 체력</span><b>${c.hp}</b></div><div class="row"><span>↩ 반격</span><b>${'★'.repeat(c.counter)}${'☆'.repeat(5-c.counter)}</b></div><div class="row"><span>✦ 타이밍</span><b>${'★'.repeat(c.timing)}${'☆'.repeat(5-c.timing)}</b></div>`;
+  }
+  function openDetail(){
     const c=current(),p=progress(c.id),lock=!unlocked(c.id);
-    screen.querySelector('#charHeroFace').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:c.face;
-    screen.querySelector('#charHeroName').textContent=c.name;
-    screen.querySelector('#charHeroRole').textContent=c.role+' · Lv.'+p.level+(lock?' · 🔒 '+c.gate:'');
-    screen.querySelector('#sqXpBar').style.width=Math.max(0,Math.min(100,(p.xp/Math.max(1,p.next))*100))+'%';
-    screen.querySelector('#sqStats').innerHTML=`
-      <div class="sqStat">⚔ 공격력 <b>${c.atk}</b></div><div class="sqStat">❤ 체력 <b>${c.hp}</b></div>
-      <div class="sqStat">↩ 반격 <b>${'★'.repeat(c.counter)}${'☆'.repeat(5-c.counter)}</b></div><div class="sqStat">✦ 타이밍 <b>${'★'.repeat(c.timing)}${'☆'.repeat(5-c.timing)}</b></div>`;
-    screen.querySelector('#sqSkillName').textContent='⚡ '+c.skill;
-    screen.querySelector('#sqSkillDesc').textContent=c.skillDesc;
-    const select=screen.querySelector('#charSelectBtn');
+    screen.querySelector('.sqTabs').style.display='none';
+    screen.querySelector('#charGrid').style.display='none';
+    screen.querySelector('#sqDetailPage').hidden=false;
+    screen.querySelector('#sqDetailTitle').textContent=c.name;
+    screen.querySelector('#sqDetailHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
+    screen.querySelector('#sqDetailLv').textContent='Lv.'+p.level;
+    screen.querySelector('#sqDetailXp').style.width=Math.max(0,Math.min(100,(p.xp/Math.max(1,p.next))*100))+'%';
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
-    select.disabled=lock||active===c.id;
-    select.textContent=lock?'잠금됨':active===c.id?'선택중':'선택하기';
+    const btn=screen.querySelector('#sqSelectBig'); btn.disabled=lock||active===c.id;
+    btn.textContent=lock?'🔒 '+c.gate:active===c.id?'선택중':'선택하기';
+    renderDetailTab('stats');
+  }
+  function closeDetail(){
+    screen.querySelector('#sqDetailPage').hidden=true;
+    screen.querySelector('.sqTabs').style.display='grid';
+    screen.querySelector('#charGrid').style.display='grid';
+    renderGrid();
   }
 
-  function render(){
-    screen.querySelector('#sqCore').textContent=core().toLocaleString();
-    renderGrid();
-    renderDetail();
-  }
+  function render(){ closeDetail(); }
 
   build();
   window.__duckRefreshCharacters=render;
