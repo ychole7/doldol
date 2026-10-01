@@ -2313,7 +2313,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;box-sizing:border-box}
     #characterScreen.show{display:block!important}
     #characterScreen *{box-sizing:border-box}
-    #characterScreen .sqWrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(12px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom))}
+    #characterScreen .sqWrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(58px + env(safe-area-inset-top)) 8px calc(18px + env(safe-area-inset-bottom));position:relative}
     #characterScreen .sqTop{display:grid;grid-template-columns:48px 1fr;gap:9px;align-items:center;margin-bottom:10px}
     #characterScreen .sqBack{width:46px;height:46px;border:2px solid #b67834;border-radius:14px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:30px;font-weight:1000;box-shadow:0 4px 0 #2b170c}
     #characterScreen .sqTitle{min-height:48px;display:grid;place-items:center;border:2px solid #c98742;border-radius:13px;background:linear-gradient(#a9652f,#70401f);box-shadow:inset 0 1px rgba(255,255,255,.25),0 4px 0 #3e220f;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
@@ -2349,9 +2349,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqSkill strong{font-size:12px}
     #characterScreen .sqSkill p{margin:3px 0 0;font-size:10px;line-height:1.4;color:#705942;font-weight:700}
     #characterScreen .sqActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-    #characterScreen .sqDetailPage{padding:0 0 18px;background:rgba(47,31,20,.95);border:2px solid rgba(194,132,66,.6);border-radius:18px;overflow:hidden}
+    #characterScreen .sqDetailPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;border:0;border-radius:0;overflow:auto}
     #characterScreen .sqDetailPage[hidden]{display:none!important}
-    #characterScreen .sqDetailHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:10px 12px;background:linear-gradient(#a9652f,#70401f);border-bottom:2px solid #c98742}
+    #characterScreen .sqDetailHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;margin-bottom:8px}
     #characterScreen .sqDetailBack{width:44px;height:44px;border:2px solid #d39a55;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000;box-shadow:0 3px 0 #321a0c}
     #characterScreen .sqDetailTitle{text-align:center;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
     #characterScreen .sqDetailHero{height:285px;margin:12px 14px 0;display:grid;place-items:center;overflow:hidden;border-radius:16px;background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.18))}
@@ -2373,6 +2373,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
     #characterScreen .sqBtn.main{background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;box-shadow:0 4px 0 #ad6c18}
     #characterScreen .sqBtn:disabled{filter:grayscale(.8);opacity:.55;box-shadow:none}
+    #characterScreen .sqHud{position:absolute;left:8px;right:8px;top:calc(7px + env(safe-area-inset-top));height:44px;display:grid;grid-template-columns:minmax(108px,1fr) auto auto 42px;gap:5px;z-index:8}
+    #characterScreen .sqHudBox{min-width:0;height:42px;display:flex;align-items:center;gap:6px;padding:4px 7px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(18,45,55,.94);box-shadow:0 3px 8px rgba(0,0,0,.28);font-size:11px;font-weight:1000}
+    #characterScreen .sqHudFace{width:31px;height:31px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#f3c955;flex:0 0 auto}
+    #characterScreen .sqHudFace img{width:43px;height:38px;object-fit:contain;max-width:none}
+    #characterScreen .sqHudWho{min-width:0;line-height:1.05}#characterScreen .sqHudWho b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#characterScreen .sqHudWho small{display:block;margin-top:3px;color:#d7e5e9}
+    #characterScreen .sqHudRes{white-space:nowrap;padding-inline:8px}#characterScreen .sqHudRes i{font-style:normal;font-size:17px}#characterScreen .sqHudPlus{display:grid;place-items:center;width:17px;height:17px;margin-left:1px;border-radius:50%;background:#28b8ef;color:white;font-size:14px}
+    #characterScreen .sqHudSettings{height:42px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(31,44,48,.94);color:#fff;font-size:21px}
+    @media(max-width:390px){#characterScreen .sqHud{grid-template-columns:minmax(92px,1fr) auto auto 38px;gap:3px;left:5px;right:5px}#characterScreen .sqHudRes{font-size:10px!important;padding-inline:5px!important}#characterScreen .sqHudBox{padding:4px 5px!important}}
     @media(max-width:370px){#characterScreen .sqGrid{gap:6px;padding:7px}#characterScreen .sqCard{min-height:126px}.sqFace{font-size:48px!important}}
   `;
   document.head.appendChild(style);
@@ -2396,6 +2404,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function build(){
     screen.innerHTML=`
       <div class="sqWrap">
+        <div class="sqHud" id="sqHud">
+          <div class="sqHudBox"><span class="sqHudFace" id="sqHudFace"></span><span class="sqHudWho"><b id="sqHudName"></b><small id="sqHudLv"></small></span></div>
+          <div class="sqHudBox sqHudRes"><i>🔥</i><b id="sqHudCore">0</b><span class="sqHudPlus">+</span></div>
+          <div class="sqHudBox sqHudRes"><i>💎</i><b id="sqHudGem">0</b><span class="sqHudPlus">+</span></div>
+          <button class="sqHudSettings" id="sqHudSettings" aria-label="설정">⚙</button>
+        </div>
         <div class="sqTop">
           <button class="sqBack" id="charBack" aria-label="뒤로">‹</button>
           <div class="sqTitle">특공대</div>
@@ -2414,19 +2428,38 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         </div>
       </div>`;
     screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
+    screen.querySelector('#sqHudSettings').onclick=()=>{
+      const btn=['lobbySettings','settingsBtn','settingBtn'].map(id=>document.getElementById(id)).find(Boolean);
+      if(btn) btn.click();
+    };
     screen.querySelector('#sqDetailBack').onclick=closeDetail;
     screen.querySelector('#sqLevelBtn').onclick=()=>{if(window.__duckOpenGrowth)window.__duckOpenGrowth()};
     screen.querySelector('#sqSelectBig').onclick=()=>{
       const c=current(); if(!unlocked(c.id)) return;
       try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
+      renderHud();
       openDetail();
     };
     screen.querySelectorAll('.sqDetailTabs button').forEach((b,i)=>b.onclick=()=>renderDetailTab(['stats','skill','story'][i]));
+    renderHud();
     screen.querySelectorAll('.sqTab').forEach((b,i)=>b.onclick=()=>{
       screen.querySelectorAll('.sqTab').forEach(x=>x.classList.remove('on')); b.classList.add('on');
       const filters=[()=>true,c=>/공격|스피드|치명타|파워/.test(c.role),c=>/탱커|방어/.test(c.role),c=>/밸런스|타이밍|콤보/.test(c.role)];
       renderGrid(filters[i]);
     });
+  }
+
+  function renderHud(){
+    const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+    const c=uiRoster.find(x=>x.id===active)||uiRoster[0], p=progress(c.id);
+    const face=screen.querySelector('#sqHudFace');
+    if(face) face.innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
+    const n=screen.querySelector('#sqHudName'); if(n)n.textContent=c.name;
+    const lv=screen.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
+    const co=screen.querySelector('#sqHudCore'); if(co)co.textContent=core().toLocaleString();
+    let gems=0;
+    try{for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){const v=localStorage.getItem(k);if(v!==null){gems=Number(v)||0;break;}}}catch(e){}
+    const ge=screen.querySelector('#sqHudGem'); if(ge)ge.textContent=gems.toLocaleString();
   }
 
   function renderGrid(filter=()=>true){
