@@ -2374,6 +2374,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqDetailBody .skillBox{padding:10px;border-radius:10px;background:#f4ead6;color:#4a3421}
     #characterScreen .sqDetailBody .skillBox p{margin:5px 0 0;font-size:11px;line-height:1.45}
     #characterScreen .sqSelectBig{width:calc(100% - 28px);min-height:50px;margin:10px 14px 0;font-size:15px}
+    #characterScreen .sqLevelModal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(8,13,15,.72);backdrop-filter:blur(7px)}
+    #characterScreen .sqLevelModal[hidden]{display:none!important}
+    #characterScreen .sqLevelPanel{width:min(100%,390px);overflow:hidden;border:2px solid #b9793d;border-radius:20px;background:#f5e7c7;color:#382719;box-shadow:0 18px 48px rgba(0,0,0,.48)}
+    #characterScreen .sqLevelHead{height:56px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:0 10px;background:linear-gradient(#aa642e,#81451f);color:#fff}
+    #characterScreen .sqLevelHead b{text-align:center;font-size:20px}.sqLevelClose{width:38px;height:38px;border:2px solid #e0a765;border-radius:11px;background:#75411f;color:#fff;font-size:24px;font-weight:1000}
+    #characterScreen .sqLevelContent{padding:14px}
+    #characterScreen .sqLevelChar{display:grid;grid-template-columns:68px 1fr;gap:12px;align-items:center}.sqLevelPortrait{width:68px;height:68px;display:grid;place-items:center;overflow:hidden;border-radius:14px;background:#e6bd68;border:2px solid #d49a42}.sqLevelPortrait img{width:90px;height:78px;object-fit:contain;max-width:none}
+    #characterScreen .sqLevelName{font-size:18px;font-weight:1000}.sqLevelJump{margin-top:5px;font-size:18px;font-weight:1000}.sqLevelJump em{font-style:normal;color:#27a969}
+    #characterScreen .sqLevelStats{margin-top:13px;padding:10px 13px;border-radius:14px;background:#503528;color:#fff}.sqLevelStat{display:grid;grid-template-columns:1fr auto 22px auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.14)}.sqLevelStat:last-child{border-bottom:0}.sqLevelStat .next{color:#45d888;font-weight:1000}
+    #characterScreen .sqLevelCost{margin-top:12px;padding:13px;text-align:center;border-radius:14px;background:#fff7e6}.sqLevelCost small{display:block;font-weight:900}.sqLevelCost b{display:block;margin-top:5px;font-size:20px}
+    #characterScreen .sqLevelConfirm{width:100%;height:52px;margin-top:12px;border:0;border-radius:13px;background:linear-gradient(#ffe16b,#ffbd2b);color:#3b2a13;font-size:17px;font-weight:1000;box-shadow:0 4px 0 #b37a26}.sqLevelConfirm:disabled{background:#d9caa7;color:#807763;box-shadow:0 4px 0 #aa9d80}
 
     #characterScreen .sqBtn{min-height:48px;border:0;border-radius:13px;font-size:14px;font-weight:1000}
     #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
@@ -2432,6 +2443,17 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           <div class="sqDetailBody" id="sqDetailBody"></div>
           <button class="sqSelectBig" id="sqSelectBig">선택하기</button>
         </div>
+        <div class="sqLevelModal" id="sqLevelModal" hidden>
+          <div class="sqLevelPanel">
+            <div class="sqLevelHead"><span></span><b>레벨업</b><button class="sqLevelClose" id="sqLevelClose">×</button></div>
+            <div class="sqLevelContent">
+              <div class="sqLevelChar"><div class="sqLevelPortrait" id="sqLevelPortrait"></div><div><div class="sqLevelName" id="sqLevelName"></div><div class="sqLevelJump" id="sqLevelJump"></div></div></div>
+              <div class="sqLevelStats" id="sqLevelStats"></div>
+              <div class="sqLevelCost"><small>필요 돌핵</small><b id="sqLevelCost"></b></div>
+              <button class="sqLevelConfirm" id="sqLevelConfirm"></button>
+            </div>
+          </div>
+        </div>
       </div>`;
     screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
     screen.querySelector('#sqHudSettings').onclick=()=>{
@@ -2439,7 +2461,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(btn) btn.click();
     };
     screen.querySelector('#sqDetailBack').onclick=closeDetail;
-    screen.querySelector('#sqLevelBtn').onclick=()=>{if(window.__duckOpenGrowth)window.__duckOpenGrowth()};
+    screen.querySelector('#sqLevelBtn').onclick=openLevelModal;
+    screen.querySelector('#sqLevelClose').onclick=()=>screen.querySelector('#sqLevelModal').hidden=true;
+    screen.querySelector('#sqLevelModal').onclick=e=>{if(e.target.id==='sqLevelModal')e.currentTarget.hidden=true};
     screen.querySelector('#sqSelectBig').onclick=()=>{
       const c=current(); if(!unlocked(c.id)) return;
       try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){}
@@ -2482,19 +2506,73 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
   }
 
+  function levelStats(c,level){
+    const t=Math.max(0,Math.min(1,(level-1)/49));
+    const atkMax={doldol:300,nyang:270,rabbit:285,panda:315,king:420,turtle:240,shiba:330,charge:480}[c.id]||c.atk*3;
+    const hpMax={doldol:300,nyang:255,rabbit:270,panda:450,king:225,turtle:540,shiba:315,charge:300}[c.id]||c.hp*3;
+    const defenseBase=Math.round(c.hp*.8), defenseMax=Math.round(hpMax*.8);
+    const specialBase=Math.round((c.counter+c.timing)*7.5), specialMax=specialBase+98;
+    return {
+      atk:Math.round(c.atk+(atkMax-c.atk)*t),
+      hp:Math.round(c.hp+(hpMax-c.hp)*t),
+      defense:Math.round(defenseBase+(defenseMax-defenseBase)*t),
+      special:Math.round(specialBase+(specialMax-specialBase)*t)
+    };
+  }
+  function levelCost(level){ return 120+Math.max(1,level)*80; }
+  function setCharacterLevel(id,level){
+    try{
+      const all=JSON.parse(localStorage.getItem('doldol_character_progress_v1')||'{}')||{};
+      const prev=all[id]||{}, next=Math.max(50,Number(prev.next)||50);
+      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,Number(prev.xp)||0),next};
+      localStorage.setItem('doldol_character_progress_v1',JSON.stringify(all));
+    }catch(e){}
+  }
+  function openLevelModal(){
+    const c=current(),p=progress(c.id),modal=screen.querySelector('#sqLevelModal');
+    if(!modal)return;
+    const max=p.level>=50, nextLevel=Math.min(50,p.level+1), now=levelStats(c,p.level), next=levelStats(c,nextLevel), cost=levelCost(p.level);
+    screen.querySelector('#sqLevelPortrait').innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
+    screen.querySelector('#sqLevelName').textContent=c.name;
+    screen.querySelector('#sqLevelJump').innerHTML=max?`Lv.${p.level} · MAX`:`Lv.${p.level}　›　<em>Lv.${nextLevel}</em>`;
+    const rows=[['⚔','공격력','atk'],['🛡','방어력','defense'],['❤','체력','hp'],['★','특수','special']];
+    screen.querySelector('#sqLevelStats').innerHTML=rows.map(([icon,name,key])=>`<div class="sqLevelStat"><span>${icon} ${name}</span><b>${now[key]}</b><span>›</span><b class="next">${max?now[key]:next[key]}</b></div>`).join('');
+    screen.querySelector('#sqLevelCost').textContent=max?'MAX':`🔥 ${core().toLocaleString()} / ${cost.toLocaleString()}`;
+    const btn=screen.querySelector('#sqLevelConfirm');
+    btn.disabled=max||core()<cost;
+    btn.textContent=max?'최대 레벨':core()<cost?'돌핵 부족':'레벨업';
+    btn.onclick=()=>{
+      if(max||!window.__duckWallet||!window.__duckWallet.spendCoins(cost))return;
+      setCharacterLevel(c.id,nextLevel);
+      renderHud(); openDetail(); openLevelModal();
+      if(window.__duckSyncLobby)window.__duckSyncLobby();
+    };
+    modal.hidden=false;
+  }
+
   function renderDetailTab(tab='stats'){
     const c=current(), body=screen.querySelector('#sqDetailBody');
     screen.querySelectorAll('.sqDetailTabs button').forEach((x,i)=>x.classList.toggle('on',['stats','skill','story'][i]===tab));
     if(tab==='skill'){
-      let sl=1; try{sl=Math.max(1,Math.min(5,Number(localStorage.getItem('doldol_skill_'+c.id)||1)))}catch(e){}
-      const cost=sl*100, max=sl>=5, levelLock=progress(c.id).level<10;
-      body.innerHTML=`<div class="sqSkillCard"><div class="sqSkillIcon">💥</div><div class="sqSkillInfo"><strong>${c.skill}</strong><small>Lv.${sl} / 5</small><p>${c.skillDesc}</p></div><button class="sqSkillUp" ${max||levelLock||core()<cost?'disabled':''}>${max?'MAX':levelLock?'Lv.10 해금':`업그레이드<br>🔥 ${cost}`}</button></div>
-      <div class="sqSkillCard lockedSkill"><div class="sqSkillIcon">🛡️</div><div class="sqSkillInfo"><strong>특공대 리더</strong><small>Lv.1 / 5</small><p>캐릭터 Lv.10 달성 시 잠금 해제</p></div><button class="sqSkillUp" disabled>🔒 Lv.10 해금</button></div>`;
-      const up=body.querySelector('.sqSkillUp:not([disabled])');
-      if(up)up.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost))return;try{localStorage.setItem('doldol_skill_'+c.id,String(sl+1))}catch(e){}renderHud();renderDetailTab('skill')};
+      const charLevel=progress(c.id).level;
+      let sl=1, sl2=1;
+      try{
+        sl=Math.max(1,Math.min(5,Number(localStorage.getItem('doldol_skill_'+c.id)||1)));
+        sl2=Math.max(1,Math.min(5,Number(localStorage.getItem('doldol_skill2_'+c.id)||1)));
+      }catch(e){}
+      const cost=sl*100, cost2=sl2*150, max=sl>=5, max2=sl2>=5, leaderLocked=charLevel<10;
+      body.innerHTML=`<div class="sqSkillCard"><div class="sqSkillIcon">💥</div><div class="sqSkillInfo"><strong>${c.skill}</strong><small>Lv.${sl} / 5</small><p>${c.skillDesc}</p></div><button class="sqSkillUp primary" ${max||core()<cost?'disabled':''}>${max?'MAX':`업그레이드<br>🔥 ${cost}`}</button></div>
+      <div class="sqSkillCard ${leaderLocked?'lockedSkill':''}"><div class="sqSkillIcon">🛡️</div><div class="sqSkillInfo"><strong>특공대 리더</strong><small>${leaderLocked?'잠금':`Lv.${sl2} / 5`}</small><p>${leaderLocked?'캐릭터 Lv.10 달성 시 잠금 해제':'아군의 전투 능력을 강화합니다.'}</p></div><button class="sqSkillUp leader" ${leaderLocked||max2||core()<cost2?'disabled':''}>${leaderLocked?'🔒 Lv.10 해금':max2?'MAX':`업그레이드<br>🔥 ${cost2}`}</button></div>`;
+      const primary=body.querySelector('.sqSkillUp.primary');
+      if(primary&&!primary.disabled)primary.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost))return;try{localStorage.setItem('doldol_skill_'+c.id,String(sl+1))}catch(e){}renderHud();renderDetailTab('skill')};
+      const leader=body.querySelector('.sqSkillUp.leader');
+      if(leader&&!leader.disabled)leader.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost2))return;try{localStorage.setItem('doldol_skill2_'+c.id,String(sl2+1))}catch(e){}renderHud();renderDetailTab('skill')};
     }
     else if(tab==='story') body.innerHTML=`<div class="skillBox"><strong>${c.name}</strong><p>${c.role} 특공대원입니다.</p></div>`;
-    else body.innerHTML=`<div class="row"><span>⚔ 공격력</span><b>${c.atk}</b></div><div class="row"><span>❤ 체력</span><b>${c.hp}</b></div><div class="row"><span>↩ 반격</span><b>${'★'.repeat(c.counter)}${'☆'.repeat(5-c.counter)}</b></div><div class="row"><span>✦ 타이밍</span><b>${'★'.repeat(c.timing)}${'☆'.repeat(5-c.timing)}</b></div>`;
+    else {
+      const st=levelStats(c,progress(c.id).level);
+      body.innerHTML=`<div class="row"><span>⚔ 공격력</span><b>${st.atk}</b></div><div class="row"><span>🛡 방어력</span><b>${st.defense}</b></div><div class="row"><span>❤ 체력</span><b>${st.hp}</b></div><div class="row"><span>★ 특수</span><b>${st.special}</b></div><div class="row"><span>↩ 반격</span><b>${'★'.repeat(c.counter)}${'☆'.repeat(5-c.counter)}</b></div><div class="row"><span>✦ 타이밍</span><b>${'★'.repeat(c.timing)}${'☆'.repeat(5-c.timing)}</b></div>`;
+    }
   }
   function openDetail(){
     const c=current(),p=progress(c.id),lock=!unlocked(c.id);
