@@ -1925,12 +1925,53 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     const b=document.getElementById('battlePause');
     if(b) b.textContent=paused?'▶':'Ⅱ';
   };
+  const BATTLE_ITEM_DEFS={
+    medkit:{icon:'✚',name:'응급키트',desc:'HP 35% 회복'},
+    grenade:{icon:'💥',name:'수류탄',desc:'모든 적에게 큰 피해'},
+    shield:{icon:'🛡',name:'방탄막',desc:'4초간 피해 무효'}
+  };
+  const BATTLE_ITEM_KEY='doldol_battle_items_v1';
+  function readBattleItems(){
+    const base={medkit:3,grenade:3,shield:3};
+    try{
+      const raw=JSON.parse(localStorage.getItem(BATTLE_ITEM_KEY)||'null');
+      if(raw&&typeof raw==='object') Object.keys(base).forEach(k=>base[k]=Math.max(0,Number(raw[k])||0));
+    }catch(e){}
+    return base;
+  }
+  function writeBattleItems(inv){ try{localStorage.setItem(BATTLE_ITEM_KEY,JSON.stringify(inv));}catch(e){} }
+  function renderBattleItems(){
+    const box=document.getElementById('battleItemSlots'); if(!box)return;
+    const inv=readBattleItems();
+    box.innerHTML='<div class="battleItemTitle">ITEM</div>'+Object.entries(BATTLE_ITEM_DEFS).map(([id,it])=>`<button class="battleItemBtn" data-battle-item="${id}" aria-label="${it.name}" ${inv[id]<=0?'disabled':''}><span class="battleItemIcon">${it.icon}</span><span class="battleItemCount">${inv[id]}</span></button>`).join('');
+  }
+  function useBattleItem(id){
+    if(!running||paused||!player||!BATTLE_ITEM_DEFS[id])return false;
+    const inv=readBattleItems(); if((inv[id]||0)<=0)return false;
+    if(id==='medkit'){
+      if(player.hp>=player.maxHp){ message='HP가 가득 찼어요'; messageTimer=.7; return false; }
+      const heal=Math.max(1,Math.round(player.maxHp*.35));
+      player.hp=Math.min(player.maxHp,player.hp+heal); message='응급키트 +'+heal; messageTimer=.8;
+    }else if(id==='grenade'){
+      let hit=0;
+      enemies.forEach(e=>{ if(!e||e.dead)return; const dmg=Math.max(1,Math.round((e.max||e.hp||1)*.35)); e.hp=Math.max(0,(e.hp||0)-dmg); hit++; if(e.hp<=0) hitEnemy(e,Math.max(1,dmg)); });
+      if(!hit){ message='대상이 없어요'; messageTimer=.7; return false; }
+      message='수류탄!'; messageTimer=.8; shake=Math.max(shake,10);
+    }else if(id==='shield'){
+      player.inv=Math.max(Number(player.inv)||0,4); message='방탄막 4초'; messageTimer=.8;
+    }
+    inv[id]-=1; writeBattleItems(inv); renderBattleItems(); return true;
+  }
+  window.__duckBattleItems={get:readBattleItems,use:useBattleItem,refresh:renderBattleItems};
   function ensureBattleItemSlots(){
     const host=document.getElementById('battleControls');
-    if(!host || document.getElementById('battleItemSlots')) return;
-    const box=document.createElement('div'); box.id='battleItemSlots';
-    box.innerHTML='<div class=\"battleItemTitle\">ITEM</div><div class=\"battleItemEmpty\">아이템 슬롯</div>';
-    host.appendChild(box);
+    if(!host)return;
+    let box=document.getElementById('battleItemSlots');
+    if(!box){
+      box=document.createElement('div'); box.id='battleItemSlots'; host.appendChild(box);
+      box.addEventListener('click',ev=>{ const btn=ev.target.closest&&ev.target.closest('[data-battle-item]'); if(btn){ev.preventDefault();ev.stopPropagation();useBattleItem(btn.dataset.battleItem);} });
+    }
+    renderBattleItems();
   }
 
   window.__duckSetBattleControls=function(show){
@@ -3521,9 +3562,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
  const s=document.createElement('style');
  s.textContent=`
    #battleStoneBar{display:none!important;}
-   #battleItemSlots{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:7px;pointer-events:none;}
+   #battleItemSlots{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:7px;pointer-events:auto;}
    #battleItemSlots .battleItemTitle{font-size:9px;font-weight:900;letter-spacing:1px;color:rgba(255,255,255,.55);margin-right:2px;}
-   #battleItemSlots .battleItemEmpty{min-width:88px;height:36px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(8,16,23,.52);color:rgba(255,255,255,.38);display:grid;place-items:center;font-size:10px;}
+   #battleItemSlots .battleItemBtn{position:relative;width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(8,16,23,.72);color:#fff;display:grid;place-items:center;padding:0;box-shadow:0 4px 12px rgba(0,0,0,.24);touch-action:manipulation;}
+   #battleItemSlots .battleItemBtn:active{transform:scale(.94);}
+   #battleItemSlots .battleItemBtn:disabled{opacity:.32;filter:grayscale(1);}
+   #battleItemSlots .battleItemIcon{font-size:19px;line-height:1;}
+   #battleItemSlots .battleItemCount{position:absolute;right:-4px;top:-5px;min-width:16px;height:16px;padding:0 3px;border-radius:9px;background:#ffd45b;color:#3b290e;font-size:9px;font-weight:1000;display:grid;place-items:center;border:1px solid rgba(80,48,0,.18);}
  `;
  document.head.appendChild(s);
 })();
