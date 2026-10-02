@@ -1347,7 +1347,16 @@ function update(dt){
         const incomingDamage=Math.max(1,Math.round(18*(100/(100+Math.max(0,Number(player.defense)||0)))));
           player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
-        if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
+        if(player.hp<=0){
+          running=false;gate=false;message='GAME OVER';messageTimer=999;
+          window.__duckBattleResultSnapshot={
+            stage:Math.max(1,Number(stage)||1),
+            hpNow:Math.max(0,Number(player.hp)||0),
+            hpMax:Math.max(1,Number(player.maxHp)||1),
+            perfectCount:Math.max(0,Number(perfect)||0)
+          };
+          try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}
+        }
         r.life=0;
       }
     }
@@ -1448,6 +1457,12 @@ function update(dt){
       message='STAGE CLEAR!';
       messageTimer=999;
       burst(gx,gy,42);
+      window.__duckBattleResultSnapshot={
+        stage:Math.max(1,Number(stage)||1),
+        hpNow:Math.max(0,Number(player.hp)||0),
+        hpMax:Math.max(1,Number(player.maxHp)||1),
+        perfectCount:Math.max(0,Number(perfect)||0)
+      };
       try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}
     }
   }
@@ -3971,18 +3986,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
  const result=document.getElementById('resultScreen'); if(!result)return;
  window.__duckShowResult=function(clear){
-   const current=Math.max(1,Math.min(500,Number(window.__duckStage)||1));
+   const snap=window.__duckBattleResultSnapshot||{};
+   const current=Math.max(1,Math.min(500,Number(snap.stage||window.__duckStage)||1));
    const title=document.getElementById('resultTitle'),sub=document.getElementById('resultSub'),next=document.getElementById('resultNext');
    if(title)title.textContent=clear?'STAGE CLEAR!':'GAME OVER';
    if(sub)sub.textContent=clear?'STAGE '+current+' 클리어!':'STAGE '+current+'에서 쓰러졌습니다';
    if(next)next.textContent=clear?'다음 스테이지  ▶':'다시 도전';
    window.__duckResultClear=!!clear; window.__duckResultStage=current;
 
-   // Stage reward: derive the result from the finished battle and grant it exactly once.
-   const hpNow=Math.max(0,Number(player&&player.hp)||0);
-   const hpMax=Math.max(1,Number(player&&player.maxHp)||1);
+   // Read the battle snapshot captured at the real clear/death point.
+   // This result-layer code must not reach into combat-IIFE locals directly.
+   const hpNow=Math.max(0,Number(snap.hpNow)||0);
+   const hpMax=Math.max(1,Number(snap.hpMax)||1);
    const hpRate=hpNow/hpMax;
-   const perfectCount=Math.max(0,Number(typeof perfect!=='undefined'?perfect:0)||0);
+   const perfectCount=Math.max(0,Number(snap.perfectCount)||0);
    let stars=clear?1:0;
    if(clear&&hpRate>=.45) stars=2;
    if(clear&&hpRate>=.75&&perfectCount>=1) stars=3;
