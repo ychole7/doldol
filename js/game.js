@@ -707,6 +707,8 @@ function startStage(n){
   if(battleStone!=='basic'){ message=STONE_DEFS[battleStone].name+' 장착 · 출격!'; messageTimer=.8; }
   if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
+  // One reward grant per actual battle run. Reset only when a new stage starts.
+  window.__duckBattleRewardGranted=false;
   stage=n;
   window.__duckStage=stage;
   window.__selectedDuckStage=stage;
@@ -3975,12 +3977,44 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    if(sub)sub.textContent=clear?'STAGE '+current+' 클리어!':'STAGE '+current+'에서 쓰러졌습니다';
    if(next)next.textContent=clear?'다음 스테이지  ▶':'다시 도전';
    window.__duckResultClear=!!clear; window.__duckResultStage=current;
+
+   // Stage reward: derive the result from the finished battle and grant it exactly once.
+   const hpNow=Math.max(0,Number(player&&player.hp)||0);
+   const hpMax=Math.max(1,Number(player&&player.maxHp)||1);
+   const hpRate=hpNow/hpMax;
+   const perfectCount=Math.max(0,Number(typeof perfect!=='undefined'?perfect:0)||0);
+   let stars=clear?1:0;
+   if(clear&&hpRate>=.45) stars=2;
+   if(clear&&hpRate>=.75&&perfectCount>=1) stars=3;
+   const coreReward=clear?(100+current*15):0;
+   const xpReward=clear?(30+current*5):0;
+
+   const starEl=document.getElementById('resultStars');
+   const coreEl=document.getElementById('resultCoins');
+   const xpEl=document.getElementById('resultXp');
+   if(starEl) starEl.textContent=clear?('★ '.repeat(stars)+'☆ '.repeat(3-stars)).trim():'☆ ☆ ☆';
+   if(coreEl) coreEl.textContent=String(coreReward);
+   if(xpEl) xpEl.textContent=String(xpReward);
+
    if(clear){
      try{
        const unlocked=Math.min(500,current+1);
        const saved=Math.max(1,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1);
        localStorage.setItem('doldol_unlocked_stage_v1',String(Math.max(saved,unlocked)));
-     }catch(e){}
+
+       // Keep the best star result for each stage.
+       const starKey='doldol_stage_stars_v1';
+       const starData=JSON.parse(localStorage.getItem(starKey)||'{}')||{};
+       starData[current]=Math.max(Number(starData[current])||0,stars);
+       localStorage.setItem(starKey,JSON.stringify(starData));
+
+       if(!window.__duckBattleRewardGranted){
+         window.__duckBattleRewardGranted=true;
+         if(window.__duckWallet&&window.__duckWallet.addCoins) window.__duckWallet.addCoins(coreReward);
+         if(window.__duckAddCharacterXP) window.__duckAddCharacterXP(xpReward);
+         if(window.__duckSyncLobby) window.__duckSyncLobby();
+       }
+     }catch(e){ console.warn('stage reward failed',e); }
    }
    result.style.display=''; result.style.pointerEvents='auto'; result.classList.add('show','doldolResultV3');
  };
