@@ -3414,32 +3414,60 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     '</div>';
     document.body.appendChild(stagePanel);
   }
-  let chapter=1, page=1;
+  let chapter=1, page=1, selectedStage=1;
+  function stageStars(){
+    try{return JSON.parse(localStorage.getItem('doldol_stage_stars_v1')||'{}')||{};}catch(e){return {};}
+  }
   function drawStageList(){
     const unlocked=unlockedStage();
+    const stars=stageStars();
     const start=((page-1)*10)+1+(chapter-1)*100;
-    $('v41StageCurrent').textContent='STAGE '+currentStage();
+    selectedStage=Math.max(1,Math.min(unlocked,Number(selectedStage)||unlocked));
+    $('v41StageCurrent').textContent='STAGE '+selectedStage;
     $('v41Chapters').innerHTML=[1,2,3,4,5].map(c=>'<button class="v41Chapter '+(c===chapter?'active':'')+'" data-ch="'+c+'">CHAPTER '+c+'<small>'+((c-1)*100+1)+'–'+(c*100)+'</small></button>').join('');
     $('v41Chapters').querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{chapter=Number(b.dataset.ch);page=1;drawStageList();});
     const labels=['푸른 언덕','붉은 협곡','얼어붙은 계곡','화산 요새','최종 특공 작전'];
-    $('v41StageSummary').innerHTML='<b>CHAPTER '+chapter+' · '+labels[chapter-1]+'</b><span>STAGE '+((chapter-1)*100+1)+' ~ '+(chapter*100)+'</span>';
+    $('v41StageSummary').innerHTML='<b>CHAPTER '+chapter+' · '+labels[chapter-1]+'</b><span>STAGE '+((chapter-1)*100+1)+' ~ '+(chapter*100)+' · 현재 진행 STAGE '+unlocked+'</span>';
     $('v41StageGrid').innerHTML=Array.from({length:10},(_,i)=>{
-      const st=start+i, locked=st>unlocked, selected=st===currentStage();
-      return '<button class="v41StageNode '+(locked?'locked ':'')+(selected?'current':'')+'" data-st="'+st+'">'+
-        '<strong>'+st+'</strong><small>'+(st%5===0?'BOSS':'STAGE')+'</small>'+(locked?'<em>🔒</em>':'')+'</button>';
+      const st=start+i, locked=st>unlocked, selected=st===selectedStage, recommended=st===unlocked;
+      const best=Math.max(0,Math.min(3,Number(stars[st])||0));
+      const starText=best?('★'.repeat(best)+'☆'.repeat(3-best)):'☆ ☆ ☆';
+      return '<button class="v41StageNode '+(locked?'locked ':'')+(selected?'current ':'')+(recommended?'recommended':'')+'" data-st="'+st+'">'+
+        '<strong>'+st+'</strong><small>'+(st%5===0?'BOSS':'STAGE')+'</small>'+
+        '<span class="v41StageStars">'+(locked?'—':starText)+'</span>'+
+        (recommended&&!locked?'<i class="v41NextMark">NEXT</i>':'')+(locked?'<em>🔒</em>':'')+'</button>';
     }).join('');
     $('v41StageGrid').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
       if(b.classList.contains('locked'))return;
-      window.__selectedDuckStage=Number(b.dataset.st); $('v41StageCurrent').textContent='STAGE '+window.__selectedDuckStage; drawStageList();
+      selectedStage=Number(b.dataset.st);
+      window.__selectedDuckStage=selectedStage;
+      drawStageList();
     });
     $('v41PageLabel').textContent=page+' / 10';
     $('v41Prev').disabled=page<=1; $('v41Next').disabled=page>=10;
+    const battle=$('v41StageBattle');
+    if(battle) battle.innerHTML='⚔️ STAGE '+selectedStage+' 출격';
   }
-  function openStageList(){ chapter=Math.min(5,Math.max(1,Math.ceil(currentStage()/100))); page=Math.min(10,Math.max(1,Math.ceil((currentStage()-(chapter-1)*100)/10))); drawStageList(); stagePanel.classList.add('show'); lobby.classList.add('hidden'); }
+  function openStageList(){
+    selectedStage=unlockedStage();
+    window.__selectedDuckStage=selectedStage;
+    chapter=Math.min(5,Math.max(1,Math.ceil(selectedStage/100)));
+    page=Math.min(10,Math.max(1,Math.ceil((selectedStage-(chapter-1)*100)/10)));
+    drawStageList();
+    stagePanel.classList.add('show');
+    lobby.classList.add('hidden');
+  }
   $('v41StageBack').onclick=()=>{stagePanel.classList.remove('show');lobby.classList.remove('hidden');};
   $('v41Prev').onclick=()=>{if(page>1){page--;drawStageList();}};
   $('v41Next').onclick=()=>{if(page<10){page++;drawStageList();}};
-  $('v41StageBattle').onclick=()=>{const st=Number(window.__selectedDuckStage||currentStage())||1;stagePanel.classList.remove('show');window.__duckStage=st;renderBattlePrep();showMenu();};
+  $('v41StageBattle').onclick=()=>{
+    const st=Math.max(1,Math.min(unlockedStage(),Number(selectedStage)||unlockedStage()));
+    stagePanel.classList.remove('show');
+    window.__selectedDuckStage=st;
+    window.__duckStage=st;
+    lobby.classList.add('hidden');
+    if(window.__duckStartStage) window.__duckStartStage(st);
+  };
   lobbyStages.onclick=function(e){e.preventDefault();e.stopPropagation();openStageList();};
 
   // Remove accidental direct gear behavior; gear is now reached through battle prep.
@@ -3458,7 +3486,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .v41StageTop{display:flex;align-items:center;gap:14px;padding:8px 0 18px}.v41StageTop button{width:46px;height:46px;border-radius:14px;border:1px solid #56656e;background:#23343c;color:#fff;font-size:32px}.v41StageTop strong{display:block;font-size:24px}.v41StageTop small{display:block;color:#9eabb2;margin-top:3px}.v41StageTop>span{margin-left:auto;background:#18272f;border:1px solid #46555d;border-radius:13px;padding:9px 12px;font-weight:900;color:#ffd75a}
     .v41Chapters{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.v41Chapter{min-height:62px;border-radius:13px;border:1px solid #46555d;background:#1c2c34;color:#cbd4d8;font-weight:900}.v41Chapter.active{border-color:#ffd45b;background:linear-gradient(180deg,#31524d,#20363a);color:#fff;box-shadow:0 0 0 2px rgba(255,212,91,.18)}.v41Chapter small{display:block;font-size:9px;font-weight:700;color:#9aa8ad;margin-top:3px}
     .v41StageSummary{margin:14px 0 10px;padding:14px 16px;border-radius:16px;background:#152830;border:1px solid #3e5158}.v41StageSummary b{display:block}.v41StageSummary span{display:block;color:#a9b6bb;font-size:12px;margin-top:4px}
-    .v41StageGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.v41StageNode{position:relative;min-height:72px;border-radius:15px;border:1px solid #46555d;background:#21333b;color:#fff}.v41StageNode strong{display:block;font-size:22px}.v41StageNode small{display:block;color:#a9b6bb;font-size:9px}.v41StageNode.current{border:2px solid #ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.14)}.v41StageNode.locked{opacity:.38}.v41StageNode em{position:absolute;right:6px;top:5px;font-style:normal;font-size:12px}
+    .v41StageGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.v41StageNode{position:relative;min-height:72px;border-radius:15px;border:1px solid #46555d;background:#21333b;color:#fff}.v41StageNode strong{display:block;font-size:22px}.v41StageNode small{display:block;color:#a9b6bb;font-size:9px}.v41StageNode.current{border:2px solid #ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.14)}.v41StageNode.recommended:not(.locked){background:linear-gradient(180deg,#2d4945,#20353b)}.v41StageNode.locked{opacity:.38}.v41StageNode em{position:absolute;right:6px;top:5px;font-style:normal;font-size:12px}.v41StageStars{display:block;margin-top:5px;color:#ffd45b;font-size:11px;letter-spacing:1px;white-space:nowrap}.v41NextMark{position:absolute;left:6px;top:5px;padding:2px 5px;border-radius:6px;background:#ffd45b;color:#243038;font-style:normal;font-size:8px;font-weight:1000}
     .v41StagePager{display:flex;align-items:center;justify-content:space-between;margin:16px 0}.v41StagePager button{background:#243740;color:#fff;border:1px solid #52636a;border-radius:12px;padding:11px 16px;font-weight:800}.v41StagePager button:disabled{opacity:.35}
     .v41PrepHeader{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:15px;border-radius:18px;background:linear-gradient(180deg,#1b3840,#172a31);border:1px solid #51636a;margin-bottom:14px}.v41PrepHeader strong{font-size:25px}.v41PrepHeader small{display:block;color:#9fadb3;margin-top:3px}.v41PrepCharacter{padding:9px 12px;border-radius:14px;background:#102027;text-align:right}.v41SectionTitle{font-weight:900;font-size:17px;margin:14px 2px 10px}.v41GearGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.v41GearCard{position:relative;text-align:left;min-height:115px;border-radius:17px;border:2px solid #34464e;background:#1d3038;color:#fff;padding:13px}.v41GearCard.selected{border-color:#ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.16);background:linear-gradient(180deg,#30453e,#1e3138)}.v41GearIcon{font-size:28px;display:block}.v41GearCard b{display:block;font-size:16px;margin-top:4px}.v41GearCard small{display:block;color:#a9b6bb;margin-top:4px}.v41GearCard em{position:absolute;right:10px;top:10px;font-style:normal;font-weight:900;color:#ffd45b}.v41LoadoutNote{margin:12px 2px;color:#9faeb4;font-size:11px;line-height:1.5}.v41StartBattle{width:100%;min-height:58px;border:0;border-radius:17px;background:linear-gradient(180deg,#ffd45c,#ffb72e);color:#182127;font-size:19px;font-weight:1000;box-shadow:0 5px 0 #a76d20;margin-top:10px}.v41StartBattle small{display:block;font-size:10px;margin-top:2px}
     @media(max-width:430px){#v41StagePanel{padding:14px}.v41Chapters{grid-template-columns:repeat(5,1fr)}.v41Chapter{font-size:10px}.v41StageGrid{gap:7px}.v41StageNode{min-height:64px}.v41StageNode strong{font-size:19px}.v41GearGrid{gap:8px}.v41GearCard{min-height:108px}}
