@@ -608,6 +608,11 @@ function getGrowthStats(){
   }
 }
 function getEquippedGearStats(){
+  const UPGRADE_KEY='doldol_gear_upgrade_v1';
+  let upgradeLevels={};
+  try{upgradeLevels=JSON.parse(localStorage.getItem(UPGRADE_KEY)||'{}')||{};}catch(e){}
+  const levelOf=id=>Math.max(1,Math.min(20,Number(upgradeLevels[id]||1)||1));
+  const scaled=(value,id)=>Math.round((Number(value)||0)*(1+(levelOf(id)-1)*.10));
   const defs={
     rifle:{slot:'weapon',atk:24},sniper:{slot:'weapon',atk:34},machine:{slot:'weapon',atk:28},rocket:{slot:'weapon',atk:42},
     helmet:{slot:'armor',def:18},vest:{slot:'armor',hp:35},heavy:{slot:'armor',def:30},light:{slot:'armor',def:22,hp:18},
@@ -619,44 +624,13 @@ function getEquippedGearStats(){
   ['weapon','armor','support'].forEach(slot=>{
     const item=defs[loadout[slot]];
     if(!item||item.slot!==slot)return;
-    out.atk+=Number(item.atk)||0; out.def+=Number(item.def)||0;
-    out.hp+=Number(item.hp)||0; out.special+=Number(item.special)||0;
+    const id=loadout[slot];
+    out.atk+=scaled(item.atk,id); out.def+=scaled(item.def,id);
+    out.hp+=scaled(item.hp,id); out.special+=scaled(item.special,id);
   });
   return out;
 }
 window.__duckGearStats=getEquippedGearStats;
-
-// Temporary battle verification HUD: confirms that equipped gear is affecting live combat stats.
-let gearDebugLast='장비 능력치 적용 확인 중';
-function ensureGearDebugHud(){
-  let el=document.getElementById('doldolGearDebugHud');
-  if(el)return el;
-  el=document.createElement('div');
-  el.id='doldolGearDebugHud';
-  el.style.cssText='position:fixed;left:10px;top:78px;z-index:99999;max-width:245px;padding:8px 10px;border:1px solid rgba(110,220,255,.75);border-radius:10px;background:rgba(5,18,24,.88);color:#eafcff;font:700 10px/1.45 system-ui;pointer-events:none;box-shadow:0 3px 14px rgba(0,0,0,.35);display:none;white-space:normal';
-  document.body.appendChild(el);
-  return el;
-}
-function updateGearDebugHud(eventText){
-  if(eventText)gearDebugLast=eventText;
-  const el=ensureGearDebugHud();
-  if(!player){el.style.display='none';return;}
-  const gear=player.gearStats||getEquippedGearStats();
-  const baseAtk=Math.max(1,(Number(player.attack)||1)-(Number(gear.atk)||0));
-  const baseHp=Math.max(1,(Number(player.maxHp)||1)-(Number(gear.hp)||0));
-  const baseParry=Math.max(0,(Number(player.parryRange)||0)-(Number(gear.special)||0));
-  el.innerHTML='<b style="color:#65dcff">[DEV] 장비 전투 검증</b><br>'+ 
-    'ATK '+baseAtk+' <b style="color:#ffd866">+'+(gear.atk||0)+'</b> = '+Math.round(player.attack||0)+'<br>'+ 
-    'HP '+baseHp+' <b style="color:#ffd866">+'+(gear.hp||0)+'</b> = '+Math.round(player.maxHp||0)+'<br>'+ 
-    'DEF <b style="color:#ffd866">+'+(gear.def||0)+'</b> · PARRY '+Math.round(baseParry)+' <b style="color:#ffd866">+'+(gear.special||0)+'</b> = '+Math.round(player.parryRange||0)+'<br>'+ 
-    '<span style="color:#9ee7b2">'+gearDebugLast+'</span>';
-  el.style.display=running?'block':'none';
-}
-function syncGearDebugHud(){
-  const el=document.getElementById('doldolGearDebugHud');
-  if(!running){if(el)el.style.display='none';return;}
-  updateGearDebugHud();
-}
 
 function applyGrowthToPlayer(){
   const g=getGrowthStats();
@@ -686,7 +660,6 @@ function applyGrowthToPlayer(){
   player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1) + gear.special;
   player.speed=325*(m.move||1);
   player.perfectMultiplier=m.perfect||1;
-  updateGearDebugHud('출격 능력치 적용 완료');
 }
 
 function reset(){
@@ -996,7 +969,6 @@ function combatImpactFx(e,damage,dead){
 }
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
-  updateGearDebugHud('공격 적중 · 실제 피해 '+damage);
   const wasBossPhase=e.bossPhase||1;
   e.hp-=damage;
   if(e.type==='boss' && e.max>0){
@@ -1371,8 +1343,7 @@ function update(dt){
         r.life=0;
       }else{
         const incomingDamage=Math.max(1,Math.round(18*(100/(100+Math.max(0,Number(player.defense)||0)))));
-        updateGearDebugHud('피격 18 → DEF '+Math.round(player.defense||0)+' 적용 → '+incomingDamage);
-        player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
+          player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
         if(player.hp<=0){running=false;gate=false;message='GAME OVER';messageTimer=999;try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}}
         r.life=0;
@@ -1576,7 +1547,6 @@ function drawUpgrade(){
   ctx.restore();
 }
 function draw(){
-  syncGearDebugHud();
   ctx.clearRect(0,0,vw,vh);
 
   const sx=shake?(Math.random()-.5)*shake:0;
@@ -3281,6 +3251,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function renderEquipmentMenu(){
     const GEAR_KEY='doldol_gear_loadout_v1';
     const OWN_KEY='doldol_gear_owned_v1';
+    const UPGRADE_KEY='doldol_gear_upgrade_v1';
     const gearDefs=[
       {id:'rifle',slot:'weapon',art:'./assets/gear/gear_assault_rifle.png',name:'돌격총',role:'균형 화력',rarity:'희귀',atk:24},
       {id:'sniper',slot:'weapon',art:'./assets/gear/gear_sniper_rifle.png',name:'저격총',role:'강한 한 방',rarity:'영웅',atk:34},
@@ -3298,17 +3269,47 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const slotName={weapon:'무기',armor:'방어구',support:'보조장비'};
     let loadout={weapon:'rifle',armor:'helmet',support:'gloves'};
     let owned=gearDefs.map(x=>x.id);
+    let upgradeLevels={};
     try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem(GEAR_KEY)||'{}'));}catch(e){}
     try{const v=JSON.parse(localStorage.getItem(OWN_KEY)||'null');if(Array.isArray(v)&&v.length)owned=v;}catch(e){}
-    const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));}catch(e){}};
+    try{upgradeLevels=JSON.parse(localStorage.getItem(UPGRADE_KEY)||'{}')||{};}catch(e){}
+    const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));localStorage.setItem(UPGRADE_KEY,JSON.stringify(upgradeLevels));}catch(e){}};
+    const gearLevel=id=>Math.max(1,Math.min(20,Number(upgradeLevels[id]||1)||1));
+    const scaled=(v,id,lv=gearLevel(id))=>Math.round((Number(v)||0)*(1+(lv-1)*.10));
+    const upgradeCost=lv=>200+lv*50;
     window.__duckGearLoadout=()=>Object.assign({},loadout);
 
-    function statText(g){
-      const a=[]; if(g.atk)a.push('공격 +'+g.atk); if(g.def)a.push('방어 +'+g.def);
-      if(g.hp)a.push('체력 +'+g.hp); if(g.special)a.push('특수 +'+g.special);
+    function statText(g,lv=gearLevel(g.id)){
+      const a=[]; if(g.atk)a.push('공격 +'+scaled(g.atk,g.id,lv)); if(g.def)a.push('방어 +'+scaled(g.def,g.id,lv));
+      if(g.hp)a.push('체력 +'+scaled(g.hp,g.id,lv)); if(g.special)a.push('특수 +'+scaled(g.special,g.id,lv));
       return a.join(' · ')||'기본 장비';
     }
     function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
+    function renderDetail(id,returnFilter='all'){
+      const g=gearDefs.find(x=>x.id===id); if(!g)return render(returnFilter);
+      const lv=gearLevel(g.id), nextLv=Math.min(20,lv+1), cost=upgradeCost(lv);
+      const equippedNow=loadout[g.slot]===g.id;
+      const wallet=window.__duckWallet;
+      const have=wallet?wallet.coins:0;
+      menuTitle.textContent='장비 상세';
+      menuBody.innerHTML='<div class="gearDetailV1">'+
+        '<button type="button" class="gearDetailBack" id="gearDetailBack">‹</button>'+
+        '<div class="gearDetailHero"><img src="'+g.art+'" alt="'+g.name+'"><div><small>'+g.rarity+' · '+slotName[g.slot]+'</small><h2>'+g.name+'</h2><p>'+g.role+'</p><strong>Lv.'+lv+' / 20</strong></div></div>'+
+        '<div class="gearDetailStat"><small>현재 능력치</small><b>'+statText(g,lv)+'</b>'+(lv<20?'<em>강화 후 · '+statText(g,nextLv)+'</em>':'<em>MAX LEVEL</em>')+'</div>'+
+        '<button type="button" id="gearDetailEquip" class="gearDetailEquip '+(equippedNow?'on':'')+'">'+(equippedNow?'✓ 장착중':'장착하기')+'</button>'+
+        '<button type="button" id="gearDetailUpgrade" class="gearDetailUpgrade" '+(lv>=20||have<cost?'disabled':'')+'>'+(lv>=20?'MAX LEVEL':'강화하기 · 돌핵 '+cost)+'</button>'+
+        (lv<20&&have<cost?'<div class="gearDetailNeed">돌핵이 부족합니다 · 보유 '+have+'</div>':'')+'</div>';
+      const back=menuBody.querySelector('#gearDetailBack'); if(back)back.onclick=()=>render(returnFilter);
+      const equipBtn=menuBody.querySelector('#gearDetailEquip'); if(equipBtn)equipBtn.onclick=()=>{loadout[g.slot]=g.id;save();renderDetail(g.id,returnFilter);};
+      const upBtn=menuBody.querySelector('#gearDetailUpgrade'); if(upBtn)upBtn.onclick=()=>{
+        const now=gearLevel(g.id), c=upgradeCost(now); if(now>=20)return;
+        if(!window.__duckWallet||!window.__duckWallet.spendCoins(c))return renderDetail(g.id,returnFilter);
+        upgradeLevels[g.id]=now+1; save();
+        if(player&&player.gearStats) applyGrowthToPlayer();
+        if(window.__duckSyncLobby)window.__duckSyncLobby();
+        renderDetail(g.id,returnFilter);
+      };
+    }
     function render(filter='all'){
       menuTitle.textContent='장비';
       const slots=['weapon','armor','support'].map(slot=>{
@@ -3334,8 +3335,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       menuBody.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
       menuBody.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
       menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>{
-        const g=gearDefs.find(x=>x.id===b.dataset.gearId); if(!g)return;
-        loadout[g.slot]=g.id; save(); render(filter);
+        renderDetail(b.dataset.gearId,filter);
       });
     }
     render('all');
@@ -3463,7 +3463,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .gearV1Tabs button{padding:9px 2px;border:0;border-radius:9px;background:#38291f;color:#ead9c5;font-size:10px;font-weight:1000}.gearV1Tabs button.on{background:#f7d45f;color:#49351f}
     .gearV1Inventory{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding-bottom:12px}
     .gearV1Card{position:relative;min-height:82px;display:grid;grid-template-columns:48px 1fr;align-items:center;gap:7px;padding:8px;border:2px solid #785b3d;border-radius:12px;background:linear-gradient(#49392c,#29231e);color:#fff;text-align:left}
-    .gearV1Card>.gearV1Art{width:48px;height:54px;display:flex;align-items:center;justify-content:center;font-style:normal;text-align:center}.gearV1Art img{display:block;width:100%;height:100%;object-fit:contain}.gearV1Art-rifle img,.gearV1Art-sniper img,.gearV1Art-machine img,.gearV1Art-rocket img{width:108%;height:108%}.gearV1Art-helmet img,.gearV1Art-gloves img,.gearV1Art-boots img,.gearV1Art-scope img{width:92%;height:92%}.gearV1Art-vest img,.gearV1Art-heavy img,.gearV1Art-light img,.gearV1Art-pack img{width:88%;height:88%}.gearV1Card span strong,.gearV1Card span small,.gearV1Card span em{display:block}.gearV1Card span strong{font-size:12px}.gearV1Card span small{margin-top:2px;color:#d7bea0;font-size:8px}.gearV1Card span em{margin-top:5px;color:#ffd86a;font-size:8px;font-style:normal}.gearV1Card>b{position:absolute;right:6px;top:5px;padding:2px 5px;border-radius:7px;background:#25b7e8;font-size:7px}.gearV1Card.equipped{border-color:#58d7ff;box-shadow:0 0 0 2px rgba(88,215,255,.18)}
+    .gearV1Card>.gearV1Art{width:48px;height:54px;display:flex;align-items:center;justify-content:center;font-style:normal;text-align:center}.gearV1Art img{display:block;width:100%;height:100%;object-fit:contain}
+    .gearDetailV1{position:relative;padding:4px 2px 18px}.gearDetailBack{width:42px;height:42px;border:0;border-radius:13px;background:#c8b58a;color:#fff;font-size:32px;font-weight:1000;line-height:1;margin:0 0 12px 0}.gearDetailHero{display:grid;grid-template-columns:minmax(130px,42%) 1fr;align-items:center;gap:16px;min-height:210px;padding:18px;border-radius:22px;background:rgba(255,255,255,.10)}.gearDetailHero img{width:100%;height:175px;object-fit:contain}.gearDetailHero small{color:#ffd866;font-weight:900}.gearDetailHero h2{margin:5px 0 3px;font-size:25px}.gearDetailHero p{margin:0 0 14px;opacity:.65}.gearDetailHero strong{color:#ffd866;font-size:21px}.gearDetailStat{margin-top:12px;padding:17px 18px;border-radius:19px;background:rgba(0,0,0,.16)}.gearDetailStat small,.gearDetailStat b,.gearDetailStat em{display:block}.gearDetailStat small{opacity:.55;margin-bottom:7px}.gearDetailStat b{font-size:20px}.gearDetailStat em{font-style:normal;color:#63e2ad;font-weight:900;margin-top:7px}.gearDetailEquip,.gearDetailUpgrade{width:100%;margin-top:12px;padding:16px;border:0;border-radius:16px;font-size:16px;font-weight:1000}.gearDetailEquip{background:#2f6876;color:#fff}.gearDetailEquip.on{background:#356b78}.gearDetailUpgrade{background:#f2d77f;color:#51452e}.gearDetailUpgrade:disabled{opacity:.48}.gearDetailNeed{text-align:center;color:#ff7f8d;font-weight:900;font-size:12px;margin-top:10px}.gearV1Art-rifle img,.gearV1Art-sniper img,.gearV1Art-machine img,.gearV1Art-rocket img{width:108%;height:108%}.gearV1Art-helmet img,.gearV1Art-gloves img,.gearV1Art-boots img,.gearV1Art-scope img{width:92%;height:92%}.gearV1Art-vest img,.gearV1Art-heavy img,.gearV1Art-light img,.gearV1Art-pack img{width:88%;height:88%}.gearV1Card span strong,.gearV1Card span small,.gearV1Card span em{display:block}.gearV1Card span strong{font-size:12px}.gearV1Card span small{margin-top:2px;color:#d7bea0;font-size:8px}.gearV1Card span em{margin-top:5px;color:#ffd86a;font-size:8px;font-style:normal}.gearV1Card>b{position:absolute;right:6px;top:5px;padding:2px 5px;border-radius:7px;background:#25b7e8;font-size:7px}.gearV1Card.equipped{border-color:#58d7ff;box-shadow:0 0 0 2px rgba(88,215,255,.18)}
 
         #gameLobby #lobbyGear{cursor:pointer}
   `; document.head.appendChild(css);
