@@ -615,20 +615,48 @@ function getEquippedGearStats(){
   };
   let loadout={weapon:'rifle',armor:'helmet',support:'gloves'};
   try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem('doldol_gear_loadout_v1')||'{}'));}catch(e){}
-  let gearLevels={};
-  try{gearLevels=JSON.parse(localStorage.getItem('doldol_gear_levels_v1')||'{}')||{};}catch(e){}
   const out={atk:0,def:0,hp:0,special:0,loadout:Object.assign({},loadout)};
   ['weapon','armor','support'].forEach(slot=>{
-    const id=loadout[slot], item=defs[id];
+    const item=defs[loadout[slot]];
     if(!item||item.slot!==slot)return;
-    const lv=Math.max(1,Math.min(20,Number(gearLevels[id]||1)||1));
-    const mul=1+(lv-1)*0.10;
-    out.atk+=Math.round((Number(item.atk)||0)*mul); out.def+=Math.round((Number(item.def)||0)*mul);
-    out.hp+=Math.round((Number(item.hp)||0)*mul); out.special+=Math.round((Number(item.special)||0)*mul);
+    out.atk+=Number(item.atk)||0; out.def+=Number(item.def)||0;
+    out.hp+=Number(item.hp)||0; out.special+=Number(item.special)||0;
   });
   return out;
 }
 window.__duckGearStats=getEquippedGearStats;
+
+// Temporary battle verification HUD: confirms that equipped gear is affecting live combat stats.
+let gearDebugLast='장비 능력치 적용 확인 중';
+function ensureGearDebugHud(){
+  let el=document.getElementById('doldolGearDebugHud');
+  if(el)return el;
+  el=document.createElement('div');
+  el.id='doldolGearDebugHud';
+  el.style.cssText='position:fixed;left:10px;top:78px;z-index:99999;max-width:245px;padding:8px 10px;border:1px solid rgba(110,220,255,.75);border-radius:10px;background:rgba(5,18,24,.88);color:#eafcff;font:700 10px/1.45 system-ui;pointer-events:none;box-shadow:0 3px 14px rgba(0,0,0,.35);display:none;white-space:normal';
+  document.body.appendChild(el);
+  return el;
+}
+function updateGearDebugHud(eventText){
+  if(eventText)gearDebugLast=eventText;
+  const el=ensureGearDebugHud();
+  if(!player){el.style.display='none';return;}
+  const gear=player.gearStats||getEquippedGearStats();
+  const baseAtk=Math.max(1,(Number(player.attack)||1)-(Number(gear.atk)||0));
+  const baseHp=Math.max(1,(Number(player.maxHp)||1)-(Number(gear.hp)||0));
+  const baseParry=Math.max(0,(Number(player.parryRange)||0)-(Number(gear.special)||0));
+  el.innerHTML='<b style="color:#65dcff">[DEV] 장비 전투 검증</b><br>'+ 
+    'ATK '+baseAtk+' <b style="color:#ffd866">+'+(gear.atk||0)+'</b> = '+Math.round(player.attack||0)+'<br>'+ 
+    'HP '+baseHp+' <b style="color:#ffd866">+'+(gear.hp||0)+'</b> = '+Math.round(player.maxHp||0)+'<br>'+ 
+    'DEF <b style="color:#ffd866">+'+(gear.def||0)+'</b> · PARRY '+Math.round(baseParry)+' <b style="color:#ffd866">+'+(gear.special||0)+'</b> = '+Math.round(player.parryRange||0)+'<br>'+ 
+    '<span style="color:#9ee7b2">'+gearDebugLast+'</span>';
+  el.style.display=running?'block':'none';
+}
+function syncGearDebugHud(){
+  const el=document.getElementById('doldolGearDebugHud');
+  if(!running){if(el)el.style.display='none';return;}
+  updateGearDebugHud();
+}
 
 function applyGrowthToPlayer(){
   const g=getGrowthStats();
@@ -645,13 +673,12 @@ function applyGrowthToPlayer(){
   player.characterMods=m;
   player.growth=g;
   player.gearStats=gear;
-  // Preserve live battle HP when stats are recalculated (level/gear sync).
-  // Previously every recalculation restored HP to max, making the player effectively immortal.
-  const prevMaxHp=Math.max(1,Number(player.maxHp)||1);
-  const prevHp=Math.max(0,Number(player.hp)||0);
-  const wasInBattle=!!running;
+  const previousMaxHp=Math.max(1,Number(player.maxHp)||1);
+  const previousHp=Number(player.hp);
+  const wasInCombat=running && Number.isFinite(previousHp);
   player.maxHp=Math.max(1,Math.round(g.hp*(m.hp||1)*hpMul + gear.hp));
-  player.hp=wasInBattle ? Math.min(player.maxHp, Math.round(player.maxHp*(prevHp/prevMaxHp))) : player.maxHp;
+  // Combat HP is persistent state. Recalculating growth/equipment must never heal it.
+  player.hp=wasInCombat ? Math.max(0,Math.min(player.maxHp,previousHp)) : player.maxHp;
   player.attack=Math.max(1,Math.round(g.atk*(m.atk||1)*levelMul + gear.atk));
   player.defense=Math.max(0,Math.round(gear.def));
   const effectiveSpeed=Math.max(.35,g.speed*(m.speed||1));
@@ -659,6 +686,7 @@ function applyGrowthToPlayer(){
   player.parryRange=72 + Math.min(80,Math.max(0,(g.parry-20))*1.0)*(m.parry||1) + gear.special;
   player.speed=325*(m.move||1);
   player.perfectMultiplier=m.perfect||1;
+  updateGearDebugHud('출격 능력치 적용 완료');
 }
 
 function reset(){
@@ -882,27 +910,24 @@ function shootPlayer(){
   const def=STONE_DEFS[battleStone]||STONE_DEFS.basic;
   const damage=Math.max(1,Math.round((player.attack||25)*(player.skillAttackMul||1)/25*def.damage*(window.__duckWeaponUpgradeMul?window.__duckWeaponUpgradeMul():1)));
   const stone=battleStone;
-  // Fire at an actual living enemy instead of always shooting straight upward.
-  // Straight-up shots could miss the entire enemy group indefinitely.
-  let target=null,targetD=Infinity;
+  // Core combat aim: every normal shot is aimed at a living enemy instead of
+  // travelling vertically through empty space. This keeps hitEnemy() as the
+  // single enemy-HP mutation path.
+  let target=null, best=Infinity;
   for(const e of enemies){
-    if(!e || e.dead) continue;
+    if(!e || e.dead || !(e.hp>0)) continue;
     const d=Math.hypot(e.x-player.x,e.y-player.y);
-    if(d<targetD){target=e;targetD=d;}
+    if(d<best){best=d;target=e;}
   }
-  let aimX=0,aimY=-1;
-  if(target){
-    aimX=target.x-player.x; aimY=target.y-player.y;
-    const len=Math.hypot(aimX,aimY)||1; aimX/=len; aimY/=len;
-  }
-  const shotSpeed=520;
   const addShot=(angleOffset=0)=>{
-    const ca=Math.cos(angleOffset),sa=Math.sin(angleOffset);
-    const dx=aimX*ca-aimY*sa,dy=aimX*sa+aimY*ca;
-    shots.push({x:player.x,y:player.y-25,vx:dx*shotSpeed,vy:dy*shotSpeed,r:stone==='bomb'?10:7,life:2,damage,stone});
+    let dx=0,dy=-1;
+    if(target){dx=target.x-player.x;dy=target.y-(player.y-25);}
+    let a=Math.atan2(dy,dx)+angleOffset;
+    const speed=520;
+    shots.push({x:player.x,y:player.y-25,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:stone==='bomb'?10:7,life:2,damage,stone});
   };
   if(player.skillMultiShot){
-    for(const off of [-.12,0,.12]) addShot(off);
+    for(const a of [-0.12,0,0.12]) addShot(a);
   }else addShot();
   // Only special-weapon ammo is consumed. When it reaches zero, the battle
   // automatically switches to the unlimited basic stone.
@@ -1389,7 +1414,7 @@ function update(dt){
           levelFlash=1.15;
           message='';
           messageTimer=0;
-          // Level-up no longer restores HP; damage must persist until healed by an explicit skill/item.
+          // Combat level-up does not refill HP.
           // V47: 레벨업은 전투를 멈추거나 선택창을 띄우지 않는다.
           // 기존 자동 성장(레벨에 따른 공격 템포/HP 회복)은 유지하고,
           // 전투 화면에는 짧은 LEVEL UP 안내만 표시한다.
@@ -1551,6 +1576,7 @@ function drawUpgrade(){
   ctx.restore();
 }
 function draw(){
+  syncGearDebugHud();
   ctx.clearRect(0,0,vw,vh);
 
   const sx=shake?(Math.random()-.5)*shake:0;
@@ -3252,20 +3278,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(window.__duckSyncLobby) window.__duckSyncLobby();
   }
 
-  if(!document.getElementById('gearDetailV1Style')){
-    const gs=document.createElement('style'); gs.id='gearDetailV1Style'; gs.textContent=`
-      .gearV1Card strong u{font-size:9px;text-decoration:none;color:#ffd866;margin-left:4px}
-      .gearDetailShell{position:fixed!important;inset:0!important;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;border-radius:0!important;box-sizing:border-box!important;overflow:auto!important}
-      .gearDetailV1{max-width:560px;margin:0 auto;padding:8px 16px 28px;min-height:calc(100vh - 92px);box-sizing:border-box}
-      .gearDetailBack{width:46px;height:46px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(0,0,0,.18);color:#fff;font-weight:1000;font-size:30px;line-height:1;padding:0;margin:0 0 14px;text-align:center}
-      .gearDetailHero{display:grid;grid-template-columns:minmax(150px,42%) 1fr;gap:18px;align-items:center;min-height:230px;padding:22px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid rgba(255,216,102,.24)}
-      .gearDetailHero img{width:100%;height:190px;object-fit:contain;filter:drop-shadow(0 10px 10px rgba(0,0,0,.22))}.gearDetailHero small{font-size:11px;color:#ffd866;font-weight:900}.gearDetailHero h3{margin:5px 0 3px;font-size:25px}.gearDetailHero p{margin:0 0 12px;font-size:12px;opacity:.68}.gearDetailHero b{color:#ffd866;font-size:17px}
-      .gearDetailStats{margin:14px 0;padding:18px;border-radius:18px;background:rgba(0,0,0,.18);display:grid;gap:7px}.gearDetailStats small{opacity:.58;font-size:11px}.gearDetailStats strong{font-size:18px}.gearDetailStats em{font-style:normal;color:#79e6a1;font-size:13px;font-weight:900}
-      .gearDetailActions{display:grid;gap:10px;margin-top:12px}.gearDetailEquip,.gearDetailUpgrade{width:100%;min-height:54px;border:0;border-radius:15px;padding:14px;font-size:15px;font-weight:1000}.gearDetailEquip{background:#355c67;color:#fff}.gearDetailUpgrade{background:#ffd866;color:#30220b;box-shadow:0 4px 0 rgba(112,73,18,.5)}.gearDetailUpgrade:disabled{background:rgba(255,255,255,.09);color:#7f8992;box-shadow:none}.gearDetailNeed{text-align:center;color:#ff9f9f;font-size:11px;font-weight:900;margin-top:9px}
-      @media(max-width:430px){.gearDetailV1{padding:6px 14px 24px}.gearDetailHero{grid-template-columns:43% 1fr;min-height:205px;padding:16px;gap:12px}.gearDetailHero img{height:165px}.gearDetailHero h3{font-size:22px}}
-    `; document.head.appendChild(gs);
-  }
-
   function renderEquipmentMenu(){
     const GEAR_KEY='doldol_gear_loadout_v1';
     const OWN_KEY='doldol_gear_owned_v1';
@@ -3288,51 +3300,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     let owned=gearDefs.map(x=>x.id);
     try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem(GEAR_KEY)||'{}'));}catch(e){}
     try{const v=JSON.parse(localStorage.getItem(OWN_KEY)||'null');if(Array.isArray(v)&&v.length)owned=v;}catch(e){}
-    const LEVEL_KEY='doldol_gear_levels_v1', MAX_GEAR_LEVEL=20;
-    let gearLevels={}; try{gearLevels=JSON.parse(localStorage.getItem(LEVEL_KEY)||'{}')||{};}catch(e){}
-    const gearLevel=id=>Math.max(1,Math.min(MAX_GEAR_LEVEL,Number(gearLevels[id]||1)||1));
-    const gearMul=id=>1+(gearLevel(id)-1)*0.10;
-    const upgradeCost=id=>250+(gearLevel(id)-1)*150;
-    const scaled=(g,k)=>Math.round((Number(g[k])||0)*gearMul(g.id));
-    const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));localStorage.setItem(LEVEL_KEY,JSON.stringify(gearLevels));}catch(e){}};
+    const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));}catch(e){}};
     window.__duckGearLoadout=()=>Object.assign({},loadout);
 
-    function statText(g,nextLevel){
-      const mul=nextLevel?1+(nextLevel-1)*0.10:gearMul(g.id), a=[];
-      const val=k=>Math.round((Number(g[k])||0)*mul);
-      if(g.atk)a.push('공격 +'+val('atk')); if(g.def)a.push('방어 +'+val('def'));
-      if(g.hp)a.push('체력 +'+val('hp')); if(g.special)a.push('특수 +'+val('special'));
+    function statText(g){
+      const a=[]; if(g.atk)a.push('공격 +'+g.atk); if(g.def)a.push('방어 +'+g.def);
+      if(g.hp)a.push('체력 +'+g.hp); if(g.special)a.push('특수 +'+g.special);
       return a.join(' · ')||'기본 장비';
-    }
-    function renderDetail(id,backFilter='all'){
-      const g=gearDefs.find(x=>x.id===id); if(!g)return render(backFilter);
-      const lv=gearLevel(id), max=lv>=MAX_GEAR_LEVEL, next=Math.min(MAX_GEAR_LEVEL,lv+1), cost=upgradeCost(id);
-      const core=window.__duckWallet?window.__duckWallet.coins:0;
-      menuTitle.textContent='장비 상세';
-      if(menuBody.parentElement)menuBody.parentElement.classList.add('gearDetailShell');
-      const activeClose=document.getElementById('menuClose'); if(activeClose)activeClose.style.display='none';
-      menuBody.innerHTML='<div class="gearDetailV1">'+
-        '<button type="button" id="gearDetailBack" class="gearDetailBack" aria-label="장비 목록으로 돌아가기">‹</button>'+
-        '<div class="gearDetailHero"><img src="'+g.art+'" alt="'+g.name+'"><div><small>'+g.rarity+' · '+slotName[g.slot]+'</small><h3>'+g.name+'</h3><p>'+g.role+'</p><b>Lv.'+lv+' / '+MAX_GEAR_LEVEL+'</b></div></div>'+
-        '<div class="gearDetailStats"><small>현재 능력치</small><strong>'+statText(g)+'</strong>'+(max?'':'<em>강화 후 · '+statText(g,next)+'</em>')+'</div>'+
-        '<div class="gearDetailActions"><button type="button" id="gearEquipBtn" class="gearDetailEquip">'+(loadout[g.slot]===g.id?'✓ 장착중':'장착하기')+'</button>'+
-        '<button type="button" id="gearUpgradeBtn" class="gearDetailUpgrade" '+(max||core<cost?'disabled':'')+'>'+(max?'MAX 강화':'강화하기 · 돌핵 '+cost.toLocaleString())+'</button></div>'+
-        (!max&&core<cost?'<div class="gearDetailNeed">돌핵이 부족합니다 · 보유 '+Number(core).toLocaleString()+'</div>':'')+'</div>';
-      menuBody.querySelector('#gearDetailBack').onclick=()=>render(backFilter);
-      menuBody.querySelector('#gearEquipBtn').onclick=()=>{loadout[g.slot]=g.id;save();renderDetail(id,backFilter);};
-      const up=menuBody.querySelector('#gearUpgradeBtn');
-      if(up)up.onclick=()=>{
-        const now=gearLevel(id), c=upgradeCost(id); if(now>=MAX_GEAR_LEVEL)return;
-        if(!window.__duckWallet||!window.__duckWallet.spendCoins(c))return renderDetail(id,backFilter);
-        gearLevels[id]=now+1; save();
-        if(window.__duckSyncLobby)window.__duckSyncLobby();
-        renderDetail(id,backFilter);
-      };
     }
     function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
     function render(filter='all'){
-      if(menuBody.parentElement)menuBody.parentElement.classList.remove('gearDetailShell');
-      const activeClose=document.getElementById('menuClose'); if(activeClose)activeClose.style.display='';
       menuTitle.textContent='장비';
       const slots=['weapon','armor','support'].map(slot=>{
         const g=equipped(slot);
@@ -3341,7 +3318,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const list=gearDefs.filter(g=>filter==='all'||g.slot===filter).map(g=>{
         const on=loadout[g.slot]===g.id;
         return '<button type="button" class="gearV1Card '+(on?'equipped':'')+'" data-gear-id="'+g.id+'">'+
-          '<i class="gearV1Art gearV1Art-'+g.id+'"><img src="'+g.art+'" alt="'+g.name+'"></i><span><strong>'+g.name+' <u>Lv.'+gearLevel(g.id)+'</u></strong><small>'+g.rarity+' · '+g.role+'</small><em>'+statText(g)+'</em></span>'+
+          '<i class="gearV1Art gearV1Art-'+g.id+'"><img src="'+g.art+'" alt="'+g.name+'"></i><span><strong>'+g.name+'</strong><small>'+g.rarity+' · '+g.role+'</small><em>'+statText(g)+'</em></span>'+
           (on?'<b>장착중</b>':'')+'</button>';
       }).join('');
       menuBody.innerHTML=
@@ -3356,7 +3333,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
       menuBody.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
       menuBody.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
-      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>renderDetail(b.dataset.gearId,filter));
+      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>{
+        const g=gearDefs.find(x=>x.id===b.dataset.gearId); if(!g)return;
+        loadout[g.slot]=g.id; save(); render(filter);
+      });
     }
     render('all');
   }
