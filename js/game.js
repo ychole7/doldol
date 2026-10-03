@@ -910,7 +910,7 @@ function shootPlayer(){
     if(target){dx=target.x-player.x;dy=target.y-(player.y-25);}
     let a=Math.atan2(dy,dx)+angleOffset;
     const speed=520;
-    shots.push({x:player.x,y:player.y-25,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:stone==='bomb'?10:7,life:2,damage,stone});
+    shots.push({x:player.x,y:player.y-25,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:stone==='bomb'?12:7,life:2,damage,stone});
   };
   if(player.skillMultiShot){
     for(const a of [-0.12,0,0.12]) addShot(a);
@@ -1217,6 +1217,23 @@ function update(dt){
 
   for(const e of enemies){
     if(e.dead) continue;
+
+    // STONE EFFECT V1: fire burn ticks independently from the initial hit.
+    if(e.burnUntil && performance.now()<e.burnUntil){
+      e.burnTick=(e.burnTick||0)-dt;
+      if(e.burnTick<=0){
+        e.burnTick=.65;
+        hitEnemy(e,1);
+        if(!e.dead){
+          burst(e.x,e.y,5);
+          damageTexts.push({x:e.x+8,y:e.y-e.r-3,text:'🔥',life:.38,vy:-18,crit:false});
+        }
+      }
+    }else{
+      e.burnUntil=0;
+      e.burnTick=0;
+    }
+
     const stoneSlow=(e.slowUntil && performance.now()<e.slowUntil)?.55:1;
     if(e.hitFlash>0) e.hitFlash-=dt;
     if(e.moveFx>0) e.moveFx-=dt;
@@ -1323,19 +1340,43 @@ function update(dt){
         s.life=0;
         hitEnemy(e,s.damage||1);
         if(s.stone==='bomb'){
-          for(const other of enemies){ if(other!==e && !other.dead && Math.hypot(s.x-other.x,s.y-other.y)<86) hitEnemy(other,Math.max(1,Math.round((s.damage||1)*.55))); }
-          burst(s.x,s.y,22); message='💥 폭발!'; messageTimer=.35;
+          // Wide splash: easy to feel when enemies group up.
+          for(const other of enemies){
+            if(other!==e && !other.dead && Math.hypot(s.x-other.x,s.y-other.y)<112){
+              hitEnemy(other,Math.max(1,Math.round((s.damage||1)*.70)));
+            }
+          }
+          burst(s.x,s.y,30); shake=Math.max(shake,7); message='💥 범위 폭발!'; messageTimer=.42;
         }else if(s.stone==='fire'){
-          hitEnemy(e,2); message='🔥 화염!'; messageTimer=.3;
+          // Burn for ~2.6 sec, ticking every .65 sec.
+          e.burnUntil=performance.now()+2600;
+          e.burnTick=.38;
+          burst(e.x,e.y,14); message='🔥 화상!'; messageTimer=.38;
         }else if(s.stone==='ice'){
-          e.slowUntil=performance.now()+1800; message='❄️ 감속!'; messageTimer=.3;
+          // Stronger, longer slow so the control identity is obvious.
+          e.slowUntil=performance.now()+2600;
+          burst(e.x,e.y,12); message='❄️ 빙결 감속!'; messageTimer=.38;
         }else if(s.stone==='lightning'){
-          let best=null,bd=Infinity; for(const other of enemies){ if(other!==e && !other.dead){const dd=Math.hypot(other.x-e.x,other.y-e.y); if(dd<bd){bd=dd;best=other;}} }
-          if(best && bd<190){ hitEnemy(best,Math.max(1,Math.round((s.damage||1)*.65))); burst(best.x,best.y,10); }
-          message='⚡ 연쇄!'; messageTimer=.3;
+          // Chain to up to 2 nearby enemies with diminishing damage.
+          let pool=enemies
+            .filter(other=>other!==e && !other.dead)
+            .map(other=>({other,d:Math.hypot(other.x-e.x,other.y-e.y)}))
+            .filter(v=>v.d<215)
+            .sort((a,b)=>a.d-b.d)
+            .slice(0,2);
+          pool.forEach((v,idx)=>{
+            const mul=idx===0?.72:.52;
+            hitEnemy(v.other,Math.max(1,Math.round((s.damage||1)*mul)));
+            burst(v.other.x,v.other.y,12);
+          });
+          message=pool.length>1?'⚡ 2연쇄!':'⚡ 연쇄!'; messageTimer=.38;
         }else if(s.stone==='skill'){
-          skillCooldown=Math.max(0,skillCooldown-1.5);
-          burst(s.x,s.y,10); message='✨ 스킬 충전 -1.5초'; messageTimer=.35;
+          // Noticeable cooldown refund on every hit.
+          const before=skillCooldown;
+          skillCooldown=Math.max(0,skillCooldown-2.5);
+          burst(s.x,s.y,14);
+          message=before>0?'✨ 스킬 충전 -2.5초':'✨ 스킬 에너지!';
+          messageTimer=.42;
         }
         break;
       }
