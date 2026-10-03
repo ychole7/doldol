@@ -1002,7 +1002,17 @@ function hitEnemy(e,damage=1){
     kills++;
     if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
     feedbackV1('kill');
-    if(e.type==='boss'){ bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54); }
+    if(e.type==='boss'){
+      bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54);
+      // Boss stage rule: defeating the boss ends the operation.
+      // Any surviving support soldiers retreat so they cannot keep the EXIT gate locked.
+      for(const support of enemies){
+        if(support!==e && !support.dead){
+          support.dead=true;
+          burst(support.x,support.y,10);
+        }
+      }
+    }
     burst(e.x,e.y,18);
     combatImpactFx(e,damage,true);
     e.dead=true;
