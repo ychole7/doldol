@@ -148,7 +148,7 @@ const STONE_DEFS={
   basic:{icon:'🪨',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
   fire:{icon:'🔥',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
   ice:{icon:'❄️',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
-  bomb:{icon:'💣',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
+  bomb:{icon:'💥',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
   lightning:{icon:'⚡',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
   skill:{icon:'✨',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
 };
@@ -3046,7 +3046,28 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function render(){const page=ensure(),list=page.querySelector('#achList');page.querySelector('#achCore').textContent=Number(window.__duckWallet?.coins||0).toLocaleString();const completed=defs.filter(d=>Number(state[d.key]||0)>=d.goal).length,claimed=defs.filter(d=>state.claimed[d.id]).length;page.querySelector('#achSummary').innerHTML='<div><b>'+completed+'/'+defs.length+'</b><small>달성</small></div><div><b>'+claimed+'</b><small>보상 수령</small></div><div><b>'+Number(state.kills||0)+'</b><small>누적 처치</small></div>';list.innerHTML=defs.map(d=>{const cur=Math.min(d.goal,Number(state[d.key]||0)),done=cur>=d.goal,got=!!state.claimed[d.id],pct=Math.round(cur/d.goal*100);return '<article class="achCard '+(done?'done':'')+'"><div class="achIcon">'+d.icon+'</div><div><div class="achName">'+d.name+'</div><div class="achDesc">'+d.desc+' · 보상 🔥 '+d.reward.toLocaleString()+'</div><div class="achBar"><i style="width:'+pct+'%"></i></div><div class="achCount">'+cur+' / '+d.goal+'</div></div><button class="achClaim" data-ach="'+d.id+'" '+(!done||got?'disabled':'')+'>'+(got?'완료':done?'받기':'진행중')+'</button></article>'}).join('');list.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>{const d=defs.find(x=>x.id===b.dataset.ach);if(!d||state.claimed[d.id]||Number(state[d.key]||0)<d.goal)return;state.claimed[d.id]=true;if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);sync();toast('🔥 '+d.reward.toLocaleString()+' 획득');render();});}
   function close(){const p=document.getElementById('doldolAchievementPage');if(p)p.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden')}
   function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');render();p.classList.add('show')}
-  function installButton(){const lobby=document.getElementById('gameLobby');if(!lobby||document.getElementById('lobbyMission'))return;const anchor=document.getElementById('lobbyGear');const b=document.createElement('button');b.id='lobbyMission';b.className=anchor?anchor.className:'menuItem';b.innerHTML='🏅 업적<small>작전 기록</small>';b.onclick=open;if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(b,anchor);else lobby.appendChild(b)}
+  function bindProfileEntry(){
+    const lobby=document.getElementById('gameLobby'); if(!lobby)return;
+    const candidates=[...lobby.querySelectorAll('[id*="player" i],[id*="profile" i],.playerInfo')];
+    let card=candidates.find(el=>/lv\.?\s*\d+/i.test((el.textContent||'').replace(/\s+/g,' ')))||candidates[0];
+    if(!card||card.dataset.achievementBound==='1')return;
+    card.dataset.achievementBound='1';
+    card.style.cursor='pointer';
+    card.setAttribute('role','button');
+    card.setAttribute('aria-label','업적 보기');
+    card.addEventListener('click',function(e){
+      if(!document.getElementById('gameLobby') || document.getElementById('gameLobby').classList.contains('hidden'))return;
+      e.preventDefault(); e.stopPropagation(); open();
+    });
+  }
+  function installButton(){
+    bindProfileEntry();
+    const lobby=document.getElementById('gameLobby');
+    if(lobby && !window.__duckAchievementObserver){
+      window.__duckAchievementObserver=new MutationObserver(()=>bindProfileEntry());
+      window.__duckAchievementObserver.observe(lobby,{childList:true,subtree:true});
+    }
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installButton);else installButton();window.__duckOpenMissions=open;window.__duckOpenAchievements=open;window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
 
@@ -3293,13 +3314,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     basic:{icon:'🪨',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
     fire:{icon:'🔥',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
     ice:{icon:'❄️',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
-    bomb:{icon:'💣',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
+    bomb:{icon:'💥',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
     lightning:{icon:'⚡',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
     skill:{icon:'✨',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
   };
   const order=['basic','fire','ice','bomb','lightning','skill'];
-  function highestCleared(){ return Math.max(0,unlockedStage()-1); }
-  function stoneUnlocked(id){ const d=defs[id]||defs.basic; return highestCleared()>=(d.unlock||0); }
+  function highestCleared(){return Math.max(0,unlockedStage()-1)}
+  function stoneUnlocked(id){const d=defs[id]||defs.basic;return highestCleared()>=(d.unlock||0)}
 
   function showMenu(){
     // Opening the armory is a lobby action. Never leave a stale result/map
@@ -3427,73 +3448,63 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     });
   }
 
-  function getGearSummaryForPrep(){
-    try{
-      const g=window.__duckGearStats?window.__duckGearStats():null;
-      if(!g) return '장비 능력치 불러오는 중';
-      const parts=[];
-      if(g.atk) parts.push('공격 +'+g.atk);
-      if(g.def) parts.push('방어 +'+g.def);
-      if(g.hp) parts.push('HP +'+g.hp);
-      if(g.special) parts.push('보조 +'+g.special);
-      return parts.join(' · ')||'기본 장비';
-    }catch(e){ return '기본 장비'; }
+  function ensureStonePrep(){
+    let page=document.getElementById('doldolStonePrepPage');
+    if(page)return page;
+    page=document.createElement('section');page.id='doldolStonePrepPage';
+    page.innerHTML='<div class="stonePrepPanel"><div class="stonePrepTop"><button type="button" id="stonePrepBack">‹</button><div><small>LOADOUT</small><b>출격 준비</b></div><span id="stonePrepStage">STAGE 1</span></div><div class="stonePrepHero"><b>사용할 돌을 선택하세요</b><p>돌은 전투 방식을 결정합니다. 장비는 캐릭터의 기본 능력치를 강화합니다.</p></div><div id="stonePrepGrid" class="stonePrepGrid"></div><div class="stonePrepUnlock">🪨 기본 · 🔥 5 · ❄️ 10 · 💥 15 · ⚡ 20 · ✨ 25 클리어 후 해금</div><button type="button" id="stonePrepGo" class="stonePrepGo">⚔️ 출격</button></div>';
+    document.body.appendChild(page);
+    const st=document.createElement('style');st.id='doldolStonePrepDedicatedStyle';st.textContent=`
+#doldolStonePrepPage{position:fixed;inset:0;z-index:120000;display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 22px);background:linear-gradient(rgba(9,20,25,.62),rgba(9,20,25,.9)),url('../assets/home_base_bg.png') center/cover;font-family:system-ui,-apple-system,sans-serif;color:#fff}
+#doldolStonePrepPage.show{display:block}.stonePrepPanel{max-width:620px;margin:auto}.stonePrepTop{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;padding:13px;border:2px solid rgba(255,216,102,.7);border-radius:24px 24px 0 0;background:#213b42}.stonePrepTop button{width:44px;height:44px;border:0;border-radius:13px;background:#d7bd85;color:#fff;font-size:32px;font-weight:1000}.stonePrepTop small{display:block;color:#ffd866;font-size:9px;letter-spacing:1.5px}.stonePrepTop b{display:block;font-size:24px}.stonePrepTop span{padding:8px 10px;border-radius:12px;background:#13272d;color:#ffd866;font-size:11px;font-weight:1000}.stonePrepHero{padding:17px 16px;background:linear-gradient(135deg,#315047,#24353a);border-left:2px solid rgba(255,216,102,.7);border-right:2px solid rgba(255,216,102,.7)}.stonePrepHero b{font-size:18px}.stonePrepHero p{margin:5px 0 0;color:#c8d4d2;font-size:11px;line-height:1.5}.stonePrepGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:13px;background:#172a30;border-left:2px solid rgba(255,216,102,.7);border-right:2px solid rgba(255,216,102,.7)}.stonePrepCard{position:relative;min-height:105px;padding:11px;border:2px solid #486069;border-radius:17px;background:linear-gradient(180deg,#263c43,#1a2d33);color:#fff;text-align:left}.stonePrepCard.selected{border-color:#ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.16);background:linear-gradient(180deg,#3a5147,#20353a)}.stonePrepCard.locked{opacity:.42;filter:grayscale(.35)}.stonePrepCard .ico{display:block;font-size:30px}.stonePrepCard b{display:block;font-size:15px;margin-top:3px}.stonePrepCard small{display:block;font-size:9px;color:#b4c3c7;line-height:1.4;margin-top:3px}.stonePrepCard em{position:absolute;right:8px;top:8px;font-style:normal;font-size:8px;color:#ffd866;font-weight:1000}.stonePrepUnlock{padding:10px 14px;background:#172a30;border-left:2px solid rgba(255,216,102,.7);border-right:2px solid rgba(255,216,102,.7);font-size:9px;color:#aab9bd;line-height:1.45}.stonePrepGo{width:100%;min-height:58px;border:0;border-radius:0 0 22px 22px;background:linear-gradient(#ffd866,#f1a92e);color:#30220d;font-size:18px;font-weight:1000;box-shadow:0 6px 0 #9c641d}
+@media(max-width:390px){.stonePrepGrid{gap:7px}.stonePrepCard{min-height:98px;padding:9px}.stonePrepCard .ico{font-size:27px}.stonePrepCard b{font-size:14px}}
+`;document.head.appendChild(st);
+    page.querySelector('#stonePrepBack').onclick=()=>{page.classList.remove('show');lobby.classList.remove('hidden');};
+    page.querySelector('#stonePrepGo').onclick=()=>startDirectBattle();
+    return page;
   }
-
-  function renderBattlePrep(){
-    const st=currentStage();
-    let prepared=getPreparedStone();
-    if(!defs[prepared] || !stoneUnlocked(prepared)) prepared='basic';
-    savePreparedStone(prepared); window.__duckPreparedStone=prepared;
-    menuTitle.textContent='출격 준비';
-    const cards=order.map(id=>{
-      const d=defs[id], unlocked=stoneUnlocked(id), selected=id===prepared;
-      const lockText=unlocked?'':'STAGE '+d.unlock+' 클리어';
-      return '<button type="button" class="doldolStonePrepCard '+(selected?'selected ':'')+(unlocked?'':'locked')+'" data-prep-stone="'+id+'" '+(unlocked?'':'disabled')+'>'+ 
-        '<span class="doldolStonePrepIcon">'+d.icon+'</span><span class="doldolStonePrepText"><b>'+d.name+'</b><small>'+d.role+' · '+d.desc+'</small></span>'+ 
-        (unlocked?(selected?'<em>✓ 선택</em>':'<em>선택</em>'):'<em>🔒 '+lockText+'</em>')+'</button>';
+  function renderStonePrep(){
+    const page=ensureStonePrep(),st=currentStage(),grid=page.querySelector('#stonePrepGrid');
+    let chosen=getPreparedStone();
+    if(!defs[chosen]||!stoneUnlocked(chosen))chosen='basic';
+    savePreparedStone(chosen);window.__duckPreparedStone=chosen;
+    page.querySelector('#stonePrepStage').textContent='STAGE '+st;
+    grid.innerHTML=order.map(id=>{
+      const d=defs[id],ok=stoneUnlocked(id),on=id===chosen;
+      return '<button type="button" class="stonePrepCard '+(on?'selected ':'')+(ok?'':'locked')+'" data-stone="'+id+'" '+(ok?'':'disabled')+'><span class="ico">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.role+' · '+d.desc+'</small><em>'+(ok?(on?'✓ 선택':'선택'):'🔒 STAGE '+d.unlock)+'</em></button>';
     }).join('');
-    menuBody.innerHTML='<div class="doldolPrepHero"><div><small>STAGE '+st+'</small><strong>사용할 돌을 선택하세요</strong><p>돌은 전투 방식을 결정하고, 장비는 캐릭터의 기본 능력치를 강화합니다.</p></div><div class="doldolPrepGear"><span>🎒 장착 장비</span><b>'+getGearSummaryForPrep()+'</b></div></div>'+ 
-      '<div class="doldolPrepLabel">전투 돌</div><div class="doldolStonePrepGrid">'+cards+'</div>'+ 
-      '<div class="doldolPrepRule">🪨 기본돌은 처음부터 사용 · 🔥 5 · ❄️ 10 · 💥 15 · ⚡ 20 · ✨ 25 스테이지 클리어 후 해금</div>'+ 
-      '<div class="doldolPrepActions"><button type="button" id="doldolPrepGearBtn">🎒 장비 확인</button><button type="button" id="doldolPrepStartBtn">⚔️ STAGE '+st+' 출격</button></div>';
-    menuBody.querySelectorAll('[data-prep-stone]').forEach(b=>b.onclick=()=>{
-      const id=b.dataset.prepStone; if(!stoneUnlocked(id)) return;
-      savePreparedStone(id); window.__duckPreparedStone=id;
-      if(window.__duckEquipStone) window.__duckEquipStone(id);
-      renderBattlePrep();
-    });
-    const gearBtn=menuBody.querySelector('#doldolPrepGearBtn'); if(gearBtn) gearBtn.onclick=()=>renderEquipmentMenu();
-    const startBtn=menuBody.querySelector('#doldolPrepStartBtn'); if(startBtn) startBtn.onclick=()=>startDirectBattle();
+    grid.querySelectorAll('[data-stone]').forEach(b=>b.onclick=()=>{const id=b.dataset.stone;if(!stoneUnlocked(id))return;savePreparedStone(id);window.__duckPreparedStone=id;if(window.__duckEquipStone)window.__duckEquipStone(id);renderStonePrep();});
+    return page;
+  }
+  function openStonePrep(){
+    const page=renderStonePrep();
+    const result=document.getElementById('resultScreen'),map=document.getElementById('mapScreen');
+    if(result)result.classList.remove('show');if(map)map.classList.remove('show');menu.classList.remove('show');
+    lobby.classList.add('hidden');page.classList.add('show');
   }
 
   function startDirectBattle(){
     const st=currentStage();
     let equipped=window.__duckPreparedStone||getPreparedStone()||'basic';
-    if(!defs[equipped] || !stoneUnlocked(equipped)) equipped='basic';
-    savePreparedStone(equipped);
-    window.__duckPreparedStone=equipped;
-    if(window.__duckEquipStone) window.__duckEquipStone(equipped);
-    menu.classList.remove('show');
-    lobby.classList.add('hidden');
-    if(window.__duckStartStage) window.__duckStartStage(st);
+    if(!defs[equipped]||!stoneUnlocked(equipped))equipped='basic';
+    savePreparedStone(equipped);window.__duckPreparedStone=equipped;
+    if(window.__duckEquipStone)window.__duckEquipStone(equipped);
+    const prep=document.getElementById('doldolStonePrepPage');if(prep)prep.classList.remove('show');
+    menu.classList.remove('show');lobby.classList.add('hidden');
+    if(window.__duckStartStage)window.__duckStartStage(st);
   }
 
   // V42: the main CTA starts battle directly; the bottom menu is the equipment/weapon menu.
   function handleLobbyStart(e){
-    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-    renderBattlePrep(); showMenu();
+    e.preventDefault();e.stopPropagation();
+    openStonePrep();
   }
   function handleLobbyGear(e){
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
     renderEquipmentMenu(); showMenu();
   }
-  document.addEventListener('click',function(e){
-    const t=e.target && e.target.closest ? e.target.closest('#lobbyStart,#lobbyGear') : null;
-    if(!t) return;
-    if(t.id==='lobbyStart') handleLobbyStart(e);
-    else handleLobbyGear(e);
-  },true);
+  if(lobbyStart)lobbyStart.onclick=handleLobbyStart;
+  const directGear=document.getElementById('lobbyGear');if(directGear)directGear.onclick=handleLobbyGear;
 
   // Keep labels consistent with the new navigation.
   try{ lobbyStart.innerHTML='<span style=\"font-size:24px\">⚔️</span><b>전투 시작</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
@@ -3565,15 +3576,15 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     stagePanel.classList.remove('show');
     window.__selectedDuckStage=st;
     window.__duckStage=st;
-    renderBattlePrep(); showMenu();
+    openStonePrep();
   };
   lobbyStages.onclick=function(e){e.preventDefault();e.stopPropagation();openStageList();};
 
   // Remove accidental direct gear behavior; gear is now reached through battle prep.
-  const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderBattlePrep();showMenu();};
+  const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderEquipmentMenu();showMenu();};
 
   // Small UI refresh: lobby button becomes "전투 준비".
-  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 준비</b><small>돌 선택 · STAGE '+currentStage()+'</small>'; }catch(e){}
+  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>돌 선택 · STAGE '+currentStage()+'</small>'; }catch(e){}
 })();
 
 /* V41 styles */
@@ -4064,7 +4075,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!body||!panel) return;
     if(panel.querySelector('#doldolWeaponUpgradeCard')) return;
     const id=stoneId();
-    const defs={basic:{icon:'🪨',name:'기본돌'},fire:{icon:'🔥',name:'불돌'},ice:{icon:'❄️',name:'얼음돌'},bomb:{icon:'💣',name:'폭발돌'},lightning:{icon:'⚡',name:'번개돌'},skill:{icon:'✨',name:'스킬돌'}};
+    const defs={basic:{icon:'🪨',name:'기본돌'},fire:{icon:'🔥',name:'불돌'},ice:{icon:'❄️',name:'얼음돌'},bomb:{icon:'💥',name:'폭발돌'},lightning:{icon:'⚡',name:'번개돌'},skill:{icon:'✨',name:'스킬돌'}};
     const d=defs[id]||defs.basic, lv=level(id), c=cost(lv), farm=window.__doldolFarmV2;
     const wood=farm?farm.get('wood'):0, stone=farm?farm.get('stone'):0;
     const can=lv<MAX&&wood>=c.wood&&stone>=c.stone;
@@ -4234,14 +4245,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
-})();
-
-
-/* DOLDOL stone/loadout separation: stone = combat style, equipment = base stats */
-(function(){
-  if(document.getElementById('doldolStonePrepStyle')) return;
-  const css=document.createElement('style'); css.id='doldolStonePrepStyle'; css.textContent=`
-    .doldolPrepHero{padding:14px;border-radius:18px;background:linear-gradient(180deg,#243f45,#182c33);border:1px solid #52676d;margin-bottom:12px}.doldolPrepHero>div:first-child small{color:#ffd866;font-weight:1000}.doldolPrepHero strong{display:block;font-size:20px;margin-top:2px}.doldolPrepHero p{margin:6px 0 11px;color:#b8c5c9;font-size:11px;line-height:1.5}.doldolPrepGear{padding:9px 10px;border-radius:12px;background:rgba(0,0,0,.18)}.doldolPrepGear span,.doldolPrepGear b{display:block}.doldolPrepGear span{font-size:10px;color:#aebbc0}.doldolPrepGear b{font-size:11px;margin-top:3px;color:#fff2bf}.doldolPrepLabel{font-size:13px;font-weight:1000;margin:4px 2px 8px}.doldolStonePrepGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.doldolStonePrepCard{position:relative;min-height:88px;padding:11px 9px;border-radius:15px;border:2px solid #40535b;background:#1d3038;color:#fff;text-align:left;display:grid;grid-template-columns:36px 1fr;gap:8px;align-items:center}.doldolStonePrepCard.selected{border-color:#ffd45b;background:linear-gradient(180deg,#30453e,#1e3138);box-shadow:0 0 0 2px rgba(255,212,91,.14)}.doldolStonePrepCard.locked{opacity:.42;filter:saturate(.45)}.doldolStonePrepIcon{font-size:27px;text-align:center}.doldolStonePrepText b,.doldolStonePrepText small{display:block}.doldolStonePrepText b{font-size:14px}.doldolStonePrepText small{font-size:9px;line-height:1.35;color:#aebbc0;margin-top:3px}.doldolStonePrepCard em{position:absolute;right:7px;top:6px;font-style:normal;font-size:8px;color:#ffd866;font-weight:1000}.doldolPrepRule{margin:9px 2px 11px;color:#9faeb4;font-size:9px;line-height:1.55}.doldolPrepActions{display:grid;grid-template-columns:.8fr 1.2fr;gap:8px}.doldolPrepActions button{min-height:50px;border:0;border-radius:14px;font-weight:1000}.doldolPrepActions #doldolPrepGearBtn{background:#314650;color:#dbe5e8;border:1px solid #52676d}.doldolPrepActions #doldolPrepStartBtn{background:linear-gradient(180deg,#ffd45c,#ffb72e);color:#182127;box-shadow:0 4px 0 #a76d20;font-size:15px}
-    @media(max-width:390px){.doldolStonePrepGrid{gap:6px}.doldolStonePrepCard{min-height:82px;padding:9px 7px;grid-template-columns:32px 1fr}.doldolStonePrepIcon{font-size:24px}.doldolStonePrepText b{font-size:13px}.doldolStonePrepText small{font-size:8px}}
-  `; document.head.appendChild(css);
 })();
