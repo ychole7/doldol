@@ -616,14 +616,17 @@ function getEquippedGearStats(){
   const levelOf=id=>Math.max(1,Math.min(20,Number(upgradeLevels[id]||1)||1));
   const scaled=(value,id)=>Math.round((Number(value)||0)*(1+(levelOf(id)-1)*.10));
   const defs={
-    rifle:{slot:'weapon',atk:24},sniper:{slot:'weapon',atk:34},machine:{slot:'weapon',atk:28},rocket:{slot:'weapon',atk:42},
     helmet:{slot:'armor',def:18},vest:{slot:'armor',hp:35},heavy:{slot:'armor',def:30},light:{slot:'armor',def:22,hp:18},
     gloves:{slot:'support',special:8},boots:{slot:'support',special:10},scope:{slot:'support',atk:14,special:6},pack:{slot:'support',hp:24,special:5}
   };
-  let loadout={weapon:'rifle',armor:'helmet',support:'gloves'};
-  try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem('doldol_gear_loadout_v1')||'{}'));}catch(e){}
-  const out={atk:0,def:0,hp:0,special:0,loadout:Object.assign({},loadout)};
-  ['weapon','armor','support'].forEach(slot=>{
+  let loadout={armor:'helmet',support:'gloves'};
+  try{
+    const saved=JSON.parse(localStorage.getItem('doldol_gear_loadout_v1')||'{}')||{};
+    if(saved.armor)loadout.armor=saved.armor;
+    if(saved.support)loadout.support=saved.support;
+  }catch(e){}
+  const out={atk:24,def:0,hp:0,special:0,loadout:Object.assign({},loadout)};
+  ['armor','support'].forEach(slot=>{
     const item=defs[loadout[slot]];
     if(!item||item.slot!==slot)return;
     const id=loadout[slot];
@@ -3348,10 +3351,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const OWN_KEY='doldol_gear_owned_v1';
     const UPGRADE_KEY='doldol_gear_upgrade_v1';
     const gearDefs=[
-      {id:'rifle',slot:'weapon',art:'./assets/gear/gear_assault_rifle.png',name:'돌격총',role:'균형 화력',rarity:'희귀',atk:24},
-      {id:'sniper',slot:'weapon',art:'./assets/gear/gear_sniper_rifle.png',name:'저격총',role:'강한 한 방',rarity:'영웅',atk:34},
-      {id:'machine',slot:'weapon',art:'./assets/gear/gear_machine_gun.png',name:'기관총',role:'연속 화력',rarity:'희귀',atk:28},
-      {id:'rocket',slot:'weapon',art:'./assets/gear/gear_rocket_launcher.png',name:'로켓런처',role:'폭발 화력',rarity:'전설',atk:42},
       {id:'helmet',slot:'armor',art:'./assets/gear/gear_tactical_helmet.png',name:'전술 헬멧',role:'기본 방어',rarity:'희귀',def:18},
       {id:'vest',slot:'armor',art:'./assets/gear/gear_combat_vest.png',name:'전투조끼',role:'체력 보강',rarity:'희귀',hp:35},
       {id:'heavy',slot:'armor',art:'./assets/gear/gear_heavy_armor.png',name:'중장갑',role:'높은 방어',rarity:'영웅',def:30},
@@ -3361,18 +3360,22 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'scope',slot:'support',art:'./assets/gear/gear_scope.png',name:'조준경',role:'공격 보조',rarity:'영웅',atk:14,special:6},
       {id:'pack',slot:'support',art:'./assets/gear/gear_tactical_backpack.png',name:'전술 배낭',role:'생존 보조',rarity:'영웅',hp:24,special:5}
     ];
-    const slotName={weapon:'무기',armor:'방어구',support:'보조장비'};
-    let loadout={weapon:'rifle',armor:'helmet',support:'gloves'};
+    const slotName={armor:'방어구',support:'보조장비'};
+    let loadout={armor:'helmet',support:'gloves'};
     let owned=gearDefs.map(x=>x.id);
     let upgradeLevels={};
-    try{loadout=Object.assign(loadout,JSON.parse(localStorage.getItem(GEAR_KEY)||'{}'));}catch(e){}
+    try{
+      const saved=JSON.parse(localStorage.getItem(GEAR_KEY)||'{}')||{};
+      if(saved.armor)loadout.armor=saved.armor;
+      if(saved.support)loadout.support=saved.support;
+    }catch(e){}
     try{const v=JSON.parse(localStorage.getItem(OWN_KEY)||'null');if(Array.isArray(v)&&v.length)owned=v;}catch(e){}
     try{upgradeLevels=JSON.parse(localStorage.getItem(UPGRADE_KEY)||'{}')||{};}catch(e){}
     const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));localStorage.setItem(UPGRADE_KEY,JSON.stringify(upgradeLevels));}catch(e){}};
     const gearLevel=id=>Math.max(1,Math.min(20,Number(upgradeLevels[id]||1)||1));
     const scaled=(v,id,lv=gearLevel(id))=>Math.round((Number(v)||0)*(1+(lv-1)*.10));
     const upgradeCost=lv=>180+lv*55;
-    window.__duckGearLoadout=()=>Object.assign({},loadout);
+    window.__duckGearLoadout=()=>Object.assign({stone:getPreparedStone()},loadout);
 
     function statText(g,lv=gearLevel(g.id)){
       const a=[]; if(g.atk)a.push('공격 +'+scaled(g.atk,g.id,lv)); if(g.def)a.push('방어 +'+scaled(g.def,g.id,lv));
@@ -3380,6 +3383,30 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       return a.join(' · ')||'기본 장비';
     }
     function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
+    function currentStone(){
+      let id=getPreparedStone()||'basic';
+      if(!defs[id]||!stoneUnlocked(id))id='basic';
+      return {id,...defs[id]};
+    }
+    function equipStone(id){
+      if(!defs[id]||!stoneUnlocked(id))return;
+      savePreparedStone(id); window.__duckPreparedStone=id;
+      if(window.__duckEquipStone)window.__duckEquipStone(id);
+      render('stone');
+    }
+    function renderStoneDetail(id){
+      const d=defs[id]||defs.basic,ok=stoneUnlocked(id),on=currentStone().id===id;
+      menuTitle.textContent='돌 상세';
+      menuBody.innerHTML='<div class="stoneGearDetail">'+
+        '<button type="button" class="gearDetailBack" id="stoneDetailBack">‹</button>'+
+        '<div class="stoneGearHero"><span>'+d.icon+'</span><div><small>'+d.role+'</small><h2>'+d.name+'</h2><p>'+d.desc+'</p>'+(ok?'<strong>사용 가능</strong>':'<strong>STAGE '+d.unlock+' 클리어 후 해금</strong>')+'</div></div>'+
+        '<div class="stoneGearRule"><b>돌 = 전투 방식</b><small>장비 능력치와 별개로 공격 특성만 바뀝니다.</small></div>'+
+        '<button type="button" id="stoneDetailEquip" class="gearDetailEquip '+(on?'on':'')+'" '+(ok?'':'disabled')+'>'+(on?'✓ 장착중':ok?'이 돌 장착하기':'🔒 잠금')+'</button>'+
+      '</div>';
+      menuBody.querySelector('#stoneDetailBack').onclick=()=>render('stone');
+      const btn=menuBody.querySelector('#stoneDetailEquip');
+      if(btn&&ok)btn.onclick=()=>equipStone(id);
+    }
     function renderDetail(id,returnFilter='all'){
       const g=gearDefs.find(x=>x.id===id); if(!g)return render(returnFilter);
       const lv=gearLevel(g.id), nextLv=Math.min(20,lv+1), cost=upgradeCost(lv);
@@ -3408,31 +3435,39 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     function render(filter='all'){
       menuTitle.textContent='장비';
-      const slots=['weapon','armor','support'].map(slot=>{
+      const stone=currentStone();
+      const stoneSlot='<button type="button" class="gearV1Slot stoneSlot" data-gear-filter-jump="stone"><small>돌</small><span class="gearV1SlotArt stoneEmoji">'+stone.icon+'</span><b>'+stone.name+'</b><em>'+stone.role+' · '+stone.desc+'</em></button>';
+      const gearSlots=['armor','support'].map(slot=>{
         const g=equipped(slot);
         return '<button type="button" class="gearV1Slot" data-gear-slot="'+slot+'"><small>'+slotName[slot]+'</small><span class="gearV1SlotArt">'+(g?'<img src="'+g.art+'" alt="'+g.name+'">':'＋')+'</span><b>'+(g?g.name:'미장착')+'</b><em>'+(g?statText(g):'장비를 선택하세요')+'</em></button>';
       }).join('');
-      const list=gearDefs.filter(g=>filter==='all'||g.slot===filter).map(g=>{
+      const stoneCards=order.map(id=>{
+        const d=defs[id],ok=stoneUnlocked(id),on=stone.id===id;
+        return '<button type="button" class="gearV1Card stoneGearCard '+(on?'equipped ':'')+(ok?'':'locked')+'" data-stone-id="'+id+'">'+
+          '<i class="gearV1Art stoneGearArt">'+d.icon+'</i><span><strong>'+d.name+'</strong><small>'+d.role+(ok?'':' · 🔒 STAGE '+d.unlock)+'</small><em>'+d.desc+'</em></span>'+
+          (on?'<b>장착중</b>':'')+'</button>';
+      }).join('');
+      const gearList=gearDefs.filter(g=>filter==='all'||g.slot===filter).map(g=>{
         const on=loadout[g.slot]===g.id;
         return '<button type="button" class="gearV1Card '+(on?'equipped':'')+'" data-gear-id="'+g.id+'">'+
           '<i class="gearV1Art gearV1Art-'+g.id+'"><img src="'+g.art+'" alt="'+g.name+'"></i><span><strong>'+g.name+'</strong><small>'+g.rarity+' · '+g.role+'</small><em>'+statText(g)+'</em></span>'+
           (on?'<b>장착중</b>':'')+'</button>';
       }).join('');
+      const list=filter==='stone'?stoneCards:(filter==='all'?stoneCards+gearList:gearList);
       menuBody.innerHTML=
-        '<div class="gearV1Summary"><strong>출격 장비</strong><small>3개의 장비를 선택해 캐릭터 능력치를 강화합니다.</small></div>'+
-        '<div class="gearV1Slots">'+slots+'</div>'+
-        '<div class="gearV1Tabs">'+
+        '<div class="gearV1Summary"><strong>출격 세팅</strong><small>돌은 공격 방식을, 방어구와 보조장비는 기본 능력치를 결정합니다.</small></div>'+
+        '<div class="gearV1Slots">'+stoneSlot+gearSlots+'</div>'+
+        '<div class="gearV1Tabs stoneGearTabs">'+
           '<button data-gear-filter="all" class="'+(filter==='all'?'on':'')+'">전체</button>'+
-          '<button data-gear-filter="weapon" class="'+(filter==='weapon'?'on':'')+'">무기</button>'+
+          '<button data-gear-filter="stone" class="'+(filter==='stone'?'on':'')+'">돌</button>'+
           '<button data-gear-filter="armor" class="'+(filter==='armor'?'on':'')+'">방어구</button>'+
           '<button data-gear-filter="support" class="'+(filter==='support'?'on':'')+'">보조장비</button>'+
         '</div><div class="gearV1Inventory">'+list+'</div>';
-
       menuBody.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
+      menuBody.querySelectorAll('[data-gear-filter-jump]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilterJump));
       menuBody.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
-      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>{
-        renderDetail(b.dataset.gearId,filter);
-      });
+      menuBody.querySelectorAll('[data-stone-id]').forEach(b=>b.onclick=()=>renderStoneDetail(b.dataset.stoneId));
+      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>renderDetail(b.dataset.gearId,filter));
     }
     render('all');
   }
@@ -3448,56 +3483,20 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     });
   }
 
-  function ensureStonePrep(){
-    let page=document.getElementById('doldolStonePrepPage');
-    if(page)return page;
-    page=document.createElement('section');page.id='doldolStonePrepPage';
-    page.innerHTML='<div class="stonePrepPanel"><div class="stonePrepTop"><button type="button" id="stonePrepBack">‹</button><div><small>LOADOUT</small><b>출격 준비</b></div><span id="stonePrepStage">STAGE 1</span></div><div class="stonePrepHero"><b>사용할 돌을 선택하세요</b><p>돌은 전투 방식을 결정합니다. 장비는 캐릭터의 기본 능력치를 강화합니다.</p></div><div id="stonePrepGrid" class="stonePrepGrid"></div><div class="stonePrepUnlock">🪨 기본 · 🔥 5 · ❄️ 10 · 💥 15 · ⚡ 20 · ✨ 25 클리어 후 해금</div><button type="button" id="stonePrepGo" class="stonePrepGo">⚔️ 출격</button></div>';
-    document.body.appendChild(page);
-    const st=document.createElement('style');st.id='doldolStonePrepDedicatedStyle';st.textContent=`
-#doldolStonePrepPage{position:fixed;inset:0;z-index:120000;display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 22px);background:linear-gradient(rgba(9,20,25,.62),rgba(9,20,25,.9)),url('../assets/home_base_bg.png') center/cover;font-family:system-ui,-apple-system,sans-serif;color:#fff}
-#doldolStonePrepPage.show{display:block}.stonePrepPanel{max-width:620px;margin:auto}.stonePrepTop{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;padding:13px;border:2px solid rgba(255,216,102,.7);border-radius:24px 24px 0 0;background:#213b42}.stonePrepTop button{width:44px;height:44px;border:0;border-radius:13px;background:#d7bd85;color:#fff;font-size:32px;font-weight:1000}.stonePrepTop small{display:block;color:#ffd866;font-size:9px;letter-spacing:1.5px}.stonePrepTop b{display:block;font-size:24px}.stonePrepTop span{padding:8px 10px;border-radius:12px;background:#13272d;color:#ffd866;font-size:11px;font-weight:1000}.stonePrepHero{padding:17px 16px;background:linear-gradient(135deg,#315047,#24353a);border-left:2px solid rgba(255,216,102,.7);border-right:2px solid rgba(255,216,102,.7)}.stonePrepHero b{font-size:18px}.stonePrepHero p{margin:5px 0 0;color:#c8d4d2;font-size:11px;line-height:1.5}.stonePrepGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:13px;background:#172a30;border-left:2px solid rgba(255,216,102,.7);border-right:2px solid rgba(255,216,102,.7)}.stonePrepCard{position:relative;min-height:105px;padding:11px;border:2px solid #486069;border-radius:17px;background:linear-gradient(180deg,#263c43,#1a2d33);color:#fff;text-align:left}.stonePrepCard.selected{border-color:#ffd45b;box-shadow:0 0 0 2px rgba(255,212,91,.16);background:linear-gradient(180deg,#3a5147,#20353a)}.stonePrepCard.locked{opacity:.42;filter:grayscale(.35)}.stonePrepCard .ico{display:block;font-size:30px}.stonePrepCard b{display:block;font-size:15px;margin-top:3px}.stonePrepCard small{display:block;font-size:9px;color:#b4c3c7;line-height:1.4;margin-top:3px}.stonePrepCard em{position:absolute;right:8px;top:8px;font-style:normal;font-size:8px;color:#ffd866;font-weight:1000}.stonePrepUnlock{padding:10px 14px;background:#172a30;border-left:2px solid rgba(255,216,102,.7);border-right:2px solid rgba(255,216,102,.7);font-size:9px;color:#aab9bd;line-height:1.45}.stonePrepGo{width:100%;min-height:58px;border:0;border-radius:0 0 22px 22px;background:linear-gradient(#ffd866,#f1a92e);color:#30220d;font-size:18px;font-weight:1000;box-shadow:0 6px 0 #9c641d}
-@media(max-width:390px){.stonePrepGrid{gap:7px}.stonePrepCard{min-height:98px;padding:9px}.stonePrepCard .ico{font-size:27px}.stonePrepCard b{font-size:14px}}
-`;document.head.appendChild(st);
-    page.querySelector('#stonePrepBack').onclick=()=>{page.classList.remove('show');lobby.classList.remove('hidden');};
-    page.querySelector('#stonePrepGo').onclick=()=>startDirectBattle();
-    return page;
-  }
-  function renderStonePrep(){
-    const page=ensureStonePrep(),st=currentStage(),grid=page.querySelector('#stonePrepGrid');
-    let chosen=getPreparedStone();
-    if(!defs[chosen]||!stoneUnlocked(chosen))chosen='basic';
-    savePreparedStone(chosen);window.__duckPreparedStone=chosen;
-    page.querySelector('#stonePrepStage').textContent='STAGE '+st;
-    grid.innerHTML=order.map(id=>{
-      const d=defs[id],ok=stoneUnlocked(id),on=id===chosen;
-      return '<button type="button" class="stonePrepCard '+(on?'selected ':'')+(ok?'':'locked')+'" data-stone="'+id+'" '+(ok?'':'disabled')+'><span class="ico">'+d.icon+'</span><b>'+d.name+'</b><small>'+d.role+' · '+d.desc+'</small><em>'+(ok?(on?'✓ 선택':'선택'):'🔒 STAGE '+d.unlock)+'</em></button>';
-    }).join('');
-    grid.querySelectorAll('[data-stone]').forEach(b=>b.onclick=()=>{const id=b.dataset.stone;if(!stoneUnlocked(id))return;savePreparedStone(id);window.__duckPreparedStone=id;if(window.__duckEquipStone)window.__duckEquipStone(id);renderStonePrep();});
-    return page;
-  }
-  function openStonePrep(){
-    const page=renderStonePrep();
-    const result=document.getElementById('resultScreen'),map=document.getElementById('mapScreen');
-    if(result)result.classList.remove('show');if(map)map.classList.remove('show');menu.classList.remove('show');
-    lobby.classList.add('hidden');page.classList.add('show');
-  }
-
   function startDirectBattle(){
     const st=currentStage();
     let equipped=window.__duckPreparedStone||getPreparedStone()||'basic';
     if(!defs[equipped]||!stoneUnlocked(equipped))equipped='basic';
     savePreparedStone(equipped);window.__duckPreparedStone=equipped;
     if(window.__duckEquipStone)window.__duckEquipStone(equipped);
-    const prep=document.getElementById('doldolStonePrepPage');if(prep)prep.classList.remove('show');
     menu.classList.remove('show');lobby.classList.add('hidden');
     if(window.__duckStartStage)window.__duckStartStage(st);
   }
 
-  // V42: the main CTA starts battle directly; the bottom menu is the equipment/weapon menu.
+  // Main CTA starts battle directly; stone selection lives in the equipment menu.
   function handleLobbyStart(e){
     e.preventDefault();e.stopPropagation();
-    openStonePrep();
+    startDirectBattle();
   }
   function handleLobbyGear(e){
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
@@ -3507,7 +3506,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const directGear=document.getElementById('lobbyGear');if(directGear)directGear.onclick=handleLobbyGear;
 
   // Keep labels consistent with the new navigation.
-  try{ lobbyStart.innerHTML='<span style=\"font-size:24px\">⚔️</span><b>전투 시작</b><small>STAGE '+currentStage()+'</small>'; }catch(e){}
+  try{ const sd=defs[getPreparedStone()]||defs.basic; lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>'+sd.icon+' '+sd.name+' · STAGE '+currentStage()+'</small>'; }catch(e){}
   const gearButton=$('lobbyGear');
   if(gearButton) gearButton.innerHTML='<span style=\"font-size:22px\">🎒</span><b>장비</b><small>장착 · 강화</small>';
 
@@ -3576,15 +3575,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     stagePanel.classList.remove('show');
     window.__selectedDuckStage=st;
     window.__duckStage=st;
-    openStonePrep();
+    startDirectBattle();
   };
   lobbyStages.onclick=function(e){e.preventDefault();e.stopPropagation();openStageList();};
 
-  // Remove accidental direct gear behavior; gear is now reached through battle prep.
+  // Equipment is opened only from the bottom equipment button.
   const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderEquipmentMenu();showMenu();};
-
-  // Small UI refresh: lobby button becomes "전투 준비".
-  try{ lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>돌 선택 · STAGE '+currentStage()+'</small>'; }catch(e){}
 })();
 
 /* V41 styles */
@@ -3621,6 +3617,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .gearV1Card>.gearV1Art{width:48px;height:54px;display:flex;align-items:center;justify-content:center;font-style:normal;text-align:center}.gearV1Art img{display:block;width:100%;height:100%;object-fit:contain}
     .gearDetailV1{position:relative;padding:4px 2px 18px}.gearDetailBack{width:42px;height:42px;border:0;border-radius:13px;background:#c8b58a;color:#fff;font-size:32px;font-weight:1000;line-height:1;margin:0 0 12px 0}.gearDetailHero{display:grid;grid-template-columns:minmax(130px,42%) 1fr;align-items:center;gap:16px;min-height:210px;padding:18px;border-radius:22px;background:rgba(255,255,255,.10)}.gearDetailHero img{width:100%;height:175px;object-fit:contain}.gearDetailHero small{color:#ffd866;font-weight:900}.gearDetailHero h2{margin:5px 0 3px;font-size:25px}.gearDetailHero p{margin:0 0 14px;opacity:.65}.gearDetailHero strong{color:#ffd866;font-size:21px}.gearDetailStat{margin-top:12px;padding:17px 18px;border-radius:19px;background:rgba(0,0,0,.16)}.gearDetailStat small,.gearDetailStat b,.gearDetailStat em{display:block}.gearDetailStat small{opacity:.55;margin-bottom:7px}.gearDetailStat b{font-size:20px}.gearDetailStat em{font-style:normal;color:#63e2ad;font-weight:900;margin-top:7px}.gearDetailEquip,.gearDetailUpgrade{width:100%;margin-top:12px;padding:16px;border:0;border-radius:16px;font-size:16px;font-weight:1000}.gearDetailEquip{background:#2f6876;color:#fff}.gearDetailEquip.on{background:#356b78}.gearDetailUpgrade{background:#f2d77f;color:#51452e}.gearDetailUpgrade:disabled{opacity:.48}.gearDetailNeed{text-align:center;color:#ff7f8d;font-weight:900;font-size:12px;margin-top:10px}.gearV1Art-rifle img,.gearV1Art-sniper img,.gearV1Art-machine img,.gearV1Art-rocket img{width:108%;height:108%}.gearV1Art-helmet img,.gearV1Art-gloves img,.gearV1Art-boots img,.gearV1Art-scope img{width:92%;height:92%}.gearV1Art-vest img,.gearV1Art-heavy img,.gearV1Art-light img,.gearV1Art-pack img{width:88%;height:88%}.gearV1Card span strong,.gearV1Card span small,.gearV1Card span em{display:block}.gearV1Card span strong{font-size:12px}.gearV1Card span small{margin-top:2px;color:#d7bea0;font-size:8px}.gearV1Card span em{margin-top:5px;color:#ffd86a;font-size:8px;font-style:normal}.gearV1Card>b{position:absolute;right:6px;top:5px;padding:2px 5px;border-radius:7px;background:#25b7e8;font-size:7px}.gearV1Card.equipped{border-color:#58d7ff;box-shadow:0 0 0 2px rgba(88,215,255,.18)}
 
+    .gearV1Slot.stoneSlot{border-color:#d5ad48;background:linear-gradient(#514630,#2b2920)}
+    .gearV1Slot .stoneEmoji{font-size:34px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.28))}
+    .stoneGearCard.locked{opacity:.43;filter:grayscale(.55)}
+    .stoneGearArt{font-size:31px!important;filter:drop-shadow(0 4px 5px rgba(0,0,0,.25))}
+    .stoneGearDetail{position:relative;padding:4px 2px 18px}
+    .stoneGearHero{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;padding:20px;border-radius:22px;background:linear-gradient(145deg,#34463f,#213039)}
+    .stoneGearHero>span{display:grid;place-items:center;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.1);font-size:58px;box-shadow:inset 0 0 0 2px rgba(255,216,102,.2)}
+    .stoneGearHero small{color:#ffd866;font-weight:1000}.stoneGearHero h2{margin:4px 0;font-size:25px}.stoneGearHero p{margin:0 0 10px;color:#c4d1d2;font-size:12px}.stoneGearHero strong{color:#ffd866}
+    .stoneGearRule{margin-top:12px;padding:15px 17px;border-radius:17px;background:rgba(0,0,0,.16)}.stoneGearRule b,.stoneGearRule small{display:block}.stoneGearRule small{margin-top:4px;color:#b9c5c8;font-size:11px}
+    .stoneGearTabs{grid-template-columns:repeat(4,1fr)}
         #gameLobby #lobbyGear{cursor:pointer}
   `; document.head.appendChild(css);
 })();
@@ -4028,7 +4034,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 /* ================================================================
    ARMORY WEAPON UPGRADE V1 - lightweight release scope
-   - Upgrade only the currently equipped weapon
+   - Upgrade only the currently equipped stone
    - Uses existing farm materials (wood + stone)
    - Max Lv.5, +8% damage per level
    - No new screens / no crafting / no economy expansion
@@ -4092,7 +4098,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       e.preventDefault(); e.stopPropagation();
       const r=window.__duckUpgradeWeapon();
       if(r.ok){
-        try{window.__duckMessage&&window.__duckMessage('무기 강화 완료! Lv.'+r.level);}catch(_){ }
+        try{window.__duckMessage&&window.__duckMessage('돌 강화 완료! Lv.'+r.level);}catch(_){ }
         const gear=document.getElementById('lobbyGear');
         if(gear){ /* keep current menu open; re-render by reopening */ }
         const active=document.querySelector('.v42ArmoryTab.active');
