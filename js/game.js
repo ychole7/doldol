@@ -4,6 +4,11 @@
 (() => {
 'use strict';
 
+window.__duckStoneImg = window.__duckStoneImg || function(art, icon, name, cls){
+  return '<span class="'+(cls||'stoneArtWrap')+'"><img src="'+art+'" alt="'+name+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-grid\'"><span class="stoneArtFallback" style="display:none">'+icon+'</span></span>';
+};
+
+
 // V24: persistent wallet shared by combat and growth screens.
 window.__duckWallet = window.__duckWallet || {
   get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '12340'); },
@@ -145,12 +150,12 @@ let skillFx=0;
 let skillMessage='';
 // V40: battle stone selection / ammo
 const STONE_DEFS={
-  basic:{icon:'🪨',art:'../assets/stone_basic.png',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
-  fire:{icon:'🔥',art:'../assets/stone_fire.png',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
-  ice:{icon:'❄️',art:'../assets/stone_ice.png',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
-  bomb:{icon:'💥',art:'../assets/stone_bomb.png',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
-  lightning:{icon:'⚡',art:'../assets/stone_lightning.png',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
-  skill:{icon:'✨',art:'../assets/stone_skill.png',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
+  basic:{icon:'🪨',art:'assets/stone_basic.png',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
+  fire:{icon:'🔥',art:'assets/stone_fire.png',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
+  ice:{icon:'❄️',art:'assets/stone_ice.png',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
+  bomb:{icon:'💥',art:'assets/stone_bomb.png',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
+  lightning:{icon:'⚡',art:'assets/stone_lightning.png',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
+  skill:{icon:'✨',art:'assets/stone_skill.png',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
 };
 window.__duckStoneDefs=STONE_DEFS;
 let selectedStone='basic';
@@ -3314,12 +3319,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     try{return Math.max(1,Math.min(500,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1));}catch(e){return 1;}
   }
   const defs={
-    basic:{icon:'🪨',art:'../assets/stone_basic.png',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
-    fire:{icon:'🔥',art:'../assets/stone_fire.png',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
-    ice:{icon:'❄️',art:'../assets/stone_ice.png',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
-    bomb:{icon:'💥',art:'../assets/stone_bomb.png',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
-    lightning:{icon:'⚡',art:'../assets/stone_lightning.png',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
-    skill:{icon:'✨',art:'../assets/stone_skill.png',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
+    basic:{icon:'🪨',art:'assets/stone_basic.png',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
+    fire:{icon:'🔥',art:'assets/stone_fire.png',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
+    ice:{icon:'❄️',art:'assets/stone_ice.png',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
+    bomb:{icon:'💥',art:'assets/stone_bomb.png',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
+    lightning:{icon:'⚡',art:'assets/stone_lightning.png',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
+    skill:{icon:'✨',art:'assets/stone_skill.png',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
   };
   const order=['basic','fire','ice','bomb','lightning','skill'];
   function highestCleared(){return Math.max(0,unlockedStage()-1)}
@@ -3506,7 +3511,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const directGear=document.getElementById('lobbyGear');if(directGear)directGear.onclick=handleLobbyGear;
 
   // Keep labels consistent with the new navigation.
-  try{ const sd=defs[getPreparedStone()]||defs.basic; lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small><img class="lobbyStoneMini" src="'+sd.art+'" alt=""> '+sd.name+' · STAGE '+currentStage()+'</small>'; }catch(e){}
+  try{ const sd=defs[getPreparedStone()]||defs.basic; lobbyStart.innerHTML='<span style="font-size:24px">⚔️</span><b>전투 시작</b><small>'+sd.icon+' '+sd.name+' · STAGE '+currentStage()+'</small>'; }catch(e){}
   const gearButton=$('lobbyGear');
   if(gearButton) gearButton.innerHTML='<span style=\"font-size:22px\">🎒</span><b>장비</b><small>장착 · 강화</small>';
 
@@ -3623,9 +3628,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     .stoneGearArt{font-size:31px!important;filter:drop-shadow(0 4px 5px rgba(0,0,0,.25))}
     .stoneGearDetail{position:relative;padding:4px 2px 18px}
     .stoneGearHero{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;padding:20px;border-radius:22px;background:linear-gradient(145deg,#34463f,#213039)}
-    .stoneGearHero>span{display:grid;place-items:center;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px rgba(255,216,102,.2)}
-    .stoneGearHero>span img{width:92px;height:92px;object-fit:contain;display:block;filter:drop-shadow(0 7px 8px rgba(0,0,0,.28))}
-    #lobbyStart .lobbyStoneMini{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:2px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+    .stoneGearHero>span{display:grid;place-items:center;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.1);font-size:58px;box-shadow:inset 0 0 0 2px rgba(255,216,102,.2)}
     .stoneGearHero small{color:#ffd866;font-weight:1000}.stoneGearHero h2{margin:4px 0;font-size:25px}.stoneGearHero p{margin:0 0 10px;color:#c4d1d2;font-size:12px}.stoneGearHero strong{color:#ffd866}
     .stoneGearRule{margin-top:12px;padding:15px 17px;border-radius:17px;background:rgba(0,0,0,.16)}.stoneGearRule b,.stoneGearRule small{display:block}.stoneGearRule small{margin-top:4px;color:#b9c5c8;font-size:11px}
     .stoneGearTabs{grid-template-columns:repeat(4,1fr)}
@@ -4083,7 +4086,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!body||!panel) return;
     if(panel.querySelector('#doldolWeaponUpgradeCard')) return;
     const id=stoneId();
-    const defs={basic:{icon:'🪨',name:'기본돌'},fire:{icon:'🔥',name:'불돌'},ice:{icon:'❄️',name:'얼음돌'},bomb:{icon:'💥',name:'폭발돌'},lightning:{icon:'⚡',name:'번개돌'},skill:{icon:'✨',name:'스킬돌'}};
+    const defs={basic:{icon:'🪨',art:'assets/stone_basic.png',name:'기본돌'},fire:{icon:'🔥',art:'assets/stone_fire.png',name:'불돌'},ice:{icon:'❄️',art:'assets/stone_ice.png',name:'얼음돌'},bomb:{icon:'💥',art:'assets/stone_bomb.png',name:'폭발돌'},lightning:{icon:'⚡',art:'assets/stone_lightning.png',name:'번개돌'},skill:{icon:'✨',art:'assets/stone_skill.png',name:'스킬돌'}};
     const d=defs[id]||defs.basic, lv=level(id), c=cost(lv), farm=window.__doldolFarmV2;
     const wood=farm?farm.get('wood'):0, stone=farm?farm.get('stone'):0;
     const can=lv<MAX&&wood>=c.wood&&stone>=c.stone;
@@ -4257,10 +4260,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 (function(){
-  if(document.getElementById('stoneArtworkPathFixStyle')) return;
+  if(document.getElementById('stoneRealArtStyle')) return;
   const st=document.createElement('style');
-  st.id='stoneArtworkPathFixStyle';
-  st.textContent='\n/* Stone artwork path/size fix */\n.gearV1Slot .stoneEmoji img,\n.stoneGearArt img,\n.stoneGearHero img {\n  display:block;\n  object-fit:contain;\n}\n.gearV1Slot .stoneEmoji img { width:76px !important; height:76px !important; }\n.stoneGearArt img { width:72px !important; height:72px !important; }\n.stoneGearHero img { width:92px !important; height:92px !important; }\n#lobbyStart .lobbyStoneMini {\n  width:18px !important;\n  height:18px !important;\n  object-fit:contain;\n  vertical-align:-4px;\n  margin-right:2px;\n}\n';
+  st.id='stoneRealArtStyle';
+  st.textContent=`
+    .gearV1Slot .stoneEmoji{display:grid!important;place-items:center!important}
+    .gearV1Slot .stoneEmoji img{display:block;width:76px!important;height:76px!important;object-fit:contain;filter:drop-shadow(0 5px 6px rgba(0,0,0,.28))}
+    .stoneGearArt{display:grid!important;place-items:center!important}
+    .stoneGearArt img{display:block;width:72px!important;height:72px!important;object-fit:contain;filter:drop-shadow(0 4px 5px rgba(0,0,0,.25))}
+    .stoneGearHero>span img{display:block;width:92px!important;height:92px!important;object-fit:contain;filter:drop-shadow(0 7px 8px rgba(0,0,0,.28))}
+    .stoneArtFallback{place-items:center;width:100%;height:100%;font-size:34px}
+  `;
   document.head.appendChild(st);
 })();
 
