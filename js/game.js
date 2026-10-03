@@ -1125,7 +1125,9 @@ cv.addEventListener('pointerdown',e=>{
     // Never call legacy reset() here: reset() sends the run back to STAGE 1.
     return;
   }
-  if(p.y>vh*.55){
+  // 전투 중에는 하단 드래그로 이동하지만, 관문이 열린 뒤에는 상단의
+  // EXIT까지 자연스럽게 이동할 수 있도록 전 화면에서 드래그 이동을 허용한다.
+  if(gate || p.y>vh*.55){
     joy.active=true; joy.id=e.pointerId; joy.baseX=p.x; joy.baseY=p.y; joy.x=p.x; joy.y=p.y;
   }
   parryAt(p.x,p.y);
@@ -1452,7 +1454,11 @@ function update(dt){
   // 관문에 실제로 도착했을 때만 스테이지 클리어 처리
   if(gate && running){
     const gx=vw*.5, gy=vh*.18;
-    if(Math.hypot(player.x-gx,player.y-gy)<82){
+    // 모바일에서는 손가락 드래그 오차가 있으므로 관문 진입 반경을 조금 넉넉하게 잡는다.
+    // 상단 중앙 진입로까지 올라온 경우도 동일하게 관문 통과로 인정한다.
+    const gateDistance=Math.hypot(player.x-gx,player.y-gy);
+    const inGateLane=Math.abs(player.x-gx)<96 && player.y<=vh*.285;
+    if(gateDistance<104 || inGateLane){
       gate=false;
       running=false;
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
