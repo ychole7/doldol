@@ -732,7 +732,7 @@ function startStage(n){
   makeCovers();
   enemies=[];
   if(boss){
-    const bossScale=1+Math.min(2.4,(stage-1)*.095);
+    const bossScale=1+Math.min(3.6,(stage-1)*.082);
     enemies.push({
       type:'boss',x:vw*.5,y:vh*.20,r:48,
       hp:Math.max(12,Math.round(12*bossScale)),
@@ -824,7 +824,7 @@ function spawnEnemy(i,opts){
              : stage>=11 ? ['normal','fast','tank','sniper']
              : stage>=8  ? ['normal','fast','sniper','tank']
              : ['normal','fast','tank'];
-  const difficulty=1+Math.min(2.15,(stage-1)*.075);
+  const difficulty=1+Math.min(3.25,(stage-1)*.066);
   const type=(opts&&opts.forcedType)||pool[i%pool.length];
   const margin=55;
   const baseHp={tank:4,sniper:2,charger:3,bomber:3,fast:1,normal:2}[type]||2;
@@ -1345,7 +1345,8 @@ function update(dt){
         messageTimer=.38;
         r.life=0;
       }else{
-        const incomingDamage=Math.max(1,Math.round(18*(100/(100+Math.max(0,Number(player.defense)||0)))));
+        const stageDamage=14+Math.min(34,(Math.max(1,Number(stage)||1)-1)*.70);
+        const incomingDamage=Math.max(1,Math.round(stageDamage*(100/(100+Math.max(0,Number(player.defense)||0)))));
           player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
         if(player.hp<=0){
@@ -2709,7 +2710,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       special:Math.round(specialBase+(specialMax-specialBase)*t)
     };
   }
-  function levelCost(level){ return 120+Math.max(1,level)*80; }
+  function levelCost(level){ return 100+Math.max(1,level)*70; }
   function setCharacterLevel(id,level){
     try{
       const all=JSON.parse(localStorage.getItem('doldol_character_progress_v1')||'{}')||{};
@@ -3358,7 +3359,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const save=()=>{try{localStorage.setItem(GEAR_KEY,JSON.stringify(loadout));localStorage.setItem(OWN_KEY,JSON.stringify(owned));localStorage.setItem(UPGRADE_KEY,JSON.stringify(upgradeLevels));}catch(e){}};
     const gearLevel=id=>Math.max(1,Math.min(20,Number(upgradeLevels[id]||1)||1));
     const scaled=(v,id,lv=gearLevel(id))=>Math.round((Number(v)||0)*(1+(lv-1)*.10));
-    const upgradeCost=lv=>200+lv*50;
+    const upgradeCost=lv=>180+lv*55;
     window.__duckGearLoadout=()=>Object.assign({},loadout);
 
     function statText(g,lv=gearLevel(g.id)){
@@ -4082,9 +4083,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* SHOP V1 - full screen supply shop */
 (function(){
   const SHOP_ITEMS={
-    medkit:{icon:'✚',name:'응급키트',desc:'체력 35% 즉시 회복',qty:5,price:500},
-    grenade:{icon:'💥',name:'수류탄',desc:'화면 내 적 전체 피해',qty:5,price:600},
-    shield:{icon:'🛡',name:'방탄막',desc:'4초간 모든 피해 무효',qty:5,price:600}
+    medkit:{icon:'✚',name:'응급키트',desc:'체력 35% 즉시 회복',qty:5,price:450},
+    grenade:{icon:'💥',name:'수류탄',desc:'화면 내 적 전체 피해',qty:5,price:550},
+    shield:{icon:'🛡',name:'방탄막',desc:'4초간 모든 피해 무효',qty:5,price:550}
   };
   let tab='recommend';
   function core(){return Number((window.__duckWallet&&window.__duckWallet.coins)||0)}
@@ -4132,8 +4133,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    let stars=clear?1:0;
    if(clear&&hpRate>=.45) stars=2;
    if(clear&&hpRate>=.75&&perfectCount>=1) stars=3;
-   const coreReward=clear?(100+current*15):0;
-   const xpReward=clear?(30+current*5):0;
+   const coreReward=clear?(120+current*16+Math.floor(current/10)*20):0;
+   const xpReward=clear?(35+current*5+Math.floor(current/10)*5):0;
 
    const starEl=document.getElementById('resultStars');
    const coreEl=document.getElementById('resultCoins');
