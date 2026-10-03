@@ -2139,20 +2139,50 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
 /* --- extracted script block --- */
 
 (function(){
- const t=document.getElementById("titleScreen"),b=document.getElementById("titleStart"),l=document.getElementById("gameLobby");
- if(!t||!b||!l)return;
- function enterLobby(e){
-   if(e){e.preventDefault();e.stopPropagation();}
-   b.style.pointerEvents='auto';
-   t.classList.add("hidden");
-   l.classList.remove("hidden");
-   if(window.__duckStopCombat)window.__duckStopCombat();
-   if(window.__duckSyncLobby)window.__duckSyncLobby();
- }
- // Use the button's own handler only; document-level capture listeners must not own title navigation.
- b.onclick=enterLobby;
- b.style.pointerEvents='auto';
- b.style.touchAction='manipulation';
+  let entering=false;
+  function closeStaleScreens(){
+    ['doldolAchievementPage','doldolShopPage','growthScreen','characterScreen','mapScreen','menuScreen','resultScreen'].forEach(id=>{
+      const el=document.getElementById(id); if(!el)return;
+      el.classList.remove('show');
+      if(id==='growthScreen'){el.style.display='none';el.style.visibility='hidden';}
+    });
+  }
+  function bindTitleStart(){
+    const t=document.getElementById('titleScreen'), b=document.getElementById('titleStart'), l=document.getElementById('gameLobby');
+    if(!t||!b||!l)return;
+    if(!t.classList.contains('hidden')){
+      closeStaleScreens();
+      t.style.pointerEvents='auto';
+      t.style.zIndex='1000000';
+      b.disabled=false;
+      b.style.pointerEvents='auto';
+      b.style.touchAction='manipulation';
+      b.style.position='relative';
+      b.style.zIndex='1000001';
+    }
+    function enterLobby(e){
+      if(entering)return;
+      entering=true;
+      if(e){e.preventDefault();e.stopPropagation();}
+      closeStaleScreens();
+      t.classList.add('hidden');
+      t.style.pointerEvents='none';
+      l.classList.remove('hidden');
+      if(window.__duckStopCombat)window.__duckStopCombat();
+      if(window.__duckSyncLobby)window.__duckSyncLobby();
+      setTimeout(()=>{entering=false;},180);
+    }
+    if(b.dataset.titleStartBound!=='1'){
+      b.dataset.titleStartBound='1';
+      b.addEventListener('click',enterLobby,false);
+      b.addEventListener('pointerup',enterLobby,false);
+      b.addEventListener('touchend',enterLobby,{passive:false});
+    }
+    b.onclick=enterLobby;
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindTitleStart,{once:true});else bindTitleStart();
+  window.addEventListener('pageshow',()=>setTimeout(bindTitleStart,0));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(bindTitleStart,0);});
 })();
 
 
