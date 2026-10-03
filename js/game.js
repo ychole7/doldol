@@ -709,6 +709,7 @@ function startStage(n){
   window.__duckPendingNextStage=0;
   // One reward grant per actual battle run. Reset only when a new stage starts.
   window.__duckBattleRewardGranted=false;
+  window.__duckLastBattleItemReward=null;
   stage=n;
   window.__duckStage=stage;
   window.__selectedDuckStage=stage;
@@ -1940,6 +1941,23 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     return base;
   }
   function writeBattleItems(inv){ try{localStorage.setItem(BATTLE_ITEM_KEY,JSON.stringify(inv));}catch(e){} }
+  function grantBattleItemReward(stageNo){
+    const inv=readBattleItems();
+    const stage=Math.max(1,Number(stageNo)||1);
+    const pool=['medkit','grenade','shield'];
+    const rewardCount=(stage%5===0)?2:1;
+    const gained={medkit:0,grenade:0,shield:0};
+    for(let i=0;i<rewardCount;i++){
+      const id=pool[Math.floor(Math.random()*pool.length)];
+      inv[id]=(inv[id]||0)+1;
+      gained[id]++;
+    }
+    writeBattleItems(inv);
+    renderBattleItems();
+    const rewards=Object.keys(gained).filter(id=>gained[id]>0).map(id=>({id,count:gained[id],...BATTLE_ITEM_DEFS[id]}));
+    window.__duckLastBattleItemReward=rewards;
+    return rewards;
+  }
   function renderBattleItems(){
     const box=document.getElementById('battleItemSlots'); if(!box)return;
     const inv=readBattleItems();
@@ -1962,7 +1980,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     }
     inv[id]-=1; writeBattleItems(inv); renderBattleItems(); return true;
   }
-  window.__duckBattleItems={get:readBattleItems,use:useBattleItem,refresh:renderBattleItems};
+  window.__duckBattleItems={get:readBattleItems,use:useBattleItem,refresh:renderBattleItems,grantClearReward:grantBattleItemReward};
   function ensureBattleItemSlots(){
     const host=document.getElementById('battleControls');
     if(!host)return;
@@ -4102,6 +4120,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
          window.__duckBattleRewardGranted=true;
          if(window.__duckWallet&&window.__duckWallet.addCoins) window.__duckWallet.addCoins(coreReward);
          if(window.__duckAddCharacterXP) window.__duckAddCharacterXP(xpReward);
+         if(window.__duckBattleItems&&window.__duckBattleItems.grantClearReward){
+           const itemRewards=window.__duckBattleItems.grantClearReward(current)||[];
+           if(sub&&itemRewards.length){
+             const itemText=itemRewards.map(r=>r.icon+' '+r.name+' +'+r.count).join(' · ');
+             sub.textContent='STAGE '+current+' 클리어! · '+itemText;
+           }
+         }
          if(window.__duckSyncLobby) window.__duckSyncLobby();
        }
      }catch(e){ console.warn('stage reward failed',e); }
