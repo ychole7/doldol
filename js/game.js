@@ -3056,8 +3056,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');render();p.classList.add('show')}
   function bindProfileEntry(){
     const lobby=document.getElementById('gameLobby'); if(!lobby)return;
-    const candidates=[...lobby.querySelectorAll('[id*="player" i],[id*="profile" i],.playerInfo')];
-    let card=candidates.find(el=>/lv\.?\s*\d+/i.test((el.textContent||'').replace(/\s+/g,' ')))||candidates[0];
+    const candidates=[...lobby.querySelectorAll('.profileMini,[id*="player" i],[id*="profile" i],.playerInfo')];
+    let card=lobby.querySelector('.profileMini')||candidates.find(el=>/lv\.?\s*\d+/i.test((el.textContent||'').replace(/\s+/g,' ')))||candidates[0];
     if(!card||card.dataset.achievementBound==='1')return;
     card.dataset.achievementBound='1';
     card.style.cursor='pointer';
@@ -4270,6 +4270,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     .stoneGearArt img{display:block;width:72px!important;height:72px!important;object-fit:contain;filter:drop-shadow(0 4px 5px rgba(0,0,0,.25))}
     .stoneGearHero>span img{display:block;width:92px!important;height:92px!important;object-fit:contain;filter:drop-shadow(0 7px 8px rgba(0,0,0,.28))}
     .stoneArtFallback{place-items:center;width:100%;height:100%;font-size:34px}
+  `;
+  document.head.appendChild(st);
+})();
+
+
+
+(function(){
+  if(document.getElementById('doldolStoneAchSmallFix')) return;
+  const st=document.createElement('style');
+  st.id='doldolStoneAchSmallFix';
+  st.textContent=`
+    #gameLobby .profileMini{cursor:pointer;touch-action:manipulation}
+    .gearV1Slot .stoneEmoji img{width:58px!important;height:58px!important}
+    .stoneGearArt img{width:56px!important;height:56px!important}
+    .stoneGearHero>span img{width:76px!important;height:76px!important}
   `;
   document.head.appendChild(st);
 })();
