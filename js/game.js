@@ -1980,7 +1980,13 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     }
     inv[id]-=1; writeBattleItems(inv); renderBattleItems(); return true;
   }
-  window.__duckBattleItems={get:readBattleItems,use:useBattleItem,refresh:renderBattleItems,grantClearReward:grantBattleItemReward};
+  function addBattleItems(id,count){
+    if(!BATTLE_ITEM_DEFS[id])return false;
+    const inv=readBattleItems();
+    inv[id]=Math.max(0,(Number(inv[id])||0)+Math.max(0,Number(count)||0));
+    writeBattleItems(inv); renderBattleItems(); return inv[id];
+  }
+  window.__duckBattleItems={get:readBattleItems,use:useBattleItem,refresh:renderBattleItems,grantClearReward:grantBattleItemReward,add:addBattleItems};
   function ensureBattleItemSlots(){
     const host=document.getElementById('battleControls');
     if(!host)return;
@@ -2177,7 +2183,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
    document.getElementById("mapInfoSub").textContent=boss?"⚠️ 보스 스테이지 · 아래 출격하기":"선택 완료 · 아래 출격하기로 전투 시작";
  }));
  document.getElementById("menuClose").addEventListener("click",()=>menu.classList.remove("show"));
- document.getElementById("lobbyShop").addEventListener("click",()=>openMenu("shop"));
+ document.getElementById("lobbyShop").addEventListener("click",()=>{if(window.__duckOpenShop)window.__duckOpenShop();else openMenu("shop");});
  document.getElementById("lobbyGrowth").addEventListener("click",()=>{if(window.__duckOpenCharacters)window.__duckOpenCharacters();});
  document.getElementById("lobbyGear").addEventListener("click",()=>openMenu("gear"));
  document.getElementById("lobbyBook").addEventListener("click",()=>openMenu("book"));
@@ -2279,7 +2285,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
    document.getElementById("mapInfoSub").textContent=boss?"⚠️ 강력한 보스가 등장합니다":"이 스테이지를 선택했습니다 · 아래 출격하기를 눌러 전투 시작";
  }));
  document.getElementById("menuClose").addEventListener("click",()=>menu.classList.remove("show"));
- document.getElementById("lobbyShop").addEventListener("click",()=>openMenu("shop"));
+ document.getElementById("lobbyShop").addEventListener("click",()=>{if(window.__duckOpenShop)window.__duckOpenShop();else openMenu("shop");});
  document.getElementById("lobbyGrowth").addEventListener("click",()=>{if(window.__duckOpenCharacters)window.__duckOpenCharacters();});
  document.getElementById("lobbyGear").addEventListener("click",()=>openMenu("gear"));
  document.getElementById("lobbyBook").addEventListener("click",()=>openMenu("book"));
@@ -4072,6 +4078,38 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.__duckRefreshArmoryUpgrade=watch;
 })();
 
+
+/* SHOP V1 - full screen supply shop */
+(function(){
+  const SHOP_ITEMS={
+    medkit:{icon:'✚',name:'응급키트',desc:'체력 35% 즉시 회복',qty:5,price:500},
+    grenade:{icon:'💥',name:'수류탄',desc:'화면 내 적 전체 피해',qty:5,price:600},
+    shield:{icon:'🛡',name:'방탄막',desc:'4초간 모든 피해 무효',qty:5,price:600}
+  };
+  let tab='recommend';
+  function core(){return Number((window.__duckWallet&&window.__duckWallet.coins)||0)}
+  function gems(){try{return Number(localStorage.getItem('doldol_gems_v1')||0)}catch(e){return 0}}
+  function inv(){return (window.__duckBattleItems&&window.__duckBattleItems.get)?window.__duckBattleItems.get():{medkit:0,grenade:0,shield:0}}
+  function ensure(){
+    let page=document.getElementById('doldolShopPage'); if(page)return page;
+    page=document.createElement('section'); page.id='doldolShopPage'; page.className='doldolShopPage';
+    page.innerHTML=`<div class="shopTop"><button id="shopBack" aria-label="뒤로">‹</button><div class="shopTitle">상점<small>특공대의 든든한 보급소!</small></div><div class="shopWallet"><span>🔥 <b id="shopCore">0</b></span><span>💎 <b id="shopGems">0</b></span></div></div><div class="shopHero"><div><b>오늘의 보급품</b><span>전투에 필요한 아이템을 미리 준비하세요.</span></div><div class="shopDuck">🐥</div></div><div class="shopTabs"><button data-shop-tab="recommend">★ 추천</button><button data-shop-tab="battle">💣 전투 아이템</button><button data-shop-tab="currency">◉ 재화</button></div><div id="shopContent" class="shopContent"></div><div id="shopToast" class="shopToast"></div>`;
+    document.body.appendChild(page);
+    const st=document.createElement('style'); st.id='doldolShopStyle'; st.textContent=`
+    #doldolShopPage{position:fixed;inset:0;z-index:9500;display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 24px);background:linear-gradient(rgba(18,27,24,.18),rgba(18,27,24,.55)),url('../assets/home_base_bg.png') center/cover fixed;font-family:system-ui,-apple-system,sans-serif;color:#49351f}
+    #doldolShopPage.show{display:block}.shopTop{max-width:720px;margin:auto;display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;background:#765336;border:3px solid #f8e7aa;border-radius:24px 24px 0 0;padding:12px;color:#fff}.shopTop button{width:44px;height:44px;border:0;border-radius:14px;background:#d0bb8d;color:white;font-size:34px;font-weight:900}.shopTitle{font-size:28px;font-weight:1000;line-height:1}.shopTitle small{display:block;font-size:11px;color:#ead7b8;margin-top:7px}.shopWallet{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.shopWallet span{background:#251f1a;color:#fff;border-radius:18px;padding:7px 9px;font-size:12px;white-space:nowrap}.shopHero{max-width:720px;margin:auto;min-height:128px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#3c4c2c,#7c5b32);color:#fff;border-left:3px solid #f8e7aa;border-right:3px solid #f8e7aa}.shopHero b{display:block;font-size:24px}.shopHero span{display:block;margin-top:7px;color:#f5e4bb;font-size:12px}.shopDuck{font-size:64px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.3))}.shopTabs{max-width:720px;margin:auto;display:grid;grid-template-columns:1fr 1.25fr 1fr;border:3px solid #f8e7aa;border-top:0;background:#63472f}.shopTabs button{border:0;padding:14px 5px;background:#63472f;color:#f4eadb;font-size:14px;font-weight:900}.shopTabs button.active{background:#ffd86c;color:#5c3c20}.shopContent{max-width:720px;margin:auto;background:#f1d99c;border:3px solid #f8e7aa;border-top:0;border-radius:0 0 26px 26px;padding:14px;min-height:380px}.shopSectionTitle{font-size:20px;font-weight:1000;margin:4px 2px 12px}.shopGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.shopCard{background:#fff7df;border:2px solid rgba(118,83,54,.18);border-radius:20px;padding:10px;text-align:center;box-shadow:0 6px 0 rgba(104,75,39,.12)}.shopIcon{height:90px;border-radius:16px;display:grid;place-items:center;font-size:48px;background:radial-gradient(circle,#fff 0,#e8d09b 100%)}.shopCard h3{font-size:16px;margin:9px 0 3px}.shopCard p{font-size:10px;min-height:28px;margin:0;color:#806a50}.shopOwned{font-size:10px;margin:5px 0;color:#5d7250;font-weight:900}.shopBuy{width:100%;border:0;border-radius:14px;background:linear-gradient(#9bec4c,#55bd21);box-shadow:0 4px 0 #398c1b;color:#3e331c;padding:10px 4px;font-size:13px;font-weight:1000}.shopBuy:disabled{filter:grayscale(.8);opacity:.55}.shopCurrency{padding:34px 16px;text-align:center;color:#745d43}.shopCurrency b{display:block;font-size:22px;margin-bottom:8px}.shopToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 36px);transform:translate(-50%,18px);opacity:0;pointer-events:none;background:rgba(20,24,22,.92);color:white;border-radius:20px;padding:10px 16px;font-size:12px;font-weight:900;transition:.2s}.shopToast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:430px){#doldolShopPage{padding-left:8px;padding-right:8px}.shopTop{grid-template-columns:44px 1fr}.shopWallet{grid-column:1/3;justify-content:center}.shopHero{min-height:110px}.shopGrid{gap:7px}.shopCard{padding:7px}.shopIcon{height:76px;font-size:40px}.shopCard h3{font-size:14px}.shopBuy{font-size:12px}.shopTitle{font-size:24px}}
+    `; document.head.appendChild(st);
+    page.querySelector('#shopBack').onclick=close;
+    page.querySelectorAll('[data-shop-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.shopTab;render()});
+    return page;
+  }
+  function toast(msg){const el=document.getElementById('shopToast');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1000)}
+  function buy(id){const it=SHOP_ITEMS[id];if(!it||!window.__duckWallet||!window.__duckBattleItems)return;if(!window.__duckWallet.spendCoins(it.price)){toast('돌핵이 부족합니다');return}window.__duckBattleItems.add(id,it.qty);if(window.__duckSyncLobby)window.__duckSyncLobby();toast(it.name+' ×'+it.qty+' 구매 완료');render()}
+  function render(){const page=ensure(),stock=inv();page.querySelector('#shopCore').textContent=core().toLocaleString();page.querySelector('#shopGems').textContent=gems().toLocaleString();page.querySelectorAll('[data-shop-tab]').forEach(b=>b.classList.toggle('active',b.dataset.shopTab===tab));const box=page.querySelector('#shopContent');if(tab==='currency'){box.innerHTML='<div class="shopCurrency"><b>재화 상품</b><span>결제 연동 단계에서 추가 예정입니다.</span></div>';return}const cards=Object.entries(SHOP_ITEMS).map(([id,it])=>`<article class="shopCard"><div class="shopIcon">${it.icon}</div><h3>${it.name} <small>×${it.qty}</small></h3><p>${it.desc}</p><div class="shopOwned">보유 ${Number(stock[id]||0)}</div><button class="shopBuy" data-shop-buy="${id}" ${core()<it.price?'disabled':''}>🔥 ${it.price.toLocaleString()}</button></article>`).join('');box.innerHTML='<div class="shopSectionTitle">'+(tab==='recommend'?'추천 상품':'전투 아이템')+'</div><div class="shopGrid">'+cards+'</div>';box.querySelectorAll('[data-shop-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.shopBuy))}
+  function close(){const page=document.getElementById('doldolShopPage');if(page)page.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden')}
+  window.__duckOpenShop=function(){const page=ensure();const menu=document.getElementById('menuScreen'),map=document.getElementById('mapScreen'),result=document.getElementById('resultScreen');if(menu)menu.classList.remove('show');if(map)map.classList.remove('show');if(result)result.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');tab='recommend';render();page.classList.add('show')};
+})();
 
 /* V6 RESULT FLOW HARD LOCK */
 (function(){
