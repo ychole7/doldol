@@ -3085,18 +3085,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function isLobbyProfileHit(target){
     const lobby=document.getElementById('gameLobby');
-    if(!lobby||!target||!lobby.contains(target))return false;
-    let el=target.nodeType===1?target:target.parentElement;
-    for(let i=0;el&&el!==lobby&&i<7;i++,el=el.parentElement){
-      const txt=(el.textContent||'').replace(/\s+/g,' ').trim();
-      if(!/Lv\.?\s*\d+/i.test(txt))continue;
-      if(!el.querySelector('img'))continue;
-      const r=el.getBoundingClientRect(), lr=lobby.getBoundingClientRect();
-      const nearTop=r.top < lr.top + Math.min(190,lr.height*.20);
-      const nearLeft=r.left < lr.left + Math.min(310,lr.width*.48);
-      if(nearTop&&nearLeft&&r.width>=90&&r.height>=38)return true;
-    }
-    return false;
+    if(!lobby||!target)return false;
+    /* 업적 진입은 실제 로비 프로필 카드에만 한정한다.
+       타이틀/전투/기타 화면의 클릭을 절대 가로채지 않는다. */
+    if(lobby.classList.contains('hidden'))return false;
+    const title=document.getElementById('titleScreen');
+    if(title&&!title.classList.contains('hidden'))return false;
+    const profile=findLobbyProfile();
+    if(!profile||!lobby.contains(profile))return false;
+    const node=target.nodeType===1?target:target.parentElement;
+    return !!node&&(node===profile||profile.contains(node));
   }
   function installProfileEntry(){
     const old=document.getElementById('lobbyMission');if(old)old.remove();
