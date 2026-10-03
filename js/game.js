@@ -4,6 +4,32 @@
 (() => {
 'use strict';
 
+// ASSET LOADING V1: keep first lobby paint light, then warm battle assets in idle time.
+const __duckDeferredAssets = [];
+function __duckQueueAsset(img, src, priority){
+  if(priority === 'critical'){
+    img.src = src;
+    return;
+  }
+  __duckDeferredAssets.push({img,src});
+}
+function __duckWarmDeferredAssets(){
+  if(!__duckDeferredAssets.length) return;
+  const batch = __duckDeferredAssets.splice(0, __duckDeferredAssets.length);
+  const load = () => batch.forEach(({img,src}) => { if(!img.src) img.src = src; });
+  if('requestIdleCallback' in window){
+    requestIdleCallback(load,{timeout:1200});
+  }else{
+    setTimeout(load,350);
+  }
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', () => setTimeout(__duckWarmDeferredAssets,120));
+}else{
+  setTimeout(__duckWarmDeferredAssets,120);
+}
+
+
 window.__duckStoneImg = window.__duckStoneImg || function(art, icon, name, cls){
   return '<span class="'+(cls||'stoneArtWrap')+'"><img src="'+art+'" alt="'+name+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-grid\'"><span class="stoneArtFallback" style="display:none">'+icon+'</span></span>';
 };
@@ -21,37 +47,37 @@ const STAGE1_BG = new Image();
 STAGE1_BG.decoding = "async";
 STAGE1_BG.onload = () => { window.__duckStage1BgReady = true; };
 STAGE1_BG.onerror = () => { window.__duckStage1BgReady = false; };
-STAGE1_BG.src = "../assets/stage1_training.jpg";
+__duckQueueAsset(STAGE1_BG,"../assets/stage1_training.jpg","critical");
 
 const STAGE2_BG = new Image();
 STAGE2_BG.decoding = "async";
 STAGE2_BG.onload = () => { window.__duckStage2BgReady = true; };
 STAGE2_BG.onerror = () => { window.__duckStage2BgReady = false; };
-STAGE2_BG.src = "../assets/stage2_training.jpg";
+__duckQueueAsset(STAGE2_BG,"../assets/stage2_training.jpg","defer");
 
 const ENEMY_ASSAULT_IMG = new Image();
 let enemyAssaultReady = false;
 ENEMY_ASSAULT_IMG.onload = () => { enemyAssaultReady = true; };
 ENEMY_ASSAULT_IMG.onerror = () => { enemyAssaultReady = false; };
-ENEMY_ASSAULT_IMG.src = "../assets/enemy_assault.png";
+__duckQueueAsset(ENEMY_ASSAULT_IMG,"../assets/enemy_assault.png","critical");
 
 const ENEMY_RIFLE_IMG = new Image();
 let enemyRifleReady = false;
 ENEMY_RIFLE_IMG.onload = () => { enemyRifleReady = true; };
 ENEMY_RIFLE_IMG.onerror = () => { enemyRifleReady = false; };
-ENEMY_RIFLE_IMG.src = "../assets/enemy_rifleman.png";
+__duckQueueAsset(ENEMY_RIFLE_IMG,"../assets/enemy_rifleman.png","defer");
 
 const ENEMY_HEAVY_IMG = new Image();
 let enemyHeavyReady = false;
 ENEMY_HEAVY_IMG.onload = () => { enemyHeavyReady = true; };
 ENEMY_HEAVY_IMG.onerror = () => { enemyHeavyReady = false; };
-ENEMY_HEAVY_IMG.src = "../assets/enemy_heavy.png";
+__duckQueueAsset(ENEMY_HEAVY_IMG,"../assets/enemy_heavy.png","defer");
 
 const ENEMY_BOSS_IMG = new Image();
 let enemyBossReady = false;
 ENEMY_BOSS_IMG.onload = () => { enemyBossReady = true; };
 ENEMY_BOSS_IMG.onerror = () => { enemyBossReady = false; };
-ENEMY_BOSS_IMG.src = "../assets/enemy_boss.png";
+__duckQueueAsset(ENEMY_BOSS_IMG,"../assets/enemy_boss.png","defer");
 
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
@@ -4328,5 +4354,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     .stoneGearHero>span img{width:76px!important;height:76px!important}
   `;
   document.head.appendChild(st);
+})();
+
+
+
+(function(){
+  const stoneSources=[
+    'assets/%20%20%20%20stone_basic.png',
+    'assets/%20%20%20%20stone_fire.png',
+    'assets/%20%20%20%20stone_ice.png',
+    'assets/%20%20%20%20stone_bomb.png',
+    'assets/%20%20%20%20stone_lightning.png',
+    'assets/%20%20%20%20stone_skill.png'
+  ];
+  const warm=()=>stoneSources.forEach(src=>{
+    const im=new Image();
+    im.decoding='async';
+    im.src=src;
+  });
+  if('requestIdleCallback' in window) requestIdleCallback(warm,{timeout:1800});
+  else setTimeout(warm,900);
 })();
 
