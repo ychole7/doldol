@@ -64,7 +64,7 @@ let player, enemies=[], rocks=[], shots=[], particles=[], damageTexts=[];
 let covers=[];
 let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
-let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
+let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, bossDefeated=false, paused=false;
 let pendingNextStage=0;
 
 /* =========================================================
@@ -663,7 +663,7 @@ function applyGrowthToPlayer(){
 }
 
 function reset(){
-  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
+  stage=1; kills=0; total=8; clearTimer=0; message=''; messageTimer=0; combo=0; comboTimer=0; shake=0; perfect=0; gate=false; intro=1.25; boss=false; bossDefeated=false; paused=false; skillCooldown=0; skillTimer=0; skillState=null; skillFx=0; skillMessage='';
   player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:325,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
 showSkillButton();
   applyGrowthToPlayer();
@@ -715,6 +715,7 @@ function startStage(n){
   window.__selectedDuckStage=stage;
   kills=0;
   boss=(stage%5===0);
+  bossDefeated=false;
   // V50: 출시용 초반 밸런스. 6~20은 적 수가 갑자기 튀지 않도록 완만하게 증가한다.
   const stageEnemyCounts={6:10,7:10,8:11,9:12,11:12,12:13,13:13,14:14,16:14,17:15,18:15,19:16};
   total=boss?1:(stageEnemyCounts[stage]||Math.min(16,7+Math.floor(stage*.8)));
@@ -1003,15 +1004,10 @@ function hitEnemy(e,damage=1){
     if(window.__duckMissionEvent) window.__duckMissionEvent("kill",1);
     feedbackV1('kill');
     if(e.type==='boss'){
+      bossDefeated=true;
       bossDefeatFx=1.8; bossPatternLabel='BOSS DEFEATED!'; bossPatternTimer=1.8; shake=18; burst(e.x,e.y,54);
-      // Boss stage rule: defeating the boss ends the operation.
-      // Any surviving support soldiers retreat so they cannot keep the EXIT gate locked.
-      for(const support of enemies){
-        if(support!==e && !support.dead){
-          support.dead=true;
-          burst(support.x,support.y,10);
-        }
-      }
+      // The update loop owns boss-stage cleanup. Keeping this as a state flag
+      // makes the clear condition independent of support-enemy array timing.
     }
     burst(e.x,e.y,18);
     combatImpactFx(e,damage,true);
@@ -1448,9 +1444,31 @@ function update(dt){
 
   enemies=enemies.filter(e=>!e.dead);
 
+  // BOSS CLEAR: once the boss is defeated, the operation is complete regardless
+  // of support soldiers. Purge surviving supports/projectiles and open EXIT here,
+  // outside hitEnemy(), so array iteration order can never leave the stage stuck.
+  if(boss && bossDefeated){
+    if(enemies.length){
+      for(const support of enemies){
+        if(!support.dead) burst(support.x,support.y,8);
+        support.dead=true;
+      }
+      enemies=[];
+    }
+    if(rocks.length) rocks.length=0;
+    if(!gate){
+      clearTimer=0;
+      gate=true;
+      running=true;
+      message='보스 격파!  관문으로 이동하세요';
+      messageTimer=1.6;
+      burst(vw*.5,vh*.18,36);
+    }
+  }
+
   // V-GATE-FLOW: 적 전멸 후에는 결과 화면으로 가지 않는다.
   // 1) 파밍 가능 상태 유지 → 2) 관문 오픈 → 3) 플레이어가 직접 관문 통과 → 4) 결과 화면
-  if(enemies.length===0 && !gate){
+  if(enemies.length===0 && !gate && !(boss && bossDefeated)){
     clearTimer+=dt;
     if(clearTimer>.8){
       gate=true;
@@ -2123,7 +2141,18 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
 (function(){
  const t=document.getElementById("titleScreen"),b=document.getElementById("titleStart"),l=document.getElementById("gameLobby");
  if(!t||!b||!l)return;
- b.addEventListener("click",function(){t.classList.add("hidden");l.classList.remove("hidden");if(window.__duckStopCombat)window.__duckStopCombat();if(window.__duckSyncLobby)window.__duckSyncLobby();});
+ function enterLobby(e){
+   if(e){e.preventDefault();e.stopPropagation();}
+   b.style.pointerEvents='auto';
+   t.classList.add("hidden");
+   l.classList.remove("hidden");
+   if(window.__duckStopCombat)window.__duckStopCombat();
+   if(window.__duckSyncLobby)window.__duckSyncLobby();
+ }
+ // Use the button's own handler only; document-level capture listeners must not own title navigation.
+ b.onclick=enterLobby;
+ b.style.pointerEvents='auto';
+ b.style.touchAction='manipulation';
 })();
 
 
@@ -3125,34 +3154,55 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(n&&!badge){badge=document.createElement('span');badge.className='achBadge';badge.setAttribute('aria-label','수령 가능한 업적');b.appendChild(badge)}
     if(badge){badge.textContent=n>9?'9+':String(n);badge.style.display=n?'block':'none'}
   }
-  function isLobbyProfileHit(target){
+  function bindLobbyProfile(){
     const lobby=document.getElementById('gameLobby');
-    if(!lobby||!target)return false;
-    /* 업적 진입은 실제 로비 프로필 카드에만 한정한다.
-       타이틀/전투/기타 화면의 클릭을 절대 가로채지 않는다. */
-    if(lobby.classList.contains('hidden'))return false;
-    const title=document.getElementById('titleScreen');
-    if(title&&!title.classList.contains('hidden'))return false;
     const profile=findLobbyProfile();
-    if(!profile||!lobby.contains(profile))return false;
-    const node=target.nodeType===1?target:target.parentElement;
-    return !!node&&(node===profile||profile.contains(node));
+    if(!lobby||!profile||!lobby.contains(profile))return false;
+    profile.setAttribute('role','button');
+    profile.setAttribute('tabindex','0');
+    profile.setAttribute('aria-label','프로필 · 업적 보기');
+    profile.style.cursor='pointer';
+    profile.style.touchAction='manipulation';
+    if(profile.dataset.achievementBound!=='1'){
+      profile.dataset.achievementBound='1';
+      profile.addEventListener('click',function(e){
+        // Bound only to the actual lobby profile element; no document-wide capture.
+        const title=document.getElementById('titleScreen');
+        if(lobby.classList.contains('hidden'))return;
+        if(title&&!title.classList.contains('hidden'))return;
+        e.preventDefault();
+        e.stopPropagation();
+        open();
+      });
+      profile.addEventListener('keydown',function(e){
+        if(e.key!=='Enter'&&e.key!==' ')return;
+        const title=document.getElementById('titleScreen');
+        if(lobby.classList.contains('hidden'))return;
+        if(title&&!title.classList.contains('hidden'))return;
+        e.preventDefault();
+        e.stopPropagation();
+        open();
+      });
+    }
+    updateLobbyBadge();
+    return true;
   }
   function installProfileEntry(){
     const old=document.getElementById('lobbyMission');if(old)old.remove();
-    if(document.documentElement.dataset.achievementProfileDelegate==='1'){updateLobbyBadge();return;}
-    document.documentElement.dataset.achievementProfileDelegate='1';
-    document.addEventListener('click',function(e){
-      if(!isLobbyProfileHit(e.target))return;
-      e.preventDefault();e.stopPropagation();open();
-    },true);
-    document.addEventListener('keydown',function(e){
-      if((e.key==='Enter'||e.key===' ')&&isLobbyProfileHit(e.target)){e.preventDefault();e.stopPropagation();open();}
-    },true);
-    const refresh=()=>{const p=findLobbyProfile();if(p){p.setAttribute('role','button');p.setAttribute('tabindex','0');p.setAttribute('aria-label','프로필 · 업적 보기');p.style.cursor='pointer';p.style.touchAction='manipulation';}updateLobbyBadge();};
-    refresh();setTimeout(refresh,300);setTimeout(refresh,1000);
+    if(document.documentElement.dataset.achievementProfileObserver==='1'){
+      bindLobbyProfile();
+      return;
+    }
+    document.documentElement.dataset.achievementProfileObserver='1';
+    const refresh=()=>bindLobbyProfile();
+    refresh();
+    setTimeout(refresh,250);
+    setTimeout(refresh,900);
     const lobby=document.getElementById('gameLobby');
-    if(lobby&&window.MutationObserver){const mo=new MutationObserver(()=>refresh());mo.observe(lobby,{childList:true,subtree:true});}
+    if(lobby&&window.MutationObserver){
+      const mo=new MutationObserver(()=>refresh());
+      mo.observe(lobby,{childList:true,subtree:true});
+    }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installProfileEntry);else installProfileEntry();
   window.__duckOpenMissions=open;window.__duckOpenAchievements=open;window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
