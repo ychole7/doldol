@@ -2995,134 +2995,51 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   document.addEventListener('click',openGrowthFromCharacter,true);document.addEventListener('pointerup',openGrowthFromCharacter,true);document.addEventListener('touchend',openGrowthFromCharacter,true);
 })();
 
-/* --- ACHIEVEMENT V3: compact commercial UI / categories / claim-all / profile entry --- */
+/* --- ACHIEVEMENT V1: persistent full-screen achievements --- */
 (function(){
   const KEY='doldol_achievements_v1', LEGACY='doldol_missions_v1';
   const base={kills:0,parry:0,perfect:0,clears:0,plays:0,levels:0,gear:0,items:0,claimed:{}};
   function load(){
     let a={}; try{a=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
     if(!Object.keys(a).length){try{const old=JSON.parse(localStorage.getItem(LEGACY)||'{}')||{};a={kills:old.kills||0,parry:old.parry||0,perfect:old.perfect||0,clears:old.clears||0,plays:old.plays||0,claimed:old.claimed||{}};}catch(e){}}
-    const merged=Object.assign({},base,a,{claimed:Object.assign({},base.claimed,a.claimed||{})});
-    /* 기존 진행도에서 확실히 복원 가능한 최소 기록은 소급 반영한다.
-       해금 스테이지 N은 최소 N-1회 클리어했다는 뜻이므로 업적이 0부터 시작하지 않게 한다. */
-    try{
-      const unlocked=Math.max(1,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1);
-      const historicalClears=Math.max(0,unlocked-1);
-      merged.clears=Math.max(Number(merged.clears)||0,historicalClears);
-      merged.plays=Math.max(Number(merged.plays)||0,Number(merged.clears)||0);
-    }catch(e){}
-    return merged;
+    return Object.assign({},base,a,{claimed:Object.assign({},base.claimed,a.claimed||{})});
   }
-  let state=load(), activeFilter='all';
+  let state=load();
   const defs=[
-    {id:'clear5',cat:'battle',icon:'🏁',name:'첫 작전 완료',key:'clears',goal:5,reward:300,desc:'스테이지 5회 클리어'},
-    {id:'clear20',cat:'battle',icon:'🏆',name:'베테랑 특공대',key:'clears',goal:20,reward:800,desc:'스테이지 20회 클리어'},
-    {id:'clear50',cat:'battle',icon:'🎖️',name:'전장의 영웅',key:'clears',goal:50,reward:1800,desc:'스테이지 50회 클리어'},
-    {id:'kill50',cat:'battle',icon:'🎯',name:'정확한 사격',key:'kills',goal:50,reward:300,desc:'적 50마리 처치'},
-    {id:'kill200',cat:'battle',icon:'💥',name:'적진 초토화',key:'kills',goal:200,reward:900,desc:'적 200마리 처치'},
-    {id:'perfect10',cat:'battle',icon:'✦',name:'완벽한 반격',key:'perfect',goal:10,reward:400,desc:'PERFECT 반격 10회'},
-    {id:'perfect50',cat:'battle',icon:'⚡',name:'타이밍 마스터',key:'perfect',goal:50,reward:1200,desc:'PERFECT 반격 50회'},
-    {id:'level10',cat:'growth',icon:'🐥',name:'특공대 성장',key:'levels',goal:10,reward:600,desc:'캐릭터 레벨업 10회'},
-    {id:'gear10',cat:'growth',icon:'🛡️',name:'장비 전문가',key:'gear',goal:10,reward:600,desc:'장비 강화 10회'},
-    {id:'item10',cat:'supply',icon:'🎒',name:'보급품 활용',key:'items',goal:10,reward:400,desc:'전투 아이템 10회 사용'},
-    {id:'play30',cat:'battle',icon:'🚀',name:'계속되는 출격',key:'plays',goal:30,reward:700,desc:'전투 30회 출격'}
+    {id:'clear5',icon:'🏁',name:'첫 작전 완료',key:'clears',goal:5,reward:300,desc:'스테이지 5회 클리어'},
+    {id:'clear20',icon:'🏆',name:'베테랑 특공대',key:'clears',goal:20,reward:800,desc:'스테이지 20회 클리어'},
+    {id:'clear50',icon:'🎖️',name:'전장의 영웅',key:'clears',goal:50,reward:1800,desc:'스테이지 50회 클리어'},
+    {id:'kill50',icon:'🎯',name:'정확한 사격',key:'kills',goal:50,reward:300,desc:'적 50마리 처치'},
+    {id:'kill200',icon:'💥',name:'적진 초토화',key:'kills',goal:200,reward:900,desc:'적 200마리 처치'},
+    {id:'perfect10',icon:'✦',name:'완벽한 반격',key:'perfect',goal:10,reward:400,desc:'PERFECT 반격 10회'},
+    {id:'perfect50',icon:'⚡',name:'타이밍 마스터',key:'perfect',goal:50,reward:1200,desc:'PERFECT 반격 50회'},
+    {id:'level10',icon:'🐥',name:'특공대 성장',key:'levels',goal:10,reward:600,desc:'캐릭터 레벨업 10회'},
+    {id:'gear10',icon:'🛡️',name:'장비 전문가',key:'gear',goal:10,reward:600,desc:'장비 강화 10회'},
+    {id:'item10',icon:'🎒',name:'보급품 활용',key:'items',goal:10,reward:400,desc:'전투 아이템 10회 사용'},
+    {id:'play30',icon:'🚀',name:'계속되는 출격',key:'plays',goal:30,reward:700,desc:'전투 30회 출격'}
   ];
-  const filters=[['all','전체'],['battle','전투'],['growth','성장'],['supply','보급']];
   function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
-  function claimable(d){return Number(state[d.key]||0)>=d.goal&&!state.claimed[d.id]}
-  function claimableCount(){return defs.filter(claimable).length}
-  function sync(){save();if(window.__duckSyncLobby)window.__duckSyncLobby();updateLobbyBadge();}
-  function popGlobal(text){
-    let e=document.getElementById('doldolAchievementGlobalToast');
-    if(!e){e=document.createElement('div');e.id='doldolAchievementGlobalToast';Object.assign(e.style,{position:'fixed',left:'50%',top:'calc(env(safe-area-inset-top) + 84px)',transform:'translate(-50%,-12px)',opacity:'0',zIndex:'1000000',padding:'10px 16px',borderRadius:'18px',background:'rgba(24,31,28,.95)',border:'1px solid rgba(255,216,102,.45)',boxShadow:'0 12px 30px rgba(0,0,0,.28)',color:'#fff',font:'900 12px system-ui',pointerEvents:'none',transition:'.22s'});document.body.appendChild(e)}
-    e.textContent=text;e.style.opacity='1';e.style.transform='translate(-50%,0)';clearTimeout(popGlobal.t);popGlobal.t=setTimeout(()=>{e.style.opacity='0';e.style.transform='translate(-50%,-12px)'},1600)
-  }
+  function sync(){save();if(window.__duckSyncLobby)window.__duckSyncLobby();}
   window.__duckMissionEvent=function(type,n){
     const v=Math.max(0,Number(n)||0); if(!v)return;
     const map={kill:'kills',parry:'parry',perfect:'perfect',clear:'clears',play:'plays',level:'levels',gear:'gear',item:'items'};
-    const key=map[type]; if(!key)return;
-    const before=new Set(defs.filter(claimable).map(d=>d.id));
-    state[key]=(Number(state[key])||0)+v; sync();
-    const fresh=defs.filter(d=>claimable(d)&&!before.has(d.id));
-    if(fresh.length)popGlobal('🏅 업적 달성 · '+fresh[0].name+(fresh.length>1?' 외 '+(fresh.length-1)+'개':''));
+    const key=map[type]; if(!key)return; state[key]=(Number(state[key])||0)+v; sync();
   };
   function ensure(){
     let page=document.getElementById('doldolAchievementPage'); if(page)return page;
     page=document.createElement('section');page.id='doldolAchievementPage';
-    page.innerHTML='<div class="achTop"><button id="achBack" aria-label="뒤로">‹</button><div><b>업적</b><small>특공대의 기록</small></div><span>🔥 <strong id="achCore">0</strong></span></div><div class="achHero"><div><small>ACHIEVEMENT</small><b>작전 기록</b><p>플레이하며 업적을 달성하고 돌핵을 획득하세요.</p></div><div class="achMedal">🏅</div></div><div class="achSummary" id="achSummary"></div><div class="achTools"><div class="achTabs" id="achTabs"></div><button id="achClaimAll">모두 받기</button></div><div class="achList" id="achList"></div><div class="achToast" id="achToast"></div>';
+    page.innerHTML='<div class="achTop"><button id="achBack" aria-label="뒤로">‹</button><div><b>업적</b><small>특공대의 기록</small></div><span>🔥 <strong id="achCore">0</strong></span></div><div class="achHero"><div><small>ACHIEVEMENT</small><b>작전 기록</b><p>플레이하며 업적을 달성하고 돌핵을 획득하세요.</p></div><div class="achMedal">🏅</div></div><div class="achSummary" id="achSummary"></div><div class="achList" id="achList"></div><div class="achToast" id="achToast"></div>';
     document.body.appendChild(page);
-    const st=document.createElement('style');st.id='doldol-achievement-v3-style';st.textContent=`
-#doldolAchievementPage{position:fixed;inset:0;z-index:999999;background:linear-gradient(#25352e,#14221d);overflow:auto;padding:calc(env(safe-area-inset-top) + 6px) 9px calc(env(safe-area-inset-bottom) + 18px);display:none;font-family:system-ui;color:#49371f}#doldolAchievementPage.show{display:block}.achTop{box-sizing:border-box;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:9px;background:#765336;border:3px solid #f8e7aa;border-radius:22px 22px 0 0;padding:8px 10px;color:#fff}.achTop button{width:38px;height:38px;border:0;border-radius:12px;background:#d0bb8d;color:#fff;font-size:29px;line-height:1;font-weight:1000}.achTop b{display:block;font-size:22px;line-height:1.05}.achTop small{font-size:9px;color:#ead7b8}.achTop>span{background:#251f1a;border-radius:17px;padding:6px 9px;font-size:11px}.achHero{box-sizing:border-box;min-height:82px;padding:11px 18px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#344b35,#806039);border-left:3px solid #f8e7aa;border-right:3px solid #f8e7aa;color:#fff}.achHero small{font-size:8px;letter-spacing:1.4px;color:#e8d5a5}.achHero b{display:block;font-size:21px;line-height:1.05;margin-top:2px}.achHero p{font-size:9.5px;color:#f2e0ba;margin:4px 0 0}.achMedal{font-size:42px;filter:drop-shadow(0 5px 6px rgba(0,0,0,.25))}.achSummary{box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:8px 11px;background:#ead09a;border:3px solid #f8e7aa;border-top:0}.achSummary div{text-align:center;background:rgba(255,250,232,.78);border-radius:12px;padding:6px 5px}.achSummary b{display:block;font-size:15px;line-height:1.05}.achSummary small{font-size:8px;color:#806a50}.achTools{display:flex;gap:7px;align-items:center;padding:7px 8px;background:#dfc489;border-left:3px solid #f8e7aa;border-right:3px solid #f8e7aa}.achTabs{display:flex;gap:4px;overflow:auto;flex:1;scrollbar-width:none}.achTabs::-webkit-scrollbar{display:none}.achTabs button{white-space:nowrap;border:0;border-radius:10px;padding:7px 9px;background:rgba(255,247,223,.62);color:#765336;font-size:9px;font-weight:1000}.achTabs button.on{background:#765336;color:#fff}.achTools>#achClaimAll{border:0;border-radius:11px;padding:7px 9px;background:linear-gradient(#9bec4c,#55bd21);box-shadow:0 2px 0 #398c1b;color:#3e331c;font-size:9px;font-weight:1000}.achTools>#achClaimAll:disabled{background:#c9b690;box-shadow:none;color:#89795e}.achList{box-sizing:border-box;background:#f1d99c;border:3px solid #f8e7aa;border-top:0;border-radius:0 0 24px 24px;padding:8px 9px 10px}.achCard{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;background:#fff7df;border:1.5px solid rgba(118,83,54,.16);border-radius:15px;padding:8px 9px;margin-bottom:6px;min-height:62px}.achCard:last-child{margin-bottom:0}.achCard.done{border-color:#7fc64a;background:linear-gradient(90deg,#fffbea,#f4ffe9)}.achIcon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#ead29c;font-size:22px}.achName{font-size:12px;line-height:1.1;font-weight:1000}.achDesc{font-size:8.3px;line-height:1.25;color:#806a50;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.achBar{height:5px;background:#d6c5a3;border-radius:99px;overflow:hidden;margin-top:5px}.achBar i{display:block;height:100%;background:linear-gradient(90deg,#6ebf35,#b6e85d)}.achCount{font-size:8px;line-height:1;font-weight:900;color:#6b593f;margin-top:3px}.achClaim{min-width:61px;border:0;border-radius:11px;background:linear-gradient(#9bec4c,#55bd21);box-shadow:0 2px 0 #398c1b;padding:8px 5px;font-size:9px;font-weight:1000;color:#3e331c}.achClaim:disabled{background:#d8c9aa;box-shadow:none;color:#8b7b62}.achToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 28px);transform:translate(-50%,15px);opacity:0;background:rgba(20,24,22,.93);color:#fff;border-radius:17px;padding:9px 14px;font-size:10px;font-weight:900;transition:.2s}.achToast.show{opacity:1;transform:translate(-50%,0)}.achBadge{position:absolute;right:-6px;top:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#ff4d42;color:white;border:2px solid #20312d;font:1000 10px/18px system-ui;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.25)}@media(max-width:430px){#doldolAchievementPage{padding-left:7px;padding-right:7px}.achTop{grid-template-columns:38px 1fr auto;padding:7px 8px}.achTop button{width:35px;height:35px;font-size:27px}.achTop b{font-size:20px}.achHero{min-height:76px;padding:10px 15px}.achHero b{font-size:19px}.achHero p{font-size:8.8px}.achMedal{font-size:38px}.achSummary{padding:7px 8px;gap:6px}.achSummary div{padding:5px 3px}.achTools{padding:6px}.achTabs button{padding:6px 8px}.achCard{grid-template-columns:38px 1fr 58px;gap:7px;padding:7px 8px;min-height:57px}.achIcon{width:36px;height:36px;font-size:20px}.achClaim{min-width:56px;padding:7px 4px}.achDesc{font-size:8px}.achBar{margin-top:4px}}
-`;document.head.appendChild(st);page.querySelector('#achBack').onclick=close;page.querySelector('#achClaimAll').onclick=claimAll;return page;
+    const st=document.createElement('style');st.id='doldolAchievementStyle';st.textContent=`
+#doldolAchievementPage{position:fixed;inset:0;z-index:9600;display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 24px);background:linear-gradient(rgba(16,27,27,.2),rgba(16,27,27,.66)),url('../assets/home_base_bg.png') center/cover fixed;font-family:system-ui,-apple-system,sans-serif;color:#49351f}#doldolAchievementPage.show{display:block}.achTop,.achHero,.achSummary,.achList{max-width:720px;margin:auto}.achTop{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;background:#765336;border:3px solid #f8e7aa;border-radius:24px 24px 0 0;padding:11px;color:#fff}.achTop button{width:42px;height:42px;border:0;border-radius:13px;background:#d0bb8d;color:#fff;font-size:32px;font-weight:1000}.achTop b{display:block;font-size:25px}.achTop small{font-size:10px;color:#ead7b8}.achTop>span{background:#251f1a;border-radius:18px;padding:7px 10px;font-size:12px}.achHero{box-sizing:border-box;min-height:120px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#344b35,#806039);border-left:3px solid #f8e7aa;border-right:3px solid #f8e7aa;color:#fff}.achHero small{font-size:9px;letter-spacing:1.5px;color:#e8d5a5}.achHero b{display:block;font-size:25px;margin-top:3px}.achHero p{font-size:11px;color:#f2e0ba;margin:6px 0 0}.achMedal{font-size:58px;filter:drop-shadow(0 7px 7px rgba(0,0,0,.25))}.achSummary{box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:11px 14px;background:#ead09a;border:3px solid #f8e7aa;border-top:0}.achSummary div{text-align:center;background:rgba(255,250,232,.75);border-radius:14px;padding:8px}.achSummary b{display:block;font-size:17px}.achSummary small{font-size:9px;color:#806a50}.achList{box-sizing:border-box;background:#f1d99c;border:3px solid #f8e7aa;border-top:0;border-radius:0 0 26px 26px;padding:12px}.achCard{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;background:#fff7df;border:2px solid rgba(118,83,54,.15);border-radius:18px;padding:10px;margin-bottom:8px}.achCard.done{border-color:#7fc64a}.achIcon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#ead29c;font-size:25px}.achName{font-size:13px;font-weight:1000}.achDesc{font-size:9px;color:#806a50;margin-top:2px}.achBar{height:6px;background:#d6c5a3;border-radius:99px;overflow:hidden;margin-top:7px}.achBar i{display:block;height:100%;background:linear-gradient(90deg,#6ebf35,#b6e85d)}.achCount{font-size:9px;font-weight:900;color:#6b593f;margin-top:3px}.achClaim{min-width:68px;border:0;border-radius:13px;background:linear-gradient(#9bec4c,#55bd21);box-shadow:0 3px 0 #398c1b;padding:9px 6px;font-size:10px;font-weight:1000;color:#3e331c}.achClaim:disabled{background:#d8c9aa;box-shadow:none;color:#8b7b62}.achToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 32px);transform:translate(-50%,15px);opacity:0;background:rgba(20,24,22,.93);color:#fff;border-radius:18px;padding:10px 15px;font-size:11px;font-weight:900;transition:.2s}.achToast.show{opacity:1;transform:translate(-50%,0)}@media(max-width:430px){.achCard{grid-template-columns:42px 1fr 66px;gap:7px;padding:8px}.achIcon{width:40px;height:40px}.achHero{min-height:105px}.achMedal{font-size:48px}.achTop{grid-template-columns:42px 1fr auto}}
+`;document.head.appendChild(st);page.querySelector('#achBack').onclick=close;return page;
   }
   function toast(t){const e=document.getElementById('achToast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1000)}
-  function claimOne(id){const d=defs.find(x=>x.id===id);if(!d||!claimable(d))return 0;state.claimed[d.id]=true;if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);return d.reward}
-  function claimAll(){let total=0;defs.forEach(d=>{total+=claimOne(d.id)});if(!total)return;sync();toast('🔥 '+total.toLocaleString()+' 모두 획득');render()}
-  function render(){
-    const page=ensure(),list=page.querySelector('#achList'),tabs=page.querySelector('#achTabs');
-    page.querySelector('#achCore').textContent=Number(window.__duckWallet?.coins||0).toLocaleString();
-    const completed=defs.filter(d=>Number(state[d.key]||0)>=d.goal).length,claimed=defs.filter(d=>state.claimed[d.id]).length;
-    page.querySelector('#achSummary').innerHTML='<div><b>'+completed+'/'+defs.length+'</b><small>달성</small></div><div><b>'+claimed+'</b><small>보상 수령</small></div><div><b>'+Number(state.kills||0)+'</b><small>누적 처치</small></div>';
-    tabs.innerHTML=filters.map(f=>'<button data-filter="'+f[0]+'" class="'+(activeFilter===f[0]?'on':'')+'">'+f[1]+'</button>').join('');tabs.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{activeFilter=b.dataset.filter;render()});
-    const shown=activeFilter==='all'?defs:defs.filter(d=>d.cat===activeFilter);
-    list.innerHTML=shown.map(d=>{const cur=Math.min(d.goal,Number(state[d.key]||0)),done=cur>=d.goal,got=!!state.claimed[d.id],pct=Math.round(cur/d.goal*100);return '<article class="achCard '+(done?'done':'')+'"><div class="achIcon">'+d.icon+'</div><div><div class="achName">'+d.name+'</div><div class="achDesc">'+d.desc+' · 보상 🔥 '+d.reward.toLocaleString()+'</div><div class="achBar"><i style="width:'+pct+'%"></i></div><div class="achCount">'+cur+' / '+d.goal+'</div></div><button class="achClaim" data-ach="'+d.id+'" '+(!done||got?'disabled':'')+'>'+(got?'완료':done?'받기':'진행중')+'</button></article>'}).join('');
-    list.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>{const got=claimOne(b.dataset.ach);if(!got)return;sync();toast('🔥 '+got.toLocaleString()+' 획득');render()});
-    const all=page.querySelector('#achClaimAll');const c=claimableCount();all.disabled=!c;all.textContent=c?'모두 받기 '+c:'모두 받기';updateLobbyBadge();
-  }
+  function render(){const page=ensure(),list=page.querySelector('#achList');page.querySelector('#achCore').textContent=Number(window.__duckWallet?.coins||0).toLocaleString();const completed=defs.filter(d=>Number(state[d.key]||0)>=d.goal).length,claimed=defs.filter(d=>state.claimed[d.id]).length;page.querySelector('#achSummary').innerHTML='<div><b>'+completed+'/'+defs.length+'</b><small>달성</small></div><div><b>'+claimed+'</b><small>보상 수령</small></div><div><b>'+Number(state.kills||0)+'</b><small>누적 처치</small></div>';list.innerHTML=defs.map(d=>{const cur=Math.min(d.goal,Number(state[d.key]||0)),done=cur>=d.goal,got=!!state.claimed[d.id],pct=Math.round(cur/d.goal*100);return '<article class="achCard '+(done?'done':'')+'"><div class="achIcon">'+d.icon+'</div><div><div class="achName">'+d.name+'</div><div class="achDesc">'+d.desc+' · 보상 🔥 '+d.reward.toLocaleString()+'</div><div class="achBar"><i style="width:'+pct+'%"></i></div><div class="achCount">'+cur+' / '+d.goal+'</div></div><button class="achClaim" data-ach="'+d.id+'" '+(!done||got?'disabled':'')+'>'+(got?'완료':done?'받기':'진행중')+'</button></article>'}).join('');list.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>{const d=defs.find(x=>x.id===b.dataset.ach);if(!d||state.claimed[d.id]||Number(state[d.key]||0)<d.goal)return;state.claimed[d.id]=true;if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);sync();toast('🔥 '+d.reward.toLocaleString()+' 획득');render();});}
   function close(){const p=document.getElementById('doldolAchievementPage');if(p)p.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden')}
   function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');render();p.classList.add('show')}
-  function findLobbyProfile(){
-    const lobby=document.getElementById('gameLobby'); if(!lobby)return null;
-    const direct=['lobbyProfile','playerProfile','profileCard','lobbyPlayer','playerInfo','hudProfile'];
-    for(const id of direct){const el=document.getElementById(id);if(el&&lobby.contains(el))return el;}
-    const named=lobby.querySelector('[class*=profile i],[class*=playerInfo i],[class*=userInfo i],[class*=account i]');
-    if(named)return named;
-    const nodes=[...lobby.querySelectorAll('button,[role=button],div')].filter(el=>{
-      const txt=(el.textContent||'').replace(/\s+/g,' ').trim();
-      if(!txt||txt.length>70)return false;
-      return /Lv\.?\s*\d+/i.test(txt)&&!!el.querySelector('img');
-    });
-    nodes.sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length);
-    return nodes[0]||null;
-  }
-  function updateLobbyBadge(){
-    const b=findLobbyProfile(); if(!b)return;
-    b.style.position='relative';
-    let badge=b.querySelector(':scope > .achBadge'); const n=claimableCount();
-    if(n&&!badge){badge=document.createElement('span');badge.className='achBadge';badge.setAttribute('aria-label','수령 가능한 업적');b.appendChild(badge)}
-    if(badge){badge.textContent=n>9?'9+':String(n);badge.style.display=n?'block':'none'}
-  }
-  function isLobbyProfileHit(target){
-    const lobby=document.getElementById('gameLobby');
-    if(!lobby||!target)return false;
-    /* 업적 진입은 실제 로비 프로필 카드에만 한정한다.
-       타이틀/전투/기타 화면의 클릭을 절대 가로채지 않는다. */
-    if(lobby.classList.contains('hidden'))return false;
-    const title=document.getElementById('titleScreen');
-    if(title&&!title.classList.contains('hidden'))return false;
-    const profile=findLobbyProfile();
-    if(!profile||!lobby.contains(profile))return false;
-    const node=target.nodeType===1?target:target.parentElement;
-    return !!node&&(node===profile||profile.contains(node));
-  }
-  function installProfileEntry(){
-    const old=document.getElementById('lobbyMission');if(old)old.remove();
-    if(document.documentElement.dataset.achievementProfileDelegate==='1'){updateLobbyBadge();return;}
-    document.documentElement.dataset.achievementProfileDelegate='1';
-    document.addEventListener('click',function(e){
-      if(!isLobbyProfileHit(e.target))return;
-      e.preventDefault();e.stopPropagation();open();
-    },true);
-    document.addEventListener('keydown',function(e){
-      if((e.key==='Enter'||e.key===' ')&&isLobbyProfileHit(e.target)){e.preventDefault();e.stopPropagation();open();}
-    },true);
-    const refresh=()=>{const p=findLobbyProfile();if(p){p.setAttribute('role','button');p.setAttribute('tabindex','0');p.setAttribute('aria-label','프로필 · 업적 보기');p.style.cursor='pointer';p.style.touchAction='manipulation';}updateLobbyBadge();};
-    refresh();setTimeout(refresh,300);setTimeout(refresh,1000);
-    const lobby=document.getElementById('gameLobby');
-    if(lobby&&window.MutationObserver){const mo=new MutationObserver(()=>refresh());mo.observe(lobby,{childList:true,subtree:true});}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installProfileEntry);else installProfileEntry();
-  window.__duckOpenMissions=open;window.__duckOpenAchievements=open;window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
+  function installButton(){const lobby=document.getElementById('gameLobby');if(!lobby||document.getElementById('lobbyMission'))return;const anchor=document.getElementById('lobbyGear');const b=document.createElement('button');b.id='lobbyMission';b.className=anchor?anchor.className:'menuItem';b.innerHTML='🏅 업적<small>작전 기록</small>';b.onclick=open;if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(b,anchor);else lobby.appendChild(b)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installButton);else installButton();window.__duckOpenMissions=open;window.__duckOpenAchievements=open;window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
 
 /* --- V38 unified lobby design system --- */
