@@ -3062,9 +3062,40 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function close(){const p=document.getElementById('doldolAchievementPage');if(p)p.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden')}
   function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');render();p.classList.add('show')}
-  function updateLobbyBadge(){const b=document.getElementById('lobbyMission');if(!b)return;b.style.position='relative';let badge=b.querySelector('.achBadge');const n=claimableCount();if(n&&!badge){badge=document.createElement('span');badge.className='achBadge';b.appendChild(badge)}if(badge){badge.textContent=n>9?'9+':String(n);badge.style.display=n?'block':'none'}}
-  function installButton(){const lobby=document.getElementById('gameLobby');if(!lobby||document.getElementById('lobbyMission')){updateLobbyBadge();return}const anchor=document.getElementById('lobbyGear');const b=document.createElement('button');b.id='lobbyMission';b.className=anchor?anchor.className:'menuItem';b.innerHTML='🏅 업적<small>작전 기록</small>';b.onclick=open;if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(b,anchor);else lobby.appendChild(b);updateLobbyBadge()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installButton);else installButton();
+  function findLobbyProfile(){
+    const lobby=document.getElementById('gameLobby'); if(!lobby)return null;
+    const direct=['lobbyProfile','playerProfile','profileCard','lobbyPlayer','playerInfo','hudProfile'];
+    for(const id of direct){const el=document.getElementById(id);if(el&&lobby.contains(el))return el;}
+    const named=lobby.querySelector('[class*=profile i],[class*=playerInfo i],[class*=userInfo i],[class*=account i]');
+    if(named)return named;
+    const nodes=[...lobby.querySelectorAll('button,[role=button],div')].filter(el=>{
+      const txt=(el.textContent||'').replace(/\s+/g,' ').trim();
+      if(!txt||txt.length>70)return false;
+      return /Lv\.?\s*\d+/i.test(txt)&&!!el.querySelector('img');
+    });
+    nodes.sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length);
+    return nodes[0]||null;
+  }
+  function updateLobbyBadge(){
+    const b=findLobbyProfile(); if(!b)return;
+    b.style.position='relative';
+    let badge=b.querySelector(':scope > .achBadge'); const n=claimableCount();
+    if(n&&!badge){badge=document.createElement('span');badge.className='achBadge';badge.setAttribute('aria-label','수령 가능한 업적');b.appendChild(badge)}
+    if(badge){badge.textContent=n>9?'9+':String(n);badge.style.display=n?'block':'none'}
+  }
+  function installProfileEntry(){
+    const lobby=document.getElementById('gameLobby');if(!lobby)return;
+    const old=document.getElementById('lobbyMission');if(old)old.remove();
+    const profile=findLobbyProfile();if(!profile){setTimeout(installProfileEntry,250);return;}
+    if(profile.dataset.achievementEntry==='1'){updateLobbyBadge();return;}
+    profile.dataset.achievementEntry='1';
+    profile.setAttribute('role','button');profile.setAttribute('tabindex','0');profile.setAttribute('aria-label','프로필 · 업적 보기');
+    profile.style.cursor='pointer';profile.style.touchAction='manipulation';
+    profile.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();open();});
+    profile.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+    updateLobbyBadge();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installProfileEntry);else installProfileEntry();
   window.__duckOpenMissions=open;window.__duckOpenAchievements=open;window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
 
