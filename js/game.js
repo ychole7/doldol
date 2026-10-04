@@ -4511,17 +4511,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-/* LOBBY HUD V1
-   - real selected-character portrait
-   - compact K/M/B resource labels
-   - explicit achievement button */
+/* LOBBY HUD SAFE V2
+   No MutationObserver / no global capture handlers. */
 (function(){
   const CHAR_META={
     doldol:{name:'돌돌이',art:'./assets/characters/character_doldol.png'},
     nyang:{name:'냥특공',art:'./assets/characters/character_nyang.png'},
     rabbit:{name:'토끼특공',art:'./assets/characters/character_rabbit.png'},
     panda:{name:'판다특공',art:'./assets/characters/character_panda.png'},
-    king:{name:'그림자특공',art:'./assets/characters/character_shadow.png'},
+    shadow:{name:'그림자특공',art:'./assets/characters/character_shadow.png'},
     turtle:{name:'거북특공',art:'./assets/characters/character_turtle.png'},
     shiba:{name:'시바특공',art:'./assets/characters/character_shiba.png'},
     charge:{name:'돌격특공',art:'./assets/characters/character_charge.png'}
@@ -4529,53 +4527,40 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
   function compact(n){
     n=Math.max(0,Number(n)||0);
-    const f=(v,suffix)=>{
-      const digits=v<10?1:0;
-      return v.toFixed(digits).replace(/\.0$/,'')+suffix;
+    const f=(v,s)=>{
+      const d=v<10?1:0;
+      return v.toFixed(d).replace(/\.0$/,'')+s;
     };
     if(n>=1e9)return f(n/1e9,'B');
     if(n>=1e6)return f(n/1e6,'M');
     if(n>=1e3)return f(n/1e3,'K');
-    return Math.floor(n).toLocaleString();
+    return String(Math.floor(n));
   }
 
-  function activeId(){
-    try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}
+  function getSelectedId(){
+    try{return localStorage.getItem('doldol_character_v1')||'doldol';}
+    catch(e){return 'doldol';}
   }
-  function characterLevel(id){
+
+  function getLevel(id){
     try{
-      if(window.__duckCharacterProgress){
-        const p=window.__duckCharacterProgress(id);
-        if(p&&p.level)return Math.max(1,Number(p.level)||1);
-      }
       const raw=localStorage.getItem('doldol_character_progress_v1');
       if(raw){
         const obj=JSON.parse(raw);
-        if(obj&&obj[id]&&obj[id].level)return Math.max(1,Number(obj[id].level)||1);
+        if(obj && obj[id] && obj[id].level) return Math.max(1,Number(obj[id].level)||1);
       }
     }catch(e){}
     return 1;
   }
-  function gems(){
-    try{
-      for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){
-        const v=localStorage.getItem(k);
-        if(v!==null)return Math.max(0,Number(v)||0);
-      }
-    }catch(e){}
-    return 980;
-  }
 
   function ensureStyle(){
-    if(document.getElementById('doldolLobbyHudV1Style'))return;
+    if(document.getElementById('doldolLobbyHudSafeV2Style'))return;
     const st=document.createElement('style');
-    st.id='doldolLobbyHudV1Style';
+    st.id='doldolLobbyHudSafeV2Style';
     st.textContent=`
       #gameLobby .profileMini{
         position:relative!important;
-        padding-right:50px!important;
-        min-width:0!important;
-        overflow:visible!important;
+        padding-right:44px!important;
       }
       #gameLobby .profileAvatar{
         overflow:hidden!important;
@@ -4586,166 +4571,122 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         width:100%!important;
         height:100%!important;
         object-fit:contain!important;
-        transform:scale(1.18) translateY(3%)!important;
-        transform-origin:center center!important;
+        transform:scale(1.14) translateY(3%)!important;
       }
       #gameLobby .hudAchievementBtn{
         position:absolute;
-        right:8px;
-        top:50%;
+        right:6px; top:50%;
         transform:translateY(-50%);
-        width:38px;
-        height:38px;
+        width:34px; height:34px;
+        border:2px solid rgba(255,225,104,.9);
+        border-radius:11px;
+        background:linear-gradient(180deg,#ffd95d,#e9a82c);
+        box-shadow:0 3px 0 #9d671d;
+        color:#49320f;
         padding:0;
-        border:2px solid rgba(255,228,113,.88);
-        border-radius:13px;
-        background:linear-gradient(180deg,#ffd85b,#e8a62b);
-        color:#4c3311;
-        box-shadow:0 4px 0 #9d661d,0 6px 12px rgba(0,0,0,.18);
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        gap:0;
-        font-weight:1000;
-        z-index:5;
-        -webkit-tap-highlight-color:transparent;
-        touch-action:manipulation;
-      }
-      #gameLobby .hudAchievementBtn strong{
+        display:grid;
+        place-items:center;
         font-size:18px;
-        line-height:16px;
-        pointer-events:none;
-      }
-      #gameLobby .hudAchievementBtn small{
-        margin-top:2px;
-        font-size:7px;
-        line-height:8px;
-        letter-spacing:-.4px;
-        pointer-events:none;
-      }
-      #gameLobby .hudAchievementBtn:active{
-        transform:translateY(calc(-50% + 2px));
-        box-shadow:0 2px 0 #9d661d,0 4px 8px rgba(0,0,0,.16);
+        z-index:5;
+        touch-action:manipulation;
+        -webkit-tap-highlight-color:transparent;
       }
       #gameLobby .homeRes b{
         display:inline-block!important;
         min-width:34px!important;
-        max-width:58px!important;
+        max-width:54px!important;
         overflow:hidden!important;
-        text-overflow:clip!important;
         white-space:nowrap!important;
         font-variant-numeric:tabular-nums;
-      }
-      @media(max-width:390px){
-        #gameLobby .profileMini{padding-right:45px!important}
-        #gameLobby .hudAchievementBtn{width:34px;height:34px;right:6px;border-radius:11px}
-        #gameLobby .hudAchievementBtn strong{font-size:16px}
-        #gameLobby .hudAchievementBtn small{font-size:6px}
       }
     `;
     document.head.appendChild(st);
   }
 
-  function updateProfile(){
-    const lobby=document.getElementById('gameLobby');
-    if(!lobby)return;
-    const card=lobby.querySelector('.profileMini');
-    if(!card)return;
+  function syncHud(){
+    try{
+      ensureStyle();
+      const lobby=document.getElementById('gameLobby');
+      if(!lobby)return;
 
-    const id=activeId(), meta=CHAR_META[id]||CHAR_META.doldol;
-    const avatar=card.querySelector('.profileAvatar');
-    if(avatar){
-      let img=avatar.querySelector('img');
-      if(!img){
-        avatar.innerHTML='<img alt="">';
-        img=avatar.querySelector('img');
+      const card=lobby.querySelector('.profileMini');
+      if(card){
+        const id=getSelectedId();
+        const meta=CHAR_META[id]||CHAR_META.doldol;
+        const avatar=card.querySelector('.profileAvatar img');
+        if(avatar && avatar.getAttribute('src')!==meta.art){
+          avatar.src=meta.art;
+          avatar.alt=meta.name;
+        }
+
+        const info=card.querySelector('.profileAvatar + div');
+        if(info){
+          const b=info.querySelector('b');
+          const sp=info.querySelector('span');
+          if(b && b.textContent!==meta.name)b.textContent=meta.name;
+          const lv='Lv.'+getLevel(id);
+          if(sp && sp.textContent!==lv)sp.textContent=lv;
+        }
+
+        if(!card.querySelector('.hudAchievementBtn')){
+          const btn=document.createElement('button');
+          btn.type='button';
+          btn.className='hudAchievementBtn';
+          btn.setAttribute('aria-label','업적');
+          btn.textContent='🏆';
+          btn.addEventListener('click',function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            if(window.__duckOpenAchievements)window.__duckOpenAchievements();
+            else card.click();
+          });
+          card.appendChild(btn);
+        }
       }
-      if(img){
-        img.src=meta.art;
-        img.alt=meta.name;
+
+      const coin=lobby.querySelector('#lobbyCoins');
+      if(coin){
+        let n=0;
+        try{
+          if(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins))) n=Number(window.__duckWallet.coins);
+          else n=Number(localStorage.getItem('doldol_coins_v1')||0);
+        }catch(e){}
+        const txt=compact(n);
+        if(coin.textContent!==txt)coin.textContent=txt;
+        coin.title=Number(n||0).toLocaleString();
       }
-    }
 
-    const info=card.querySelector(':scope > div:not(.profileAvatar):not(.hudAchievementBtn)');
-    if(info){
-      const name=info.querySelector('b');
-      const lv=info.querySelector('span');
-      if(name)name.textContent=meta.name;
-      if(lv)lv.textContent='Lv.'+characterLevel(id);
-    }
-
-    let ach=card.querySelector('.hudAchievementBtn');
-    if(!ach){
-      ach=document.createElement('button');
-      ach.type='button';
-      ach.className='hudAchievementBtn';
-      ach.setAttribute('aria-label','업적');
-      ach.innerHTML='<strong>🏆</strong><small>업적</small>';
-      ach.addEventListener('click',function(e){
-        e.preventDefault();
-        e.stopPropagation();
-        if(window.__duckOpenAchievements)window.__duckOpenAchievements();
-        else if(window.__duckOpenMissions)window.__duckOpenMissions();
+      const resources=[...lobby.querySelectorAll('.homeResources .homeRes')];
+      resources.forEach(res=>{
+        const b=res.querySelector('b');
+        if(!b)return;
+        const raw=(res.textContent||'');
+        if(raw.includes('💎')){
+          let n=980;
+          try{
+            const v=localStorage.getItem('doldol_gems_v1');
+            if(v!==null)n=Number(v)||0;
+          }catch(e){}
+          const txt=compact(n);
+          if(b.textContent!==txt)b.textContent=txt;
+          b.title=Number(n||0).toLocaleString();
+        }
       });
-      card.appendChild(ach);
+    }catch(e){
+      console.warn('lobby hud sync failed',e);
     }
-  }
-
-  function updateResources(){
-    const lobby=document.getElementById('gameLobby');
-    if(!lobby)return;
-
-    const coin=lobby.querySelector('#lobbyCoins');
-    if(coin){
-      const n=window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0);
-      coin.textContent=compact(n);
-      coin.title=Number(n||0).toLocaleString();
-    }
-
-    const resources=[...lobby.querySelectorAll('.homeResources .homeRes')];
-    resources.forEach(res=>{
-      const txt=(res.textContent||'').trim();
-      const b=res.querySelector('b');
-      if(!b)return;
-      if(txt.includes('💎')){
-        const n=gems();
-        b.textContent=compact(n);
-        b.title=n.toLocaleString();
-      }else if(b.id==='lobbyCoins'){
-        const n=window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0);
-        b.textContent=compact(n);
-        b.title=Number(n||0).toLocaleString();
-      }
-    });
-  }
-
-  function sync(){
-    ensureStyle();
-    updateProfile();
-    updateResources();
   }
 
   const prev=window.__duckSyncLobby;
   window.__duckSyncLobby=function(){
     if(typeof prev==='function')prev.apply(this,arguments);
-    sync();
+    syncHud();
   };
 
-  function install(){
-    sync();
-    const lobby=document.getElementById('gameLobby');
-    if(lobby && !window.__duckLobbyHudV1Observer){
-      const obs=new MutationObserver(()=>sync());
-      obs.observe(lobby,{childList:true,subtree:true});
-      window.__duckLobbyHudV1Observer=obs;
-    }
-  }
-
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',install,{once:true});
+    document.addEventListener('DOMContentLoaded',syncHud,{once:true});
   }else{
-    install();
+    syncHud();
   }
 
   window.__duckCompactNumber=compact;
