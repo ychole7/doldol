@@ -2650,13 +2650,73 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
     #characterScreen .sqBtn.main{background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;box-shadow:0 4px 0 #ad6c18}
     #characterScreen .sqBtn:disabled{filter:grayscale(.8);opacity:.55;box-shadow:none}
-    #characterScreen .sqHud{position:absolute;left:8px;right:8px;top:calc(7px + env(safe-area-inset-top));height:44px;display:grid;grid-template-columns:minmax(108px,1fr) auto auto 42px;gap:5px;z-index:8}
-    #characterScreen .sqHudBox{min-width:0;height:42px;display:flex;align-items:center;gap:6px;padding:4px 7px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(18,45,55,.94);box-shadow:0 3px 8px rgba(0,0,0,.28);font-size:11px;font-weight:1000}
-    #characterScreen .sqHudFace{width:31px;height:31px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:#f3c955;flex:0 0 auto}
-    #characterScreen .sqHudFace img{width:43px;height:38px;object-fit:contain;max-width:none}
-    #characterScreen .sqHudWho{min-width:0;line-height:1.05}#characterScreen .sqHudWho b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#characterScreen .sqHudWho small{display:block;margin-top:3px;color:#d7e5e9}
-    #characterScreen .sqHudRes{white-space:nowrap;padding-inline:8px}#characterScreen .sqHudRes i{font-style:normal;font-size:17px}#characterScreen .sqHudPlus{display:grid;place-items:center;width:17px;height:17px;margin-left:1px;border-radius:50%;background:#28b8ef;color:white;font-size:14px}
-    #characterScreen .sqHudSettings{height:42px;border:1px solid rgba(255,255,255,.24);border-radius:12px;background:rgba(31,44,48,.94);color:#fff;font-size:21px}
+    #characterScreen .sqHud{
+      position:absolute;left:8px;right:8px;top:calc(7px + env(safe-area-inset-top));
+      height:50px;display:flex;align-items:center;gap:6px;z-index:8
+    }
+    #characterScreen .sqHudProfile{
+      width:104px;min-width:104px;flex:0 0 104px;height:50px;
+      display:flex;align-items:center;gap:5px;padding:4px 7px 4px 4px;
+      border:2px solid rgba(255,255,255,.28);border-radius:16px;
+      background:rgba(30,48,55,.82);box-shadow:0 4px 10px rgba(0,0,0,.15);
+      overflow:hidden
+    }
+    #characterScreen .sqHudFace{
+      width:34px;height:34px;min-width:34px;flex:0 0 34px;
+      display:grid;place-items:center;overflow:hidden;border-radius:11px;
+      background:#f7dca0;border:1.5px solid #fff
+    }
+    #characterScreen .sqHudFace img{
+      width:100%;height:100%;object-fit:contain;display:block;max-width:none
+    }
+    #characterScreen .sqHudWho{min-width:0;flex:1;line-height:1.02;overflow:hidden}
+    #characterScreen .sqHudWho b{
+      display:block;font-size:11px;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+    }
+    #characterScreen .sqHudWho small{display:block;font-size:8px;line-height:10px;color:#fff;opacity:.85;margin:0}
+    #characterScreen .sqHudXp{display:block;width:34px;height:4px;margin-top:2px;background:#1d2a2a;border-radius:9px;overflow:hidden}
+    #characterScreen .sqHudXp i{display:block;width:62%;height:100%;background:#ffd34e}
+    #characterScreen .sqHudResources{
+      display:flex;align-items:center;justify-content:flex-end;gap:5px;flex:1 1 auto;min-width:0
+    }
+    #characterScreen .sqHudRes{
+      height:50px;display:flex;align-items:center;gap:4px;box-sizing:border-box;
+      border:1px solid rgba(255,255,255,.22);border-radius:16px;
+      background:rgba(30,48,55,.82);white-space:nowrap;overflow:hidden
+    }
+    #characterScreen .sqHudCoreRes{
+      width:108px;min-width:108px;max-width:108px;flex:0 0 108px;padding:5px 5px 5px 7px
+    }
+    #characterScreen .sqHudGemRes{
+      width:84px;min-width:84px;max-width:84px;flex:0 0 84px;padding:5px 5px 5px 7px
+    }
+    #characterScreen .sqHudCoreRes img{
+      width:22px;height:22px;object-fit:contain;flex:0 0 22px
+    }
+    #characterScreen .sqHudGemIcon{font-size:16px;line-height:1;flex:0 0 auto}
+    #characterScreen .sqHudRes b{
+      flex:1 1 auto;min-width:0;text-align:center;overflow:visible;text-overflow:clip;
+      white-space:nowrap;font-size:13px;line-height:1;font-weight:1000;letter-spacing:-.3px
+    }
+    #characterScreen .sqHudRes button{
+      display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;min-width:24px;
+      padding:0;margin:0;border:0;border-radius:50%;background:#55aeea;color:#fff;
+      font-size:18px;font-weight:1000;line-height:1
+    }
+    #characterScreen .sqHudSettings{
+      width:40px;height:40px;min-width:40px;flex:0 0 40px;border:0;border-radius:14px;
+      background:rgba(30,48,55,.82);color:#fff;font-size:22px
+    }
+    @media(max-width:390px){
+      #characterScreen .sqHud{gap:4px;left:5px;right:5px}
+      #characterScreen .sqHudProfile{width:100px;min-width:100px;flex-basis:100px}
+      #characterScreen .sqHudFace{width:32px;height:32px;min-width:32px;flex-basis:32px}
+      #characterScreen .sqHudCoreRes{width:103px;min-width:103px;max-width:103px;flex-basis:103px}
+      #characterScreen .sqHudGemRes{width:80px;min-width:80px;max-width:80px;flex-basis:80px}
+      #characterScreen .sqHudRes b{font-size:12px}
+      #characterScreen .sqHudRes button{width:23px;height:23px;min-width:23px;flex-basis:23px}
+      #characterScreen .sqHudSettings{width:38px;height:38px;min-width:38px;flex-basis:38px}
+    }
     #characterScreen .sqUnlockBody{margin:10px 14px 0;padding:16px;border-radius:14px;background:rgba(22,25,27,.82);text-align:center}
     #characterScreen .sqUnlockBody h3{margin:0 0 5px;font-size:18px}.sqUnlockBody p{margin:0;color:#e8dfd2;font-size:12px;line-height:1.55}
     #characterScreen .sqUnlockReq{display:grid;gap:7px;margin-top:13px;text-align:left}.sqUnlockReq div{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.08);font-size:12px;font-weight:900}
@@ -2705,9 +2765,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.innerHTML=`
       <div class="sqWrap">
         <div class="sqHud" id="sqHud">
-          <div class="sqHudBox"><span class="sqHudFace" id="sqHudFace"></span><span class="sqHudWho"><b id="sqHudName"></b><small id="sqHudLv"></small></span></div>
-          <div class="sqHudBox sqHudRes"><i>🔥</i><b id="sqHudCore">0</b><span class="sqHudPlus">+</span></div>
-          <div class="sqHudBox sqHudRes"><i>💎</i><b id="sqHudGem">0</b><span class="sqHudPlus">+</span></div>
+          <div class="sqHudProfile">
+            <span class="sqHudFace" id="sqHudFace"></span>
+            <span class="sqHudWho"><b id="sqHudName"></b><small id="sqHudLv"></small><span class="sqHudXp"><i></i></span></span>
+          </div>
+          <div class="sqHudResources">
+            <div class="sqHudRes sqHudCoreRes"><img src="./assets/doldol_stone_core.png" alt=""><b id="sqHudCore">0</b><button type="button" aria-label="돌핵 추가">＋</button></div>
+            <div class="sqHudRes sqHudGemRes"><span class="sqHudGemIcon">💎</span><b id="sqHudGem">980</b><button type="button" aria-label="다이아 추가">＋</button></div>
+          </div>
           <button class="sqHudSettings" id="sqHudSettings" aria-label="설정">⚙</button>
         </div>
         <div class="sqTop">
@@ -2778,10 +2843,25 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(face) face.innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
     const n=screen.querySelector('#sqHudName'); if(n)n.textContent=c.name;
     const lv=screen.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
-    const co=screen.querySelector('#sqHudCore'); if(co)co.textContent=core().toLocaleString();
-    let gems=0;
-    try{for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){const v=localStorage.getItem(k);if(v!==null){gems=Number(v)||0;break;}}}catch(e){}
-    const ge=screen.querySelector('#sqHudGem'); if(ge)ge.textContent=gems.toLocaleString();
+    const compact=(n)=>{
+      n=Math.max(0,Number(n)||0);
+      const f=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
+      if(n>=1e9)return f(n/1e9,'B');
+      if(n>=1e6)return f(n/1e6,'M');
+      if(n>=1e3)return f(n/1e3,'K');
+      return String(Math.floor(n));
+    };
+    const co=screen.querySelector('#sqHudCore');
+    if(co){const v=core();co.textContent=compact(v);co.title=Number(v||0).toLocaleString();}
+    let gems=980;
+    try{
+      for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){
+        const v=localStorage.getItem(k);
+        if(v!==null){gems=Number(v)||0;break;}
+      }
+    }catch(e){}
+    const ge=screen.querySelector('#sqHudGem');
+    if(ge){ge.textContent=compact(gems);ge.title=Number(gems||0).toLocaleString();}
   }
 
   function renderGrid(filter=()=>true){
@@ -4487,102 +4567,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if('requestIdleCallback' in window) requestIdleCallback(warm,{timeout:1800});
   else setTimeout(warm,900);
 })();
-
-
-
-/* SHARED HUD SYNC V1 */
-(function(){
-  const CHAR_META={
-    doldol:{name:'돌돌이',art:'./assets/characters/character_doldol.png'},
-    nyang:{name:'냥특공',art:'./assets/characters/character_nyang.png'},
-    rabbit:{name:'토끼특공',art:'./assets/characters/character_rabbit.png'},
-    panda:{name:'판다특공',art:'./assets/characters/character_panda.png'},
-    king:{name:'그림자특공',art:'./assets/characters/character_shadow.png'},
-    turtle:{name:'거북특공',art:'./assets/characters/character_turtle.png'},
-    shiba:{name:'시바특공',art:'./assets/characters/character_shiba.png'},
-    charge:{name:'돌격특공',art:'./assets/characters/character_charge.png'}
-  };
-
-  function compact(n){
-    n=Math.max(0,Number(n)||0);
-    const f=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
-    if(n>=1e9)return f(n/1e9,'B');
-    if(n>=1e6)return f(n/1e6,'M');
-    if(n>=1e3)return f(n/1e3,'K');
-    return String(Math.floor(n));
-  }
-
-  function selectedId(){
-    try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}
-  }
-
-  function currentLevel(id){
-    try{
-      const raw=localStorage.getItem('doldol_character_progress_v1');
-      if(raw){
-        const obj=JSON.parse(raw);
-        if(obj && obj[id] && obj[id].level)return Math.max(1,Number(obj[id].level)||1);
-      }
-    }catch(e){}
-    return 1;
-  }
-
-  function currentGems(){
-    try{
-      const v=localStorage.getItem('doldol_gems_v1');
-      if(v!==null)return Math.max(0,Number(v)||0);
-    }catch(e){}
-    return 980;
-  }
-
-  function syncSharedHud(){
-    try{
-      const id=selectedId();
-      const meta=CHAR_META[id]||CHAR_META.doldol;
-      const core=(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins)))
-        ? Number(window.__duckWallet.coins)
-        : Number(localStorage.getItem('doldol_coins_v1')||0);
-      const gems=currentGems();
-      const lvl=currentLevel(id);
-
-      document.querySelectorAll('[data-shared-hud]').forEach(hud=>{
-        const img=hud.querySelector('.sharedProfileImg');
-        if(img){img.src=meta.art;img.alt=meta.name}
-        const name=hud.querySelector('.sharedProfileName');
-        if(name)name.textContent=meta.name;
-        const lv=hud.querySelector('.sharedProfileLevel');
-        if(lv)lv.textContent='Lv.'+lvl;
-        const c=hud.querySelector('.sharedCoreValue');
-        if(c){c.textContent=compact(core);c.title=Number(core||0).toLocaleString()}
-        const g=hud.querySelector('.sharedGemValue');
-        if(g){g.textContent=compact(gems);g.title=Number(gems||0).toLocaleString()}
-        const settings=hud.querySelector('.sharedSettings');
-        if(settings && settings.dataset.bound!=='1'){
-          settings.dataset.bound='1';
-          settings.addEventListener('click',()=>{
-            const original=document.getElementById('lobbySettings');
-            if(original)original.click();
-          });
-        }
-      });
-    }catch(e){console.warn('shared hud sync failed',e)}
-  }
-
-  const baseSync=window.__duckSyncLobby;
-  window.__duckSyncLobby=function(){
-    if(typeof baseSync==='function')baseSync.apply(this,arguments);
-    syncSharedHud();
-  };
-
-  window.__duckSyncSharedHud=syncSharedHud;
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',syncSharedHud,{once:true});
-  }else syncSharedHud();
-
-  document.addEventListener('click',function(e){
-    const b=e.target && e.target.closest ? e.target.closest('#lobbyGrowth,#charSelectBtn,#charBack') : null;
-    if(b)setTimeout(syncSharedHud,0);
-  });
-})();
-
