@@ -4919,90 +4919,84 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-
-/* PROFILE HUD COMPACT V1 */
+/* PROFILE HUD COMPACT V2 - based on original 116px / 40px CSS */
 (function(){
-  if(document.getElementById('doldolProfileCompactV1Style')) return;
+  if(document.getElementById('doldolProfileCompactV2Style')) return;
   const st=document.createElement('style');
-  st.id='doldolProfileCompactV1Style';
+  st.id='doldolProfileCompactV2Style';
   st.textContent=`
+    #gameLobby .homeTop{
+      gap:6px!important;
+    }
+
     #gameLobby .profileMini{
-      width:196px!important;
-      min-width:196px!important;
-      height:62px!important;
-      padding:6px 42px 6px 8px!important;
-      gap:8px!important;
-      border-radius:20px!important;
+      width:104px!important;
+      min-width:104px!important;
+      height:50px!important;
+      padding:4px 6px 4px 4px!important;
+      gap:5px!important;
+      border-radius:16px!important;
       box-sizing:border-box!important;
+      flex:0 0 104px!important;
     }
 
     #gameLobby .profileAvatar{
-      width:48px!important;
-      height:48px!important;
-      min-width:48px!important;
-      border-radius:14px!important;
-      flex:0 0 48px!important;
+      width:34px!important;
+      height:34px!important;
+      min-width:34px!important;
+      flex:0 0 34px!important;
+      border-radius:11px!important;
+      border-width:1.5px!important;
     }
 
     #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn){
       min-width:0!important;
-      display:flex!important;
-      flex-direction:column!important;
-      justify-content:center!important;
-      gap:1px!important;
-    }
-
-    #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn) b{
-      font-size:15px!important;
-      line-height:17px!important;
-      margin:0!important;
-      white-space:nowrap!important;
-    }
-
-    #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn) span{
-      font-size:12px!important;
-      line-height:14px!important;
-      margin:0!important;
-    }
-
-    #gameLobby .profileMini .xpMini{
-      width:48px!important;
-      height:5px!important;
-      margin-top:3px!important;
-      border-radius:999px!important;
+      flex:1 1 auto!important;
       overflow:hidden!important;
     }
 
+    #gameLobby .profileMini b{
+      font-size:12px!important;
+      line-height:13px!important;
+      white-space:nowrap!important;
+      overflow:hidden!important;
+      text-overflow:ellipsis!important;
+    }
+
+    #gameLobby .profileMini span{
+      font-size:9px!important;
+      line-height:11px!important;
+    }
+
+    #gameLobby .xpMini{
+      width:42px!important;
+      height:4px!important;
+      margin-top:2px!important;
+    }
+
     #gameLobby .profileMini .hudAchievementBtn{
-      width:30px!important;
-      height:30px!important;
-      right:7px!important;
-      border-radius:10px!important;
-      font-size:15px!important;
+      width:24px!important;
+      height:24px!important;
+      right:4px!important;
+      font-size:12px!important;
+      border-radius:8px!important;
     }
 
     @media(max-width:390px){
       #gameLobby .profileMini{
-        width:184px!important;
-        min-width:184px!important;
-        height:58px!important;
-        padding:5px 38px 5px 7px!important;
+        width:100px!important;
+        min-width:100px!important;
+        flex-basis:100px!important;
       }
       #gameLobby .profileAvatar{
-        width:44px!important;
-        height:44px!important;
-        min-width:44px!important;
-        flex-basis:44px!important;
+        width:32px!important;
+        height:32px!important;
+        min-width:32px!important;
+        flex-basis:32px!important;
       }
-      #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn) b{
-        font-size:14px!important;
-      }
-      #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn) span{
-        font-size:11px!important;
-      }
-      #gameLobby .profileMini .xpMini{
-        width:44px!important;
-      }
+      #gameLobby .profileMini b{font-size:11px!important}
+      #gameLobby .profileMini span{font-size:8px!important}
+      #gameLobby .xpMini{width:38px!important}
     }
   `;
   document.head.appendChild(st);
