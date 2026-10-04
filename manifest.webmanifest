@@ -1,0 +1,11 @@
+{
+  "name": "돌돌 특공대",
+  "short_name": "돌돌특공대",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#3d7f71",
+  "theme_color": "#3d7f71",
+  "description": "DOLDOL SPECIAL FORCE"
+}
