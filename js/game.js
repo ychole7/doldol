@@ -4377,139 +4377,134 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 
-
-
-/* --- title applied revamp --- */
+/* TITLE IMAGE MODE V1
+   Visual = single image asset
+   Button + version = live HTML so version changes never require re-exporting art. */
 (function(){
-  function boot(){
+  function bootImageTitle(){
     const t=document.getElementById('titleScreen');
     const l=document.getElementById('gameLobby');
     if(!t||!l) return;
 
-    if(!document.getElementById('doldolTitleRevampStyle')){
-      const st=document.createElement('style');
-      st.id='doldolTitleRevampStyle';
-      st.textContent=`
+    let style=document.getElementById('doldolTitleImageModeStyle');
+    if(!style){
+      style=document.createElement('style');
+      style.id='doldolTitleImageModeStyle';
+      style.textContent=`
         #titleScreen{
-          position:fixed; inset:0; z-index:9999; overflow:hidden;
-          display:flex; align-items:stretch; justify-content:center;
-          background:
-            radial-gradient(1200px 650px at 50% 100%, rgba(71,118,87,.42) 0%, rgba(71,118,87,.42) 36%, rgba(71,118,87,0) 37%),
-            linear-gradient(180deg, #9dd6df 0%, #80c7be 48%, #76b69a 100%) !important;
-          font-family:inherit;
+          position:fixed!important;
+          inset:0!important;
+          z-index:9999!important;
+          overflow:hidden!important;
+          display:block!important;
+          background:#3d7f71!important;
         }
-        #titleScreen.hidden{display:none !important;}
-        #titleScreen .titleWrap{
-          width:min(100%, 540px); min-height:100%;
-          padding: max(env(safe-area-inset-top), 20px) 28px calc(26px + env(safe-area-inset-bottom));
-          position:relative; display:flex; flex-direction:column; align-items:center;
-          text-align:center; box-sizing:border-box;
+        #titleScreen.hidden{display:none!important}
+        #titleScreen .titleImageMode{
+          position:absolute; inset:0;
+          width:100%; height:100%;
+          background-image:url('assets/title_screen.jpg');
+          background-size:cover;
+          background-position:center center;
+          background-repeat:no-repeat;
         }
-        #titleScreen .titleEyebrow{
-          margin-top:22px;
-          font-size:16px; line-height:1; letter-spacing:4px;
-          font-weight:800; color:rgba(255,255,255,.9);
-          text-transform:uppercase;
+        #titleScreen .titleImageUi{
+          position:absolute; inset:0;
+          pointer-events:none;
+          padding:
+            max(env(safe-area-inset-top),14px)
+            30px
+            calc(18px + env(safe-area-inset-bottom));
+          box-sizing:border-box;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:flex-end;
         }
-        #titleScreen .titleLogo{
-          margin-top:26px;
-          font-size:68px; line-height:.88; font-weight:1000;
-          color:#f6e9bf;
-          letter-spacing:-2px;
-          text-shadow:
-            0 3px 0 #8f6d4f,
-            0 6px 0 #7a5c43,
-            0 10px 18px rgba(67,44,28,.22);
+        #titleScreen .titleImageStart{
+          pointer-events:auto;
+          width:min(82vw,520px);
+          height:76px;
+          border:0;
+          border-radius:28px;
+          margin-bottom:58px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:12px;
+          background:linear-gradient(180deg,#ffd65e,#efb93d);
+          color:#2f2419;
+          font:900 27px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+          letter-spacing:-.6px;
+          box-shadow:
+            0 8px 0 #b97a26,
+            0 14px 30px rgba(42,68,50,.24),
+            inset 0 1px 0 rgba(255,255,255,.55);
+          -webkit-tap-highlight-color:transparent;
+          touch-action:manipulation;
         }
-        #titleScreen .heroRing{
-          margin-top:76px;
-          width:262px; height:262px; border-radius:999px;
-          background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
-          border:4px solid rgba(255,255,255,.33);
-          box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
-          display:grid; place-items:center; position:relative;
+        #titleScreen .titleImageStart:active{
+          transform:translateY(2px);
+          box-shadow:
+            0 6px 0 #b97a26,
+            0 10px 24px rgba(42,68,50,.22),
+            inset 0 1px 0 rgba(255,255,255,.45);
         }
-        #titleScreen .heroRing::after{
-          content:""; position:absolute; left:50%; bottom:14px;
-          width:160px; height:30px; transform:translateX(-50%);
-          background:radial-gradient(ellipse at center, rgba(0,0,0,.22) 0%, rgba(0,0,0,.10) 45%, rgba(0,0,0,0) 75%);
-          filter:blur(7px);
+        #titleScreen .titleImageStartIcon{
+          width:34px;height:34px;
+          display:grid;place-items:center;
+          font-size:27px;
+          line-height:1;
         }
-        #titleScreen .heroCharacter{
-          width:228px; height:auto; display:block; position:relative; z-index:2;
-          filter: drop-shadow(0 18px 18px rgba(0,0,0,.20));
-        }
-        #titleScreen .titleCopy{
-          margin-top:74px; color:#fff;
-          text-shadow:0 3px 10px rgba(0,0,0,.14);
-        }
-        #titleScreen .titleMainCopy{
-          font-size:28px; line-height:1.24; font-weight:1000; letter-spacing:-.6px;
-        }
-        #titleScreen .titleSubCopy{
-          margin-top:12px; font-size:16px; line-height:1.42;
-          font-weight:700; color:rgba(255,255,255,.9);
-        }
-        #titleScreen .bottomHill{
-          position:absolute; left:-8%; right:-8%; bottom:132px; height:140px;
-          background:rgba(72,108,80,.28); border-radius:50% 50% 0 0/100% 100% 0 0;
+        #titleScreen .titleImageVersion{
+          position:absolute;
+          left:0; right:0;
+          bottom:calc(14px + env(safe-area-inset-bottom));
+          text-align:center;
+          color:rgba(255,255,255,.76);
+          font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+          letter-spacing:.4px;
+          text-shadow:0 2px 7px rgba(0,0,0,.28);
           pointer-events:none;
         }
-        #titleScreen .titleStart{
-          margin-top:auto; width:100%; height:86px; border:none; border-radius:28px;
-          background:#efc24f; color:#222; position:relative; z-index:2;
-          font-size:26px; font-weight:1000; letter-spacing:-.4px;
-          box-shadow:0 10px 0 #ba8730, 0 16px 28px rgba(99,66,9,.18);
-          display:flex; align-items:center; justify-content:center; gap:12px;
-        }
-        #titleScreen .titleStart:active{ transform:translateY(2px); box-shadow:0 8px 0 #ba8730, 0 12px 20px rgba(99,66,9,.18);}
-        #titleScreen .titleStartIcon{
-          width:34px; height:34px; display:grid; place-items:center; font-size:28px;
-          filter:drop-shadow(0 1px 0 rgba(255,255,255,.35));
-        }
-        #titleScreen .titleVersion{
-          position:absolute; left:0; right:0; bottom:18px;
-          text-align:center; font-size:15px; font-weight:800; color:rgba(255,255,255,.8);
-          letter-spacing:.3px;
-          text-shadow:0 2px 5px rgba(0,0,0,.15);
+
+        @media (max-height:740px){
+          #titleScreen .titleImageStart{
+            height:68px;
+            margin-bottom:45px;
+            font-size:24px;
+          }
         }
       `;
-      document.head.appendChild(st);
+      document.head.appendChild(style);
     }
 
-    t.innerHTML = `
-      <div class="titleWrap">
-        <div class="titleEyebrow">DOLDOL SPECIAL FORCE</div>
-        <div class="titleLogo" aria-label="돌돌 특공대">돌돌<br>특공대</div>
-        <div class="heroRing">
-          <img class="heroCharacter" src="assets/characters/character_doldol.png" alt="돌을 든 돌돌이">
-        </div>
-        <div class="titleCopy">
-          <div class="titleMainCopy">날아오는 돌, 우리가 막는다!</div>
-          <div class="titleSubCopy">피할까 받아칠까 — 타이밍이 관건이에요.</div>
-        </div>
-        <div class="bottomHill"></div>
-        <button id="titleStart" class="titleStart" type="button">
-          <span class="titleStartIcon">🪨</span>
+    t.innerHTML=`
+      <div class="titleImageMode" aria-hidden="true"></div>
+      <div class="titleImageUi">
+        <button id="titleStart" class="titleImageStart" type="button" aria-label="게임 시작">
+          <span class="titleImageStartIcon">🪨</span>
           <span>시작하기</span>
         </button>
-        <div class="titleVersion">v6.22</div>
+        <div class="titleImageVersion">v6.22</div>
       </div>
     `;
 
-    const startBtn=t.querySelector('#titleStart');
-    if(startBtn && !startBtn.dataset.bound){
-      startBtn.dataset.bound='1';
-      startBtn.addEventListener('click', function(){
+    const b=t.querySelector('#titleStart');
+    if(b){
+      b.addEventListener('click',function(){
         t.classList.add('hidden');
         l.classList.remove('hidden');
-        if(window.__duckStopCombat) window.__duckStopCombat();
-        if(window.__duckSyncLobby) window.__duckSyncLobby();
-      });
+        if(window.__duckStopCombat)window.__duckStopCombat();
+        if(window.__duckSyncLobby)window.__duckSyncLobby();
+      },{passive:true});
     }
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',bootImageTitle,{once:true});
+  }else{
+    bootImageTitle();
+  }
 })();
 
