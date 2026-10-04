@@ -300,7 +300,7 @@ body{
 <div id="gameLobby" class="commercialLobby">
   <div class="homeTop">
     <div class="profileMini" id="lobbyProfile">
-      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/characters/character_doldol.png?v=20261004-homehud1" alt="돌돌이"></div>
+      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/characters/character_doldol.png?v=20261005-finalhud" alt="돌돌이"></div>
       <div><b id="lobbyProfileName">돌돌이</b><span>Lv.1</span><div class="xpMini"><i></i></div></div>
     </div>
     <div class="homeResources">
@@ -394,23 +394,25 @@ body{
 
 
 
-<style id="doldolHomeMatchSquadV1">
-/* HOME HUD = SQUAD HUD, exact visual metrics */
+
+<style id="doldolHomeHudFinal">
+/* FINAL HOME HUD — same metrics as the working Squad HUD */
 #gameLobby .homeTop{
   display:flex!important;
   align-items:center!important;
   gap:6px!important;
   min-height:50px!important;
 }
+
 #gameLobby .profileMini{
   box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
   width:84px!important;
   min-width:84px!important;
   max-width:84px!important;
   flex:0 0 84px!important;
   height:46px!important;
-  display:flex!important;
-  align-items:center!important;
   gap:5px!important;
   padding:4px 7px 4px 4px!important;
   border:2px solid rgba(255,255,255,.28)!important;
@@ -419,32 +421,38 @@ body{
   box-shadow:0 4px 10px rgba(0,0,0,.15)!important;
   overflow:hidden!important;
 }
+
 #gameLobby .profileAvatar{
   width:26px!important;
   height:26px!important;
   min-width:26px!important;
   flex:0 0 26px!important;
-  display:grid!important;
-  place-items:center!important;
-  overflow:hidden!important;
   border-radius:11px!important;
-  background:#f7dca0!important;
+  overflow:hidden!important;
   border:1.5px solid #fff!important;
+  background-color:#f7dca0!important;
+  background-image:url("assets/characters/character_doldol.png?v=20261005-finalhud");
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
 }
+
+/* The background above is the visible portrait.
+   Hide any stale/cached inline avatar image without removing it from DOM. */
 #gameLobby .profileAvatar img{
+  opacity:0!important;
   width:100%!important;
   height:100%!important;
-  max-width:none!important;
-  object-fit:contain!important;
-  display:block!important;
-  transform:none!important;
+  pointer-events:none!important;
 }
+
 #gameLobby .profileMini>div:not(.profileAvatar){
   min-width:0!important;
   flex:1 1 auto!important;
-  line-height:1.02!important;
   overflow:hidden!important;
+  line-height:1.02!important;
 }
+
 #gameLobby .profileMini b{
   display:block!important;
   font-size:9px!important;
@@ -453,6 +461,7 @@ body{
   overflow:hidden!important;
   text-overflow:ellipsis!important;
 }
+
 #gameLobby .profileMini span{
   display:block!important;
   font-size:8px!important;
@@ -460,6 +469,7 @@ body{
   color:#fff!important;
   opacity:.85!important;
 }
+
 #gameLobby .xpMini{
   display:block!important;
   width:26px!important;
@@ -484,6 +494,7 @@ body{
   flex:1 1 auto!important;
   min-width:0!important;
 }
+
 #gameLobby .homeRes{
   box-sizing:border-box!important;
   height:50px!important;
@@ -496,6 +507,7 @@ body{
   white-space:nowrap!important;
   overflow:hidden!important;
 }
+
 #gameLobby .coreRes{
   width:108px!important;
   min-width:108px!important;
@@ -503,6 +515,7 @@ body{
   flex:0 0 108px!important;
   padding:5px 5px 5px 7px!important;
 }
+
 #gameLobby .gemRes{
   width:84px!important;
   min-width:84px!important;
@@ -510,6 +523,7 @@ body{
   flex:0 0 84px!important;
   padding:5px 5px 5px 7px!important;
 }
+
 #gameLobby .resIcon{
   width:22px!important;
   height:22px!important;
@@ -517,25 +531,43 @@ body{
   flex:0 0 22px!important;
   object-fit:contain!important;
 }
+
 #gameLobby .gemIcon{
   font-size:16px!important;
   line-height:1!important;
   flex:0 0 auto!important;
 }
+
 #gameLobby .homeRes b{
   flex:1 1 auto!important;
   min-width:0!important;
   width:auto!important;
   max-width:none!important;
   text-align:center!important;
+  white-space:nowrap!important;
   overflow:visible!important;
   text-overflow:clip!important;
-  white-space:nowrap!important;
   font-size:13px!important;
   line-height:1!important;
   font-weight:1000!important;
   letter-spacing:-.3px!important;
 }
+
+/* Never show the raw coin string. Render only the compact value from data-compact. */
+#gameLobby #lobbyCoins{
+  font-size:0!important;
+}
+#gameLobby #lobbyCoins::after{
+  content:attr(data-compact);
+  display:inline-block!important;
+  font-size:13px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  letter-spacing:-.3px!important;
+  color:#ffd866!important;
+  white-space:nowrap!important;
+}
+
 #gameLobby .homeRes button{
   display:grid!important;
   place-items:center!important;
@@ -553,6 +585,7 @@ body{
   font-weight:1000!important;
   line-height:1!important;
 }
+
 #gameLobby .homeSettings{
   width:40px!important;
   height:40px!important;
@@ -560,12 +593,23 @@ body{
   flex:0 0 40px!important;
   border-radius:14px!important;
 }
+
+@media(max-width:390px){
+  #gameLobby .homeTop{gap:4px!important}
+  #gameLobby .profileMini{width:82px!important;min-width:82px!important;max-width:82px!important;flex-basis:82px!important;height:44px!important}
+  #gameLobby .profileAvatar{width:25px!important;height:25px!important;min-width:25px!important;flex-basis:25px!important}
+  #gameLobby .coreRes{width:103px!important;min-width:103px!important;max-width:103px!important;flex-basis:103px!important}
+  #gameLobby .gemRes{width:80px!important;min-width:80px!important;max-width:80px!important;flex-basis:80px!important}
+  #gameLobby #lobbyCoins::after{font-size:12px!important}
+  #gameLobby .homeRes button{width:23px!important;height:23px!important;min-width:23px!important;flex-basis:23px!important}
+  #gameLobby .homeSettings{width:38px!important;height:38px!important;min-width:38px!important;flex-basis:38px!important}
+}
 </style>
 
-<script id="doldolHomeMatchSquadSyncV1">
+<script id="doldolHomeHudFinalSync">
 (function(){
-  var bust='?v=20261004-homehud1';
-  var CHAR={
+  const bust='?v=20261005-finalhud';
+  const chars={
     doldol:["돌돌이","assets/characters/character_doldol.png"],
     nyang:["냥특공","assets/characters/character_nyang.png"],
     rabbit:["토끼특공","assets/characters/character_rabbit.png"],
@@ -575,57 +619,94 @@ body{
     shiba:["시바특공","assets/characters/character_shiba.png"],
     charge:["돌격특공","assets/characters/character_charge.png"]
   };
+
   function compact(n){
     n=Math.max(0,Number(n)||0);
-    if(n>=1e9)return (n/1e9).toFixed(n<1e10?1:0).replace(/\.0$/,'')+'B';
-    if(n>=1e6)return (n/1e6).toFixed(n<1e7?1:0).replace(/\.0$/,'')+'M';
-    if(n>=1e3)return (n/1e3).toFixed(n<1e4?1:0).replace(/\.0$/,'')+'K';
+    const fmt=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
+    if(n>=1e9)return fmt(n/1e9,'B');
+    if(n>=1e6)return fmt(n/1e6,'M');
+    if(n>=1e3)return fmt(n/1e3,'K');
     return String(Math.floor(n));
   }
-  function syncHomeHud(){
-    var id='doldol';
-    try{id=localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){}
-    var m=CHAR[id]||CHAR.doldol;
 
-    var img=document.getElementById('lobbyProfileImg');
-    if(img){
-      var wanted=m[1]+bust;
-      if(img.getAttribute('src')!==wanted)img.setAttribute('src',wanted);
-      img.alt=m[0];
+  function selectedId(){
+    try{return localStorage.getItem('doldol_character_v1')||'doldol'}
+    catch(e){return 'doldol'}
+  }
+
+  function applyPortrait(){
+    const id=selectedId();
+    const meta=chars[id]||chars.doldol;
+    const avatar=document.querySelector('#gameLobby .profileAvatar');
+    if(avatar){
+      avatar.style.setProperty(
+        'background-image',
+        'url("'+meta[1]+bust+'")',
+        'important'
+      );
     }
-    var name=document.getElementById('lobbyProfileName');
-    if(name)name.textContent=m[0];
+    const name=document.getElementById('lobbyProfileName');
+    if(name)name.textContent=meta[0];
+  }
 
-    var coin=document.getElementById('lobbyCoins');
-    if(coin){
-      var n=0;
-      if(window.__duckWallet) n=Number(window.__duckWallet.coins)||0;
-      if(!n){
-        var txt=(coin.textContent||'').replace(/,/g,'');
-        if(/^\d+$/.test(txt))n=Number(txt)||0;
-      }
-      if(n){
-        coin.dataset.fullValue=String(n);
-        coin.textContent=compact(n);
-        coin.title=n.toLocaleString();
-      }
+  function getCoinValue(){
+    if(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins))){
+      return Math.max(0,Number(window.__duckWallet.coins)||0);
+    }
+    const c=document.getElementById('lobbyCoins');
+    if(!c)return 0;
+    const raw=(c.textContent||'').replace(/,/g,'').trim();
+    return /^\d+$/.test(raw)?Number(raw):Number(c.dataset.rawCoin||0);
+  }
+
+  function applyCoin(){
+    const c=document.getElementById('lobbyCoins');
+    if(!c)return;
+    const n=getCoinValue();
+    if(n>0)c.dataset.rawCoin=String(n);
+    c.dataset.compact=compact(n);
+    c.title=n.toLocaleString();
+  }
+
+  function sync(){
+    applyPortrait();
+    applyCoin();
+  }
+
+  /* Keep the game sync intact, then normalize only the visible home HUD. */
+  const base=window.__duckSyncLobby;
+  window.__duckSyncLobby=function(){
+    if(typeof base==='function')base.apply(this,arguments);
+    sync();
+  };
+
+  /* Narrow observer: only the coin text node, not the whole lobby. */
+  function install(){
+    sync();
+    const c=document.getElementById('lobbyCoins');
+    if(c && !c.__compactObserver){
+      c.__compactObserver=new MutationObserver(function(){
+        const raw=(c.textContent||'').replace(/,/g,'').trim();
+        if(/^\d+$/.test(raw)){
+          c.dataset.rawCoin=raw;
+          c.dataset.compact=compact(Number(raw));
+        }else{
+          applyCoin();
+        }
+      });
+      c.__compactObserver.observe(c,{childList:true,characterData:true,subtree:true});
     }
   }
 
-  /* Wrap the game's existing sync so every later refresh ends in our home HUD state. */
-  var old=window.__duckSyncLobby;
-  window.__duckSyncLobby=function(){
-    if(typeof old==='function')old.apply(this,arguments);
-    syncHomeHud();
-  };
-
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',function(){setTimeout(syncHomeHud,0)},{once:true});
-  }else setTimeout(syncHomeHud,0);
+    document.addEventListener('DOMContentLoaded',install,{once:true});
+  }else{
+    install();
+  }
 
-  window.addEventListener('pageshow',function(){setTimeout(syncHomeHud,0)});
-  document.addEventListener('visibilitychange',function(){
-    if(!document.hidden)setTimeout(syncHomeHud,0);
+  window.addEventListener('pageshow',()=>setTimeout(sync,0));
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)setTimeout(sync,0);
   });
 })();
 </script>
