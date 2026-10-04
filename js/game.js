@@ -2191,7 +2191,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
 (function(){
  const t=document.getElementById("titleScreen"),b=document.getElementById("titleStart"),l=document.getElementById("gameLobby");
  if(!t||!b||!l)return;
- b.addEventListener("click",function(){t.classList.add("hidden");l.classList.remove("hidden");if(window.__duckSetAppHud)window.__duckSetAppHud(true);if(window.__duckStopCombat)window.__duckStopCombat();if(window.__duckSyncLobby)window.__duckSyncLobby();});
+ b.addEventListener("click",function(){t.classList.add("hidden");l.classList.remove("hidden");if(window.__duckStopCombat)window.__duckStopCombat();if(window.__duckSyncLobby)window.__duckSyncLobby();});
 })();
 
 
@@ -2425,14 +2425,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function startBattle(s){
     hidePanels();
-    if(window.__duckSetAppHud)window.__duckSetAppHud(false);
     if(lobby)lobby.classList.add("hidden");
     if(title)title.classList.add("hidden");
     if(window.__duckStartStage) window.__duckStartStage(s||1);
   }
   function showLobby(){
     if(window.__duckStopCombat)window.__duckStopCombat();
-    if(window.__duckSetAppHud)window.__duckSetAppHud(true);
     hidePanels();
     if(title)title.classList.add("hidden");
     if(lobby)lobby.classList.remove("hidden");
@@ -2444,7 +2442,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     try{localStorage.removeItem("doldol_run_skills_v1");}catch(e){}
     startBattle(Number((window.__duckStage||1))||1);
   };
-  if(stages)stages.onclick=function(e){e.preventDefault();hidePanels();if(window.__duckSetAppHud)window.__duckSetAppHud(false);lobby.classList.add("hidden");if(map)map.classList.add("show");};
+  if(stages)stages.onclick=function(e){e.preventDefault();hidePanels();lobby.classList.add("hidden");if(map)map.classList.add("show");};
   if(mapGo)mapGo.onclick=function(e){e.preventDefault();startBattle(Number(window.__selectedDuckStage||1)||1);};
   if(mapBack)mapBack.onclick=showLobby;
   if(mapLobby)mapLobby.onclick=showLobby;
@@ -2493,68 +2491,42 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 /* --- extracted script block --- */
 
 (function(){
-  const CHAR_META={
-    doldol:["돌돌이","./assets/characters/character_doldol.png"],
-    nyang:["냥특공","./assets/characters/character_nyang.png"],
-    rabbit:["토끼특공","./assets/characters/character_rabbit.png"],
-    panda:["판다특공","./assets/characters/character_panda.png"],
-    king:["그림자특공","./assets/characters/character_shadow.png"],
-    turtle:["거북특공","./assets/characters/character_turtle.png"],
-    shiba:["시바특공","./assets/characters/character_shiba.png"],
-    charge:["돌격특공","./assets/characters/character_charge.png"]
-  };
-  function compact(n){
-    n=Math.max(0,Number(n)||0);
-    const f=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
-    if(n>=1e9)return f(n/1e9,'B');
-    if(n>=1e6)return f(n/1e6,'M');
-    if(n>=1e3)return f(n/1e3,'K');
-    return String(Math.floor(n));
-  }
-  function levelOf(id){
-    try{
-      const all=JSON.parse(localStorage.getItem('doldol_character_progress_v1')||'{}')||{};
-      return Math.max(1,Number(all[id]?.level)||1);
-    }catch(e){return 1}
-  }
-  function gems(){
-    try{
-      for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){
-        const v=localStorage.getItem(k);
-        if(v!==null)return Math.max(0,Number(v)||0);
-      }
-    }catch(e){}
-    return 980;
-  }
-  window.__duckSetAppHud=function(show){
-    const hud=document.getElementById('appHud');
-    if(hud)hud.classList.toggle('hidden',!show);
-  };
   window.__duckSyncLobby=function(){
-    const stage=Number(window.__selectedDuckStage||1)||1;
-    const stageEl=document.getElementById('lobbyStage');
-    if(stageEl)stageEl.textContent='STAGE '+stage;
+    const s=Number((window.__selectedDuckStage||1))||1;
+    const el=document.getElementById("lobbyStage");
+    if(el)el.textContent="STAGE "+s;
 
-    let id='doldol';
-    try{id=localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){}
-    const meta=CHAR_META[id]||CHAR_META.doldol;
+    const c=document.getElementById("lobbyCoins");
+    if(c){
+      const n=Math.max(0,Number(window.__duckWallet.coins)||0);
+      const compact=(v)=>{
+        const fmt=(x,s)=>x.toFixed(x<10?1:0).replace(/\.0$/,'')+s;
+        if(v>=1e9)return fmt(v/1e9,'B');
+        if(v>=1e6)return fmt(v/1e6,'M');
+        if(v>=1e3)return fmt(v/1e3,'K');
+        return String(Math.floor(v));
+      };
+      c.textContent=compact(n);
+      c.title=n.toLocaleString();
+    }
 
-    const img=document.getElementById('lobbyProfileImg');
+    const chars={
+      doldol:["돌돌이","./assets/characters/character_doldol.png"],
+      nyang:["냥특공","./assets/characters/character_nyang.png"],
+      rabbit:["토끼특공","./assets/characters/character_rabbit.png"],
+      panda:["판다특공","./assets/characters/character_panda.png"],
+      king:["그림자특공","./assets/characters/character_shadow.png"],
+      turtle:["거북특공","./assets/characters/character_turtle.png"],
+      shiba:["시바특공","./assets/characters/character_shiba.png"],
+      charge:["돌격특공","./assets/characters/character_charge.png"]
+    };
+    let id="doldol";
+    try{id=localStorage.getItem("doldol_character_v1")||"doldol"}catch(e){}
+    const meta=chars[id]||chars.doldol;
+    const img=document.getElementById("lobbyProfileImg");
     if(img){img.src=meta[1];img.alt=meta[0]}
-    const name=document.getElementById('lobbyProfileName');
+    const name=document.getElementById("lobbyProfileName");
     if(name)name.textContent=meta[0];
-    const lv=document.getElementById('lobbyProfileLevel');
-    if(lv)lv.textContent='Lv.'+levelOf(id);
-
-    const coins=(window.__duckWallet&&Number.isFinite(Number(window.__duckWallet.coins)))
-      ? Number(window.__duckWallet.coins)
-      : Number(localStorage.getItem('doldol_coins_v1')||0);
-    const coinEl=document.getElementById('lobbyCoins');
-    if(coinEl){coinEl.textContent=compact(coins);coinEl.title=coins.toLocaleString()}
-
-    const gv=gems();
-    const gemEl=document.getElementById('lobbyGems');
-    if(gemEl){gemEl.textContent=compact(gv);gemEl.title=gv.toLocaleString()}
   };
 })();
 
@@ -2578,6 +2550,189 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
   let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
 
+  const style=document.createElement('style');
+  style.id='doldol-squad-step1-style';
+  style.textContent=`
+    #characterScreen{position:fixed!important;inset:0!important;z-index:99998!important;display:none;overflow:auto!important;
+      background:linear-gradient(rgba(29,22,13,.18),rgba(29,22,13,.44)),url('./assets/home_base_bg.png') center/cover fixed!important;
+      color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;box-sizing:border-box}
+    #characterScreen.show{display:block!important}
+    #characterScreen *{box-sizing:border-box}
+    #characterScreen .sqWrap{width:min(100%,540px);min-height:100%;margin:auto;padding:calc(58px + env(safe-area-inset-top)) 8px calc(18px + env(safe-area-inset-bottom));position:relative}
+    #characterScreen .sqTop{display:grid;grid-template-columns:48px 1fr;gap:9px;align-items:center;margin-bottom:10px}
+    #characterScreen .sqBack{width:46px;height:46px;border:2px solid #b67834;border-radius:14px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:30px;font-weight:1000;box-shadow:0 4px 0 #2b170c}
+    #characterScreen .sqTitle{min-height:48px;display:grid;place-items:center;border:2px solid #c98742;border-radius:13px;background:linear-gradient(#a9652f,#70401f);box-shadow:inset 0 1px rgba(255,255,255,.25),0 4px 0 #3e220f;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
+    #characterScreen .sqMoney{height:43px;padding:0 11px;display:flex;align-items:center;gap:6px;border-radius:14px;background:rgba(15,25,28,.88);font-weight:1000;color:#ffd866;font-size:13px}
+    #characterScreen .sqTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;border-radius:16px 16px 0 0;background:rgba(63,38,21,.93);border:2px solid rgba(194,132,66,.6);border-bottom:0}
+    #characterScreen .sqTab{border:0;border-radius:10px;padding:10px 3px;background:rgba(31,24,18,.62);color:#e8d9c7;font-size:11px;font-weight:1000}
+    #characterScreen .sqTab.on{background:linear-gradient(#ffe784,#f6c64c);color:#4a3217;box-shadow:0 3px 0 #b77b25}
+    #characterScreen .sqGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:10px;background:rgba(47,31,20,.93);border:2px solid rgba(194,132,66,.6);border-top:0;border-radius:0 0 18px 18px}
+    #characterScreen .sqCard{position:relative;min-height:136px;padding:8px 5px 7px;border:2px solid #b9884f;border-radius:14px;background:linear-gradient(#5a4937,#2d2823);color:#fff;box-shadow:inset 0 0 0 2px rgba(255,220,148,.08),0 5px 10px rgba(0,0,0,.22)}
+    #characterScreen .sqCard.selected{border:3px solid #35c7ff;background:linear-gradient(#8b642e,#44331f);box-shadow:0 0 0 2px rgba(255,216,102,.8),0 0 18px rgba(53,199,255,.45)}
+    #characterScreen .sqCard.locked{filter:grayscale(1);opacity:.64}
+    #characterScreen .sqSelected{position:absolute;top:-9px;left:50%;transform:translateX(-50%);padding:3px 9px;border-radius:9px;background:#22b8ef;color:#fff;font-size:9px;font-weight:1000;white-space:nowrap}
+    #characterScreen .sqFace{height:68px;display:grid;place-items:center;font-size:54px;filter:drop-shadow(0 7px 6px rgba(0,0,0,.3));overflow:hidden}
+#characterScreen .sqFace img{width:104px;height:86px;object-fit:contain;object-position:center;display:block;max-width:none}
+#characterScreen .sqHeroFace{overflow:hidden}
+#characterScreen .sqHeroFace img{width:112px;height:94px;object-fit:contain;object-position:center;display:block;max-width:none}
+    #characterScreen .sqName{display:block;font-size:13px;font-weight:1000;line-height:1.2}
+    #characterScreen .sqRole{display:block;margin-top:2px;font-size:9px;color:#e7c690;font-weight:900}
+    #characterScreen .sqLv{display:block;margin-top:4px;font-size:10px;color:#ffe06b;font-weight:1000}
+    #characterScreen .sqLock{position:absolute;inset:0;display:grid;place-items:center;font-size:27px;background:rgba(10,10,10,.16);border-radius:12px}
+    #characterScreen .sqDetail{margin-top:10px;padding:13px;border:2px solid rgba(194,132,66,.7);border-radius:18px;background:linear-gradient(180deg,rgba(57,38,24,.96),rgba(35,29,24,.97));box-shadow:0 10px 26px rgba(0,0,0,.28)}
+    #characterScreen .sqHero{display:flex;align-items:center;gap:12px}
+    #characterScreen .sqHeroFace{width:76px;height:76px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(#e6b860,#81572b);border:2px solid #e9c77b;font-size:58px}
+    #characterScreen .sqHeroText{flex:1;min-width:0}
+    #characterScreen .sqHeroName{font-size:22px;font-weight:1000}
+    #characterScreen .sqHeroRole{margin-top:2px;color:#ffd866;font-size:11px;font-weight:1000}
+    #characterScreen .sqXp{height:9px;margin-top:8px;border-radius:99px;overflow:hidden;background:#17191a}
+    #characterScreen .sqXp>i{display:block;height:100%;background:linear-gradient(90deg,#4ecbff,#8ee7ff);border-radius:99px}
+    #characterScreen .sqStatGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}
+    #characterScreen .sqStat{padding:8px 9px;border-radius:10px;background:rgba(0,0,0,.24);font-size:11px;font-weight:900}
+    #characterScreen .sqStat b{float:right;color:#fff}
+    #characterScreen .sqSkill{margin-top:9px;padding:10px;border-radius:12px;background:#f4ead6;color:#4a3421}
+    #characterScreen .sqSkill strong{font-size:12px}
+    #characterScreen .sqSkill p{margin:3px 0 0;font-size:10px;line-height:1.4;color:#705942;font-weight:700}
+    #characterScreen .sqActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    #characterScreen .sqDetailPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;border:0;border-radius:0;overflow:auto}
+    #characterScreen .sqDetailPage[hidden]{display:none!important}
+    #characterScreen .sqDetailBtns{display:flex;gap:6px}
+    #characterScreen .sqSkinPage{position:absolute;inset:calc(58px + env(safe-area-inset-top)) 0 0;padding:0 8px 18px;background:transparent;overflow:auto}
+    #characterScreen .sqSkinPage[hidden]{display:none!important}
+    #characterScreen .sqSkinHero{height:430px;margin:8px 14px 0;display:grid;place-items:center;overflow:hidden}
+    #characterScreen .sqSkinHero img{width:96%;height:100%;object-fit:contain}
+    #characterScreen .sqSkinHero .emoji{font-size:170px}
+    #characterScreen .sqSkinLabel{text-align:center;font-size:18px;font-weight:1000}
+    #characterScreen .sqSkinEquipped{width:max-content;margin:8px auto 14px;padding:7px 16px;border-radius:99px;background:#246f3d;color:#a7f2ba;font-size:12px;font-weight:1000}
+    #characterScreen .sqSkinRail{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 14px;padding:9px;border-radius:14px;background:rgba(0,0,0,.35)}
+    #characterScreen .sqSkinCard{position:relative;min-height:105px;padding:5px;border:2px solid #806142;border-radius:11px;background:rgba(45,35,29,.92);color:#fff}
+    #characterScreen .sqSkinCard.on{border-color:#ffd45a}
+    #characterScreen .sqSkinThumb{height:68px;display:grid;place-items:center;overflow:hidden}
+    #characterScreen .sqSkinThumb img{width:82px;height:76px;object-fit:contain}
+    #characterScreen .sqSkinCard b{display:block;margin-top:5px;font-size:10px}
+    #characterScreen .sqSkinLock{position:absolute;inset:0;display:grid;place-items:center;border-radius:9px;background:rgba(9,11,12,.66);font-size:23px}
+    #characterScreen .sqDetailHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;margin-bottom:8px}
+    #characterScreen .sqDetailBack{width:44px;height:44px;border:2px solid #d39a55;border-radius:12px;background:linear-gradient(#75451f,#4b2a15);color:#fff;font-size:29px;font-weight:1000;box-shadow:0 3px 0 #321a0c}
+    #characterScreen .sqDetailTitle{text-align:center;font-size:23px;font-weight:1000;text-shadow:0 2px 2px #3a1d0b}
+    #characterScreen .sqDetailHero{height:285px;margin:12px 14px 0;display:grid;place-items:center;overflow:hidden;border-radius:16px;background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.18))}
+    #characterScreen .sqDetailHero img{width:96%;height:106%;object-fit:contain;display:block;transform:translateY(1%)}
+    #characterScreen .sqDetailHero .emoji{font-size:126px}
+    #characterScreen .sqDetailLevel{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin:10px 14px;padding:10px;border-radius:12px;background:rgba(0,0,0,.28)}
+    #characterScreen .sqDetailLevel button,#characterScreen .sqSelectBig{border:0;border-radius:11px;background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;font-weight:1000}
+    #characterScreen .sqDetailLevel button{padding:10px 13px}
+    #characterScreen .sqDetailTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 14px}
+    #characterScreen .sqDetailTabs button{padding:11px 3px;border:0;border-radius:9px;background:#38291f;color:#ead9c5;font-weight:1000}
+    #characterScreen .sqDetailTabs button.on{background:#f7e6ad;color:#49351f}
+    #characterScreen .sqDetailBody{margin:8px 14px 0;min-height:118px;padding:12px;border-radius:12px;background:rgba(0,0,0,.23)}
+    #characterScreen .sqDetailBody .row{display:flex;justify-content:space-between;padding:8px 3px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:900}
+    #characterScreen .sqSkillCard{display:grid;grid-template-columns:56px 1fr auto;gap:9px;align-items:center;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.12)}
+    #characterScreen .sqSkillCard:last-child{border-bottom:0}
+    #characterScreen .sqSkillIcon{width:52px;height:52px;display:grid;place-items:center;border-radius:12px;background:#5b3821;border:2px solid #b77b3b;font-size:27px}
+    #characterScreen .sqSkillInfo{min-width:0}.sqSkillInfo strong{display:block;font-size:14px}.sqSkillInfo small{display:block;color:#ffd65b;font-weight:900;margin:2px 0}.sqSkillInfo p{margin:0!important;color:#e6d8ca!important;font-size:10px!important}
+    #characterScreen .sqSkillUp{min-width:78px;padding:8px 6px;border:0;border-radius:10px;background:linear-gradient(#ffe16b,#ffbd2b);color:#3c280f;font-size:10px;font-weight:1000;box-shadow:0 3px 0 #93601b}
+    #characterScreen .sqSkillUp:disabled{background:#756b60;color:#cbc4bc;box-shadow:none}.lockedSkill{opacity:.78}
+    #characterScreen .sqDetailBody .skillBox{padding:10px;border-radius:10px;background:#f4ead6;color:#4a3421}
+    #characterScreen .sqDetailBody .skillBox p{margin:5px 0 0;font-size:11px;line-height:1.45}
+    #characterScreen .sqSelectBig{width:calc(100% - 28px);min-height:50px;margin:10px 14px 0;font-size:15px}
+    #characterScreen .sqLevelModal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(8,13,15,.72);backdrop-filter:blur(7px)}
+    #characterScreen .sqLevelModal[hidden]{display:none!important}
+    #characterScreen .sqLevelPanel{width:min(100%,390px);overflow:hidden;border:2px solid #b9793d;border-radius:20px;background:#f5e7c7;color:#382719;box-shadow:0 18px 48px rgba(0,0,0,.48)}
+    #characterScreen .sqLevelHead{height:56px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:0 10px;background:linear-gradient(#aa642e,#81451f);color:#fff}
+    #characterScreen .sqLevelHead b{text-align:center;font-size:20px}.sqLevelClose{width:38px;height:38px;border:2px solid #e0a765;border-radius:11px;background:#75411f;color:#fff;font-size:24px;font-weight:1000}
+    #characterScreen .sqLevelContent{padding:14px}
+    #characterScreen .sqLevelChar{display:grid;grid-template-columns:68px 1fr;gap:12px;align-items:center}.sqLevelPortrait{width:68px;height:68px;display:grid;place-items:center;overflow:hidden;border-radius:14px;background:#e6bd68;border:2px solid #d49a42}.sqLevelPortrait img{width:90px;height:78px;object-fit:contain;max-width:none}
+    #characterScreen .sqLevelName{font-size:18px;font-weight:1000}.sqLevelJump{margin-top:5px;font-size:18px;font-weight:1000}.sqLevelJump em{font-style:normal;color:#27a969}
+    #characterScreen .sqLevelStats{margin-top:13px;padding:10px 13px;border-radius:14px;background:#503528;color:#fff}.sqLevelStat{display:grid;grid-template-columns:1fr auto 22px auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.14)}.sqLevelStat:last-child{border-bottom:0}.sqLevelStat .next{color:#45d888;font-weight:1000}
+    #characterScreen .sqLevelCost{margin-top:12px;padding:13px;text-align:center;border-radius:14px;background:#fff7e6}.sqLevelCost small{display:block;font-weight:900}.sqLevelCost b{display:block;margin-top:5px;font-size:20px}
+    #characterScreen .sqLevelConfirm{width:100%;height:52px;margin-top:12px;border:0;border-radius:13px;background:linear-gradient(#ffe16b,#ffbd2b);color:#3b2a13;font-size:17px;font-weight:1000;box-shadow:0 4px 0 #b37a26}.sqLevelConfirm:disabled{background:#d9caa7;color:#807763;box-shadow:0 4px 0 #aa9d80}
+
+    #characterScreen .sqBtn{min-height:48px;border:0;border-radius:13px;font-size:14px;font-weight:1000}
+    #characterScreen .sqBtn.sub{background:#f3e7cc;color:#52391e}
+    #characterScreen .sqBtn.main{background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;box-shadow:0 4px 0 #ad6c18}
+    #characterScreen .sqBtn:disabled{filter:grayscale(.8);opacity:.55;box-shadow:none}
+    #characterScreen .sqHud{
+      position:absolute;left:8px;right:8px;top:calc(7px + env(safe-area-inset-top));
+      height:50px;display:flex;align-items:center;gap:6px;z-index:8
+    }
+    #characterScreen .sqHudProfile{
+      width:104px;min-width:104px;flex:0 0 104px;height:50px;
+      display:flex;align-items:center;gap:5px;padding:4px 7px 4px 4px;
+      border:2px solid rgba(255,255,255,.28);border-radius:16px;
+      background:rgba(30,48,55,.82);box-shadow:0 4px 10px rgba(0,0,0,.15);
+      overflow:hidden
+    }
+    #characterScreen .sqHudFace{
+      width:34px;height:34px;min-width:34px;flex:0 0 34px;
+      display:grid;place-items:center;overflow:hidden;border-radius:11px;
+      background:#f7dca0;border:1.5px solid #fff
+    }
+    #characterScreen .sqHudFace img{
+      width:100%;height:100%;object-fit:contain;display:block;max-width:none
+    }
+    #characterScreen .sqHudWho{min-width:0;flex:1;line-height:1.02;overflow:hidden}
+    #characterScreen .sqHudWho b{
+      display:block;font-size:11px;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+    }
+    #characterScreen .sqHudWho small{display:block;font-size:8px;line-height:10px;color:#fff;opacity:.85;margin:0}
+    #characterScreen .sqHudXp{display:block;width:34px;height:4px;margin-top:2px;background:#1d2a2a;border-radius:9px;overflow:hidden}
+    #characterScreen .sqHudXp i{display:block;width:62%;height:100%;background:#ffd34e}
+    #characterScreen .sqHudResources{
+      display:flex;align-items:center;justify-content:flex-end;gap:5px;flex:1 1 auto;min-width:0
+    }
+    #characterScreen .sqHudRes{
+      height:50px;display:flex;align-items:center;gap:4px;box-sizing:border-box;
+      border:1px solid rgba(255,255,255,.22);border-radius:16px;
+      background:rgba(30,48,55,.82);white-space:nowrap;overflow:hidden
+    }
+    #characterScreen .sqHudCoreRes{
+      width:108px;min-width:108px;max-width:108px;flex:0 0 108px;padding:5px 5px 5px 7px
+    }
+    #characterScreen .sqHudGemRes{
+      width:84px;min-width:84px;max-width:84px;flex:0 0 84px;padding:5px 5px 5px 7px
+    }
+    #characterScreen .sqHudCoreRes img{
+      width:22px;height:22px;object-fit:contain;flex:0 0 22px
+    }
+    #characterScreen .sqHudGemIcon{font-size:16px;line-height:1;flex:0 0 auto}
+    #characterScreen .sqHudRes b{
+      flex:1 1 auto;min-width:0;text-align:center;overflow:visible;text-overflow:clip;
+      white-space:nowrap;font-size:13px;line-height:1;font-weight:1000;letter-spacing:-.3px
+    }
+    #characterScreen .sqHudRes button{
+      display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;min-width:24px;
+      padding:0;margin:0;border:0;border-radius:50%;background:#55aeea;color:#fff;
+      font-size:18px;font-weight:1000;line-height:1
+    }
+    #characterScreen .sqHudSettings{
+      width:40px;height:40px;min-width:40px;flex:0 0 40px;border:0;border-radius:14px;
+      background:rgba(30,48,55,.82);color:#fff;font-size:22px
+    }
+    @media(max-width:390px){
+      #characterScreen .sqHud{gap:4px;left:5px;right:5px}
+      #characterScreen .sqHudProfile{width:100px;min-width:100px;flex-basis:100px}
+      #characterScreen .sqHudFace{width:32px;height:32px;min-width:32px;flex-basis:32px}
+      #characterScreen .sqHudCoreRes{width:103px;min-width:103px;max-width:103px;flex-basis:103px}
+      #characterScreen .sqHudGemRes{width:80px;min-width:80px;max-width:80px;flex-basis:80px}
+      #characterScreen .sqHudRes b{font-size:12px}
+      #characterScreen .sqHudRes button{width:23px;height:23px;min-width:23px;flex-basis:23px}
+      #characterScreen .sqHudSettings{width:38px;height:38px;min-width:38px;flex-basis:38px}
+    }
+    #characterScreen .sqUnlockBody{margin:10px 14px 0;padding:16px;border-radius:14px;background:rgba(22,25,27,.82);text-align:center}
+    #characterScreen .sqUnlockBody h3{margin:0 0 5px;font-size:18px}.sqUnlockBody p{margin:0;color:#e8dfd2;font-size:12px;line-height:1.55}
+    #characterScreen .sqUnlockReq{display:grid;gap:7px;margin-top:13px;text-align:left}.sqUnlockReq div{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.08);font-size:12px;font-weight:900}
+    #characterScreen .sqUnlockReq .ok{color:#7ee39a}.sqUnlockReq .no{color:#ffb0a5}
+    @media(max-width:390px){#characterScreen .sqHud{grid-template-columns:minmax(92px,1fr) auto auto 38px;gap:3px;left:5px;right:5px}#characterScreen .sqHudRes{font-size:10px!important;padding-inline:5px!important}#characterScreen .sqHudBox{padding:4px 5px!important}}
+    /* character optical-size normalization */
+    #characterScreen .sqCard[data-id="nyang"] .sqArt img{transform:scale(1.08) translateY(3%)}
+    #characterScreen .sqCard[data-id="rabbit"] .sqArt img{transform:scale(1.04) translateY(2%)}
+    #characterScreen .sqCard[data-id="panda"] .sqArt img{transform:scale(1.03) translateY(2%)}
+    #characterScreen .sqCard[data-id="king"] .sqArt img{transform:scale(1.02) translateY(1%)}
+    #characterScreen .sqCard[data-id="turtle"] .sqArt img{transform:scale(.96) translateY(1%)}
+    #characterScreen .sqCard[data-id="shiba"] .sqArt img{transform:scale(1.04) translateY(2%)}
+    #characterScreen .sqCard[data-id="charge"] .sqArt img{transform:scale(.91) translateY(1%)}
+    @media(max-width:370px){#characterScreen .sqGrid{gap:6px;padding:7px}#characterScreen .sqCard{min-height:126px}.sqFace{font-size:48px!important}}
+  `;
+  document.head.appendChild(style);
 
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
@@ -2609,10 +2764,20 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function build(){
     screen.innerHTML=`
       <div class="sqWrap">
+        <div class="sqHud" id="sqHud">
+          <div class="sqHudProfile">
+            <span class="sqHudFace" id="sqHudFace"></span>
+            <span class="sqHudWho"><b id="sqHudName"></b><small id="sqHudLv"></small><span class="sqHudXp"><i></i></span></span>
+          </div>
+          <div class="sqHudResources">
+            <div class="sqHudRes sqHudCoreRes"><img src="./assets/doldol_stone_core.png" alt=""><b id="sqHudCore">0</b><button type="button" aria-label="돌핵 추가">＋</button></div>
+            <div class="sqHudRes sqHudGemRes"><span class="sqHudGemIcon">💎</span><b id="sqHudGem">980</b><button type="button" aria-label="다이아 추가">＋</button></div>
+          </div>
+          <button class="sqHudSettings" id="sqHudSettings" aria-label="설정">⚙</button>
+        </div>
         <div class="sqTop">
           <button class="sqBack" id="charBack" aria-label="뒤로">‹</button>
           <div class="sqTitle">특공대</div>
-          <button class="sqAchievement" id="sqAchievement" type="button">🏆 업적</button>
         </div>
         <div class="sqTabs">
           <button class="sqTab on">전체</button><button class="sqTab">⚔ 공격형</button><button class="sqTab">🛡 방어형</button><button class="sqTab">✦ 특수형</button>
@@ -2645,14 +2810,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           </div>
         </div>
       </div>`;
-    screen.querySelector('#charBack').onclick=()=>{
-      screen.classList.remove('show');
-      if(window.__duckSetAppHud)window.__duckSetAppHud(true);
-    };
-    const achBtn=screen.querySelector('#sqAchievement');
-    if(achBtn)achBtn.onclick=(e)=>{
-      e.preventDefault();
-      if(window.__duckOpenAchievements)window.__duckOpenAchievements();
+    screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
+    screen.querySelector('#sqHudSettings').onclick=()=>{
+      const btn=['lobbySettings','settingsBtn','settingBtn'].map(id=>document.getElementById(id)).find(Boolean);
+      if(btn) btn.click();
     };
     screen.querySelector('#sqDetailBack').onclick=closeDetail;
     screen.querySelector('#sqSkinBtn').onclick=openSkinPage;
@@ -2676,7 +2837,31 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
 
   function renderHud(){
-    if(window.__duckSyncLobby)window.__duckSyncLobby();
+    const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+    const c=uiRoster.find(x=>x.id===active)||uiRoster[0], p=progress(c.id);
+    const face=screen.querySelector('#sqHudFace');
+    if(face) face.innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
+    const n=screen.querySelector('#sqHudName'); if(n)n.textContent=c.name;
+    const lv=screen.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
+    const compact=(n)=>{
+      n=Math.max(0,Number(n)||0);
+      const f=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
+      if(n>=1e9)return f(n/1e9,'B');
+      if(n>=1e6)return f(n/1e6,'M');
+      if(n>=1e3)return f(n/1e3,'K');
+      return String(Math.floor(n));
+    };
+    const co=screen.querySelector('#sqHudCore');
+    if(co){const v=core();co.textContent=compact(v);co.title=Number(v||0).toLocaleString();}
+    let gems=980;
+    try{
+      for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){
+        const v=localStorage.getItem(k);
+        if(v!==null){gems=Number(v)||0;break;}
+      }
+    }catch(e){}
+    const ge=screen.querySelector('#sqHudGem');
+    if(ge){ge.textContent=compact(gems);ge.title=Number(gems||0).toLocaleString();}
   }
 
   function renderGrid(filter=()=>true){
@@ -2821,11 +3006,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   window.__duckRefreshCharacters=render;
   window.__duckOpenCharacters=function(){
     selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
-    render();
-    screen.classList.add('show');
-    if(window.__duckSetAppHud)window.__duckSetAppHud(true);
-    if(window.__duckSyncLobby)window.__duckSyncLobby();
-    return true;
+    render(); screen.classList.add('show'); return true;
   };
 })();
 
@@ -3049,8 +3230,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function toast(t){const e=document.getElementById('achToast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1000)}
   function render(){const page=ensure(),list=page.querySelector('#achList');page.querySelector('#achCore').textContent=Number(window.__duckWallet?.coins||0).toLocaleString();const completed=defs.filter(d=>Number(state[d.key]||0)>=d.goal).length,claimed=defs.filter(d=>state.claimed[d.id]).length;page.querySelector('#achSummary').innerHTML='<div><b>'+completed+'/'+defs.length+'</b><small>달성</small></div><div><b>'+claimed+'</b><small>보상 수령</small></div><div><b>'+Number(state.kills||0)+'</b><small>누적 처치</small></div>';list.innerHTML=defs.map(d=>{const cur=Math.min(d.goal,Number(state[d.key]||0)),done=cur>=d.goal,got=!!state.claimed[d.id],pct=Math.round(cur/d.goal*100);return '<article class="achCard '+(done?'done':'')+'"><div class="achIcon">'+d.icon+'</div><div><div class="achName">'+d.name+'</div><div class="achDesc">'+d.desc+' · 보상 🔥 '+d.reward.toLocaleString()+'</div><div class="achBar"><i style="width:'+pct+'%"></i></div><div class="achCount">'+cur+' / '+d.goal+'</div></div><button class="achClaim" data-ach="'+d.id+'" '+(!done||got?'disabled':'')+'>'+(got?'완료':done?'받기':'진행중')+'</button></article>'}).join('');list.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>{const d=defs.find(x=>x.id===b.dataset.ach);if(!d||state.claimed[d.id]||Number(state[d.key]||0)<d.goal)return;state.claimed[d.id]=true;if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);sync();toast('🔥 '+d.reward.toLocaleString()+' 획득');render();});}
-  function close(){const p=document.getElementById('doldolAchievementPage');if(p)p.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden');if(window.__duckSetAppHud)window.__duckSetAppHud(true)}
-  function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');if(window.__duckSetAppHud)window.__duckSetAppHud(false);render();p.classList.add('show')}
+  function close(){const p=document.getElementById('doldolAchievementPage');if(p)p.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden')}
+  function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');render();p.classList.add('show')}
   function bindProfileEntry(){
     const lobby=document.getElementById('gameLobby'); if(!lobby)return;
     const candidates=[...lobby.querySelectorAll('.profileMini,[id*="player" i],[id*="profile" i],.playerInfo')];
