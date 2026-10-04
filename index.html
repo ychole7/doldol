@@ -164,37 +164,63 @@ html,body{background:#3d7f71}
 </style>
 
 
-<style id="doldolBlackBarFixV1">
+
+<script id="doldolPhysicalScreenHeight">
+(function(){
+  function setAppHeight(){
+    var standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    standalone = standalone || window.navigator.standalone === true;
+    var h = standalone ? window.screen.height : window.innerHeight;
+    if(!h || h < 300) h = window.innerHeight;
+    document.documentElement.style.setProperty('--doldol-screen-h', h + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('orientationchange', function(){ setTimeout(setAppHeight, 80); });
+  window.addEventListener('resize', function(){
+    if(!(window.navigator.standalone === true ||
+         (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches))){
+      setAppHeight();
+    }
+  });
+})();
+</script>
+
+
+<style id="doldolPhysicalScreenFix">
+:root{--doldol-screen-h:100vh}
+
 html,body{
   margin:0!important;
   width:100%!important;
-  height:100%!important;
-  min-height:100%!important;
+  height:var(--doldol-screen-h)!important;
+  min-height:var(--doldol-screen-h)!important;
   overflow:hidden!important;
-  background:#3d7f71!important;
-}
-body{
-  position:fixed!important;
-  inset:0!important;
 }
 
-/* Main visual surfaces fill the browser viewport itself.
-   Do not use -webkit-fill-available here. */
+body{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  width:100%!important;
+  height:var(--doldol-screen-h)!important;
+}
+
+/* iOS standalone reports innerHeight=879 while physical screen is 926.
+   Main surfaces therefore use the physical screen height directly. */
 #titleScreen,
 #gameLobby,
 #characterScreen{
   position:fixed!important;
   top:0!important;
-  right:0!important;
-  bottom:0!important;
   left:0!important;
-  width:auto!important;
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
+  right:0!important;
+  bottom:auto!important;
+  width:100%!important;
+  height:var(--doldol-screen-h)!important;
+  min-height:var(--doldol-screen-h)!important;
+  max-height:var(--doldol-screen-h)!important;
 }
 
-/* Prevent the title artwork from ending before the viewport. */
 #titleScreen.titleImageScreen .titleArt{
   position:absolute!important;
   inset:0!important;
@@ -364,45 +390,6 @@ body{
 </div>
 
 <script src="js/game.js"></script>
-
-<style id="viewportDiagnosticStyle">
-#viewportDiagnostic{
-  position:fixed;z-index:999999;top:calc(env(safe-area-inset-top) + 4px);left:4px;
-  max-width:96vw;padding:5px 7px;border-radius:8px;
-  background:rgba(0,0,0,.78);color:#fff;
-  font:700 10px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;
-  pointer-events:none;white-space:pre-wrap
-}
-#safeProbe{position:fixed;visibility:hidden;padding-bottom:env(safe-area-inset-bottom)}
-</style>
-<div id="safeProbe"></div>
-<div id="viewportDiagnostic">viewport 측정중...</div>
-<script>
-(function(){
-  function updateViewportDiagnostic(){
-    const vv=window.visualViewport;
-    const probe=document.getElementById('safeProbe');
-    const safe=parseFloat(getComputedStyle(probe).paddingBottom)||0;
-    const standalone=window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
-    const data=[
-      'inner='+window.innerWidth+'x'+window.innerHeight,
-      'client='+document.documentElement.clientWidth+'x'+document.documentElement.clientHeight,
-      'visual='+(vv?Math.round(vv.width)+'x'+Math.round(vv.height):'n/a'),
-      'screen='+screen.width+'x'+screen.height,
-      'avail='+screen.availWidth+'x'+screen.availHeight,
-      'outer='+window.outerWidth+'x'+window.outerHeight,
-      'dpr='+window.devicePixelRatio,
-      'safeBottom='+safe,
-      'standalone='+standalone
-    ].join(' | ');
-    document.getElementById('viewportDiagnostic').textContent=data;
-  }
-  addEventListener('resize',updateViewportDiagnostic);
-  if(window.visualViewport)visualViewport.addEventListener('resize',updateViewportDiagnostic);
-  document.addEventListener('DOMContentLoaded',updateViewportDiagnostic,{once:true});
-  setTimeout(updateViewportDiagnostic,300);
-})();
-</script>
 
 </body>
 </html>
