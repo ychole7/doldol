@@ -232,136 +232,6 @@ body{
 </style>
 
 
-<style id="doldolHudDirectV1">
-/* DIRECT HUD SOURCE — independent of late game.js style injection */
-#gameLobby .homeTop{
-  display:flex!important;
-  align-items:center!important;
-  gap:5px!important;
-  min-height:46px!important;
-}
-#gameLobby .profileMini{
-  box-sizing:border-box!important;
-  display:flex!important;
-  align-items:center!important;
-  width:96px!important;
-  min-width:96px!important;
-  max-width:96px!important;
-  flex:0 0 96px!important;
-  height:46px!important;
-  padding:4px 6px 4px 4px!important;
-  gap:5px!important;
-  border-radius:15px!important;
-  overflow:hidden!important;
-}
-#gameLobby .profileAvatar{
-  width:32px!important;
-  height:32px!important;
-  min-width:32px!important;
-  flex:0 0 32px!important;
-  border-radius:10px!important;
-  overflow:hidden!important;
-}
-#gameLobby .profileAvatar img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  display:block!important;
-}
-#gameLobby .profileMini>div:not(.profileAvatar){
-  min-width:0!important;
-  flex:1 1 auto!important;
-  overflow:hidden!important;
-}
-#gameLobby .profileMini b{
-  display:block!important;
-  font-size:11px!important;
-  line-height:12px!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-#gameLobby .profileMini span{
-  display:block!important;
-  font-size:9px!important;
-  line-height:10px!important;
-}
-#gameLobby .xpMini{
-  width:32px!important;
-  height:4px!important;
-  margin-top:2px!important;
-}
-
-#gameLobby .homeResources{
-  display:flex!important;
-  align-items:center!important;
-  justify-content:flex-end!important;
-  gap:5px!important;
-  flex:1 1 auto!important;
-  min-width:0!important;
-}
-#gameLobby .homeRes{
-  box-sizing:border-box!important;
-  display:flex!important;
-  align-items:center!important;
-  height:46px!important;
-  overflow:hidden!important;
-  white-space:nowrap!important;
-}
-#gameLobby .coreRes{
-  width:112px!important;
-  min-width:112px!important;
-  max-width:112px!important;
-  flex:0 0 112px!important;
-  padding:5px 5px 5px 7px!important;
-  gap:4px!important;
-}
-#gameLobby .gemRes{
-  width:88px!important;
-  min-width:88px!important;
-  max-width:88px!important;
-  flex:0 0 88px!important;
-  padding:5px!important;
-  gap:4px!important;
-}
-#gameLobby .resIcon{
-  width:22px!important;
-  height:22px!important;
-  min-width:22px!important;
-  object-fit:contain!important;
-}
-#gameLobby .homeRes b{
-  flex:1 1 auto!important;
-  min-width:0!important;
-  width:auto!important;
-  max-width:none!important;
-  overflow:visible!important;
-  text-overflow:clip!important;
-  white-space:nowrap!important;
-  text-align:center!important;
-  font-size:12px!important;
-  line-height:1!important;
-  letter-spacing:-.2px!important;
-}
-#gameLobby .homeRes button{
-  display:grid!important;
-  place-items:center!important;
-  flex:0 0 24px!important;
-  width:24px!important;
-  min-width:24px!important;
-  height:24px!important;
-  padding:0!important;
-  margin:0!important;
-}
-#gameLobby .homeSettings{
-  width:40px!important;
-  min-width:40px!important;
-  height:40px!important;
-  flex:0 0 40px!important;
-}
-</style>
-
 </head>
 <body>
 
@@ -430,7 +300,7 @@ body{
 <div id="gameLobby" class="commercialLobby">
   <div class="homeTop">
     <div class="profileMini" id="lobbyProfile">
-      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/home_chars/home_char_doldol.png" alt="돌돌이"></div>
+      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/characters/character_doldol.png?v=20261004-homehud1" alt="돌돌이"></div>
       <div><b id="lobbyProfileName">돌돌이</b><span>Lv.1</span><div class="xpMini"><i></i></div></div>
     </div>
     <div class="homeResources">
@@ -523,63 +393,240 @@ body{
 <script src="js/game.js"></script>
 
 
-<script id="doldolHudDirectSyncV1">
+
+<style id="doldolHomeMatchSquadV1">
+/* HOME HUD = SQUAD HUD, exact visual metrics */
+#gameLobby .homeTop{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  min-height:50px!important;
+}
+#gameLobby .profileMini{
+  box-sizing:border-box!important;
+  width:84px!important;
+  min-width:84px!important;
+  max-width:84px!important;
+  flex:0 0 84px!important;
+  height:46px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  padding:4px 7px 4px 4px!important;
+  border:2px solid rgba(255,255,255,.28)!important;
+  border-radius:16px!important;
+  background:rgba(30,48,55,.82)!important;
+  box-shadow:0 4px 10px rgba(0,0,0,.15)!important;
+  overflow:hidden!important;
+}
+#gameLobby .profileAvatar{
+  width:26px!important;
+  height:26px!important;
+  min-width:26px!important;
+  flex:0 0 26px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  border-radius:11px!important;
+  background:#f7dca0!important;
+  border:1.5px solid #fff!important;
+}
+#gameLobby .profileAvatar img{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  object-fit:contain!important;
+  display:block!important;
+  transform:none!important;
+}
+#gameLobby .profileMini>div:not(.profileAvatar){
+  min-width:0!important;
+  flex:1 1 auto!important;
+  line-height:1.02!important;
+  overflow:hidden!important;
+}
+#gameLobby .profileMini b{
+  display:block!important;
+  font-size:9px!important;
+  line-height:10px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#gameLobby .profileMini span{
+  display:block!important;
+  font-size:8px!important;
+  line-height:10px!important;
+  color:#fff!important;
+  opacity:.85!important;
+}
+#gameLobby .xpMini{
+  display:block!important;
+  width:26px!important;
+  height:3px!important;
+  margin-top:2px!important;
+  background:#1d2a2a!important;
+  border-radius:9px!important;
+  overflow:hidden!important;
+}
+#gameLobby .xpMini i{
+  display:block!important;
+  width:62%!important;
+  height:100%!important;
+  background:#ffd34e!important;
+}
+
+#gameLobby .homeResources{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:5px!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+#gameLobby .homeRes{
+  box-sizing:border-box!important;
+  height:50px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:4px!important;
+  border:1px solid rgba(255,255,255,.22)!important;
+  border-radius:16px!important;
+  background:rgba(30,48,55,.82)!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+}
+#gameLobby .coreRes{
+  width:108px!important;
+  min-width:108px!important;
+  max-width:108px!important;
+  flex:0 0 108px!important;
+  padding:5px 5px 5px 7px!important;
+}
+#gameLobby .gemRes{
+  width:84px!important;
+  min-width:84px!important;
+  max-width:84px!important;
+  flex:0 0 84px!important;
+  padding:5px 5px 5px 7px!important;
+}
+#gameLobby .resIcon{
+  width:22px!important;
+  height:22px!important;
+  min-width:22px!important;
+  flex:0 0 22px!important;
+  object-fit:contain!important;
+}
+#gameLobby .gemIcon{
+  font-size:16px!important;
+  line-height:1!important;
+  flex:0 0 auto!important;
+}
+#gameLobby .homeRes b{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:auto!important;
+  max-width:none!important;
+  text-align:center!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  font-size:13px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  letter-spacing:-.3px!important;
+}
+#gameLobby .homeRes button{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 24px!important;
+  width:24px!important;
+  min-width:24px!important;
+  height:24px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:#55aeea!important;
+  color:#fff!important;
+  font-size:18px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+}
+#gameLobby .homeSettings{
+  width:40px!important;
+  height:40px!important;
+  min-width:40px!important;
+  flex:0 0 40px!important;
+  border-radius:14px!important;
+}
+</style>
+
+<script id="doldolHomeMatchSquadSyncV1">
 (function(){
+  var bust='?v=20261004-homehud1';
   var CHAR={
-    doldol:["돌돌이","assets/home_chars/home_char_doldol.png"],
-    nyang:["냥특공","assets/home_chars/home_char_cat.png"],
-    rabbit:["토끼특공","assets/home_chars/home_char_rabbit.png"],
-    panda:["판다특공","assets/home_chars/home_char_panda.png"],
-    king:["그림자특공","assets/home_chars/home_char_ninja.png"]
+    doldol:["돌돌이","assets/characters/character_doldol.png"],
+    nyang:["냥특공","assets/characters/character_nyang.png"],
+    rabbit:["토끼특공","assets/characters/character_rabbit.png"],
+    panda:["판다특공","assets/characters/character_panda.png"],
+    king:["그림자특공","assets/characters/character_shadow.png"],
+    turtle:["거북특공","assets/characters/character_turtle.png"],
+    shiba:["시바특공","assets/characters/character_shiba.png"],
+    charge:["돌격특공","assets/characters/character_charge.png"]
   };
-  function compact(v){
-    v=Number(String(v).replace(/[^0-9.-]/g,''))||0;
-    if(v>=1000000000)return (v/1000000000).toFixed(v<10000000000?1:0).replace(/\.0$/,'')+'B';
-    if(v>=1000000)return (v/1000000).toFixed(v<10000000?1:0).replace(/\.0$/,'')+'M';
-    if(v>=1000)return (v/1000).toFixed(v<100000?1:0).replace(/\.0$/,'')+'K';
-    return String(Math.floor(v));
+  function compact(n){
+    n=Math.max(0,Number(n)||0);
+    if(n>=1e9)return (n/1e9).toFixed(n<1e10?1:0).replace(/\.0$/,'')+'B';
+    if(n>=1e6)return (n/1e6).toFixed(n<1e7?1:0).replace(/\.0$/,'')+'M';
+    if(n>=1e3)return (n/1e3).toFixed(n<1e4?1:0).replace(/\.0$/,'')+'K';
+    return String(Math.floor(n));
   }
-  function sync(){
+  function syncHomeHud(){
     var id='doldol';
     try{id=localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){}
     var m=CHAR[id]||CHAR.doldol;
-    var img=document.getElementById('lobbyProfileImg');
-    if(img && img.getAttribute('src')!==m[1]){img.src=m[1];img.alt=m[0]}
-    var nm=document.getElementById('lobbyProfileName');
-    if(nm)nm.textContent=m[0];
 
-    var c=document.getElementById('lobbyCoins');
-    if(c){
-      var raw=c.dataset.rawValue;
-      var visible=c.textContent||'0';
-      if(/[,\d]{4,}/.test(visible)){
-        raw=visible.replace(/,/g,'');
-        c.dataset.rawValue=raw;
+    var img=document.getElementById('lobbyProfileImg');
+    if(img){
+      var wanted=m[1]+bust;
+      if(img.getAttribute('src')!==wanted)img.setAttribute('src',wanted);
+      img.alt=m[0];
+    }
+    var name=document.getElementById('lobbyProfileName');
+    if(name)name.textContent=m[0];
+
+    var coin=document.getElementById('lobbyCoins');
+    if(coin){
+      var n=0;
+      if(window.__duckWallet) n=Number(window.__duckWallet.coins)||0;
+      if(!n){
+        var txt=(coin.textContent||'').replace(/,/g,'');
+        if(/^\d+$/.test(txt))n=Number(txt)||0;
       }
-      if(raw)c.textContent=compact(raw);
+      if(n){
+        coin.dataset.fullValue=String(n);
+        coin.textContent=compact(n);
+        coin.title=n.toLocaleString();
+      }
     }
   }
-  function install(){
-    sync();
-    var c=document.getElementById('lobbyCoins');
-    if(c && !c.__doldolDirectObserver){
-      c.__doldolDirectObserver=new MutationObserver(function(){
-        if(c.__doldolSyncing)return;
-        var txt=c.textContent||'';
-        if(txt.indexOf(',')>=0 || /^\d{4,}$/.test(txt)){
-          c.__doldolSyncing=true;
-          c.dataset.rawValue=txt.replace(/,/g,'');
-          c.textContent=compact(c.dataset.rawValue);
-          c.__doldolSyncing=false;
-        }
-      });
-      c.__doldolDirectObserver.observe(c,{childList:true,characterData:true,subtree:true});
-    }
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
-  else install();
-  window.addEventListener('pageshow',function(){setTimeout(sync,0)});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(sync,0)});
+
+  /* Wrap the game's existing sync so every later refresh ends in our home HUD state. */
+  var old=window.__duckSyncLobby;
+  window.__duckSyncLobby=function(){
+    if(typeof old==='function')old.apply(this,arguments);
+    syncHomeHud();
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){setTimeout(syncHomeHud,0)},{once:true});
+  }else setTimeout(syncHomeHud,0);
+
+  window.addEventListener('pageshow',function(){setTimeout(syncHomeHud,0)});
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden)setTimeout(syncHomeHud,0);
+  });
 })();
 </script>
 
