@@ -4703,3 +4703,84 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.__duckCompactNumber=compact;
 })();
 
+
+
+
+/* CORE HUD WIDTH FIX V1 */
+(function(){
+  function applyCoreHudFix(){
+    if(!document.getElementById('doldolCoreHudWidthFixStyle')){
+      const st=document.createElement('style');
+      st.id='doldolCoreHudWidthFixStyle';
+      st.textContent=`
+        #gameLobby .homeResources{
+          gap:7px!important;
+        }
+        #gameLobby .homeResources .homeRes{
+          min-width:0!important;
+        }
+        #gameLobby #lobbyCoins{
+          display:inline-block!important;
+          width:auto!important;
+          min-width:48px!important;
+          max-width:none!important;
+          overflow:visible!important;
+          text-overflow:clip!important;
+          white-space:nowrap!important;
+          font-size:18px!important;
+          letter-spacing:-.3px!important;
+          flex:0 0 auto!important;
+        }
+        #gameLobby .homeResources .homeRes:has(#lobbyCoins){
+          min-width:150px!important;
+          padding-left:10px!important;
+          padding-right:8px!important;
+        }
+        #gameLobby .homeResources .homeRes:has(#lobbyCoins) button{
+          flex:0 0 auto!important;
+        }
+        @media(max-width:390px){
+          #gameLobby .homeResources .homeRes:has(#lobbyCoins){
+            min-width:138px!important;
+          }
+          #gameLobby #lobbyCoins{
+            min-width:44px!important;
+            font-size:17px!important;
+          }
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
+    const c=document.getElementById('lobbyCoins');
+    if(c){
+      const n=(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins)))
+        ? Number(window.__duckWallet.coins)
+        : 0;
+      const fmt=(v,suf)=>{
+        const d=v<10?1:0;
+        return v.toFixed(d).replace(/\.0$/,'')+suf;
+      };
+      let txt;
+      if(n>=1e9)txt=fmt(n/1e9,'B');
+      else if(n>=1e6)txt=fmt(n/1e6,'M');
+      else if(n>=1e3)txt=fmt(n/1e3,'K');
+      else txt=String(Math.floor(n));
+      c.textContent=txt;
+      c.title=n.toLocaleString();
+    }
+  }
+
+  const prev=window.__duckSyncLobby;
+  window.__duckSyncLobby=function(){
+    if(typeof prev==='function')prev.apply(this,arguments);
+    applyCoreHudFix();
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',applyCoreHudFix,{once:true});
+  }else{
+    applyCoreHudFix();
+  }
+})();
+
