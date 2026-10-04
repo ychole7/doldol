@@ -231,6 +231,137 @@ body{
 }
 </style>
 
+
+<style id="doldolHudDirectV1">
+/* DIRECT HUD SOURCE — independent of late game.js style injection */
+#gameLobby .homeTop{
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-height:46px!important;
+}
+#gameLobby .profileMini{
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  width:96px!important;
+  min-width:96px!important;
+  max-width:96px!important;
+  flex:0 0 96px!important;
+  height:46px!important;
+  padding:4px 6px 4px 4px!important;
+  gap:5px!important;
+  border-radius:15px!important;
+  overflow:hidden!important;
+}
+#gameLobby .profileAvatar{
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  flex:0 0 32px!important;
+  border-radius:10px!important;
+  overflow:hidden!important;
+}
+#gameLobby .profileAvatar img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  display:block!important;
+}
+#gameLobby .profileMini>div:not(.profileAvatar){
+  min-width:0!important;
+  flex:1 1 auto!important;
+  overflow:hidden!important;
+}
+#gameLobby .profileMini b{
+  display:block!important;
+  font-size:11px!important;
+  line-height:12px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#gameLobby .profileMini span{
+  display:block!important;
+  font-size:9px!important;
+  line-height:10px!important;
+}
+#gameLobby .xpMini{
+  width:32px!important;
+  height:4px!important;
+  margin-top:2px!important;
+}
+
+#gameLobby .homeResources{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:5px!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+#gameLobby .homeRes{
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  height:46px!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+}
+#gameLobby .coreRes{
+  width:112px!important;
+  min-width:112px!important;
+  max-width:112px!important;
+  flex:0 0 112px!important;
+  padding:5px 5px 5px 7px!important;
+  gap:4px!important;
+}
+#gameLobby .gemRes{
+  width:88px!important;
+  min-width:88px!important;
+  max-width:88px!important;
+  flex:0 0 88px!important;
+  padding:5px!important;
+  gap:4px!important;
+}
+#gameLobby .resIcon{
+  width:22px!important;
+  height:22px!important;
+  min-width:22px!important;
+  object-fit:contain!important;
+}
+#gameLobby .homeRes b{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:auto!important;
+  max-width:none!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  font-size:12px!important;
+  line-height:1!important;
+  letter-spacing:-.2px!important;
+}
+#gameLobby .homeRes button{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 24px!important;
+  width:24px!important;
+  min-width:24px!important;
+  height:24px!important;
+  padding:0!important;
+  margin:0!important;
+}
+#gameLobby .homeSettings{
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  flex:0 0 40px!important;
+}
+</style>
+
 </head>
 <body>
 
@@ -299,7 +430,7 @@ body{
 <div id="gameLobby" class="commercialLobby">
   <div class="homeTop">
     <div class="profileMini" id="lobbyProfile">
-      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/characters/character_doldol.png" alt="돌돌이"></div>
+      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/home_chars/home_char_doldol.png" alt="돌돌이"></div>
       <div><b id="lobbyProfileName">돌돌이</b><span>Lv.1</span><div class="xpMini"><i></i></div></div>
     </div>
     <div class="homeResources">
@@ -389,7 +520,68 @@ body{
   </div>
 </div>
 
-<script src="js/game.js?v=20261004-hud-v4"></script>
+<script src="js/game.js"></script>
+
+
+<script id="doldolHudDirectSyncV1">
+(function(){
+  var CHAR={
+    doldol:["돌돌이","assets/home_chars/home_char_doldol.png"],
+    nyang:["냥특공","assets/home_chars/home_char_cat.png"],
+    rabbit:["토끼특공","assets/home_chars/home_char_rabbit.png"],
+    panda:["판다특공","assets/home_chars/home_char_panda.png"],
+    king:["그림자특공","assets/home_chars/home_char_ninja.png"]
+  };
+  function compact(v){
+    v=Number(String(v).replace(/[^0-9.-]/g,''))||0;
+    if(v>=1000000000)return (v/1000000000).toFixed(v<10000000000?1:0).replace(/\.0$/,'')+'B';
+    if(v>=1000000)return (v/1000000).toFixed(v<10000000?1:0).replace(/\.0$/,'')+'M';
+    if(v>=1000)return (v/1000).toFixed(v<100000?1:0).replace(/\.0$/,'')+'K';
+    return String(Math.floor(v));
+  }
+  function sync(){
+    var id='doldol';
+    try{id=localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){}
+    var m=CHAR[id]||CHAR.doldol;
+    var img=document.getElementById('lobbyProfileImg');
+    if(img && img.getAttribute('src')!==m[1]){img.src=m[1];img.alt=m[0]}
+    var nm=document.getElementById('lobbyProfileName');
+    if(nm)nm.textContent=m[0];
+
+    var c=document.getElementById('lobbyCoins');
+    if(c){
+      var raw=c.dataset.rawValue;
+      var visible=c.textContent||'0';
+      if(/[,\d]{4,}/.test(visible)){
+        raw=visible.replace(/,/g,'');
+        c.dataset.rawValue=raw;
+      }
+      if(raw)c.textContent=compact(raw);
+    }
+  }
+  function install(){
+    sync();
+    var c=document.getElementById('lobbyCoins');
+    if(c && !c.__doldolDirectObserver){
+      c.__doldolDirectObserver=new MutationObserver(function(){
+        if(c.__doldolSyncing)return;
+        var txt=c.textContent||'';
+        if(txt.indexOf(',')>=0 || /^\d{4,}$/.test(txt)){
+          c.__doldolSyncing=true;
+          c.dataset.rawValue=txt.replace(/,/g,'');
+          c.textContent=compact(c.dataset.rawValue);
+          c.__doldolSyncing=false;
+        }
+      });
+      c.__doldolDirectObserver.observe(c,{childList:true,characterData:true,subtree:true});
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
+  else install();
+  window.addEventListener('pageshow',function(){setTimeout(sync,0)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(sync,0)});
+})();
+</script>
 
 </body>
 </html>
