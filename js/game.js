@@ -2500,7 +2500,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(c){
       const n=Math.max(0,Number(window.__duckWallet.coins)||0);
       const compact=(v)=>{
-        const fmt=(x,s)=>x.toFixed(x<10?1:0).replace(/\.0$/,'')+s;
+        const fmt=(x,s)=>{
+          const d=x<10?1:0;
+          return x.toFixed(d).replace(/\.0$/,'')+s;
+        };
         if(v>=1e9)return fmt(v/1e9,'B');
         if(v>=1e6)return fmt(v/1e6,'M');
         if(v>=1e3)return fmt(v/1e3,'K');
@@ -2511,11 +2514,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
 
     const chars={
-      doldol:["돌돌이","./assets/characters/character_doldol.png"],
-      nyang:["냥특공","./assets/characters/character_nyang.png"],
-      rabbit:["토끼특공","./assets/characters/character_rabbit.png"],
-      panda:["판다특공","./assets/characters/character_panda.png"],
-      king:["그림자특공","./assets/characters/character_shadow.png"],
+      doldol:["돌돌이","./assets/home_chars/home_char_doldol.png"],
+      nyang:["냥특공","./assets/home_chars/home_char_cat.png"],
+      rabbit:["토끼특공","./assets/home_chars/home_char_rabbit.png"],
+      panda:["판다특공","./assets/home_chars/home_char_panda.png"],
+      king:["그림자특공","./assets/home_chars/home_char_ninja.png"],
       turtle:["거북특공","./assets/characters/character_turtle.png"],
       shiba:["시바특공","./assets/characters/character_shiba.png"],
       charge:["돌격특공","./assets/characters/character_charge.png"]
@@ -2527,6 +2530,19 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(img){img.src=meta[1];img.alt=meta[0]}
     const name=document.getElementById("lobbyProfileName");
     if(name)name.textContent=meta[0];
+
+    const card=document.getElementById("lobbyProfile");
+    if(card){
+      const levelEl=card.querySelector("span");
+      if(levelEl){
+        let level=1;
+        try{
+          const p=window.__duckCharacterProgress?window.__duckCharacterProgress(id):null;
+          if(p&&p.level) level=Math.max(1,Number(p.level)||1);
+        }catch(e){}
+        levelEl.textContent="Lv."+level;
+      }
+    }
   };
 })();
 
@@ -3297,7 +3313,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       border:1.5px solid #fff!important;display:grid!important;place-items:center!important;
     }
     #gameLobby .profileAvatar img{
-      width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;
+      width:100%!important;height:100%!important;object-fit:cover!important;object-position:center 28%!important;
+      display:block!important;transform:scale(1.08)!important;
     }
     #gameLobby .profileMini>div:not(.profileAvatar){
       min-width:0!important;overflow:hidden!important;
@@ -3319,21 +3336,21 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       overflow:hidden!important;
     }
     #gameLobby .coreRes{
-      width:108px!important;min-width:108px!important;max-width:108px!important;flex:0 0 108px!important;
-      gap:4px!important;padding:5px 5px 5px 7px!important;
+      width:102px!important;min-width:102px!important;max-width:102px!important;flex:0 0 102px!important;
+      gap:3px!important;padding:5px 4px 5px 6px!important;
     }
     #gameLobby .gemRes{
       width:84px!important;min-width:84px!important;max-width:84px!important;flex:0 0 84px!important;
       gap:4px!important;padding:5px 5px 5px 7px!important;
     }
     #gameLobby .resIcon{
-      width:22px!important;height:22px!important;object-fit:contain!important;flex:0 0 22px!important;
+      width:20px!important;height:20px!important;object-fit:contain!important;flex:0 0 20px!important;
     }
     #gameLobby .gemIcon{font-size:16px!important;line-height:1!important;flex:0 0 auto!important}
     #gameLobby .homeRes b{
       flex:1 1 auto!important;min-width:0!important;text-align:center!important;
       overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important;
-      font-size:13px!important;line-height:1!important;font-weight:1000!important;letter-spacing:-.3px!important;
+      font-size:12px!important;line-height:1!important;font-weight:1000!important;letter-spacing:-.15px!important;
     }
     #gameLobby .homeRes button{
       display:grid!important;place-items:center!important;flex:0 0 24px!important;
