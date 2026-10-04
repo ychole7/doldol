@@ -4424,17 +4424,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         #titleScreen .titleImageStart{
           pointer-events:auto;
           width:min(82vw,520px);
-          height:76px;
+          height:68px;
           border:0;
-          border-radius:28px;
-          margin-bottom:58px;
+          border-radius:26px;
+          margin-bottom:18px;
           display:flex;
           align-items:center;
           justify-content:center;
           gap:12px;
           background:linear-gradient(180deg,#ffd65e,#efb93d);
           color:#2f2419;
-          font:900 27px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+          font:900 25px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
           letter-spacing:-.6px;
           box-shadow:
             0 8px 0 #b97a26,
@@ -4459,7 +4459,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         #titleScreen .titleImageVersion{
           position:absolute;
           left:0; right:0;
-          bottom:calc(14px + env(safe-area-inset-bottom));
+          bottom:calc(7px + env(safe-area-inset-bottom));
           text-align:center;
           color:rgba(255,255,255,.76);
           font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
@@ -4470,9 +4470,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
         @media (max-height:740px){
           #titleScreen .titleImageStart{
-            height:68px;
-            margin-bottom:45px;
-            font-size:24px;
+            height:62px;
+            margin-bottom:14px;
+            font-size:23px;
           }
         }
       `;
