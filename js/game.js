@@ -3167,11 +3167,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     });
   }
   function installButton(){
-    bindProfileEntry();
-    const explicit=document.getElementById('lobbyAchievements');
-    if(explicit && explicit.dataset.achievementBound!=='1'){
-      explicit.dataset.achievementBound='1';
-      explicit.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();open();});
+    const charAch=document.getElementById('charAchievements');
+    if(charAch && charAch.dataset.achievementBound!=='1'){
+      charAch.dataset.achievementBound='1';
+      charAch.addEventListener('click',function(e){
+        e.preventDefault(); e.stopPropagation(); open();
+      });
     }
     const lobby=document.getElementById('gameLobby');
     if(lobby && !window.__duckAchievementObserver){
@@ -3206,7 +3207,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #gameLobby .profileMini{
       position:relative!important;display:flex!important;align-items:center!important;
       width:104px!important;min-width:104px!important;flex:0 0 104px!important;height:50px!important;
-      gap:5px!important;padding:4px 29px 4px 4px!important;border-radius:16px!important;
+      gap:5px!important;padding:4px 7px 4px 4px!important;border-radius:16px!important;
       background:rgba(30,48,55,.82)!important;border:2px solid rgba(255,255,255,.28)!important;
       box-shadow:0 4px 10px rgba(0,0,0,.15)!important;
     }
@@ -3227,15 +3228,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     #gameLobby .profileMini span{display:block!important;font-size:8px!important;line-height:10px!important}
     #gameLobby .xpMini{width:34px!important;height:4px!important;margin-top:2px!important}
-    #gameLobby .hudAchievementBtn{
-      position:absolute!important;right:4px!important;top:50%!important;transform:translateY(-50%)!important;
-      width:22px!important;height:22px!important;padding:0!important;border-radius:7px!important;
-      border:1px solid rgba(255,224,105,.9)!important;background:linear-gradient(#ffd95d,#e8a52a)!important;
-      color:#4b3410!important;font-size:11px!important;line-height:1!important;display:grid!important;
-      place-items:center!important;box-shadow:0 2px 0 #8f5c19!important;z-index:3!important;
-    }
-
-    #gameLobby .homeResources{
+#gameLobby .homeResources{
       display:flex!important;align-items:center!important;justify-content:flex-end!important;
       gap:5px!important;flex:1 1 auto!important;min-width:0!important;
     }
