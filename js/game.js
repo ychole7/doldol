@@ -2655,14 +2655,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       height:50px;display:flex;align-items:center;gap:6px;z-index:8
     }
     #characterScreen .sqHudProfile{
-      width:96px;min-width:96px;flex:0 0 96px;height:50px;
+      width:84px;min-width:84px;flex:0 0 84px;height:46px;
       display:flex;align-items:center;gap:5px;padding:4px 7px 4px 4px;
       border:2px solid rgba(255,255,255,.28);border-radius:16px;
       background:rgba(30,48,55,.82);box-shadow:0 4px 10px rgba(0,0,0,.15);
       overflow:hidden
     }
     #characterScreen .sqHudFace{
-      width:30px;height:30px;min-width:30px;flex:0 0 30px;
+      width:26px;height:26px;min-width:26px;flex:0 0 26px;
       display:grid;place-items:center;overflow:hidden;border-radius:11px;
       background:#f7dca0;border:1.5px solid #fff
     }
@@ -2671,10 +2671,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     #characterScreen .sqHudWho{min-width:0;flex:1;line-height:1.02;overflow:hidden}
     #characterScreen .sqHudWho b{
-      display:block;font-size:10px;line-height:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+      display:block;font-size:9px;line-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
     }
     #characterScreen .sqHudWho small{display:block;font-size:8px;line-height:10px;color:#fff;opacity:.85;margin:0}
-    #characterScreen .sqHudXp{display:block;width:30px;height:4px;margin-top:2px;background:#1d2a2a;border-radius:9px;overflow:hidden}
+    #characterScreen .sqHudXp{display:block;width:26px;height:3px;margin-top:2px;background:#1d2a2a;border-radius:9px;overflow:hidden}
     #characterScreen .sqHudXp i{display:block;width:62%;height:100%;background:#ffd34e}
     #characterScreen .sqHudResources{
       display:flex;align-items:center;justify-content:flex-end;gap:5px;flex:1 1 auto;min-width:0
@@ -2709,8 +2709,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     @media(max-width:390px){
       #characterScreen .sqHud{gap:4px;left:5px;right:5px}
-      #characterScreen .sqHudProfile{width:94px;min-width:94px;flex-basis:94px}
-      #characterScreen .sqHudFace{width:29px;height:29px;min-width:29px;flex-basis:29px}
+      #characterScreen .sqHudProfile{width:82px;min-width:82px;flex-basis:82px;height:44px}
+      #characterScreen .sqHudFace{width:25px;height:25px;min-width:25px;flex-basis:25px}
       #characterScreen .sqHudCoreRes{width:103px;min-width:103px;max-width:103px;flex-basis:103px}
       #characterScreen .sqHudGemRes{width:80px;min-width:80px;max-width:80px;flex-basis:80px}
       #characterScreen .sqHudRes b{font-size:12px}
@@ -3286,13 +3286,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     #gameLobby .profileMini{
       position:relative!important;display:flex!important;align-items:center!important;
-      width:96px!important;min-width:96px!important;flex:0 0 96px!important;height:50px!important;
+      width:84px!important;min-width:84px!important;flex:0 0 84px!important;height:46px!important;
       gap:5px!important;padding:4px 7px 4px 4px!important;border-radius:16px!important;
       background:rgba(30,48,55,.82)!important;border:2px solid rgba(255,255,255,.28)!important;
       box-shadow:0 4px 10px rgba(0,0,0,.15)!important;
     }
     #gameLobby .profileAvatar{
-      width:30px!important;height:30px!important;min-width:30px!important;flex:0 0 30px!important;
+      width:26px!important;height:26px!important;min-width:26px!important;flex:0 0 26px!important;
       border-radius:11px!important;overflow:hidden!important;background:#f7dca0!important;
       border:1.5px solid #fff!important;display:grid!important;place-items:center!important;
     }
@@ -3303,11 +3303,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       min-width:0!important;overflow:hidden!important;
     }
     #gameLobby .profileMini b{
-      display:block!important;font-size:10px!important;line-height:11px!important;
+      display:block!important;font-size:9px!important;line-height:10px!important;
       white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
     }
     #gameLobby .profileMini span{display:block!important;font-size:8px!important;line-height:10px!important}
-    #gameLobby .xpMini{width:30px!important;height:4px!important;margin-top:2px!important}
+    #gameLobby .xpMini{width:26px!important;height:3px!important;margin-top:2px!important}
 #gameLobby .homeResources{
       display:flex!important;align-items:center!important;justify-content:flex-end!important;
       gap:5px!important;flex:1 1 auto!important;min-width:0!important;
@@ -3346,8 +3346,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     @media(max-width:390px){
       #gameLobby .homeTop{gap:4px!important}
-      #gameLobby .profileMini{width:94px!important;min-width:94px!important;flex-basis:94px!important}
-      #gameLobby .profileAvatar{width:29px!important;height:29px!important;min-width:29px!important;flex-basis:29px!important}
+      #gameLobby .profileMini{width:82px!important;min-width:82px!important;flex-basis:82px!important;height:44px!important}
+      #gameLobby .profileAvatar{width:25px!important;height:25px!important;min-width:25px!important;flex-basis:25px!important}
       #gameLobby .coreRes{width:103px!important;min-width:103px!important;max-width:103px!important;flex-basis:103px!important}
       #gameLobby .gemRes{width:80px!important;min-width:80px!important;max-width:80px!important;flex-basis:80px!important}
       #gameLobby .homeRes b{font-size:12px!important}
