@@ -109,7 +109,7 @@ let pendingNextStage=0;
 const FARM_ITEMS_V2=[
   {id:'wood',name:'나무 조각',icon:'🪵'},
   {id:'stone',name:'단단한 돌',icon:'🪨'},
-  {id:'ember',name:'불씨',icon:'🔥'},
+  {id:'ember',name:'불씨',icon:'🪨'},
   {id:'ice',name:'얼음 조각',icon:'❄️'},
   {id:'herb',name:'약초',icon:'🌿'},
   {id:'gem',name:'보석 조각',icon:'💎'},
@@ -4487,3 +4487,102 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if('requestIdleCallback' in window) requestIdleCallback(warm,{timeout:1800});
   else setTimeout(warm,900);
 })();
+
+
+
+/* SHARED HUD SYNC V1 */
+(function(){
+  const CHAR_META={
+    doldol:{name:'돌돌이',art:'./assets/characters/character_doldol.png'},
+    nyang:{name:'냥특공',art:'./assets/characters/character_nyang.png'},
+    rabbit:{name:'토끼특공',art:'./assets/characters/character_rabbit.png'},
+    panda:{name:'판다특공',art:'./assets/characters/character_panda.png'},
+    king:{name:'그림자특공',art:'./assets/characters/character_shadow.png'},
+    turtle:{name:'거북특공',art:'./assets/characters/character_turtle.png'},
+    shiba:{name:'시바특공',art:'./assets/characters/character_shiba.png'},
+    charge:{name:'돌격특공',art:'./assets/characters/character_charge.png'}
+  };
+
+  function compact(n){
+    n=Math.max(0,Number(n)||0);
+    const f=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
+    if(n>=1e9)return f(n/1e9,'B');
+    if(n>=1e6)return f(n/1e6,'M');
+    if(n>=1e3)return f(n/1e3,'K');
+    return String(Math.floor(n));
+  }
+
+  function selectedId(){
+    try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}
+  }
+
+  function currentLevel(id){
+    try{
+      const raw=localStorage.getItem('doldol_character_progress_v1');
+      if(raw){
+        const obj=JSON.parse(raw);
+        if(obj && obj[id] && obj[id].level)return Math.max(1,Number(obj[id].level)||1);
+      }
+    }catch(e){}
+    return 1;
+  }
+
+  function currentGems(){
+    try{
+      const v=localStorage.getItem('doldol_gems_v1');
+      if(v!==null)return Math.max(0,Number(v)||0);
+    }catch(e){}
+    return 980;
+  }
+
+  function syncSharedHud(){
+    try{
+      const id=selectedId();
+      const meta=CHAR_META[id]||CHAR_META.doldol;
+      const core=(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins)))
+        ? Number(window.__duckWallet.coins)
+        : Number(localStorage.getItem('doldol_coins_v1')||0);
+      const gems=currentGems();
+      const lvl=currentLevel(id);
+
+      document.querySelectorAll('[data-shared-hud]').forEach(hud=>{
+        const img=hud.querySelector('.sharedProfileImg');
+        if(img){img.src=meta.art;img.alt=meta.name}
+        const name=hud.querySelector('.sharedProfileName');
+        if(name)name.textContent=meta.name;
+        const lv=hud.querySelector('.sharedProfileLevel');
+        if(lv)lv.textContent='Lv.'+lvl;
+        const c=hud.querySelector('.sharedCoreValue');
+        if(c){c.textContent=compact(core);c.title=Number(core||0).toLocaleString()}
+        const g=hud.querySelector('.sharedGemValue');
+        if(g){g.textContent=compact(gems);g.title=Number(gems||0).toLocaleString()}
+        const settings=hud.querySelector('.sharedSettings');
+        if(settings && settings.dataset.bound!=='1'){
+          settings.dataset.bound='1';
+          settings.addEventListener('click',()=>{
+            const original=document.getElementById('lobbySettings');
+            if(original)original.click();
+          });
+        }
+      });
+    }catch(e){console.warn('shared hud sync failed',e)}
+  }
+
+  const baseSync=window.__duckSyncLobby;
+  window.__duckSyncLobby=function(){
+    if(typeof baseSync==='function')baseSync.apply(this,arguments);
+    syncSharedHud();
+  };
+
+  window.__duckSyncSharedHud=syncSharedHud;
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',syncSharedHud,{once:true});
+  }else syncSharedHud();
+
+  document.addEventListener('click',function(e){
+    const b=e.target && e.target.closest ? e.target.closest('#lobbyGrowth,#charSelectBtn,#charBack') : null;
+    if(b)setTimeout(syncSharedHud,0);
+  });
+})();
+
