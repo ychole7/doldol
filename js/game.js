@@ -176,12 +176,12 @@ let skillFx=0;
 let skillMessage='';
 // V40: battle stone selection / ammo
 const STONE_DEFS={
-  basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
-  fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
-  ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
-  bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
-  lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
-  skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
+  basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
+  fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
+  ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
+  bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
+  lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
+  skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
 };
 window.__duckStoneDefs=STONE_DEFS;
 let selectedStone='basic';
@@ -3386,12 +3386,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     try{return Math.max(1,Math.min(500,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1));}catch(e){return 1;}
   }
   const defs={
-    basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
-    fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
-    ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
-    bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
-    lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
-    skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
+    basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
+    fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
+    ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
+    bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
+    lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
+    skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
   };
   const order=['basic','fire','ice','bomb','lightning','skill'];
   function highestCleared(){return Math.max(0,unlockedStage()-1)}
@@ -4153,7 +4153,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!body||!panel) return;
     if(panel.querySelector('#doldolWeaponUpgradeCard')) return;
     const id=stoneId();
-    const defs={basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌'},fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌'},ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌'},bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌'},lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌'},skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌'}};
+    const defs={basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌'},fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌'},ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌'},bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌'},lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌'},skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌'}};
     const d=defs[id]||defs.basic, lv=level(id), c=cost(lv), farm=window.__doldolFarmV2;
     const wood=farm?farm.get('wood'):0, stone=farm?farm.get('stone'):0;
     const can=lv<MAX&&wood>=c.wood&&stone>=c.stone;
@@ -4360,12 +4360,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 (function(){
   const stoneSources=[
-    'assets/stone_basic.webp',
-    'assets/stone_fire.webp',
-    'assets/stone_ice.webp',
-    'assets/stone_bomb.webp',
-    'assets/stone_lightning.webp',
-    'assets/stone_skill.webp'
+    'assets/%20%20%20%20stone_basic.png',
+    'assets/%20%20%20%20stone_fire.png',
+    'assets/%20%20%20%20stone_ice.png',
+    'assets/%20%20%20%20stone_bomb.png',
+    'assets/%20%20%20%20stone_lightning.png',
+    'assets/%20%20%20%20stone_skill.png'
   ];
   const warm=()=>stoneSources.forEach(src=>{
     const im=new Image();
@@ -4374,5 +4374,142 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   });
   if('requestIdleCallback' in window) requestIdleCallback(warm,{timeout:1800});
   else setTimeout(warm,900);
+})();
+
+
+
+
+/* --- title applied revamp --- */
+(function(){
+  function boot(){
+    const t=document.getElementById('titleScreen');
+    const l=document.getElementById('gameLobby');
+    if(!t||!l) return;
+
+    if(!document.getElementById('doldolTitleRevampStyle')){
+      const st=document.createElement('style');
+      st.id='doldolTitleRevampStyle';
+      st.textContent=`
+        #titleScreen{
+          position:fixed; inset:0; z-index:9999; overflow:hidden;
+          display:flex; align-items:stretch; justify-content:center;
+          background:
+            radial-gradient(1200px 650px at 50% 100%, rgba(71,118,87,.42) 0%, rgba(71,118,87,.42) 36%, rgba(71,118,87,0) 37%),
+            linear-gradient(180deg, #9dd6df 0%, #80c7be 48%, #76b69a 100%) !important;
+          font-family:inherit;
+        }
+        #titleScreen.hidden{display:none !important;}
+        #titleScreen .titleWrap{
+          width:min(100%, 540px); min-height:100%;
+          padding: max(env(safe-area-inset-top), 20px) 28px calc(26px + env(safe-area-inset-bottom));
+          position:relative; display:flex; flex-direction:column; align-items:center;
+          text-align:center; box-sizing:border-box;
+        }
+        #titleScreen .titleEyebrow{
+          margin-top:22px;
+          font-size:16px; line-height:1; letter-spacing:4px;
+          font-weight:800; color:rgba(255,255,255,.9);
+          text-transform:uppercase;
+        }
+        #titleScreen .titleLogo{
+          margin-top:26px;
+          font-size:68px; line-height:.88; font-weight:1000;
+          color:#f6e9bf;
+          letter-spacing:-2px;
+          text-shadow:
+            0 3px 0 #8f6d4f,
+            0 6px 0 #7a5c43,
+            0 10px 18px rgba(67,44,28,.22);
+        }
+        #titleScreen .heroRing{
+          margin-top:76px;
+          width:262px; height:262px; border-radius:999px;
+          background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+          border:4px solid rgba(255,255,255,.33);
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+          display:grid; place-items:center; position:relative;
+        }
+        #titleScreen .heroRing::after{
+          content:""; position:absolute; left:50%; bottom:14px;
+          width:160px; height:30px; transform:translateX(-50%);
+          background:radial-gradient(ellipse at center, rgba(0,0,0,.22) 0%, rgba(0,0,0,.10) 45%, rgba(0,0,0,0) 75%);
+          filter:blur(7px);
+        }
+        #titleScreen .heroCharacter{
+          width:228px; height:auto; display:block; position:relative; z-index:2;
+          filter: drop-shadow(0 18px 18px rgba(0,0,0,.20));
+        }
+        #titleScreen .titleCopy{
+          margin-top:74px; color:#fff;
+          text-shadow:0 3px 10px rgba(0,0,0,.14);
+        }
+        #titleScreen .titleMainCopy{
+          font-size:28px; line-height:1.24; font-weight:1000; letter-spacing:-.6px;
+        }
+        #titleScreen .titleSubCopy{
+          margin-top:12px; font-size:16px; line-height:1.42;
+          font-weight:700; color:rgba(255,255,255,.9);
+        }
+        #titleScreen .bottomHill{
+          position:absolute; left:-8%; right:-8%; bottom:132px; height:140px;
+          background:rgba(72,108,80,.28); border-radius:50% 50% 0 0/100% 100% 0 0;
+          pointer-events:none;
+        }
+        #titleScreen .titleStart{
+          margin-top:auto; width:100%; height:86px; border:none; border-radius:28px;
+          background:#efc24f; color:#222; position:relative; z-index:2;
+          font-size:26px; font-weight:1000; letter-spacing:-.4px;
+          box-shadow:0 10px 0 #ba8730, 0 16px 28px rgba(99,66,9,.18);
+          display:flex; align-items:center; justify-content:center; gap:12px;
+        }
+        #titleScreen .titleStart:active{ transform:translateY(2px); box-shadow:0 8px 0 #ba8730, 0 12px 20px rgba(99,66,9,.18);}
+        #titleScreen .titleStartIcon{
+          width:34px; height:34px; display:grid; place-items:center; font-size:28px;
+          filter:drop-shadow(0 1px 0 rgba(255,255,255,.35));
+        }
+        #titleScreen .titleVersion{
+          position:absolute; left:0; right:0; bottom:18px;
+          text-align:center; font-size:15px; font-weight:800; color:rgba(255,255,255,.8);
+          letter-spacing:.3px;
+          text-shadow:0 2px 5px rgba(0,0,0,.15);
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
+    t.innerHTML = `
+      <div class="titleWrap">
+        <div class="titleEyebrow">DOLDOL SPECIAL FORCE</div>
+        <div class="titleLogo" aria-label="돌돌 특공대">돌돌<br>특공대</div>
+        <div class="heroRing">
+          <img class="heroCharacter" src="assets/characters/character_doldol.png" alt="돌을 든 돌돌이">
+        </div>
+        <div class="titleCopy">
+          <div class="titleMainCopy">날아오는 돌, 우리가 막는다!</div>
+          <div class="titleSubCopy">피할까 받아칠까 — 타이밍이 관건이에요.</div>
+        </div>
+        <div class="bottomHill"></div>
+        <button id="titleStart" class="titleStart" type="button">
+          <span class="titleStartIcon">🪨</span>
+          <span>시작하기</span>
+        </button>
+        <div class="titleVersion">v6.22</div>
+      </div>
+    `;
+
+    const startBtn=t.querySelector('#titleStart');
+    if(startBtn && !startBtn.dataset.bound){
+      startBtn.dataset.bound='1';
+      startBtn.addEventListener('click', function(){
+        t.classList.add('hidden');
+        l.classList.remove('hidden');
+        if(window.__duckStopCombat) window.__duckStopCombat();
+        if(window.__duckSyncLobby) window.__duckSyncLobby();
+      });
+    }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 
