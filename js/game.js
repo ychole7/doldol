@@ -2501,7 +2501,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const n=Math.max(0,Number(window.__duckWallet.coins)||0);
       const compact=(v)=>{
         const fmt=(x,s)=>{
-          const d=x<10?1:0;
+          const d=x<100?1:0;
           return x.toFixed(d).replace(/\.0$/,'')+s;
         };
         if(v>=1e9)return fmt(v/1e9,'B');
@@ -2514,11 +2514,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
 
     const chars={
-      doldol:["돌돌이","./assets/home_chars/home_char_doldol.png"],
-      nyang:["냥특공","./assets/home_chars/home_char_cat.png"],
-      rabbit:["토끼특공","./assets/home_chars/home_char_rabbit.png"],
-      panda:["판다특공","./assets/home_chars/home_char_panda.png"],
-      king:["그림자특공","./assets/home_chars/home_char_ninja.png"],
+      doldol:["돌돌이","./assets/characters/character_doldol.png"],
+      nyang:["냥특공","./assets/characters/character_nyang.png"],
+      rabbit:["토끼특공","./assets/characters/character_rabbit.png"],
+      panda:["판다특공","./assets/characters/character_panda.png"],
+      king:["그림자특공","./assets/characters/character_shadow.png"],
       turtle:["거북특공","./assets/characters/character_turtle.png"],
       shiba:["시바특공","./assets/characters/character_shiba.png"],
       charge:["돌격특공","./assets/characters/character_charge.png"]
@@ -3336,7 +3336,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       overflow:hidden!important;
     }
     #gameLobby .coreRes{
-      width:102px!important;min-width:102px!important;max-width:102px!important;flex:0 0 102px!important;
+      width:106px!important;min-width:106px!important;max-width:106px!important;flex:0 0 106px!important;
       gap:3px!important;padding:5px 4px 5px 6px!important;
     }
     #gameLobby .gemRes{
