@@ -20,161 +20,7 @@
 <link rel="apple-touch-startup-image" href="assets/splash/splash-828x1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="assets/splash/splash-750x1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="stylesheet" href="css/common.css">
-<style>
-html,body{background:#3d7f71}
-#titleScreen.titleImageScreen{
-  position:fixed!important;inset:0!important;z-index:9999!important;display:block!important;
-  padding:0!important;margin:0!important;overflow:hidden!important;background:#3d7f71!important;
-}
-#titleScreen.titleImageScreen:before{display:none!important}
-#titleScreen.titleImageScreen.hidden{display:none!important}
-.titleArt{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;
-  display:block;z-index:0
-}
-.titleImageUi{
-  position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:flex-end;padding:0 30px calc(18px + env(safe-area-inset-bottom));pointer-events:none
-}
-.titleImageStart{
-  pointer-events:auto;width:min(82vw,520px);height:68px;margin:0 0 18px;border:0;border-radius:26px;
-  display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(180deg,#ffd65e,#efb93d);
-  color:#2f2419;font:900 25px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-  letter-spacing:-.6px;box-shadow:0 8px 0 #b97a26,0 14px 30px rgba(42,68,50,.24),inset 0 1px 0 rgba(255,255,255,.55);
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent
-}
-.titleImageStart:active{transform:translateY(2px);box-shadow:0 6px 0 #b97a26,0 10px 24px rgba(42,68,50,.22)}
-.titleImageStartIcon{width:34px;height:34px;display:grid;place-items:center;font-size:27px}
-.titleImageVersion{
-  position:absolute;left:0;right:0;bottom:calc(7px + env(safe-area-inset-bottom));text-align:center;
-  color:rgba(255,255,255,.76);font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-  letter-spacing:.4px;text-shadow:0 2px 7px rgba(0,0,0,.28)
-}
-</style>
-
-<style id="doldolViewportGapFix">
-html,body{margin:0!important;width:100%!important;height:100%!important;min-height:100dvh!important;overflow:hidden!important}
-body{position:relative!important;background:#11151d!important}
-#titleScreen.titleImageScreen,#gameLobby.commercialLobby{
-position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:auto!important;
-width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-height:none!important}
-#titleScreen.titleImageScreen .titleArt{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
-@supports (-webkit-touch-callout:none){
-#titleScreen.titleImageScreen,#gameLobby.commercialLobby{height:-webkit-fill-available!important;min-height:-webkit-fill-available!important}
-}
-</style>
-
-<style id="doldolAchievementInSquadStyle">
-.charHeadActions{display:flex;align-items:center;gap:6px;flex:none}
-.charAchievementBtn{height:34px;padding:0 10px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffd85d,#e8a52a);color:#49320f;font-size:11px;font-weight:1000;box-shadow:0 3px 0 #94621e;white-space:nowrap}
-.charAchievementBtn:active{transform:translateY(2px);box-shadow:0 1px 0 #94621e}
-@media(max-width:390px){.charAchievementBtn{height:32px;padding:0 8px;font-size:10px}.charHeadActions{gap:4px}}
-</style>
-
-<style id="doldolSharedHudV1Style">
-/* One HUD language across Home / Squad / Squad Detail */
-.sharedGameHud{
-  position:relative;
-  z-index:20;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  width:100%;
-  min-height:50px;
-  flex:0 0 auto;
-  box-sizing:border-box;
-  margin:0 0 8px;
-}
-.sharedGameHud .profileMini{
-  position:relative!important;
-  display:flex!important;
-  align-items:center!important;
-  width:104px!important;
-  min-width:104px!important;
-  flex:0 0 104px!important;
-  height:50px!important;
-  gap:5px!important;
-  padding:4px 7px 4px 4px!important;
-  border-radius:16px!important;
-  background:rgba(30,48,55,.82)!important;
-  border:2px solid rgba(255,255,255,.28)!important;
-  box-shadow:0 4px 10px rgba(0,0,0,.15)!important;
-  color:#fff!important;
-}
-.sharedGameHud .profileAvatar{
-  width:34px!important;height:34px!important;min-width:34px!important;flex:0 0 34px!important;
-  border-radius:11px!important;overflow:hidden!important;background:#f7dca0!important;
-  border:1.5px solid #fff!important;display:grid!important;place-items:center!important;
-}
-.sharedGameHud .profileAvatar img{
-  width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;
-}
-.sharedGameHud .profileMini>div:not(.profileAvatar){min-width:0!important;overflow:hidden!important}
-.sharedGameHud .profileMini b{
-  display:block!important;font-size:11px!important;line-height:12px!important;
-  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;color:#fff!important;
-}
-.sharedGameHud .profileMini span{display:block!important;font-size:8px!important;line-height:10px!important;color:#fff!important;opacity:.85!important}
-.sharedGameHud .xpMini{width:34px!important;height:4px!important;margin-top:2px!important;background:#1d2a2a!important}
-.sharedGameHud .xpMini i{display:block!important;width:62%!important;height:100%!important;background:#ffd34e!important}
-
-.sharedGameHud .homeResources{
-  display:flex!important;align-items:center!important;justify-content:flex-end!important;
-  gap:5px!important;flex:1 1 auto!important;min-width:0!important;
-}
-.sharedGameHud .homeRes{
-  display:flex!important;align-items:center!important;box-sizing:border-box!important;
-  height:50px!important;border-radius:16px!important;background:rgba(30,48,55,.82)!important;
-  border:1px solid rgba(255,255,255,.22)!important;white-space:nowrap!important;overflow:hidden!important;
-  color:#fff!important;
-}
-.sharedGameHud .coreRes{
-  width:108px!important;min-width:108px!important;max-width:108px!important;flex:0 0 108px!important;
-  gap:4px!important;padding:5px 5px 5px 7px!important;
-}
-.sharedGameHud .gemRes{
-  width:84px!important;min-width:84px!important;max-width:84px!important;flex:0 0 84px!important;
-  gap:4px!important;padding:5px 5px 5px 7px!important;
-}
-.sharedGameHud .resIcon{width:22px!important;height:22px!important;object-fit:contain!important;flex:0 0 22px!important}
-.sharedGameHud .gemIcon{font-size:16px!important;line-height:1!important;flex:0 0 auto!important}
-.sharedGameHud .homeRes b{
-  flex:1 1 auto!important;min-width:0!important;text-align:center!important;
-  overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important;
-  font-size:13px!important;line-height:1!important;font-weight:1000!important;letter-spacing:-.3px!important;
-  color:#fff!important;
-}
-.sharedGameHud .homeRes button{
-  display:grid!important;place-items:center!important;flex:0 0 24px!important;
-  width:24px!important;height:24px!important;min-width:24px!important;padding:0!important;margin:0!important;
-  border:0!important;border-radius:50%!important;background:#55aeea!important;color:#fff!important;
-  font-size:18px!important;font-weight:1000!important;line-height:1!important;
-}
-.sharedGameHud .homeSettings{
-  width:40px!important;height:40px!important;min-width:40px!important;flex:0 0 40px!important;
-  border:0!important;border-radius:14px!important;background:rgba(30,48,55,.82)!important;
-  color:#fff!important;font-size:22px!important;
-}
-
-/* character screen layout adjustment so HUD does not overlap page content */
-#characterScreen{padding-top:calc(10px + env(safe-area-inset-top))!important}
-#characterScreen > .sharedGameHud + .charHead{margin-top:0!important}
-
-/* Hide any legacy top resource/header HUD inside squad pages if present */
-#characterScreen > .charHead .charCurrency{display:none!important}
-
-@media(max-width:390px){
-  .sharedGameHud{gap:4px}
-  .sharedGameHud .profileMini{width:100px!important;min-width:100px!important;flex-basis:100px!important}
-  .sharedGameHud .profileAvatar{width:32px!important;height:32px!important;min-width:32px!important;flex-basis:32px!important}
-  .sharedGameHud .coreRes{width:103px!important;min-width:103px!important;max-width:103px!important;flex-basis:103px!important}
-  .sharedGameHud .gemRes{width:80px!important;min-width:80px!important;max-width:80px!important;flex-basis:80px!important}
-  .sharedGameHud .homeRes b{font-size:12px!important}
-  .sharedGameHud .homeRes button{width:23px!important;height:23px!important;min-width:23px!important;flex-basis:23px!important}
-  .sharedGameHud .homeSettings{width:38px!important;height:38px!important;min-width:38px!important;flex-basis:38px!important}
-}
-</style>
-
+<link rel="stylesheet" href="css/ui-core.css">
 </head>
 <body>
 
@@ -240,19 +86,32 @@ width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-he
  </div>
 </div>
 
-<div id="gameLobby" class="commercialLobby">
-  <div class="homeTop">
-    <div class="profileMini" id="lobbyProfile">
-      <div class="profileAvatar"><img id="lobbyProfileImg" src="assets/characters/character_doldol.png" alt="돌돌이"></div>
-      <div><b id="lobbyProfileName">돌돌이</b><span>Lv.1</span><div class="xpMini"><i></i></div></div>
-    </div>
-    <div class="homeResources">
-      <div class="homeRes coreRes"><img class="resIcon" src="assets/doldol_stone_core.png" alt=""><b id="lobbyCoins">0</b><button type="button" aria-label="돌핵 추가">＋</button></div>
-      <div class="homeRes gemRes"><span class="gemIcon">💎</span><b>980</b><button type="button" aria-label="다이아 추가">＋</button></div>
-    </div>
-    <button class="homeSettings" id="lobbySettings" aria-label="설정">⚙</button>
-  </div>
 
+<div id="appHud" class="appHud" aria-label="게임 상단 정보">
+  <div class="appHudProfile" id="lobbyProfile">
+    <div class="appHudAvatar"><img id="lobbyProfileImg" src="assets/characters/character_doldol.png" alt="돌돌이"></div>
+    <div class="appHudProfileText">
+      <b id="lobbyProfileName">돌돌이</b>
+      <span id="lobbyProfileLevel">Lv.1</span>
+      <div class="appHudXp"><i id="lobbyProfileXp"></i></div>
+    </div>
+  </div>
+  <div class="appHudResources">
+    <div class="appHudRes appHudCore">
+      <img src="assets/doldol_stone_core.png" alt="" class="appHudCoreIcon">
+      <b id="lobbyCoins">0</b>
+      <button type="button" aria-label="돌핵 추가">＋</button>
+    </div>
+    <div class="appHudRes appHudGem">
+      <span class="appHudGemIcon">💎</span>
+      <b id="lobbyGems">980</b>
+      <button type="button" aria-label="다이아 추가">＋</button>
+    </div>
+  </div>
+  <button class="appHudSettings" id="lobbySettings" type="button" aria-label="설정">⚙</button>
+</div>
+
+<div id="gameLobby" class="commercialLobby">
   <div class="homeNoticeRow">
     <button class="sideQuick"><strong>✉</strong><span>우편함</span><em>1</em></button>
     <button class="sideQuick"><strong>✓</strong><span>출석체크</span><em>1</em></button>
@@ -286,35 +145,7 @@ width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-he
   </nav>
 </div>
 
-<div id="characterScreen" aria-label="캐릭터 선택">
-  
-<div class="sharedGameHud" data-shared-hud>
-  <div class="profileMini sharedProfile">
-    <div class="profileAvatar"><img class="sharedProfileImg" src="assets/characters/character_doldol.png" alt="돌돌이"></div>
-    <div><b class="sharedProfileName">돌돌이</b><span class="sharedProfileLevel">Lv.1</span><div class="xpMini"><i></i></div></div>
-  </div>
-  <div class="homeResources sharedResources">
-    <div class="homeRes coreRes"><img class="resIcon" src="assets/doldol_stone_core.png" alt=""><b class="sharedCoreValue">0</b><button type="button" aria-label="돌핵 추가">＋</button></div>
-    <div class="homeRes gemRes"><span class="gemIcon">💎</span><b class="sharedGemValue">980</b><button type="button" aria-label="다이아 추가">＋</button></div>
-  </div>
-  <button class="homeSettings sharedSettings" type="button" aria-label="설정">⚙</button>
-</div>
-
-  <div class="charHead">
-    <button class="backBtn" id="charBack">‹</button>
-    <div class="charHeadTitle"><b>특공대원 선택</b><span>개성 넘치는 특공대원들과 함께하세요!</span></div>
-    <div class="charHeadActions">
-      <button class="charAchievementBtn" id="charAchievements" type="button">🏆 업적</button>
-      <div class="charCurrency">🪙 <span id="charCoins">12,340</span></div>
-    </div>
-  </div>
-  <div class="charHero">
-    <div class="heroSelected duck" id="charHeroFace">🐥</div>
-    <div class="heroInfo"><div class="heroName"><b id="charHeroName">돌돌이</b><span id="charHeroRole">밸런스형 · Lv.12</span></div><div class="heroStats"><span class="statPill">⚔ 18</span><span class="statPill">❤️ 120</span><span class="statPill">⚡ 320</span></div></div>
-  </div>
-  <div class="charGrid" id="charGrid"></div>
-  <div class="charBottom"><button class="charAction" id="charGrowthBtn">📈 성장<small>능력치 강화</small></button><button class="charAction primary" id="charSelectBtn">⚔️ 이 캐릭터로 출격</button></div>
-</div>
+<div id="characterScreen" aria-label="특공대"></div>
 
 <canvas id="game"></canvas>
 <div id="battleControls" aria-hidden="true">
