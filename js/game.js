@@ -2495,7 +2495,18 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const el=document.getElementById("lobbyStage");
     if(el)el.textContent="STAGE "+s;
     const c=document.getElementById("lobbyCoins");
-    if(c)c.textContent=window.__duckWallet.coins.toLocaleString();
+    if(c){
+      const n=Math.max(0,Number(window.__duckWallet.coins)||0);
+      const compact=(v)=>{
+        const fmt=(x,s)=>x.toFixed(x<10?1:0).replace(/\.0$/,'')+s;
+        if(v>=1e9)return fmt(v/1e9,'B');
+        if(v>=1e6)return fmt(v/1e6,'M');
+        if(v>=1e3)return fmt(v/1e3,'K');
+        return String(Math.floor(v));
+      };
+      c.textContent=compact(n);
+      c.title=n.toLocaleString();
+    }
   };
 })();
 
