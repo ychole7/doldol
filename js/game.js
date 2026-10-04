@@ -176,12 +176,12 @@ let skillFx=0;
 let skillMessage='';
 // V40: battle stone selection / ammo
 const STONE_DEFS={
-  basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
-  fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
-  ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
-  bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
-  lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
-  skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
+  basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
+  fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
+  ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
+  bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
+  lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
+  skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
 };
 window.__duckStoneDefs=STONE_DEFS;
 let selectedStone='basic';
@@ -3386,12 +3386,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     try{return Math.max(1,Math.min(500,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1));}catch(e){return 1;}
   }
   const defs={
-    basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
-    fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
-    ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
-    bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
-    lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
-    skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
+    basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
+    fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
+    ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
+    bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
+    lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
+    skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
   };
   const order=['basic','fire','ice','bomb','lightning','skill'];
   function highestCleared(){return Math.max(0,unlockedStage()-1)}
@@ -4153,7 +4153,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!body||!panel) return;
     if(panel.querySelector('#doldolWeaponUpgradeCard')) return;
     const id=stoneId();
-    const defs={basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌'},fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌'},ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌'},bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌'},lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌'},skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌'}};
+    const defs={basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌'},fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌'},ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌'},bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌'},lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌'},skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌'}};
     const d=defs[id]||defs.basic, lv=level(id), c=cost(lv), farm=window.__doldolFarmV2;
     const wood=farm?farm.get('wood'):0, stone=farm?farm.get('stone'):0;
     const can=lv<MAX&&wood>=c.wood&&stone>=c.stone;
@@ -4360,12 +4360,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 (function(){
   const stoneSources=[
-    'assets/%20%20%20%20stone_basic.png',
-    'assets/%20%20%20%20stone_fire.png',
-    'assets/%20%20%20%20stone_ice.png',
-    'assets/%20%20%20%20stone_bomb.png',
-    'assets/%20%20%20%20stone_lightning.png',
-    'assets/%20%20%20%20stone_skill.png'
+    'assets/stone_basic.webp',
+    'assets/stone_fire.webp',
+    'assets/stone_ice.webp',
+    'assets/stone_bomb.webp',
+    'assets/stone_lightning.webp',
+    'assets/stone_skill.webp'
   ];
   const warm=()=>stoneSources.forEach(src=>{
     const im=new Image();
