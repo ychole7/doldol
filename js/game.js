@@ -4784,3 +4784,136 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 })();
 
+
+
+
+/* PROFILE + CORE DISPLAY FIX V2 */
+(function(){
+  const META={
+    doldol:{name:'돌돌이',art:'assets/characters/character_doldol.png'},
+    nyang:{name:'냥특공',art:'assets/characters/character_nyang.png'},
+    rabbit:{name:'토끼특공',art:'assets/characters/character_rabbit.png'},
+    panda:{name:'판다특공',art:'assets/characters/character_panda.png'},
+    king:{name:'그림자특공',art:'assets/characters/character_shadow.png'},
+    turtle:{name:'거북특공',art:'assets/characters/character_turtle.png'},
+    shiba:{name:'시바특공',art:'assets/characters/character_shiba.png'},
+    charge:{name:'돌격특공',art:'assets/characters/character_charge.png'}
+  };
+
+  function compact(n){
+    n=Math.max(0,Number(n)||0);
+    const fmt=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
+    if(n>=1e9)return fmt(n/1e9,'B');
+    if(n>=1e6)return fmt(n/1e6,'M');
+    if(n>=1e3)return fmt(n/1e3,'K');
+    return String(Math.floor(n));
+  }
+
+  function selected(){
+    try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}
+  }
+
+  function ensureStyle(){
+    if(document.getElementById('profileCoreDisplayFixV2Style'))return;
+    const st=document.createElement('style');
+    st.id='profileCoreDisplayFixV2Style';
+    st.textContent=`
+      #gameLobby .profileAvatar{
+        background-position:center!important;
+        background-repeat:no-repeat!important;
+        background-size:112% auto!important;
+        overflow:hidden!important;
+      }
+      #gameLobby .profileAvatar img{
+        opacity:0!important;
+        visibility:hidden!important;
+      }
+
+      #gameLobby #lobbyCoins{
+        position:relative!important;
+        display:inline-block!important;
+        min-width:43px!important;
+        width:auto!important;
+        max-width:none!important;
+        overflow:visible!important;
+        white-space:nowrap!important;
+        font-size:0!important;
+        line-height:1!important;
+        letter-spacing:0!important;
+      }
+      #gameLobby #lobbyCoins::after{
+        content:attr(data-compact)!important;
+        display:inline-block!important;
+        font-size:15px!important;
+        line-height:1!important;
+        font-weight:900!important;
+        color:#ffd866!important;
+        letter-spacing:-.35px!important;
+        white-space:nowrap!important;
+      }
+      #gameLobby .homeResources .homeRes:has(#lobbyCoins){
+        min-width:128px!important;
+        padding-left:9px!important;
+        padding-right:7px!important;
+      }
+
+      @media(max-width:390px){
+        #gameLobby #lobbyCoins::after{
+          font-size:14px!important;
+        }
+        #gameLobby .homeResources .homeRes:has(#lobbyCoins){
+          min-width:122px!important;
+        }
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function syncFixedHud(){
+    try{
+      ensureStyle();
+
+      const lobby=document.getElementById('gameLobby');
+      if(!lobby)return;
+
+      const id=selected();
+      const meta=META[id]||META.doldol;
+
+      const avatar=lobby.querySelector('.profileAvatar');
+      if(avatar){
+        avatar.style.backgroundImage='url("'+meta.art+'")';
+        avatar.setAttribute('aria-label',meta.name);
+      }
+
+      const c=document.getElementById('lobbyCoins');
+      if(c){
+        const n=(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins)))
+          ? Number(window.__duckWallet.coins)
+          : Number(localStorage.getItem('doldol_coins_v1')||0);
+        c.dataset.compact=compact(n);
+        c.title=n.toLocaleString();
+      }
+    }catch(e){
+      console.warn('profile/core display fix failed',e);
+    }
+  }
+
+  const oldSync=window.__duckSyncLobby;
+  window.__duckSyncLobby=function(){
+    if(typeof oldSync==='function')oldSync.apply(this,arguments);
+    syncFixedHud();
+  };
+
+  // Also hook character selection render, which already runs whenever the selected
+  // character changes.
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{
+      syncFixedHud();
+      setTimeout(syncFixedHud,120);
+    },{once:true});
+  }else{
+    syncFixedHud();
+    setTimeout(syncFixedHud,120);
+  }
+})();
+
