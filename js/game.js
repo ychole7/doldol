@@ -1,3 +1,27 @@
+
+/* TITLE FIRST-PAINT V4 */
+(function(){
+  const t=document.getElementById('titleScreen');
+  if(!t) return;
+
+  t.style.background="#3d7f71 url('assets/title_screen.jpg') center center / cover no-repeat";
+  t.style.padding="0";
+  t.style.justifyContent="initial";
+  t.style.alignItems="initial";
+
+  t.innerHTML=`
+    <div class="titleImageMode" aria-hidden="true"></div>
+    <div class="titleImageUi">
+      <button id="titleStart" class="titleImageStart" type="button" aria-label="게임 시작">
+        <span class="titleImageStartIcon">🪨</span><span>시작하기</span>
+      </button>
+      <div class="titleImageVersion">v6.22</div>
+    </div>
+  `;
+  t.classList.add('titleImageReady');
+})();
+
+
 /* DOLDOL SPECIAL FORCES V26 - PERSISTENT CHARACTER GROWTH */
 /* DOLDOL SPECIAL FORCE V20 - Combat Variety */
 
@@ -4521,94 +4545,97 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
-
-/* LOBBY HUD SAFE V2
-   No MutationObserver / no global capture handlers. */
+/* LOBBY HUD CONSOLIDATED V4 */
 (function(){
   const CHAR_META={
     doldol:{name:'돌돌이',art:'./assets/characters/character_doldol.png'},
     nyang:{name:'냥특공',art:'./assets/characters/character_nyang.png'},
     rabbit:{name:'토끼특공',art:'./assets/characters/character_rabbit.png'},
     panda:{name:'판다특공',art:'./assets/characters/character_panda.png'},
-    shadow:{name:'그림자특공',art:'./assets/characters/character_shadow.png'},
+    king:{name:'그림자특공',art:'./assets/characters/character_shadow.png'},
     turtle:{name:'거북특공',art:'./assets/characters/character_turtle.png'},
     shiba:{name:'시바특공',art:'./assets/characters/character_shiba.png'},
     charge:{name:'돌격특공',art:'./assets/characters/character_charge.png'}
   };
 
-  function compact(n){
-    n=Math.max(0,Number(n)||0);
-    const f=(v,s)=>{
-      const d=v<10?1:0;
-      return v.toFixed(d).replace(/\.0$/,'')+s;
-    };
-    if(n>=1e9)return f(n/1e9,'B');
-    if(n>=1e6)return f(n/1e6,'M');
-    if(n>=1e3)return f(n/1e3,'K');
-    return String(Math.floor(n));
-  }
-
-  function getSelectedId(){
+  function selectedId(){
     try{return localStorage.getItem('doldol_character_v1')||'doldol';}
     catch(e){return 'doldol';}
   }
 
-  function getLevel(id){
-    try{
-      const raw=localStorage.getItem('doldol_character_progress_v1');
-      if(raw){
-        const obj=JSON.parse(raw);
-        if(obj && obj[id] && obj[id].level) return Math.max(1,Number(obj[id].level)||1);
-      }
-    }catch(e){}
-    return 1;
-  }
-
   function ensureStyle(){
-    if(document.getElementById('doldolLobbyHudSafeV2Style'))return;
+    if(document.getElementById('doldolLobbyHudV4Style'))return;
     const st=document.createElement('style');
-    st.id='doldolLobbyHudSafeV2Style';
+    st.id='doldolLobbyHudV4Style';
     st.textContent=`
-      #gameLobby .profileMini{
-        position:relative!important;
-        padding-right:44px!important;
-      }
-      #gameLobby .profileAvatar{
+      /* first-paint title UI */
+      #titleScreen{background:#3d7f71 url('assets/title_screen.jpg') center center/cover no-repeat!important}
+      #titleScreen .titleImageMode{position:absolute;inset:0;background:transparent!important;pointer-events:none}
+      #titleScreen .titleImageUi{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 30px calc(18px + env(safe-area-inset-bottom));box-sizing:border-box;pointer-events:none}
+      #titleScreen .titleImageStart{pointer-events:auto;width:min(82vw,520px);height:68px;border:0;border-radius:26px;margin-bottom:18px;display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(180deg,#ffd65e,#efb93d);color:#2f2419;font:900 25px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;letter-spacing:-.6px;box-shadow:0 8px 0 #b97a26,0 14px 30px rgba(42,68,50,.24),inset 0 1px 0 rgba(255,255,255,.55)}
+      #titleScreen .titleImageStartIcon{width:34px;height:34px;display:grid;place-items:center;font-size:27px}
+      #titleScreen .titleImageVersion{position:absolute;left:0;right:0;bottom:calc(7px + env(safe-area-inset-bottom));text-align:center;color:rgba(255,255,255,.76);font:800 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;letter-spacing:.4px;text-shadow:0 2px 7px rgba(0,0,0,.28)}
+
+      /* compact profile */
+      #gameLobby .homeTop{gap:6px!important}
+      #gameLobby .profileMini{position:relative!important;width:108px!important;min-width:108px!important;height:50px!important;flex:0 0 108px!important;padding:4px 31px 4px 4px!important;gap:5px!important;border-radius:16px!important;box-sizing:border-box!important}
+      #gameLobby .profileAvatar{width:30px!important;height:30px!important;min-width:30px!important;flex:0 0 30px!important;border-radius:10px!important;border-width:1.5px!important;overflow:hidden!important;display:grid!important;place-items:center!important}
+      #gameLobby .profileAvatar img{width:100%!important;height:100%!important;object-fit:contain!important;opacity:1!important;visibility:visible!important;transform:none!important}
+      #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn){min-width:0!important;overflow:hidden!important;flex:1 1 auto!important}
+      #gameLobby .profileMini b{display:block!important;font-size:11px!important;line-height:12px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+      #gameLobby .profileMini span{display:block!important;font-size:8px!important;line-height:10px!important}
+      #gameLobby .xpMini{width:34px!important;height:4px!important;margin-top:2px!important}
+      #gameLobby .hudAchievementBtn{position:absolute!important;right:4px!important;top:50%!important;transform:translateY(-50%)!important;width:23px!important;height:23px!important;padding:0!important;border:1.5px solid rgba(255,225,104,.95)!important;border-radius:8px!important;background:linear-gradient(180deg,#ffd95d,#e9a82c)!important;box-shadow:0 2px 0 #95631d!important;color:#49320f!important;display:grid!important;place-items:center!important;font-size:12px!important;z-index:5!important}
+
+      /* core capsule: icon + score + plus all inside one pill */
+      #gameLobby .homeResources .homeRes:has(#lobbyCoins){
+        width:124px!important;
+        min-width:124px!important;
+        max-width:124px!important;
+        height:50px!important;
+        flex:0 0 124px!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:flex-start!important;
+        gap:5px!important;
+        padding:5px 5px 5px 8px!important;
+        box-sizing:border-box!important;
         overflow:hidden!important;
+        border-radius:16px!important;
+      }
+      #gameLobby #lobbyCoins{
+        flex:1 1 auto!important;
+        min-width:0!important;
+        width:auto!important;
+        max-width:none!important;
+        margin:0!important;
+        overflow:visible!important;
+        text-overflow:clip!important;
+        white-space:nowrap!important;
+        text-align:center!important;
+        font-size:13px!important;
+        line-height:1!important;
+        letter-spacing:-.25px!important;
+      }
+      #gameLobby .homeResources .homeRes:has(#lobbyCoins) button{
         display:grid!important;
         place-items:center!important;
+        flex:0 0 25px!important;
+        width:25px!important;
+        min-width:25px!important;
+        height:25px!important;
+        margin:0!important;
+        padding:0!important;
       }
-      #gameLobby .profileAvatar img{
-        width:100%!important;
-        height:100%!important;
-        object-fit:contain!important;
-        transform:scale(1.14) translateY(3%)!important;
-      }
-      #gameLobby .hudAchievementBtn{
-        position:absolute;
-        right:6px; top:50%;
-        transform:translateY(-50%);
-        width:34px; height:34px;
-        border:2px solid rgba(255,225,104,.9);
-        border-radius:11px;
-        background:linear-gradient(180deg,#ffd95d,#e9a82c);
-        box-shadow:0 3px 0 #9d671d;
-        color:#49320f;
-        padding:0;
-        display:grid;
-        place-items:center;
-        font-size:18px;
-        z-index:5;
-        touch-action:manipulation;
-        -webkit-tap-highlight-color:transparent;
-      }
-      #gameLobby .homeRes b{
-        display:inline-block!important;
-        min-width:34px!important;
-        max-width:54px!important;
-        overflow:hidden!important;
-        white-space:nowrap!important;
-        font-variant-numeric:tabular-nums;
+
+      @media(max-width:390px){
+        #gameLobby .profileMini{width:102px!important;min-width:102px!important;flex-basis:102px!important;padding-right:29px!important}
+        #gameLobby .profileAvatar{width:28px!important;height:28px!important;min-width:28px!important;flex-basis:28px!important}
+        #gameLobby .profileMini b{font-size:10px!important}
+        #gameLobby .profileMini span{font-size:8px!important}
+        #gameLobby .xpMini{width:31px!important}
+        #gameLobby .homeResources .homeRes:has(#lobbyCoins){width:118px!important;min-width:118px!important;max-width:118px!important;flex-basis:118px!important}
+        #gameLobby #lobbyCoins{font-size:12px!important}
       }
     `;
     document.head.appendChild(st);
@@ -4619,386 +4646,38 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ensureStyle();
       const lobby=document.getElementById('gameLobby');
       if(!lobby)return;
-
       const card=lobby.querySelector('.profileMini');
       if(card){
-        const id=getSelectedId();
-        const meta=CHAR_META[id]||CHAR_META.doldol;
+        const meta=CHAR_META[selectedId()]||CHAR_META.doldol;
         const avatar=card.querySelector('.profileAvatar img');
-        if(avatar && avatar.getAttribute('src')!==meta.art){
-          avatar.src=meta.art;
-          avatar.alt=meta.name;
-        }
-
+        if(avatar){avatar.src=meta.art;avatar.alt=meta.name}
         const info=card.querySelector('.profileAvatar + div');
         if(info){
-          const b=info.querySelector('b');
-          const sp=info.querySelector('span');
-          if(b && b.textContent!==meta.name)b.textContent=meta.name;
-          const lv='Lv.'+getLevel(id);
-          if(sp && sp.textContent!==lv)sp.textContent=lv;
+          const nameEl=info.querySelector('b');
+          if(nameEl)nameEl.textContent=meta.name;
         }
-
-        if(!card.querySelector('.hudAchievementBtn')){
-          const btn=document.createElement('button');
-          btn.type='button';
-          btn.className='hudAchievementBtn';
-          btn.setAttribute('aria-label','업적');
-          btn.textContent='🏆';
-          btn.addEventListener('click',function(e){
-            e.preventDefault();
-            e.stopPropagation();
+        let ach=card.querySelector('.hudAchievementBtn');
+        if(!ach){
+          ach=document.createElement('button');
+          ach.type='button';ach.className='hudAchievementBtn';ach.textContent='🏆';ach.setAttribute('aria-label','업적');
+          ach.addEventListener('click',function(e){
+            e.preventDefault();e.stopPropagation();
             if(window.__duckOpenAchievements)window.__duckOpenAchievements();
-            else card.click();
+            else if(window.__duckOpenMissions)window.__duckOpenMissions();
           });
-          card.appendChild(btn);
+          card.appendChild(ach);
         }
       }
-
-      const coin=lobby.querySelector('#lobbyCoins');
-      if(coin){
-        let n=0;
-        try{
-          if(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins))) n=Number(window.__duckWallet.coins);
-          else n=Number(localStorage.getItem('doldol_coins_v1')||0);
-        }catch(e){}
-        const txt=compact(n);
-        if(coin.textContent!==txt)coin.textContent=txt;
-        coin.title=Number(n||0).toLocaleString();
-      }
-
-      const resources=[...lobby.querySelectorAll('.homeResources .homeRes')];
-      resources.forEach(res=>{
-        const b=res.querySelector('b');
-        if(!b)return;
-        const raw=(res.textContent||'');
-        if(raw.includes('💎')){
-          let n=980;
-          try{
-            const v=localStorage.getItem('doldol_gems_v1');
-            if(v!==null)n=Number(v)||0;
-          }catch(e){}
-          const txt=compact(n);
-          if(b.textContent!==txt)b.textContent=txt;
-          b.title=Number(n||0).toLocaleString();
-        }
-      });
-    }catch(e){
-      console.warn('lobby hud sync failed',e);
-    }
+    }catch(e){}
   }
 
-  const prev=window.__duckSyncLobby;
+  const baseSync=window.__duckSyncLobby;
   window.__duckSyncLobby=function(){
-    if(typeof prev==='function')prev.apply(this,arguments);
+    if(typeof baseSync==='function')baseSync.apply(this,arguments);
     syncHud();
   };
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',syncHud,{once:true});
-  }else{
-    syncHud();
-  }
-
-  window.__duckCompactNumber=compact;
-})();
-
-
-
-
-/* CORE HUD WIDTH FIX V1 */
-(function(){
-  function applyCoreHudFix(){
-    if(!document.getElementById('doldolCoreHudWidthFixStyle')){
-      const st=document.createElement('style');
-      st.id='doldolCoreHudWidthFixStyle';
-      st.textContent=`
-        #gameLobby .homeResources{
-          gap:7px!important;
-        }
-        #gameLobby .homeResources .homeRes{
-          min-width:0!important;
-        }
-        #gameLobby #lobbyCoins{
-          display:inline-block!important;
-          width:auto!important;
-          min-width:48px!important;
-          max-width:none!important;
-          overflow:visible!important;
-          text-overflow:clip!important;
-          white-space:nowrap!important;
-          font-size:18px!important;
-          letter-spacing:-.3px!important;
-          flex:0 0 auto!important;
-        }
-        #gameLobby .homeResources .homeRes:has(#lobbyCoins){
-          min-width:150px!important;
-          padding-left:10px!important;
-          padding-right:8px!important;
-        }
-        #gameLobby .homeResources .homeRes:has(#lobbyCoins) button{
-          flex:0 0 auto!important;
-        }
-        @media(max-width:390px){
-          #gameLobby .homeResources .homeRes:has(#lobbyCoins){
-            min-width:138px!important;
-          }
-          #gameLobby #lobbyCoins{
-            min-width:44px!important;
-            font-size:17px!important;
-          }
-        }
-      `;
-      document.head.appendChild(st);
-    }
-
-    const c=document.getElementById('lobbyCoins');
-    if(c){
-      const n=(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins)))
-        ? Number(window.__duckWallet.coins)
-        : 0;
-      const fmt=(v,suf)=>{
-        const d=v<10?1:0;
-        return v.toFixed(d).replace(/\.0$/,'')+suf;
-      };
-      let txt;
-      if(n>=1e9)txt=fmt(n/1e9,'B');
-      else if(n>=1e6)txt=fmt(n/1e6,'M');
-      else if(n>=1e3)txt=fmt(n/1e3,'K');
-      else txt=String(Math.floor(n));
-      c.textContent=txt;
-      c.title=n.toLocaleString();
-    }
-  }
-
-  const prev=window.__duckSyncLobby;
-  window.__duckSyncLobby=function(){
-    if(typeof prev==='function')prev.apply(this,arguments);
-    applyCoreHudFix();
-  };
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',applyCoreHudFix,{once:true});
-  }else{
-    applyCoreHudFix();
-  }
-})();
-
-
-
-
-/* PROFILE + CORE DISPLAY FIX V2 */
-(function(){
-  const META={
-    doldol:{name:'돌돌이',art:'assets/characters/character_doldol.png'},
-    nyang:{name:'냥특공',art:'assets/characters/character_nyang.png'},
-    rabbit:{name:'토끼특공',art:'assets/characters/character_rabbit.png'},
-    panda:{name:'판다특공',art:'assets/characters/character_panda.png'},
-    king:{name:'그림자특공',art:'assets/characters/character_shadow.png'},
-    turtle:{name:'거북특공',art:'assets/characters/character_turtle.png'},
-    shiba:{name:'시바특공',art:'assets/characters/character_shiba.png'},
-    charge:{name:'돌격특공',art:'assets/characters/character_charge.png'}
-  };
-
-  function compact(n){
-    n=Math.max(0,Number(n)||0);
-    const fmt=(v,s)=>v.toFixed(v<10?1:0).replace(/\.0$/,'')+s;
-    if(n>=1e9)return fmt(n/1e9,'B');
-    if(n>=1e6)return fmt(n/1e6,'M');
-    if(n>=1e3)return fmt(n/1e3,'K');
-    return String(Math.floor(n));
-  }
-
-  function selected(){
-    try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}
-  }
-
-  function ensureStyle(){
-    if(document.getElementById('profileCoreDisplayFixV2Style'))return;
-    const st=document.createElement('style');
-    st.id='profileCoreDisplayFixV2Style';
-    st.textContent=`
-      #gameLobby .profileAvatar{
-        background-position:center!important;
-        background-repeat:no-repeat!important;
-        background-size:112% auto!important;
-        overflow:hidden!important;
-      }
-      #gameLobby .profileAvatar img{
-        opacity:0!important;
-        visibility:hidden!important;
-      }
-
-      #gameLobby #lobbyCoins{
-        position:relative!important;
-        display:inline-block!important;
-        min-width:43px!important;
-        width:auto!important;
-        max-width:none!important;
-        overflow:visible!important;
-        white-space:nowrap!important;
-        font-size:0!important;
-        line-height:1!important;
-        letter-spacing:0!important;
-      }
-      #gameLobby #lobbyCoins::after{
-        content:attr(data-compact)!important;
-        display:inline-block!important;
-        font-size:15px!important;
-        line-height:1!important;
-        font-weight:900!important;
-        color:#ffd866!important;
-        letter-spacing:-.35px!important;
-        white-space:nowrap!important;
-      }
-      #gameLobby .homeResources .homeRes:has(#lobbyCoins){
-        min-width:128px!important;
-        padding-left:9px!important;
-        padding-right:7px!important;
-      }
-
-      @media(max-width:390px){
-        #gameLobby #lobbyCoins::after{
-          font-size:14px!important;
-        }
-        #gameLobby .homeResources .homeRes:has(#lobbyCoins){
-          min-width:122px!important;
-        }
-      }
-    `;
-    document.head.appendChild(st);
-  }
-
-  function syncFixedHud(){
-    try{
-      ensureStyle();
-
-      const lobby=document.getElementById('gameLobby');
-      if(!lobby)return;
-
-      const id=selected();
-      const meta=META[id]||META.doldol;
-
-      const avatar=lobby.querySelector('.profileAvatar');
-      if(avatar){
-        avatar.style.backgroundImage='url("'+meta.art+'")';
-        avatar.setAttribute('aria-label',meta.name);
-      }
-
-      const c=document.getElementById('lobbyCoins');
-      if(c){
-        const n=(window.__duckWallet && Number.isFinite(Number(window.__duckWallet.coins)))
-          ? Number(window.__duckWallet.coins)
-          : Number(localStorage.getItem('doldol_coins_v1')||0);
-        c.dataset.compact=compact(n);
-        c.title=n.toLocaleString();
-      }
-    }catch(e){
-      console.warn('profile/core display fix failed',e);
-    }
-  }
-
-  const oldSync=window.__duckSyncLobby;
-  window.__duckSyncLobby=function(){
-    if(typeof oldSync==='function')oldSync.apply(this,arguments);
-    syncFixedHud();
-  };
-
-  // Also hook character selection render, which already runs whenever the selected
-  // character changes.
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>{
-      syncFixedHud();
-      setTimeout(syncFixedHud,120);
-    },{once:true});
-  }else{
-    syncFixedHud();
-    setTimeout(syncFixedHud,120);
-  }
-})();
-
-
-
-/* PROFILE HUD COMPACT V2 - based on original 116px / 40px CSS */
-(function(){
-  if(document.getElementById('doldolProfileCompactV2Style')) return;
-  const st=document.createElement('style');
-  st.id='doldolProfileCompactV2Style';
-  st.textContent=`
-    #gameLobby .homeTop{
-      gap:6px!important;
-    }
-
-    #gameLobby .profileMini{
-      width:104px!important;
-      min-width:104px!important;
-      height:50px!important;
-      padding:4px 6px 4px 4px!important;
-      gap:5px!important;
-      border-radius:16px!important;
-      box-sizing:border-box!important;
-      flex:0 0 104px!important;
-    }
-
-    #gameLobby .profileAvatar{
-      width:34px!important;
-      height:34px!important;
-      min-width:34px!important;
-      flex:0 0 34px!important;
-      border-radius:11px!important;
-      border-width:1.5px!important;
-    }
-
-    #gameLobby .profileMini > div:not(.profileAvatar):not(.hudAchievementBtn){
-      min-width:0!important;
-      flex:1 1 auto!important;
-      overflow:hidden!important;
-    }
-
-    #gameLobby .profileMini b{
-      font-size:12px!important;
-      line-height:13px!important;
-      white-space:nowrap!important;
-      overflow:hidden!important;
-      text-overflow:ellipsis!important;
-    }
-
-    #gameLobby .profileMini span{
-      font-size:9px!important;
-      line-height:11px!important;
-    }
-
-    #gameLobby .xpMini{
-      width:42px!important;
-      height:4px!important;
-      margin-top:2px!important;
-    }
-
-    #gameLobby .profileMini .hudAchievementBtn{
-      width:24px!important;
-      height:24px!important;
-      right:4px!important;
-      font-size:12px!important;
-      border-radius:8px!important;
-    }
-
-    @media(max-width:390px){
-      #gameLobby .profileMini{
-        width:100px!important;
-        min-width:100px!important;
-        flex-basis:100px!important;
-      }
-      #gameLobby .profileAvatar{
-        width:32px!important;
-        height:32px!important;
-        min-width:32px!important;
-        flex-basis:32px!important;
-      }
-      #gameLobby .profileMini b{font-size:11px!important}
-      #gameLobby .profileMini span{font-size:8px!important}
-      #gameLobby .xpMini{width:38px!important}
-    }
-  `;
-  document.head.appendChild(st);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncHud,{once:true});
+  else syncHud();
 })();
 
