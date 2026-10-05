@@ -105,7 +105,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   right:clamp(8px,2.6vw,16px);
   top:max(clamp(10px,2vw,16px),env(safe-area-inset-top));
   display:grid;
-  grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr) minmax(0,.78fr) auto;
+  grid-template-columns:minmax(0,.98fr) minmax(0,1.12fr) minmax(0,.78fr) auto;
   align-items:center;
   gap:clamp(4px,1.25vw,8px);
   z-index:30;
@@ -179,14 +179,14 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   border-radius:5px;
 }
 #gameLobby.doldolHomeClean #lobbyCoins{
-  font-size:16px!important;
+  font-size:15px!important;
   line-height:1!important;
   white-space:nowrap!important;
   overflow:visible!important;
   text-overflow:clip!important;
 }
 #gameLobby.doldolHomeClean #lobbyCoins[data-long="1"]{
-  font-size:13px!important;
+  font-size:14px!important;
   letter-spacing:-.35px!important;
 }
 #gameLobby.doldolHomeClean #lobbyCoins::after{
@@ -223,8 +223,8 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   white-space:nowrap;
 }
 #gameLobby .ddCore img{
-  width:clamp(28px,5.6vw,32px);
-  height:clamp(28px,5.6vw,32px);
+  width:26px;
+  height:26px;
   object-fit:cover;
   object-position:29% 50%;
   display:block;
@@ -233,14 +233,14 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 #gameLobby .ddCore b{
   min-width:0;
   text-align:left;
-  margin-left:6px;
+  margin-left:4px;
   white-space:nowrap;
-  font-size:16px;
+  font-size:15px;
   letter-spacing:-.2px;
 }
 #gameLobby .ddCore b[data-long="1"]{
-  font-size:13px;
-  letter-spacing:-.35px;
+  font-size:14px;
+  letter-spacing:-.3px;
 }
 #gameLobby .ddCore .ddPlus{
   margin-left:0!important;
@@ -486,7 +486,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 /* Narrow phones: keep all four columns, compress content rather than overlap. */
 @media(max-width:420px){
   #gameLobby .ddHomeHud{
-    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr) minmax(0,.76fr) auto;
+    grid-template-columns:minmax(0,.95fr) minmax(0,1.12fr) minmax(0,.75fr) auto;
     gap:4px;
   }
   #gameLobby .ddProfile{padding-right:5px}
@@ -497,7 +497,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   #gameLobby .ddProfile{height:42px}
   #gameLobby .ddAvatar{width:34px;height:34px}
   #gameLobby .ddRes{height:34px}
-  #gameLobby .ddCore img{width:28px;height:28px}
+  #gameLobby .ddCore img{width:24px;height:24px}
   #gameLobby .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
   #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
 }
