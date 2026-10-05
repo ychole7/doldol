@@ -438,8 +438,9 @@ body{
    Hide any stale/cached inline avatar image without removing it from DOM. */
 #gameLobby .profileAvatar img{
   opacity:1!important;
-  width:100%!important;
-  height:100%!important;
+  width:40px!important;
+  height:33px!important;
+  min-width:40px!important;
   max-width:none!important;
   object-fit:contain!important;
   object-position:center!important;
@@ -600,6 +601,7 @@ body{
   #gameLobby .homeTop{gap:4px!important}
   #gameLobby .profileMini{width:82px!important;min-width:82px!important;max-width:82px!important;flex-basis:82px!important;height:44px!important}
   #gameLobby .profileAvatar{width:25px!important;height:25px!important;min-width:25px!important;flex-basis:25px!important}
+  #gameLobby .profileAvatar img{width:38px!important;height:32px!important;min-width:38px!important}
   #gameLobby .coreRes{width:103px!important;min-width:103px!important;max-width:103px!important;flex-basis:103px!important}
   #gameLobby .gemRes{width:80px!important;min-width:80px!important;max-width:80px!important;flex-basis:80px!important}
   #gameLobby #lobbyCoins::after{font-size:12px!important}
@@ -641,8 +643,9 @@ body{
     const meta=chars[id]||chars.doldol;
     const img=document.getElementById('lobbyProfileImg');
     if(img){
-      const src=meta[1]+'?v=20261005-profile-sync';
-      if(img.getAttribute('src')!==src) img.setAttribute('src',src);
+      const squadImg=document.querySelector('#charGrid .sqCard[data-id="'+id+'"] .sqFace img');
+      const src=squadImg?squadImg.getAttribute('src'):meta[1];
+      if(src && img.getAttribute('src')!==src) img.setAttribute('src',src);
       img.alt=meta[0];
     }
     const avatar=document.querySelector('#gameLobby .profileAvatar');
