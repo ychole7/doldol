@@ -3298,12 +3298,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   border-radius:18px;padding:6px 9px;font-size:13px;font-weight:1000
 }
 .achCoreIcon{display:inline-block;object-fit:cover;object-position:29% 50%;vertical-align:middle}
-.achCoreIcon.top{width:23px;height:23px}
-.achCoreIcon.reward{
-  width:22px;height:22px;margin:0 3px 0 3px;
-  object-fit:cover;object-position:29% 50%;
-  flex:0 0 22px;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))
+.achCoreIcon.top{width:24px;height:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.achRewardCore{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:23px;height:23px;margin:0 2px 0 3px;flex:0 0 23px
 }
 .achHero{
   min-height:116px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;
@@ -3332,13 +3330,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
   background:linear-gradient(180deg,#0e2d44,#0b2539);
-  padding:11px 10px 14px;
+  padding:9px 9px 12px;
   scrollbar-width:none;
 }
 .achList::-webkit-scrollbar{display:none}
 .achCard{
   display:grid;grid-template-columns:50px 1fr auto;gap:9px;align-items:center;
-  min-height:82px;padding:9px;margin-bottom:8px;border-radius:17px;
+  min-height:70px;padding:7px 8px;margin-bottom:6px;border-radius:15px;
   background:linear-gradient(180deg,#f7f2e7,#ebe7df);
   border:2px solid rgba(167,177,180,.44);color:#30343a;
   box-shadow:0 6px 12px rgba(0,0,0,.13)
@@ -3347,20 +3345,20 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 .achCard.ready{box-shadow:0 0 0 1px rgba(112,231,71,.24),0 7px 15px rgba(0,0,0,.15)}
 .achCard.claimed{opacity:.90}
 .achIcon{
-  width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+  width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
   background:linear-gradient(145deg,#1c405c,#102f47);
   border:1px solid rgba(255,255,255,.20);
-  font-size:25px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))
+  font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))
 }
-.achName{font-size:13px;font-weight:1000;color:#23272b}
-.achDesc{display:flex;align-items:center;flex-wrap:wrap;gap:1px;font-size:9px;color:#747067;margin-top:2px;min-height:22px}
-.achBar{height:6px;background:#bcb7ad;border-radius:99px;overflow:hidden;margin-top:7px}
+.achName{font-size:12px;font-weight:1000;color:#23272b;line-height:1.05}
+.achDesc{display:flex;align-items:center;flex-wrap:wrap;gap:1px;font-size:8.5px;color:#747067;margin-top:2px;min-height:20px;line-height:1}
+.achBar{height:5px;background:#bcb7ad;border-radius:99px;overflow:hidden;margin-top:5px}
 .achBar i{display:block;height:100%;background:linear-gradient(90deg,#59be32,#a6ed54)}
-.achCount{font-size:9px;font-weight:1000;color:#4e4a43;margin-top:3px}
+.achCount{font-size:8.5px;font-weight:1000;color:#4e4a43;margin-top:2px}
 .achClaim{
-  position:relative;min-width:70px;height:40px;border:0;border-radius:13px;
+  position:relative;min-width:66px;height:36px;border:0;border-radius:12px;
   background:linear-gradient(#ffd953,#ff9d19);box-shadow:0 3px 0 #be6e0c,0 4px 9px rgba(220,130,12,.27);
-  padding:8px 8px;font-size:11px;font-weight:1000;color:#482a05
+  padding:7px 7px;font-size:10px;font-weight:1000;color:#482a05
 }
 .achClaim:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 #be6e0c}
 .achCard.ready .achClaim::after{
@@ -3392,9 +3390,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   .achMedal{font-size:46px}
   .achSummary{gap:6px;padding:9px}
   .achSummary div{padding:8px 4px}
-  .achCard{grid-template-columns:42px 1fr 66px;gap:7px;padding:8px;min-height:78px}
-  .achIcon{width:40px;height:40px;font-size:23px}
-  .achClaim{min-width:64px;height:38px}
+  .achCard{grid-template-columns:38px 1fr 62px;gap:6px;padding:7px;min-height:68px}
+  .achIcon{width:36px;height:36px;font-size:20px}
+  .achClaim{min-width:60px;height:34px;font-size:9.5px}
 }
 `;document.head.appendChild(st);page.querySelector('#achBack').onclick=close;return page;
   }
@@ -3416,7 +3414,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         '<div class="achIcon">'+d.icon+'</div>'+
         '<div>'+
           '<div class="achName">'+d.name+'</div>'+
-          '<div class="achDesc">'+d.desc+' · 보상 '+coreIcon('reward')+d.reward.toLocaleString()+'</div>'+
+          '<div class="achDesc">'+d.desc+' · 보상 <span class="achRewardCore">'+coreIcon('top')+'</span>'+d.reward.toLocaleString()+'</div>'+
           '<div class="achBar"><i style="width:'+pct+'%"></i></div>'+
           '<div class="achCount">'+cur+' / '+d.goal+'</div>'+
         '</div>'+
