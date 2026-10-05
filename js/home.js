@@ -175,6 +175,18 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   background:#ffd34e;
   border-radius:5px;
 }
+#gameLobby.doldolHomeClean #lobbyCoins{
+  font-size:clamp(10px,2.05vw,13px)!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+#gameLobby.doldolHomeClean #lobbyCoins::after{
+  content:none!important;
+  display:none!important;
+}
+
 #gameLobby .ddResources{
   display:contents;
 }
