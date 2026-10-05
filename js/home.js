@@ -67,7 +67,10 @@ function sync(){
   }
   set("homePlayerName",c.name);
   set("homePlayerLevel","Lv."+c.level);
-  set("lobbyCoins",formatCore(window.__duckWallet?window.__duckWallet.coins:0));
+  const coreValue=window.__duckWallet?window.__duckWallet.coins:0;
+  set("lobbyCoins",formatCore(coreValue));
+  const coreEl=$("lobbyCoins");
+  if(coreEl)coreEl.dataset.long=(Number(coreValue)>=10000 && Number(coreValue)<100000)?"1":"0";
   set("homeGems",window.__doldolResources.gems.toLocaleString());
   const stage=getHomeStage(),meta=stageMeta(stage);
   set("homeStageNo","STAGE "+stage);
@@ -209,8 +212,8 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   min-width:0;
   flex:1 1 auto;
   margin:0;
-  text-align:center;
-  font-size:clamp(12px,2.35vw,15px);
+  text-align:left;
+  font-size:clamp(14px,3.2vw,17px);
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -223,10 +226,15 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   flex:0 0 auto;
 }
 #gameLobby .ddCore b{
-  min-width:4.35em;
-  text-align:right;
+  min-width:0;
+  text-align:left;
+  margin-left:6px;
   white-space:nowrap;
-  font-size:clamp(10px,2.05vw,13px);
+  font-size:16px;
+  letter-spacing:-.2px;
+}
+#gameLobby .ddCore b[data-long="1"]{
+  font-size:13px;
   letter-spacing:-.35px;
 }
 #gameLobby .ddCore .ddPlus{
