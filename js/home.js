@@ -546,10 +546,19 @@ function bindLiveState(){
     Object.defineProperty(window.__duckWallet,"__homeSyncBound",{value:true,configurable:true});
   }
 }
+function loadHomeQuick(){
+  if(document.querySelector('script[data-doldol-quick]'))return;
+  const s=document.createElement('script');
+  s.src='js/quick.js?v=20261005-quick1';
+  s.defer=true;
+  s.dataset.doldolQuick='1';
+  document.head.appendChild(s);
+}
 if(!rebuild()){
   const mo=new MutationObserver(()=>{if(rebuild()){bindLiveState();mo.disconnect()}});
   mo.observe(document.documentElement,{childList:true,subtree:true});
 }else bindLiveState();
+loadHomeQuick();
 window.addEventListener("storage",sync);
 window.addEventListener("pageshow",sync);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
