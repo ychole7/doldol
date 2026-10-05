@@ -179,11 +179,15 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   border-radius:5px;
 }
 #gameLobby.doldolHomeClean #lobbyCoins{
-  font-size:clamp(10px,2.05vw,13px)!important;
+  font-size:16px!important;
   line-height:1!important;
   white-space:nowrap!important;
   overflow:visible!important;
   text-overflow:clip!important;
+}
+#gameLobby.doldolHomeClean #lobbyCoins[data-long="1"]{
+  font-size:13px!important;
+  letter-spacing:-.35px!important;
 }
 #gameLobby.doldolHomeClean #lobbyCoins::after{
   content:none!important;
@@ -219,9 +223,10 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   white-space:nowrap;
 }
 #gameLobby .ddCore img{
-  width:clamp(32px,6.2vw,38px);
-  height:clamp(32px,6.2vw,38px);
-  object-fit:contain;
+  width:clamp(28px,5.6vw,32px);
+  height:clamp(28px,5.6vw,32px);
+  object-fit:cover;
+  object-position:29% 50%;
   display:block;
   flex:0 0 auto;
 }
@@ -241,7 +246,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   margin-left:0!important;
 }
 #gameLobby .ddGem{
-  font-size:clamp(14px,2.6vw,17px);
+  font-size:clamp(18px,3.4vw,21px);
   flex:0 0 auto;
 }
 #gameLobby .ddPlus{
@@ -492,7 +497,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   #gameLobby .ddProfile{height:42px}
   #gameLobby .ddAvatar{width:34px;height:34px}
   #gameLobby .ddRes{height:34px}
-  #gameLobby .ddCore img{width:31px;height:31px}
+  #gameLobby .ddCore img{width:28px;height:28px}
   #gameLobby .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
   #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
 }
