@@ -164,7 +164,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   background:#ffd34e;
   border-radius:5px;
 }
-#gameLobby .dRResources{
+#gameLobby .ddResources{
   display:contents;
 }
 #gameLobby .ddRes{
