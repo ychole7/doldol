@@ -1,0 +1,181 @@
+/* 돌돌 특공대 — 특공대 화면 시안 적용 (홈 HUD 동일 + 카드 디자인) */
+#characterScreen.show{
+  --sq-hud-top:max(clamp(10px,2vw,16px),env(safe-area-inset-top));
+  --sq-hud-h:clamp(44px,7.1vw,52px);
+  --sq-top:calc(var(--sq-hud-top) + var(--sq-hud-h) + 8px);
+}
+#characterScreen.show .sqWrap{padding-top:var(--sq-top)}
+#characterScreen.show .sqDetailPage,
+#characterScreen.show .sqSkinPage{inset:var(--sq-top) 0 0}
+
+/* ===== 상단 HUD: 홈 HUD와 동일 ===== */
+#characterScreen.show .sqHud{
+  position:fixed;left:clamp(8px,2.6vw,16px);right:clamp(8px,2.6vw,16px);top:var(--sq-hud-top);
+  height:auto;display:grid;
+  grid-template-columns:minmax(0,.95fr) minmax(0,1.12fr) minmax(0,.75fr) auto;
+  align-items:center;gap:clamp(4px,1.25vw,8px);z-index:30;color:#fff;
+}
+#characterScreen.show .sqHudProfile{
+  width:auto;min-width:0;flex:none;height:var(--sq-hud-h);
+  display:flex;align-items:center;gap:clamp(5px,1vw,8px);
+  padding:4px 5px 4px 5px;
+  border:1px solid #ffffff55;border-radius:clamp(14px,2.5vw,17px);
+  background:#121d24d9;box-shadow:0 4px 12px #0005;overflow:hidden;
+}
+#characterScreen.show .sqHudFace{
+  width:clamp(36px,6.4vw,42px);height:clamp(36px,6.4vw,42px);min-width:0;flex:0 0 auto;
+  display:grid;place-items:center;overflow:hidden;
+  border-radius:clamp(11px,1.9vw,13px);background:#f7c94a;border:2px solid #fffd;
+}
+#characterScreen.show .sqHudFace img{width:100%;height:100%;object-fit:contain;display:block}
+#characterScreen.show .sqHudWho{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.05;overflow:hidden}
+#characterScreen.show .sqHudWho b{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:clamp(11px,2.25vw,13px);line-height:1.05;
+}
+#characterScreen.show .sqHudWho small{
+  font-size:clamp(9px,1.8vw,10px);line-height:1.05;color:#fff;margin-top:3px;font-weight:800;opacity:1;
+}
+#characterScreen.show .sqHudXp{
+  display:block;width:100%;height:clamp(4px,.9vw,5px);margin-top:5px;
+  background:#ffffff2b;border-radius:5px;overflow:hidden;
+}
+#characterScreen.show .sqHudXp i{display:block;height:100%;background:#ffd34e;border-radius:5px}
+#characterScreen.show .sqHudResources{display:contents}
+#characterScreen.show .sqHudRes{
+  width:auto;min-width:0;max-width:none;flex:none;
+  height:clamp(36px,6.2vw,42px);display:flex;align-items:center;gap:clamp(2px,.8vw,5px);
+  padding:0 clamp(4px,1vw,7px) 0 clamp(4px,1vw,7px);
+  border-radius:clamp(12px,2.2vw,14px);background:#123143e8;border:1px solid #ffffff42;
+  box-shadow:0 4px 11px #0004;white-space:nowrap;overflow:hidden;
+}
+#characterScreen.show .sqHudCoreRes img{
+  width:26px;height:26px;object-fit:cover;object-position:29% 50%;display:block;flex:0 0 auto;
+}
+#characterScreen.show .sqHudGemIcon{font-size:clamp(18px,3.4vw,21px);line-height:1;flex:0 0 auto}
+#characterScreen.show .sqHudRes b{
+  min-width:0;flex:1 1 auto;margin:0;text-align:left;
+  font-size:clamp(14px,3.2vw,17px);line-height:1;letter-spacing:-.2px;font-weight:900;
+  overflow:hidden;text-overflow:clip;white-space:nowrap;
+}
+#characterScreen.show .sqHudCoreRes b{font-size:15px;margin-left:4px;color:#ffd866}
+#characterScreen.show .sqHudRes button{
+  width:clamp(22px,4.3vw,27px);height:clamp(22px,4.3vw,27px);min-width:clamp(22px,4.3vw,27px);flex:0 0 auto;
+  display:grid;place-items:center;padding:0;margin:0;border:0;border-radius:50%;
+  background:#2196df;color:#fff;font-size:clamp(17px,3.4vw,21px);font-weight:900;line-height:1;
+}
+#characterScreen.show .sqHudSettings{
+  position:static;width:clamp(36px,6.2vw,42px);height:clamp(36px,6.2vw,42px);min-width:0;flex:none;
+  display:grid;place-items:center;padding:0;justify-self:end;
+  border-radius:clamp(12px,2.2vw,14px);border:1px solid #ffffff44;background:#123143e8;color:#fff;
+  font-size:clamp(18px,3.4vw,21px);box-shadow:0 4px 11px #0004;
+}
+@media(max-width:380px){
+  #characterScreen.show .sqHudCoreRes b{font-size:13px;margin-left:2px}
+  #characterScreen.show .sqHudRes b{font-size:14px}
+}
+@media(max-width:360px){
+  #characterScreen.show .sqHudWho small{display:none}
+  #characterScreen.show .sqHudFace{width:34px;height:34px}
+  #characterScreen.show .sqHudCoreRes img{width:24px;height:24px}
+}
+
+/* ===== 타이틀 바 ===== */
+#characterScreen.show .sqTop{grid-template-columns:50px 1fr;gap:7px;margin:0 0 9px}
+#characterScreen.show .sqBack{
+  width:50px;height:50px;border:2px solid #d79a4a;border-radius:14px;
+  background:linear-gradient(#8a4c1f,#5a2e12);color:#fff;
+  box-shadow:inset 0 0 0 3px #4a250f,inset 0 0 0 4px #b97a38,0 3px 0 #2e180a;
+}
+#characterScreen.show .sqTitle{
+  min-height:50px;display:flex;align-items:center;justify-content:center;gap:20px;
+  border:2px solid #d79a4a;border-radius:14px;
+  background:linear-gradient(#8a4c1f,#5a2e12);
+  box-shadow:inset 0 0 0 3px #4a250f,inset 0 0 0 4px #b97a38,0 3px 0 #2e180a;
+  font-size:26px;font-weight:900;letter-spacing:1px;
+}
+#characterScreen.show .sqTitle::before,
+#characterScreen.show .sqTitle::after{
+  content:"";width:24px;height:22px;flex:0 0 auto;opacity:.95;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22' fill='%23e3a84e'%3E%3Cellipse cx='12' cy='15' rx='6' ry='5'/%3E%3Cellipse cx='4' cy='9' rx='2.6' ry='3.2'/%3E%3Cellipse cx='9' cy='4.5' rx='2.6' ry='3.4'/%3E%3Cellipse cx='15' cy='4.5' rx='2.6' ry='3.4'/%3E%3Cellipse cx='20' cy='9' rx='2.6' ry='3.2'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ===== 탭 + 패널 프레임 ===== */
+#characterScreen.show .sqTabs{
+  gap:6px;padding:9px 9px 5px;border:3px solid #a8692e;border-bottom:0;border-radius:18px 18px 0 0;
+  background:#3a2414;
+}
+#characterScreen.show .sqTab{min-height:40px;border-radius:12px;font-size:13px;background:#241b17}
+#characterScreen.show .sqTab.on{background:linear-gradient(#ffe985,#ffc83f);color:#3f2b14}
+#characterScreen.show .sqGrid{
+  grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(160px,1fr);align-content:stretch;
+  gap:8px 6px;padding:6px 9px 12px;
+  border:3px solid #a8692e;border-top:0;border-radius:0 0 18px 18px;background:#3a2414;
+}
+
+/* ===== 캐릭터 카드 ===== */
+#characterScreen.show .sqCard{
+  display:flex;flex-direction:column;align-items:stretch;padding:5px;text-align:center;
+  border:2px solid #b97c3c;border-radius:16px;
+  background:linear-gradient(180deg,#6b4a2a,#3a2716);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 4px 9px rgba(0,0,0,.28);
+}
+#characterScreen.show .sqCard.locked{
+  filter:none;opacity:1;border-color:#8d9296;background:linear-gradient(180deg,#4a4a4a,#262626);
+}
+#characterScreen.show .sqCard.selected{
+  border:3px solid #39d5ff;background:linear-gradient(180deg,#86632f,#3f301e);padding:4px;
+  box-shadow:0 0 0 2px rgba(255,214,89,.72),0 0 16px rgba(44,211,255,.5);
+}
+#characterScreen.show .sqPortrait{
+  position:relative;flex:1 1 auto;min-height:0;border-radius:11px;overflow:hidden;
+  background:url("../assets/home_base_bg.png") 28% 38%/cover;
+}
+#characterScreen.show .sqPortrait img{
+  position:absolute;inset:0;width:100%;height:100%;max-width:none;
+  object-fit:cover;object-position:50% 0;transform:scale(1.04);transform-origin:50% 0;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,.3));
+}
+#characterScreen.show .sqCard.locked .sqPortrait{filter:grayscale(1) brightness(.72)}
+#characterScreen.show .sqInfo{
+  position:relative;z-index:2;flex:0 0 auto;margin-top:-16px;padding:6px 5px 5px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  border-radius:12px;background:rgba(47,28,14,.92);box-shadow:0 -5px 9px rgba(0,0,0,.22);
+}
+#characterScreen.show .sqName{font-size:14px;font-weight:900;line-height:1.1;text-shadow:0 1px 2px #000a}
+#characterScreen.show .sqRole{
+  display:flex;align-items:center;justify-content:center;gap:5px;margin:0;
+  font-size:11px;font-weight:800;color:#e9dccb;
+}
+#characterScreen.show .sqRoleIc{
+  width:18px;height:18px;display:grid;place-items:center;border-radius:50%;
+  background:#1f1914;border:1px solid #ffffff44;font-style:normal;font-size:10px;line-height:1;flex:0 0 auto;
+}
+#characterScreen.show .sqLv{
+  display:block;width:100%;margin:2px 0 0;padding:2px 0;border-radius:7px;background:rgba(0,0,0,.34);
+  font-size:13px;font-weight:900;color:#ffe166;
+}
+#characterScreen.show .sqCard.locked .sqLv{color:#fff}
+#characterScreen.show .sqLock{top:9px;right:9px;width:26px;height:26px;font-size:14px;border-radius:8px}
+#characterScreen.show .sqPadlock{
+  position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:3;
+  font-size:26px;line-height:1;pointer-events:none;
+  filter:grayscale(1) brightness(1.35) drop-shadow(0 3px 4px rgba(0,0,0,.5));
+}
+#characterScreen.show .sqSelected{
+  top:-1px;padding:4px 13px 5px;border-radius:0 0 11px 11px;background:#20bdf2;font-size:11px;
+}
+
+@media(max-width:360px){
+  #characterScreen.show .sqHud{
+    grid-template-columns:minmax(0,.98fr) minmax(0,1.10fr) minmax(0,.82fr) auto;
+    gap:3px;
+  }
+  #characterScreen.show .sqHudRes{padding-left:3px;padding-right:3px}
+  #characterScreen.show .sqHudRes button{
+    width:22px;height:22px;min-width:22px;font-size:17px;
+  }
+  #characterScreen.show .sqHudGemIcon{font-size:17px}
+  #characterScreen.show .sqHudRes b{font-size:13px}
+  #characterScreen.show .sqHudCoreRes b{font-size:12px;margin-left:1px}
+}
