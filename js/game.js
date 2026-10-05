@@ -3259,17 +3259,26 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     document.body.appendChild(page);
     const st=document.createElement('style');st.id='doldolAchievementStyle';st.textContent=`
 #doldolAchievementPage{
-  position:fixed;inset:0;z-index:9600;display:none;overflow:auto;
-  padding:calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 24px);
-  background:
-    linear-gradient(rgba(3,17,31,.36),rgba(3,17,31,.70)),
-    url('../assets/home_base_bg.png') center/cover fixed;
+  position:fixed;inset:0;z-index:9600;display:none;overflow:hidden;
+  padding:calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 10px);
+  align-items:center;justify-content:center;
+  background:rgba(2,10,17,.72);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
   font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   color:#fff;
 }
-#doldolAchievementPage.show{display:block}
+#doldolAchievementPage.show{display:flex}
 #doldolAchievementPage *{box-sizing:border-box}
-.achShell{max-width:720px;margin:0 auto;border:2px solid rgba(100,204,255,.90);border-radius:24px;overflow:hidden;box-shadow:0 20px 52px rgba(0,0,0,.38)}
+.achShell{
+  width:min(100%,720px);
+  height:min(92dvh,820px);
+  max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);
+  margin:0 auto;
+  display:flex;flex-direction:column;
+  border:2px solid rgba(100,204,255,.90);border-radius:24px;overflow:hidden;
+  box-shadow:0 20px 52px rgba(0,0,0,.48)
+}
 .achTop{
   display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;
   min-height:76px;padding:10px 12px;
@@ -3290,7 +3299,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 }
 .achCoreIcon{display:inline-block;object-fit:cover;object-position:29% 50%;vertical-align:middle}
 .achCoreIcon.top{width:23px;height:23px}
-.achCoreIcon.reward{width:15px;height:15px;margin:0 2px 0 3px}
+.achCoreIcon.reward{
+  width:22px;height:22px;margin:0 3px 0 3px;
+  object-fit:cover;object-position:29% 50%;
+  flex:0 0 22px;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))
+}
 .achHero{
   min-height:116px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;
   background:
@@ -3313,7 +3327,15 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 }
 .achSummary b{display:block;font-size:18px;color:#fff}
 .achSummary small{font-size:9px;color:#b7cede}
-.achList{background:linear-gradient(180deg,#0e2d44,#0b2539);padding:11px 10px 14px}
+.achTop,.achHero,.achSummary{flex:0 0 auto}
+.achList{
+  flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  background:linear-gradient(180deg,#0e2d44,#0b2539);
+  padding:11px 10px 14px;
+  scrollbar-width:none;
+}
+.achList::-webkit-scrollbar{display:none}
 .achCard{
   display:grid;grid-template-columns:50px 1fr auto;gap:9px;align-items:center;
   min-height:82px;padding:9px;margin-bottom:8px;border-radius:17px;
@@ -3331,7 +3353,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   font-size:25px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))
 }
 .achName{font-size:13px;font-weight:1000;color:#23272b}
-.achDesc{display:flex;align-items:center;flex-wrap:wrap;font-size:9px;color:#747067;margin-top:2px}
+.achDesc{display:flex;align-items:center;flex-wrap:wrap;gap:1px;font-size:9px;color:#747067;margin-top:2px;min-height:22px}
 .achBar{height:6px;background:#bcb7ad;border-radius:99px;overflow:hidden;margin-top:7px}
 .achBar i{display:block;height:100%;background:linear-gradient(90deg,#59be32,#a6ed54)}
 .achCount{font-size:9px;font-weight:1000;color:#4e4a43;margin-top:3px}
@@ -3357,7 +3379,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 }
 .achToast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:430px){
-  .achShell{border-radius:20px}
+  .achShell{
+    height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px);
+    max-height:none;border-radius:20px
+  }
   .achTop{grid-template-columns:42px 1fr auto;min-height:70px;padding:9px 10px}
   .achTop button{width:40px;height:40px}
   .achTop b{font-size:22px}
