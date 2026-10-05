@@ -30,6 +30,17 @@ function stageMeta(stage){
   if(stage===2)return{title:"2. 훈련장 진입",desc:"더 강한 적을 상대할 준비를 하자!",img:"./assets/stage2_training.jpg"};
   return{title:stage+". 특공 작전",desc:stage%5===0?"강력한 보스가 기다리고 있다!":"특공대의 다음 작전을 시작하자!",img:stage%2===0?"./assets/stage2_training.jpg":"./assets/stage1_training.jpg"};
 }
+function formatCore(v){
+  const n=Math.max(0,Math.floor(Number(v)||0));
+  if(n<100000)return n.toLocaleString();
+  if(n<1000000)return Math.floor(n/1000)+"K";
+  if(n<1000000000){
+    const m=n/1000000;
+    return (m<10?m.toFixed(1):Math.floor(m)).toString().replace(/\.0$/,"")+"M";
+  }
+  const b=n/1000000000;
+  return (b<10?b.toFixed(1):Math.floor(b)).toString().replace(/\.0$/,"")+"B";
+}
 function sync(){
   const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
   const av=$("homePlayerAvatar");
@@ -56,7 +67,7 @@ function sync(){
   }
   set("homePlayerName",c.name);
   set("homePlayerLevel","Lv."+c.level);
-  set("lobbyCoins",(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString());
+  set("lobbyCoins",formatCore(window.__duckWallet?window.__duckWallet.coins:0));
   set("homeGems",window.__doldolResources.gems.toLocaleString());
   const stage=getHomeStage(),meta=stageMeta(stage);
   set("homeStageNo","STAGE "+stage);
@@ -190,19 +201,21 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   text-overflow:ellipsis;
 }
 #gameLobby .ddCore img{
-  width:clamp(42px,7.8vw,51px);
-  height:clamp(42px,7.8vw,51px);
+  width:clamp(32px,6.2vw,38px);
+  height:clamp(32px,6.2vw,38px);
   object-fit:contain;
   display:block;
   flex:0 0 auto;
 }
 #gameLobby .ddCore b{
-  min-width:3.6em;
+  min-width:4.35em;
   text-align:right;
   white-space:nowrap;
+  font-size:clamp(10px,2.05vw,13px);
+  letter-spacing:-.35px;
 }
 #gameLobby .ddCore .ddPlus{
-  margin-left:-2px!important;
+  margin-left:-3px!important;
 }
 #gameLobby .ddGem{
   font-size:clamp(14px,2.6vw,17px);
@@ -456,7 +469,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   #gameLobby .ddProfile{height:42px}
   #gameLobby .ddAvatar{width:34px;height:34px}
   #gameLobby .ddRes{height:34px}
-  #gameLobby .ddCore img{width:39px;height:39px}
+  #gameLobby .ddCore img{width:31px;height:31px}
   #gameLobby .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
   #gameLobby .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
 }
