@@ -2553,6 +2553,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const screen=document.getElementById('characterScreen');
   if(!screen) return;
 
+  if(!document.querySelector('link[data-doldol-squad-style]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='css/squad.css?v=20261006-squad2';
+    link.dataset.doldolSquadStyle='1';
+    document.head.appendChild(link);
+  }
+
   const uiRoster=[
     {id:'doldol', face:'🐥', art:'./assets/characters/character_doldol.png', gateStage:1, unlockCost:0, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
     {id:'nyang', face:'🐱', art:'./assets/characters/character_nyang.png', gateStage:10, unlockCost:3000, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
@@ -2947,9 +2955,19 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
     grid.innerHTML=uiRoster.filter(filter).map(c=>{
       const p=progress(c.id), lock=!owned(c.id);
+      const ROLE_IC={
+        '밸런스형':'⚖','스피드형':'🪽','타이밍형':'◎','탱커형':'🛡',
+        '치명타형':'✦','방어형':'🛡','콤보형':'⚡','파워형':'💥'
+      };
+      const roleIc=ROLE_IC[c.role]||'✦';
       return `<button class="sqCard ${c.id===selectedId?'selected':''} ${lock?'locked':''}" data-id="${c.id}">
         ${c.id===active?'<span class="sqSelected">선택중</span>':''}
-        <span class="sqFace">${c.art?`<img src="${c.art}" alt="${c.name}">`:c.face}</span><span class="sqName">${c.name}</span><span class="sqRole">${c.role}</span><span class="sqLv">Lv.${p.level}</span>
+        <span class="sqPortrait">${c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`}</span>
+        <span class="sqInfo">
+          <span class="sqName">${c.name}</span>
+          <span class="sqRole"><i class="sqRoleIc">${roleIc}</i>${c.role}</span>
+          <span class="sqLv">Lv.${p.level}</span>
+        </span>
         ${lock?`<span class="sqLock" title="${c.gate}">🔒</span>`:''}
       </button>`;
     }).join('');
