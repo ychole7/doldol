@@ -12,7 +12,13 @@ const KEY='doldol_attendance_v1';
 
 /* 7일 주기 보상. 7일차에만 보석 포함 */
 const REWARDS=[
-  {core:200},{core:300},{core:400},{core:500},{core:700},{core:900},{core:1500,gems:50}
+  {core:200},
+  {medkit:3},
+  {grenade:3},
+  {gems:100},
+  {core:500},
+  {medkit:3,grenade:3},
+  {core:1000,gems:100,grenade:5}
 ];
 
 function today(){
@@ -114,13 +120,29 @@ function injectStyle(){
   display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px;
 }
 #ddAttend .adDay{
-  position:relative;min-height:84px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  position:relative;min-height:96px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
   border-radius:14px;background:#1b4560;border:1px solid #ffffff2e;
 }
 #ddAttend .adDay.big{grid-column:span 2}
+#ddAttend .adDay.big .adRewardIcon{height:36px}
+#ddAttend .adDay.big .adRewardImg,#ddAttend .adDay.big .adSvgIcon{width:38px;height:38px}
+#ddAttend .adDay.big .adGemIcon{font-size:30px}
+#ddAttend .adDay.big .adRewardSet.multi{gap:10px}
+#ddAttend .adDay.big .adRewardLabel{font-size:9px}
+#ddAttend .adDay.big .adRewardValue{font-size:12px}
 #ddAttend .adDay em{font-style:normal;font-size:11px;font-weight:800;opacity:.75}
-#ddAttend .adDay strong{font-size:13px;color:#ffd866;text-align:center;line-height:1.25}
+#ddAttend .adRewardSet{width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
+#ddAttend .adRewardSet.single .adRewardUnit{width:100%}
+#ddAttend .adRewardSet.multi{gap:4px}
+#ddAttend .adRewardUnit{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#ddAttend .adRewardIcon{height:38px;display:flex;align-items:center;justify-content:center}
+#ddAttend .adRewardImg{width:42px;height:42px;object-fit:cover;object-position:29% 50%;display:block}
+#ddAttend .adSvgIcon{width:42px;height:42px;display:block}
+#ddAttend .adSvgIcon svg{width:100%;height:100%;display:block}
+#ddAttend .adGemIcon{font-size:34px;line-height:1}
+#ddAttend .adRewardLabel{font-size:10px;font-weight:800;color:#fff;white-space:nowrap;line-height:1.05}
+#ddAttend .adRewardValue{font-size:13px;font-weight:900;color:#ffd866;white-space:nowrap;line-height:1.05}
 #ddAttend .adDay.done{opacity:.55}
 #ddAttend .adDay.done::after{
   content:"✓";position:absolute;inset:0;display:grid;place-items:center;
@@ -146,13 +168,63 @@ function injectStyle(){
   min-height:18px;margin-top:10px;text-align:center;
   font-size:13px;font-weight:800;color:#7dff9c;
 }
+@media(max-width:390px){
+  #ddAttend .adGrid{gap:6px;padding:12px}
+  #ddAttend .adDay{min-height:90px}
+  #ddAttend .adRewardImg,#ddAttend .adSvgIcon{width:36px;height:36px}
+  #ddAttend .adGemIcon{font-size:30px}
+  #ddAttend .adRewardLabel{font-size:9px}
+  #ddAttend .adRewardValue{font-size:12px}
+}
 `;
   document.head.appendChild(st);
 }
 
 /* ---------- 출석 화면 ---------- */
+
+function iconCore(){
+  return '<img class="adRewardImg core" src="./assets/doldol_stone_core.png" alt="돌핵">';
+}
+function iconMedkit(){
+  return '<span class="adSvgIcon">'+
+  '<svg viewBox="0 0 64 64" aria-hidden="true">'+
+  '<rect x="10" y="17" width="44" height="34" rx="9" fill="#ef5548" stroke="#7d211c" stroke-width="3"/>'+
+  '<rect x="15" y="22" width="34" height="24" rx="6" fill="#fff4e8"/>'+
+  '<rect x="27" y="26" width="10" height="16" rx="2" fill="#e7433a"/>'+
+  '<rect x="24" y="29" width="16" height="10" rx="2" fill="#e7433a"/>'+
+  '<path d="M24 17v-5h16v5" fill="none" stroke="#4b5666" stroke-width="4" stroke-linecap="round"/>'+
+  '</svg></span>';
+}
+function iconGrenade(){
+  return '<span class="adSvgIcon">'+
+  '<svg viewBox="0 0 64 64" aria-hidden="true">'+
+  '<path d="M25 18h18l6 9-3 22-11 8-12-8-5-22z" fill="#7d8b35" stroke="#343b1b" stroke-width="3"/>'+
+  '<path d="M24 29h22M22 38h25M30 19l-4 34M39 19l3 33" stroke="#a9b34f" stroke-width="2" opacity=".75"/>'+
+  '<rect x="30" y="10" width="15" height="9" rx="2" fill="#555e69"/>'+
+  '<path d="M43 12c8 0 10 6 5 10" fill="none" stroke="#727b85" stroke-width="4" stroke-linecap="round"/>'+
+  '</svg></span>';
+}
+function iconGems(){
+  return '<span class="adGemIcon">💎</span>';
+}
+function rewardParts(r){
+  const out=[];
+  if(r.core)out.push({icon:iconCore(),label:'돌핵',value:r.core.toLocaleString()});
+  if(r.medkit)out.push({icon:iconMedkit(),label:'응급키트',value:'x'+r.medkit});
+  if(r.grenade)out.push({icon:iconGrenade(),label:'수류탄',value:'x'+r.grenade});
+  if(r.gems)out.push({icon:iconGems(),label:'보석',value:r.gems.toLocaleString()});
+  return out;
+}
+function rewardMarkup(r){
+  const parts=rewardParts(r);
+  return '<div class="adRewardSet '+(parts.length>1?'multi':'single')+'">'+
+    parts.map(p=>'<div class="adRewardUnit"><div class="adRewardIcon">'+p.icon+'</div>'+
+    '<div class="adRewardLabel">'+p.label+'</div><div class="adRewardValue">'+p.value+'</div></div>').join('')+
+    '</div>';
+}
+
 function rewardText(r){
-  return '돌핵 '+r.core.toLocaleString()+(r.gems?'\n보석 '+r.gems:'');
+  return rewardParts(r).map(p=>p.label+' '+p.value).join(' · ');
 }
 function ensureModal(){
   let m=$('ddAttend');
@@ -182,8 +254,7 @@ function renderModal(){
     let cls='adDay'+(i===REWARDS.length-1?' big':'');
     if(abs<s.count)cls+=' done';
     else if(!claimedToday&&abs===s.count)cls+=' today';
-    return '<div class="'+cls+'"><em>'+(i+1)+'일차</em><strong>'+
-      rewardText(r).replace(/\n/g,'<br>')+'</strong></div>';
+    return '<div class="'+cls+'"><em>'+(i+1)+'일차</em>'+rewardMarkup(r)+'</div>';
   }).join('');
   const btn=m.querySelector('#adClaim');
   btn.disabled=claimedToday;
@@ -200,14 +271,18 @@ function claim(){
   const s=load();
   if(s.last===today())return;
   const r=REWARDS[s.count%REWARDS.length];
-  if(window.__duckWallet)window.__duckWallet.addCoins(r.core);
+  if(r.core&&window.__duckWallet)window.__duckWallet.addCoins(r.core);
   if(r.gems&&window.__doldolResources)
     window.__doldolResources.setGems(window.__doldolResources.gems+r.gems);
+  if(r.medkit&&window.__duckBattleItems&&window.__duckBattleItems.add)
+    window.__duckBattleItems.add('medkit',r.medkit);
+  if(r.grenade&&window.__duckBattleItems&&window.__duckBattleItems.add)
+    window.__duckBattleItems.add('grenade',r.grenade);
   s.last=today();
   s.count+=1;
   save(s);
   renderModal();
-  $('adToast').textContent='돌핵 '+r.core.toLocaleString()+(r.gems?' · 보석 '+r.gems:'')+' 획득!';
+  $('adToast').textContent=rewardText(r)+' 획득!';
   refresh();
   if(window.__duckSyncLobby)try{window.__duckSyncLobby()}catch(e){}
   if(window.__doldolSyncHomeHud)try{window.__doldolSyncHomeHud()}catch(e){}
