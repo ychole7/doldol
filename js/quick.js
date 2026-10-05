@@ -126,8 +126,7 @@ function injectStyle(){
 }
 #ddAttend .adDay.big{grid-column:span 2}
 #ddAttend .adDay.big .adRewardIcon{height:36px}
-#ddAttend .adDay.big .adRewardImg,#ddAttend .adDay.big .adSvgIcon{width:38px;height:38px}
-#ddAttend .adDay.big .adGemIcon{font-size:30px}
+#ddAttend .adDay.big .adRewardImg{width:38px;height:38px}
 #ddAttend .adDay.big .adRewardSet.multi{gap:10px}
 #ddAttend .adDay.big .adRewardLabel{font-size:9px}
 #ddAttend .adDay.big .adRewardValue{font-size:12px}
@@ -137,10 +136,9 @@ function injectStyle(){
 #ddAttend .adRewardSet.multi{gap:4px}
 #ddAttend .adRewardUnit{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #ddAttend .adRewardIcon{height:38px;display:flex;align-items:center;justify-content:center}
-#ddAttend .adRewardImg{width:42px;height:42px;object-fit:cover;object-position:29% 50%;display:block}
-#ddAttend .adSvgIcon{width:42px;height:42px;display:block}
-#ddAttend .adSvgIcon svg{width:100%;height:100%;display:block}
-#ddAttend .adGemIcon{font-size:34px;line-height:1}
+#ddAttend .adRewardImg{width:42px;height:42px;display:block}
+#ddAttend .adRewardImg.core{object-fit:cover;object-position:29% 50%}
+#ddAttend .adRewardImg.item,#ddAttend .adRewardImg.gem{object-fit:contain;object-position:center}
 #ddAttend .adRewardLabel{font-size:10px;font-weight:800;color:#fff;white-space:nowrap;line-height:1.05}
 #ddAttend .adRewardValue{font-size:13px;font-weight:900;color:#ffd866;white-space:nowrap;line-height:1.05}
 #ddAttend .adDay.done{opacity:.55}
@@ -171,8 +169,7 @@ function injectStyle(){
 @media(max-width:390px){
   #ddAttend .adGrid{gap:6px;padding:12px}
   #ddAttend .adDay{min-height:90px}
-  #ddAttend .adRewardImg,#ddAttend .adSvgIcon{width:36px;height:36px}
-  #ddAttend .adGemIcon{font-size:30px}
+  #ddAttend .adRewardImg{width:36px;height:36px}
   #ddAttend .adRewardLabel{font-size:9px}
   #ddAttend .adRewardValue{font-size:12px}
 }
@@ -186,26 +183,13 @@ function iconCore(){
   return '<img class="adRewardImg core" src="./assets/doldol_stone_core.png" alt="돌핵">';
 }
 function iconMedkit(){
-  return '<span class="adSvgIcon">'+
-  '<svg viewBox="0 0 64 64" aria-hidden="true">'+
-  '<rect x="10" y="17" width="44" height="34" rx="9" fill="#ef5548" stroke="#7d211c" stroke-width="3"/>'+
-  '<rect x="15" y="22" width="34" height="24" rx="6" fill="#fff4e8"/>'+
-  '<rect x="27" y="26" width="10" height="16" rx="2" fill="#e7433a"/>'+
-  '<rect x="24" y="29" width="16" height="10" rx="2" fill="#e7433a"/>'+
-  '<path d="M24 17v-5h16v5" fill="none" stroke="#4b5666" stroke-width="4" stroke-linecap="round"/>'+
-  '</svg></span>';
+  return '<img class="adRewardImg item" src="./assets/items/item_medkit.png" alt="응급키트">';
 }
 function iconGrenade(){
-  return '<span class="adSvgIcon">'+
-  '<svg viewBox="0 0 64 64" aria-hidden="true">'+
-  '<path d="M25 18h18l6 9-3 22-11 8-12-8-5-22z" fill="#7d8b35" stroke="#343b1b" stroke-width="3"/>'+
-  '<path d="M24 29h22M22 38h25M30 19l-4 34M39 19l3 33" stroke="#a9b34f" stroke-width="2" opacity=".75"/>'+
-  '<rect x="30" y="10" width="15" height="9" rx="2" fill="#555e69"/>'+
-  '<path d="M43 12c8 0 10 6 5 10" fill="none" stroke="#727b85" stroke-width="4" stroke-linecap="round"/>'+
-  '</svg></span>';
+  return '<img class="adRewardImg item" src="./assets/items/item_grenade.png" alt="수류탄">';
 }
 function iconGems(){
-  return '<span class="adGemIcon">💎</span>';
+  return '<img class="adRewardImg gem" src="./assets/items/item_gems.png" alt="보석">';
 }
 function rewardParts(r){
   const out=[];
