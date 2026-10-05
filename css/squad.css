@@ -2,7 +2,7 @@
 #characterScreen.show{
   --sq-hud-top:max(clamp(10px,2vw,16px),env(safe-area-inset-top));
   --sq-hud-h:clamp(44px,7.1vw,52px);
-  --sq-top:calc(var(--sq-hud-top) + var(--sq-hud-h) + 8px);
+  --sq-top:calc(var(--sq-hud-top) + var(--sq-hud-h) + 8px - env(safe-area-inset-top));
 }
 #characterScreen.show .sqWrap{padding-top:var(--sq-top)}
 #characterScreen.show .sqDetailPage,
