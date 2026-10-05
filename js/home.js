@@ -32,7 +32,28 @@ function stageMeta(stage){
 }
 function sync(){
   const c=info(),set=(id,v)=>{const e=$(id);if(e)e.textContent=v};
-  set("homePlayerAvatar",c.face);
+  const av=$("homePlayerAvatar");
+  if(av){
+    const ART={
+      doldol:"character_doldol.png",
+      nyang:"character_nyang.png",
+      rabbit:"character_rabbit.png",
+      panda:"character_panda.png",
+      king:"character_shadow.png",
+      turtle:"character_turtle.png",
+      shiba:"character_shiba.png",
+      charge:"character_charge.png"
+    };
+    const src="./assets/characters/"+(ART[c.id]||ART.doldol);
+    let im=av.querySelector("img");
+    if(!im){
+      av.textContent="";
+      im=document.createElement("img");
+      av.appendChild(im);
+    }
+    if(im.getAttribute("src")!==src)im.setAttribute("src",src);
+    im.alt=c.name;
+  }
   set("homePlayerName",c.name);
   set("homePlayerLevel","Lv."+c.level);
   set("lobbyCoins",(window.__duckWallet?window.__duckWallet.coins:0).toLocaleString());
@@ -46,7 +67,7 @@ function sync(){
 }
 window.__doldolSyncHomeHud=sync;
 function rebuild(){const l=$("gameLobby");if(!l||l.dataset.cleanHome==="1")return!!l;const ids=["lobbyStart","lobbyStages","lobbyGrowth","lobbyGear","lobbyShop","lobbyBook","lobbySettings"],saved=ids.map($).filter(Boolean);if(!$("lobbyStart"))return false;saved.forEach(e=>e.remove());l.replaceChildren();l.className="doldolHomeClean";l.dataset.cleanHome="1";
-const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar">🐥</div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
+const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar"><img src="./assets/characters/character_doldol.png" alt="돌돌이"></div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
  const squad=document.createElement("section");
  squad.className="ddSquad";
  squad.setAttribute("aria-label","특공대 편성");
@@ -103,6 +124,13 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   border:2px solid #fffd;
   box-sizing:border-box;
 }
+#gameLobby .ddAvatar img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  pointer-events:none;
+}
 #gameLobby .ddProfileText{
   min-width:0;
   display:flex;
@@ -136,7 +164,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   background:#ffd34e;
   border-radius:5px;
 }
-#gameLobby .ddResources{
+#gameLobby .dRResources{
   display:contents;
 }
 #gameLobby .ddRes{
