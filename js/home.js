@@ -196,6 +196,14 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   display:block;
   flex:0 0 auto;
 }
+#gameLobby .ddCore b{
+  min-width:3.6em;
+  text-align:right;
+  white-space:nowrap;
+}
+#gameLobby .ddCore .ddPlus{
+  margin-left:-2px!important;
+}
 #gameLobby .ddGem{
   font-size:clamp(14px,2.6vw,17px);
   flex:0 0 auto;
