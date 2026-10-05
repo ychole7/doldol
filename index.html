@@ -437,15 +437,14 @@ body{
 /* The background above is the visible portrait.
    Hide any stale/cached inline avatar image without removing it from DOM. */
 #gameLobby .profileAvatar img{
-  opacity:1!important;
-  width:40px!important;
-  height:33px!important;
-  min-width:40px!important;
+  width:100%!important;
+  height:100%!important;
   max-width:none!important;
   object-fit:contain!important;
   object-position:center!important;
   display:block!important;
   transform:none!important;
+  opacity:1!important;
   pointer-events:none!important;
 }
 
@@ -601,7 +600,6 @@ body{
   #gameLobby .homeTop{gap:4px!important}
   #gameLobby .profileMini{width:82px!important;min-width:82px!important;max-width:82px!important;flex-basis:82px!important;height:44px!important}
   #gameLobby .profileAvatar{width:25px!important;height:25px!important;min-width:25px!important;flex-basis:25px!important}
-  #gameLobby .profileAvatar img{width:38px!important;height:32px!important;min-width:38px!important}
   #gameLobby .coreRes{width:103px!important;min-width:103px!important;max-width:103px!important;flex-basis:103px!important}
   #gameLobby .gemRes{width:80px!important;min-width:80px!important;max-width:80px!important;flex-basis:80px!important}
   #gameLobby #lobbyCoins::after{font-size:12px!important}
@@ -641,15 +639,35 @@ body{
   function applyPortrait(){
     const id=selectedId();
     const meta=chars[id]||chars.doldol;
-    const img=document.getElementById('lobbyProfileImg');
-    if(img){
-      const squadImg=document.querySelector('#charGrid .sqCard[data-id="'+id+'"] .sqFace img');
-      const src=squadImg?squadImg.getAttribute('src'):meta[1];
-      if(src && img.getAttribute('src')!==src) img.setAttribute('src',src);
-      img.alt=meta[0];
-    }
     const avatar=document.querySelector('#gameLobby .profileAvatar');
-    if(avatar) avatar.style.setProperty('background-image','none','important');
+    const squadFace=document.getElementById('sqHudFace');
+
+    if(avatar){
+      avatar.style.setProperty('background-image','none','important');
+
+      /* Source of truth = the portrait already rendered by the Squad HUD. */
+      if(squadFace && squadFace.querySelector('img')){
+        const sourceImg=squadFace.querySelector('img');
+        let homeImg=avatar.querySelector('img');
+        if(!homeImg){
+          homeImg=document.createElement('img');
+          homeImg.id='lobbyProfileImg';
+          avatar.replaceChildren(homeImg);
+        }
+        homeImg.src=sourceImg.currentSrc||sourceImg.getAttribute('src')||meta[1];
+        homeImg.alt=meta[0];
+      }else{
+        let homeImg=avatar.querySelector('img');
+        if(!homeImg){
+          homeImg=document.createElement('img');
+          homeImg.id='lobbyProfileImg';
+          avatar.replaceChildren(homeImg);
+        }
+        homeImg.src=meta[1];
+        homeImg.alt=meta[0];
+      }
+    }
+
     const name=document.getElementById('lobbyProfileName');
     if(name)name.textContent=meta[0];
 
@@ -698,9 +716,24 @@ body{
     sync();
   };
 
+  function installSquadPortraitMirror(){
+    const face=document.getElementById('sqHudFace');
+    if(!face || face.__homePortraitMirror)return;
+    face.__homePortraitMirror=new MutationObserver(function(){
+      setTimeout(applyPortrait,0);
+    });
+    face.__homePortraitMirror.observe(face,{
+      childList:true,
+      subtree:true,
+      attributes:true,
+      attributeFilter:['src']
+    });
+  }
+
   /* Narrow observer: only the coin text node, not the whole lobby. */
   function install(){
     sync();
+    installSquadPortraitMirror();
     const c=document.getElementById('lobbyCoins');
     if(c && !c.__compactObserver){
       c.__compactObserver=new MutationObserver(function(){
