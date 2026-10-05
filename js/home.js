@@ -207,10 +207,13 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 }
 #gameLobby .ddRes b{
   min-width:0;
-  margin-left:auto;
+  flex:1 1 auto;
+  margin:0;
+  text-align:center;
   font-size:clamp(12px,2.35vw,15px);
   overflow:hidden;
   text-overflow:ellipsis;
+  white-space:nowrap;
 }
 #gameLobby .ddCore img{
   width:clamp(32px,6.2vw,38px);
@@ -227,7 +230,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   letter-spacing:-.35px;
 }
 #gameLobby .ddCore .ddPlus{
-  margin-left:-3px!important;
+  margin-left:0!important;
 }
 #gameLobby .ddGem{
   font-size:clamp(14px,2.6vw,17px);
