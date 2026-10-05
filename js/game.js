@@ -3235,17 +3235,181 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const map={kill:'kills',parry:'parry',perfect:'perfect',clear:'clears',play:'plays',level:'levels',gear:'gear',item:'items'};
     const key=map[type]; if(!key)return; state[key]=(Number(state[key])||0)+v; sync();
   };
+  function coreIcon(cls=''){
+    return '<img class="achCoreIcon '+cls+'" src="assets/doldol_stone_core.png" alt="돌핵">';
+  }
   function ensure(){
     let page=document.getElementById('doldolAchievementPage'); if(page)return page;
     page=document.createElement('section');page.id='doldolAchievementPage';
-    page.innerHTML='<div class="achTop"><button id="achBack" aria-label="뒤로">‹</button><div><b>업적</b><small>특공대의 기록</small></div><span>🔥 <strong id="achCore">0</strong></span></div><div class="achHero"><div><small>ACHIEVEMENT</small><b>작전 기록</b><p>플레이하며 업적을 달성하고 돌핵을 획득하세요.</p></div><div class="achMedal">🏅</div></div><div class="achSummary" id="achSummary"></div><div class="achList" id="achList"></div><div class="achToast" id="achToast"></div>';
+    page.innerHTML=
+      '<div class="achShell">'+
+        '<div class="achTop">'+
+          '<button id="achBack" aria-label="뒤로">‹</button>'+
+          '<div><b>업적</b><small>특공대의 기록</small></div>'+
+          '<span>'+coreIcon('top')+'<strong id="achCore">0</strong></span>'+
+        '</div>'+
+        '<div class="achHero">'+
+          '<div><small>ACHIEVEMENT</small><b>작전 기록</b><p>플레이하며 업적을 달성하고 돌핵을 획득하세요.</p></div>'+
+          '<div class="achMedal">🏅</div>'+
+        '</div>'+
+        '<div class="achSummary" id="achSummary"></div>'+
+        '<div class="achList" id="achList"></div>'+
+      '</div>'+
+      '<div class="achToast" id="achToast"></div>';
     document.body.appendChild(page);
     const st=document.createElement('style');st.id='doldolAchievementStyle';st.textContent=`
-#doldolAchievementPage{position:fixed;inset:0;z-index:9600;display:none;overflow:auto;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 24px);background:linear-gradient(rgba(16,27,27,.2),rgba(16,27,27,.66)),url('../assets/home_base_bg.png') center/cover fixed;font-family:system-ui,-apple-system,sans-serif;color:#49351f}#doldolAchievementPage.show{display:block}.achTop,.achHero,.achSummary,.achList{max-width:720px;margin:auto}.achTop{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;background:#765336;border:3px solid #f8e7aa;border-radius:24px 24px 0 0;padding:11px;color:#fff}.achTop button{width:42px;height:42px;border:0;border-radius:13px;background:#d0bb8d;color:#fff;font-size:32px;font-weight:1000}.achTop b{display:block;font-size:25px}.achTop small{font-size:10px;color:#ead7b8}.achTop>span{background:#251f1a;border-radius:18px;padding:7px 10px;font-size:12px}.achHero{box-sizing:border-box;min-height:120px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#344b35,#806039);border-left:3px solid #f8e7aa;border-right:3px solid #f8e7aa;color:#fff}.achHero small{font-size:9px;letter-spacing:1.5px;color:#e8d5a5}.achHero b{display:block;font-size:25px;margin-top:3px}.achHero p{font-size:11px;color:#f2e0ba;margin:6px 0 0}.achMedal{font-size:58px;filter:drop-shadow(0 7px 7px rgba(0,0,0,.25))}.achSummary{box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:11px 14px;background:#ead09a;border:3px solid #f8e7aa;border-top:0}.achSummary div{text-align:center;background:rgba(255,250,232,.75);border-radius:14px;padding:8px}.achSummary b{display:block;font-size:17px}.achSummary small{font-size:9px;color:#806a50}.achList{box-sizing:border-box;background:#f1d99c;border:3px solid #f8e7aa;border-top:0;border-radius:0 0 26px 26px;padding:12px}.achCard{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;background:#fff7df;border:2px solid rgba(118,83,54,.15);border-radius:18px;padding:10px;margin-bottom:8px}.achCard.done{border-color:#7fc64a}.achIcon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#ead29c;font-size:25px}.achName{font-size:13px;font-weight:1000}.achDesc{font-size:9px;color:#806a50;margin-top:2px}.achBar{height:6px;background:#d6c5a3;border-radius:99px;overflow:hidden;margin-top:7px}.achBar i{display:block;height:100%;background:linear-gradient(90deg,#6ebf35,#b6e85d)}.achCount{font-size:9px;font-weight:900;color:#6b593f;margin-top:3px}.achClaim{min-width:68px;border:0;border-radius:13px;background:linear-gradient(#9bec4c,#55bd21);box-shadow:0 3px 0 #398c1b;padding:9px 6px;font-size:10px;font-weight:1000;color:#3e331c}.achClaim:disabled{background:#d8c9aa;box-shadow:none;color:#8b7b62}.achToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 32px);transform:translate(-50%,15px);opacity:0;background:rgba(20,24,22,.93);color:#fff;border-radius:18px;padding:10px 15px;font-size:11px;font-weight:900;transition:.2s}.achToast.show{opacity:1;transform:translate(-50%,0)}@media(max-width:430px){.achCard{grid-template-columns:42px 1fr 66px;gap:7px;padding:8px}.achIcon{width:40px;height:40px}.achHero{min-height:105px}.achMedal{font-size:48px}.achTop{grid-template-columns:42px 1fr auto}}
+#doldolAchievementPage{
+  position:fixed;inset:0;z-index:9600;display:none;overflow:auto;
+  padding:calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 24px);
+  background:
+    linear-gradient(rgba(3,17,31,.36),rgba(3,17,31,.70)),
+    url('../assets/home_base_bg.png') center/cover fixed;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  color:#fff;
+}
+#doldolAchievementPage.show{display:block}
+#doldolAchievementPage *{box-sizing:border-box}
+.achShell{max-width:720px;margin:0 auto;border:2px solid rgba(100,204,255,.90);border-radius:24px;overflow:hidden;box-shadow:0 20px 52px rgba(0,0,0,.38)}
+.achTop{
+  display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;
+  min-height:76px;padding:10px 12px;
+  background:linear-gradient(145deg,#173b5a,#0c263c);
+  border-bottom:1px solid rgba(140,215,255,.34);
+}
+.achTop button{
+  width:42px;height:42px;border:1px solid rgba(255,255,255,.28);border-radius:13px;
+  background:linear-gradient(145deg,#547ca1,#284c70);color:#fff;
+  font-size:31px;font-weight:1000;line-height:1;box-shadow:0 4px 10px rgba(0,0,0,.22)
+}
+.achTop b{display:block;font-size:24px;line-height:1.05;font-weight:1000}
+.achTop small{display:block;margin-top:5px;font-size:10px;color:#b9d2e2}
+.achTop>span{
+  display:flex;align-items:center;gap:4px;min-width:96px;justify-content:center;
+  background:rgba(5,15,24,.72);border:1px solid rgba(255,255,255,.13);
+  border-radius:18px;padding:6px 9px;font-size:13px;font-weight:1000
+}
+.achCoreIcon{display:inline-block;object-fit:cover;object-position:29% 50%;vertical-align:middle}
+.achCoreIcon.top{width:23px;height:23px}
+.achCoreIcon.reward{width:15px;height:15px;margin:0 2px 0 3px}
+.achHero{
+  min-height:116px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;
+  background:
+    linear-gradient(110deg,rgba(10,50,80,.96),rgba(14,61,89,.80)),
+    url('../assets/stage2_training.jpg') center 42%/cover;
+  border-bottom:1px solid rgba(158,219,255,.28);
+}
+.achHero small{font-size:9px;letter-spacing:1.8px;color:#9fdcff;font-weight:900}
+.achHero b{display:block;font-size:26px;margin-top:3px;font-weight:1000;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+.achHero p{font-size:10px;color:#d8edf7;margin:7px 0 0}
+.achMedal{font-size:54px;filter:drop-shadow(0 7px 7px rgba(0,0,0,.35))}
+.achSummary{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 12px;
+  background:#12344d;border-bottom:1px solid rgba(137,210,248,.22)
+}
+.achSummary div{
+  text-align:center;background:linear-gradient(180deg,#294f6c,#1f435f);
+  border:1px solid rgba(179,229,255,.24);border-radius:14px;padding:9px 6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)
+}
+.achSummary b{display:block;font-size:18px;color:#fff}
+.achSummary small{font-size:9px;color:#b7cede}
+.achList{background:linear-gradient(180deg,#0e2d44,#0b2539);padding:11px 10px 14px}
+.achCard{
+  display:grid;grid-template-columns:50px 1fr auto;gap:9px;align-items:center;
+  min-height:82px;padding:9px;margin-bottom:8px;border-radius:17px;
+  background:linear-gradient(180deg,#f7f2e7,#ebe7df);
+  border:2px solid rgba(167,177,180,.44);color:#30343a;
+  box-shadow:0 6px 12px rgba(0,0,0,.13)
+}
+.achCard.done{border-color:#74cf4d}
+.achCard.ready{box-shadow:0 0 0 1px rgba(112,231,71,.24),0 7px 15px rgba(0,0,0,.15)}
+.achCard.claimed{opacity:.90}
+.achIcon{
+  width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#1c405c,#102f47);
+  border:1px solid rgba(255,255,255,.20);
+  font-size:25px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))
+}
+.achName{font-size:13px;font-weight:1000;color:#23272b}
+.achDesc{display:flex;align-items:center;flex-wrap:wrap;font-size:9px;color:#747067;margin-top:2px}
+.achBar{height:6px;background:#bcb7ad;border-radius:99px;overflow:hidden;margin-top:7px}
+.achBar i{display:block;height:100%;background:linear-gradient(90deg,#59be32,#a6ed54)}
+.achCount{font-size:9px;font-weight:1000;color:#4e4a43;margin-top:3px}
+.achClaim{
+  position:relative;min-width:70px;height:40px;border:0;border-radius:13px;
+  background:linear-gradient(#ffd953,#ff9d19);box-shadow:0 3px 0 #be6e0c,0 4px 9px rgba(220,130,12,.27);
+  padding:8px 8px;font-size:11px;font-weight:1000;color:#482a05
+}
+.achClaim:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 #be6e0c}
+.achCard.ready .achClaim::after{
+  content:"";position:absolute;right:-4px;top:-4px;width:10px;height:10px;border-radius:50%;
+  background:#ff302a;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)
+}
+.achClaim:disabled{
+  background:#777d84;box-shadow:none;color:#e6e9ec;opacity:.72
+}
+.achCard.claimed .achClaim:disabled{background:#59636b;color:#dce1e5}
+.achToast{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 32px);
+  transform:translate(-50%,15px);opacity:0;background:rgba(10,22,31,.96);
+  border:1px solid rgba(117,205,255,.35);color:#fff;border-radius:18px;
+  padding:10px 15px;font-size:11px;font-weight:900;transition:.2s;z-index:2
+}
+.achToast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:430px){
+  .achShell{border-radius:20px}
+  .achTop{grid-template-columns:42px 1fr auto;min-height:70px;padding:9px 10px}
+  .achTop button{width:40px;height:40px}
+  .achTop b{font-size:22px}
+  .achTop>span{min-width:91px;padding:6px 7px;font-size:12px}
+  .achHero{min-height:101px;padding:15px 16px}
+  .achHero b{font-size:23px}
+  .achMedal{font-size:46px}
+  .achSummary{gap:6px;padding:9px}
+  .achSummary div{padding:8px 4px}
+  .achCard{grid-template-columns:42px 1fr 66px;gap:7px;padding:8px;min-height:78px}
+  .achIcon{width:40px;height:40px;font-size:23px}
+  .achClaim{min-width:64px;height:38px}
+}
 `;document.head.appendChild(st);page.querySelector('#achBack').onclick=close;return page;
   }
   function toast(t){const e=document.getElementById('achToast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1000)}
-  function render(){const page=ensure(),list=page.querySelector('#achList');page.querySelector('#achCore').textContent=Number(window.__duckWallet?.coins||0).toLocaleString();const completed=defs.filter(d=>Number(state[d.key]||0)>=d.goal).length,claimed=defs.filter(d=>state.claimed[d.id]).length;page.querySelector('#achSummary').innerHTML='<div><b>'+completed+'/'+defs.length+'</b><small>달성</small></div><div><b>'+claimed+'</b><small>보상 수령</small></div><div><b>'+Number(state.kills||0)+'</b><small>누적 처치</small></div>';list.innerHTML=defs.map(d=>{const cur=Math.min(d.goal,Number(state[d.key]||0)),done=cur>=d.goal,got=!!state.claimed[d.id],pct=Math.round(cur/d.goal*100);return '<article class="achCard '+(done?'done':'')+'"><div class="achIcon">'+d.icon+'</div><div><div class="achName">'+d.name+'</div><div class="achDesc">'+d.desc+' · 보상 🔥 '+d.reward.toLocaleString()+'</div><div class="achBar"><i style="width:'+pct+'%"></i></div><div class="achCount">'+cur+' / '+d.goal+'</div></div><button class="achClaim" data-ach="'+d.id+'" '+(!done||got?'disabled':'')+'>'+(got?'완료':done?'받기':'진행중')+'</button></article>'}).join('');list.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>{const d=defs.find(x=>x.id===b.dataset.ach);if(!d||state.claimed[d.id]||Number(state[d.key]||0)<d.goal)return;state.claimed[d.id]=true;if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);sync();toast('🔥 '+d.reward.toLocaleString()+' 획득');render();});}
+  function render(){
+    const page=ensure(),list=page.querySelector('#achList');
+    page.querySelector('#achCore').textContent=Number(window.__duckWallet?.coins||0).toLocaleString();
+    const completed=defs.filter(d=>Number(state[d.key]||0)>=d.goal).length;
+    const claimed=defs.filter(d=>state.claimed[d.id]).length;
+    page.querySelector('#achSummary').innerHTML=
+      '<div><b>'+completed+'/'+defs.length+'</b><small>달성</small></div>'+
+      '<div><b>'+claimed+'</b><small>보상 수령</small></div>'+
+      '<div><b>'+Number(state.kills||0)+'</b><small>누적 처치</small></div>';
+    list.innerHTML=defs.map(d=>{
+      const cur=Math.min(d.goal,Number(state[d.key]||0));
+      const done=cur>=d.goal,got=!!state.claimed[d.id],ready=done&&!got,pct=Math.round(cur/d.goal*100);
+      const cls='achCard '+(done?'done ':'')+(ready?'ready ':'')+(got?'claimed':'');
+      return '<article class="'+cls.trim()+'">'+
+        '<div class="achIcon">'+d.icon+'</div>'+
+        '<div>'+
+          '<div class="achName">'+d.name+'</div>'+
+          '<div class="achDesc">'+d.desc+' · 보상 '+coreIcon('reward')+d.reward.toLocaleString()+'</div>'+
+          '<div class="achBar"><i style="width:'+pct+'%"></i></div>'+
+          '<div class="achCount">'+cur+' / '+d.goal+'</div>'+
+        '</div>'+
+        '<button class="achClaim" data-ach="'+d.id+'" '+(!done||got?'disabled':'')+'>'+
+          (got?'수령완료':ready?'받기':'진행중')+
+        '</button>'+
+      '</article>';
+    }).join('');
+    list.querySelectorAll('[data-ach]').forEach(b=>b.onclick=()=>{
+      const d=defs.find(x=>x.id===b.dataset.ach);
+      if(!d||state.claimed[d.id]||Number(state[d.key]||0)<d.goal)return;
+      state.claimed[d.id]=true;
+      if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);
+      sync();
+      toast('돌핵 '+d.reward.toLocaleString()+' 획득');
+      render();
+    });
+  }
   function close(){const p=document.getElementById('doldolAchievementPage');if(p)p.classList.remove('show');const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.remove('hidden')}
   function open(){const p=ensure();['menuScreen','mapScreen','resultScreen','characterScreen'].forEach(id=>document.getElementById(id)?.classList.remove('show'));const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');render();p.classList.add('show')}
   function bindProfileEntry(){
@@ -3276,7 +3440,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       window.__duckAchievementObserver.observe(lobby,{childList:true,subtree:true});
     }
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installButton);else installButton();window.__duckOpenMissions=open;window.__duckOpenAchievements=open;window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
+  window.__duckAchievementHasReward=()=>defs.some(d=>Number(state[d.key]||0)>=d.goal&&!state.claimed[d.id]);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installButton);else installButton();
+  window.__duckOpenMissions=open;
+  window.__duckOpenAchievements=open;
+  window.__duckMissionState=()=>JSON.parse(JSON.stringify(state));
 })();
 
 /* --- V38 unified lobby design system --- */
