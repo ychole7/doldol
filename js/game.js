@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad6';
+    link.href='css/squad.css?v=20261006-squad7';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2892,8 +2892,19 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
             </div>
           </div>
         </div>
+        <nav class="sqBottomNav" aria-label="하단 메뉴">
+          <button type="button" data-sq-nav="home"><strong>🏠</strong><span>홈</span></button>
+          <button type="button" data-sq-nav="squad" class="active"><strong>🪖</strong><span>특공대</span></button>
+          <button type="button" data-sq-nav="gear"><strong>🎒</strong><span>장비</span></button>
+          <button type="button" data-sq-nav="shop"><strong>🛍️</strong><span>상점</span></button>
+        </nav>
       </div>`;
-    screen.querySelector('#charBack').onclick=()=>screen.classList.remove('show');
+    screen.querySelector('#charBack').onclick=()=>{
+      screen.classList.remove('show');
+      const lobby=document.getElementById('gameLobby');
+      if(lobby)lobby.classList.remove('hidden');
+      if(window.__duckSyncLobby)window.__duckSyncLobby();
+    };
     screen.querySelector('#sqHudSettings').onclick=()=>{
       const btn=['lobbySettings','settingsBtn','settingBtn'].map(id=>document.getElementById(id)).find(Boolean);
       if(btn) btn.click();
@@ -2910,6 +2921,49 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       renderHud();
       openDetail();
     };
+
+    function leaveSquadToLobby(){
+      screen.classList.remove('show');
+      const lobby=document.getElementById('gameLobby');
+      if(lobby)lobby.classList.remove('hidden');
+      if(window.__duckSyncLobby)window.__duckSyncLobby();
+    }
+    screen.querySelectorAll('[data-sq-nav]').forEach(btn=>{
+      btn.onclick=()=>{
+        const target=btn.dataset.sqNav;
+        if(target==='squad'){
+          if(!screen.querySelector('#sqDetailPage').hidden) closeDetail();
+          if(!screen.querySelector('#sqSkinPage').hidden) closeSkinPage();
+          return;
+        }
+        if(target==='home'){
+          leaveSquadToLobby();
+          return;
+        }
+        if(target==='gear'){
+          leaveSquadToLobby();
+          requestAnimationFrame(()=>{
+            const gear=document.getElementById('lobbyGear');
+            if(gear)gear.click();
+          });
+          return;
+        }
+        if(target==='shop'){
+          screen.classList.remove('show');
+          if(typeof window.__duckOpenShop==='function'){
+            window.__duckOpenShop();
+          }else{
+            const lobby=document.getElementById('gameLobby');
+            if(lobby)lobby.classList.remove('hidden');
+            requestAnimationFrame(()=>{
+              const shop=document.getElementById('lobbyShop');
+              if(shop)shop.click();
+            });
+          }
+        }
+      };
+    });
+
     screen.querySelectorAll('.sqDetailTabs button').forEach((b,i)=>b.onclick=()=>renderDetailTab(['stats','skill','story'][i]));
     renderHud();
     screen.querySelectorAll('.sqTab').forEach((b,i)=>b.onclick=()=>{
