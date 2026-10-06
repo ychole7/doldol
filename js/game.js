@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad5';
+    link.href='css/squad.css?v=20261006-squad6';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
