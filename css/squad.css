@@ -308,3 +308,81 @@
   background:
     linear-gradient(180deg,rgba(58,36,20,.98),rgba(58,36,20,.96));
 }
+
+
+/* ===== V7: 특공대 공통 하단 메뉴 ===== */
+#characterScreen.show{
+  --sq-nav-h:calc(82px + env(safe-area-inset-bottom));
+}
+#characterScreen .sqWrap{
+  padding-bottom:var(--sq-nav-h) !important;
+}
+#characterScreen.show .sqGrid{
+  padding-bottom:12px;
+}
+#characterScreen.show .sqDetailPage,
+#characterScreen.show .sqSkinPage{
+  bottom:var(--sq-nav-h) !important;
+}
+#characterScreen.show .sqBottomNav{
+  position:fixed;
+  left:0;right:0;bottom:0;
+  height:var(--sq-nav-h);
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  z-index:40;
+  background:
+    linear-gradient(180deg,rgba(94,51,24,.97),rgba(48,25,12,.99));
+  border-top:2px solid rgba(255,198,92,.34);
+  box-shadow:0 -10px 26px rgba(0,0,0,.34);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+#characterScreen.show .sqBottomNav button{
+  min-width:0;
+  border:0;
+  border-radius:17px;
+  background:transparent;
+  color:#f2e7db;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  padding:5px 3px 4px;
+  font-family:inherit;
+  font-weight:900;
+  touch-action:manipulation;
+}
+#characterScreen.show .sqBottomNav button strong{
+  display:block;
+  font-size:27px;
+  line-height:1;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));
+}
+#characterScreen.show .sqBottomNav button span{
+  display:block;
+  font-size:11px;
+  line-height:1;
+  white-space:nowrap;
+}
+#characterScreen.show .sqBottomNav button.active{
+  color:#fff7c6;
+  background:linear-gradient(180deg,rgba(255,210,78,.14),rgba(255,190,42,.08));
+  border:2px solid #ffd85d;
+  box-shadow:0 0 0 1px rgba(255,249,194,.35),0 0 16px rgba(255,199,55,.16);
+}
+#characterScreen.show .sqBottomNav button:active{
+  transform:scale(.97);
+}
+@media(max-width:390px){
+  #characterScreen.show{--sq-nav-h:calc(76px + env(safe-area-inset-bottom))}
+  #characterScreen.show .sqBottomNav{
+    gap:5px;padding:6px 9px calc(7px + env(safe-area-inset-bottom));
+  }
+  #characterScreen.show .sqBottomNav button{border-radius:15px}
+  #characterScreen.show .sqBottomNav button strong{font-size:24px}
+  #characterScreen.show .sqBottomNav button span{font-size:10px}
+}
