@@ -240,3 +240,71 @@
   #characterScreen.show .sqTab{min-height:42px;font-size:12px}
   #characterScreen.show .sqGrid{grid-auto-rows:minmax(172px,1fr);padding:6px;gap:6px}
 }
+
+
+/* ===== V6: 시안 기준 - 패널은 풀스크린 / 카드는 고정 높이 ===== */
+#characterScreen.show .sqGrid{
+  flex:1 1 auto;
+  min-height:0;
+  align-content:start;
+  grid-auto-rows:190px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 카드 자체는 남는 세로 공간에 맞춰 늘어나지 않음 */
+#characterScreen.show .sqCard{
+  height:190px;
+  min-height:190px;
+}
+
+/* 8명 전체: 3 + 3 + 2 배열 유지 / 공격형 등 소수 필터는 첫 줄에만 표시 */
+#characterScreen.show .sqGrid:has(.sqCard:nth-child(7)){
+  align-content:start;
+}
+
+/* 시안처럼 이미지 영역 비율을 일정하게 유지 */
+#characterScreen.show .sqPortrait{
+  flex:0 0 126px;
+  height:126px;
+  min-height:126px;
+}
+#characterScreen.show .sqInfo{
+  flex:1 0 auto;
+}
+
+/* 작은 화면에서도 카드만 약간 줄이고, 절대 세로로 늘리지 않음 */
+@media(max-width:420px){
+  #characterScreen.show .sqGrid{
+    grid-auto-rows:184px;
+  }
+  #characterScreen.show .sqCard{
+    height:184px;
+    min-height:184px;
+  }
+  #characterScreen.show .sqPortrait{
+    flex-basis:121px;
+    height:121px;
+    min-height:121px;
+  }
+}
+@media(max-width:380px){
+  #characterScreen.show .sqGrid{
+    grid-auto-rows:176px;
+  }
+  #characterScreen.show .sqCard{
+    height:176px;
+    min-height:176px;
+  }
+  #characterScreen.show .sqPortrait{
+    flex-basis:114px;
+    height:114px;
+    min-height:114px;
+  }
+}
+
+/* 빈 공간도 프레임 안의 갈색 패널로 유지 */
+#characterScreen.show .sqGrid{
+  background:
+    linear-gradient(180deg,rgba(58,36,20,.98),rgba(58,36,20,.96));
+}
