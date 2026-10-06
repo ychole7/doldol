@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad7';
+    link.href='css/squad.css?v=20261006-squad8';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2892,11 +2892,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
             </div>
           </div>
         </div>
-        <nav class="sqBottomNav" aria-label="하단 메뉴">
-          <button type="button" data-sq-nav="home"><strong>🏠</strong><span>홈</span></button>
-          <button type="button" data-sq-nav="squad" class="active"><strong>🪖</strong><span>특공대</span></button>
-          <button type="button" data-sq-nav="gear"><strong>🎒</strong><span>장비</span></button>
-          <button type="button" data-sq-nav="shop"><strong>🛍️</strong><span>상점</span></button>
+        <nav class="sqBottomNav homeNavClone" aria-label="하단 메뉴">
+          <button type="button" data-sq-nav="home"><img src="assets/home_nav/home_nav_home.png" alt=""><span>홈</span></button>
+          <button type="button" data-sq-nav="squad" class="active"><img src="assets/home_nav/home_nav_squad.png" alt=""><span>특공대</span></button>
+          <button type="button" data-sq-nav="gear"><img src="assets/home_nav/home_nav_gear.png" alt=""><span>장비</span></button>
+          <button type="button" data-sq-nav="shop"><img src="assets/home_nav/home_nav_shop.png" alt=""><span>상점</span></button>
         </nav>
       </div>`;
     screen.querySelector('#charBack').onclick=()=>{
