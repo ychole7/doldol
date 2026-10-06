@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad3';
+    link.href='css/squad.css?v=20261006-squad4';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2853,8 +2853,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
             <span class="sqHudWho"><b id="sqHudName"></b><small id="sqHudLv"></small><span class="sqHudXp"><i></i></span></span>
           </div>
           <div class="sqHudResources">
-            <div class="sqHudRes sqHudCoreRes"><img src="./assets/doldol_stone_core.png" alt=""><b id="sqHudCore">0</b><button type="button" aria-label="돌핵 추가">＋</button></div>
-            <div class="sqHudRes sqHudGemRes"><span class="sqHudGemIcon">💎</span><b id="sqHudGem">980</b><button type="button" aria-label="다이아 추가">＋</button></div>
+            <div class="sqHudRes sqHudCoreRes"><img src="./assets/doldol_stone_core.png" alt=""><b id="sqHudCore">0</b><button type="button" aria-label="돌핵 추가">+</button></div>
+            <div class="sqHudRes sqHudGemRes"><span class="sqHudGemIcon">💎</span><b id="sqHudGem">980</b><button type="button" aria-label="다이아 추가">+</button></div>
           </div>
           <button class="sqHudSettings" id="sqHudSettings" aria-label="설정">⚙</button>
         </div>
@@ -2926,6 +2926,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(face) face.innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
     const n=screen.querySelector('#sqHudName'); if(n)n.textContent=c.name;
     const lv=screen.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
+    const xpi=screen.querySelector('.sqHudXp i');
+    if(xpi){
+      const pct=Math.max(0,Math.min(100,(Number(p.xp)||0)/Math.max(1,Number(p.next)||1)*100));
+      xpi.style.width=pct+'%';
+    }
     const compact=(n)=>{
       n=Math.max(0,Math.floor(Number(n)||0));
       if(n<100000)return n.toLocaleString();
@@ -2938,7 +2943,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       return (b<10?b.toFixed(1):Math.floor(b)).toString().replace(/\.0$/,'')+'B';
     };
     const co=screen.querySelector('#sqHudCore');
-    if(co){const v=core();co.textContent=compact(v);co.title=Number(v||0).toLocaleString();}
+    if(co){
+      const v=core();
+      co.textContent=compact(v);
+      co.title=Number(v||0).toLocaleString();
+      co.dataset.long=Number(v||0)>=10000?'1':'0';
+    }
     let gems=980;
     try{
       for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){
