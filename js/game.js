@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad8';
+    link.href='css/squad.css?v=20261006-squad9';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2846,18 +2846,15 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 
   function build(){
     screen.innerHTML=`
-      <div class="sqWrap">
-        <div class="sqHud" id="sqHud">
-          <div class="sqHudProfile">
-            <span class="sqHudFace" id="sqHudFace"></span>
-            <span class="sqHudWho"><b id="sqHudName"></b><small id="sqHudLv"></small><span class="sqHudXp"><i></i></span></span>
-          </div>
-          <div class="sqHudResources">
-            <div class="sqHudRes sqHudCoreRes"><img src="./assets/doldol_stone_core.png" alt=""><b id="sqHudCore">0</b><button type="button" aria-label="돌핵 추가">+</button></div>
-            <div class="sqHudRes sqHudGemRes"><span class="sqHudGemIcon">💎</span><b id="sqHudGem">980</b><button type="button" aria-label="다이아 추가">+</button></div>
-          </div>
-          <button class="sqHudSettings" id="sqHudSettings" aria-label="설정">⚙</button>
+      <header class="ddHomeHud" id="sqHud">
+        <div class="ddProfile"><div class="ddAvatar" id="sqHudFace"></div><div class="ddProfileText"><b id="sqHudName"></b><span id="sqHudLv"></span><div class="ddXp"><i id="sqHudXp"></i></div></div></div>
+        <div class="ddResources">
+          <div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="sqHudCore">0</b><button class="ddPlus" type="button" aria-label="돌핵 추가">+</button></div>
+          <div class="ddRes"><span class="ddGem">💎</span><b id="sqHudGem">980</b><button class="ddPlus" type="button" aria-label="보석 추가">+</button></div>
         </div>
+        <button class="ddSettings" id="sqHudSettings" type="button" aria-label="설정">⚙</button>
+      </header>
+      <div class="sqWrap">
         <div class="sqTop">
           <button class="sqBack" id="charBack" aria-label="뒤로">‹</button>
           <div class="sqTitle">특공대</div>
@@ -2892,13 +2889,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
             </div>
           </div>
         </div>
-        <nav class="sqBottomNav homeNavClone" aria-label="하단 메뉴">
-          <button type="button" data-sq-nav="home"><img src="assets/home_nav/home_nav_home.png" alt=""><span>홈</span></button>
-          <button type="button" data-sq-nav="squad" class="active"><img src="assets/home_nav/home_nav_squad.png" alt=""><span>특공대</span></button>
-          <button type="button" data-sq-nav="gear"><img src="assets/home_nav/home_nav_gear.png" alt=""><span>장비</span></button>
-          <button type="button" data-sq-nav="shop"><img src="assets/home_nav/home_nav_shop.png" alt=""><span>상점</span></button>
-        </nav>
-      </div>`;
+      </div>
+      <nav class="ddBottomNav" aria-label="메인 메뉴">
+        <button type="button" class="ddNavItem" data-sq-nav="home"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_home.png" alt=""></span><b>홈</b></button>
+        <button type="button" class="ddNavItem isActive" aria-current="page" data-sq-nav="squad"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_squad.png" alt=""></span><b>특공대</b></button>
+        <button type="button" class="ddNavItem" data-sq-nav="gear"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_gear.png" alt=""></span><b>장비</b></button>
+        <button type="button" class="ddNavItem" data-sq-nav="shop"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_shop.png" alt=""></span><b>상점</b></button>
+      </nav>`;
     screen.querySelector('#charBack').onclick=()=>{
       screen.classList.remove('show');
       const lobby=document.getElementById('gameLobby');
@@ -2921,6 +2918,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       renderHud();
       openDetail();
     };
+
+    const sqNav=screen.querySelector('.ddBottomNav');
+    if(sqNav&&window.ResizeObserver){
+      new ResizeObserver(()=>screen.style.setProperty('--sq-nav-h',sqNav.offsetHeight+'px')).observe(sqNav);
+    }
 
     function leaveSquadToLobby(){
       screen.classList.remove('show');
@@ -2980,7 +2982,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(face) face.innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
     const n=screen.querySelector('#sqHudName'); if(n)n.textContent=c.name;
     const lv=screen.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
-    const xpi=screen.querySelector('.sqHudXp i');
+    const xpi=screen.querySelector('#sqHudXp');
     if(xpi){
       const pct=Math.max(0,Math.min(100,(Number(p.xp)||0)/Math.max(1,Number(p.next)||1)*100));
       xpi.style.width=pct+'%';
