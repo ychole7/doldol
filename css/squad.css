@@ -170,6 +170,9 @@
 
 /* ===== 하단 메뉴 / HUD: 홈과 같은 .dd* 스타일을 그대로 사용 (home.js) ===== */
 #characterScreen.show{--sq-nav-h:clamp(92px,11vh,112px)}
+/* 팝업처럼 떠 보이지 않게: 화면 좌우·하단 여백 제거 → 패널이 하단 메뉴까지 꽉 차게 */
+#characterScreen.show{padding-left:0;padding-right:0;padding-bottom:0}
+#characterScreen.show .sqWrap{padding-left:6px;padding-right:6px}
 #characterScreen .sqWrap{padding-bottom:calc(var(--sq-nav-h) + 8px) !important}
 #characterScreen.show .sqDetailPage,
 #characterScreen.show .sqSkinPage{bottom:var(--sq-nav-h) !important}
@@ -177,3 +180,69 @@
 #characterScreen .ddHomeHud,#characterScreen .ddBottomNav{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 #characterScreen .ddHomeHud button,#characterScreen .ddBottomNav button{font-family:inherit}
 #characterScreen #sqHudCore{color:#ffd866;font-weight:1000}
+
+/* ===== 2단계: 상세 화면 (시안) — 히어로는 남는 높이, 아래는 액자형 패널 ===== */
+#characterScreen.show .sqDetailPage{
+  display:flex;flex-direction:column;overflow:hidden;padding:0 6px 8px;
+}
+#characterScreen.show .sqDetailPage[hidden]{display:none!important}
+#characterScreen.show .sqDetailHead{
+  position:relative;display:grid;grid-template-columns:46px 1fr 46px;align-items:center;
+  min-height:52px;margin:0 0 -52px;gap:0;flex:0 0 auto;z-index:3;pointer-events:none;
+}
+#characterScreen.show .sqDetailBack{
+  grid-column:1;grid-row:1;z-index:2;width:46px;height:46px;pointer-events:auto;
+  border:2px solid #c98b3f;border-radius:13px;background:linear-gradient(#7d4620,#55290f);
+  color:#fff;font-size:30px;line-height:1;
+  box-shadow:inset 0 0 0 2px #3c1f0c,0 3px 0 #2e180a,0 5px 9px rgba(0,0,0,.35);
+}
+#characterScreen.show .sqDetailTitle{
+  grid-column:1/4;grid-row:1;font-size:30px;font-weight:900;letter-spacing:1px;
+  text-shadow:0 3px 5px rgba(0,0,0,.6);
+}
+#characterScreen.show .sqDetailHero{
+  position:relative;display:block;flex:1 1 0;min-height:110px;height:auto;margin:0;
+  overflow:visible;border-radius:0;background:none;
+}
+#characterScreen.show .sqDetailHero img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;transform:none;
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.35));
+}
+#characterScreen.show .sqDetailHero .emoji{position:absolute;inset:0;display:grid;place-items:center;font-size:110px}
+#characterScreen.show .sqDetailLevel{
+  flex:0 0 auto;margin:0 0 8px;padding:6px 8px 6px 12px;border-radius:14px;
+  grid-template-columns:auto 1fr auto;gap:10px;background:rgba(18,11,6,.62);
+}
+#characterScreen.show .sqDetailLevel b{font-size:26px;font-weight:900;text-shadow:0 2px 3px rgba(0,0,0,.6)}
+#characterScreen.show .sqXp{height:14px;margin:0;background:#17120d;border:1px solid rgba(0,0,0,.5);box-shadow:inset 0 2px 3px rgba(0,0,0,.6)}
+#characterScreen.show .sqXp>i{background:linear-gradient(#ffe46f,#ffb92f)}
+#characterScreen.show .sqDetailLevel button{
+  padding:10px 15px;font-size:15px;border-radius:12px;box-shadow:0 3px 0 #93601b;
+}
+#characterScreen.show .sqDetailTabs{
+  flex:0 0 auto;margin:0;padding:8px 8px 6px;gap:6px;
+  border:3px solid #a8692e;border-bottom:0;border-radius:18px 18px 0 0;background:#3a2414;
+}
+#characterScreen.show .sqDetailTabs button{
+  padding:0;min-height:40px;border-radius:12px;background:#241b17;color:#ead9c5;font-size:15px;
+}
+#characterScreen.show .sqDetailTabs button.on{background:linear-gradient(#ffe985,#ffc83f);color:#3f2b14;box-shadow:0 3px 0 #a87618}
+#characterScreen.show .sqDetailBody{
+  flex:0 1 auto;min-height:0;margin:0;padding:8px 8px 6px;overflow:auto;
+  border:3px solid #a8692e;border-top:0;border-radius:0 0 18px 18px;background:#3a2414;
+}
+#characterScreen.show .sqDetailBody .row{
+  align-items:center;height:36px;margin-bottom:5px;padding:0 14px 0 10px;
+  border:1px solid rgba(214,150,76,.5);border-radius:12px;background:rgba(22,12,6,.55);
+  font-size:16px;font-weight:900;
+}
+#characterScreen.show .sqDetailBody .row:last-child{margin-bottom:0}
+#characterScreen.show .sqDetailBody .row span{display:flex;align-items:center;gap:10px}
+#characterScreen.show .sqDetailBody .row em{width:28px;text-align:center;font-style:normal;font-size:22px;line-height:1}
+#characterScreen.show .sqDetailBody .row b{font-size:19px}
+#characterScreen.show .sqDetailBody .row b.stars{font-size:19px;letter-spacing:1px}
+#characterScreen.show .sqDetailBody .row b.stars i{font-style:normal;color:#ffcf3f}
+#characterScreen.show .sqDetailBody .row b.stars u{text-decoration:none;color:#8a7358}
+#characterScreen.show .sqSelectBig{flex:0 0 auto;margin:8px 0 0;width:100%;min-height:50px}
+/* 미보유 캐릭터: 탭이 숨겨지면 본문 패널이 전체 테두리를 가짐 */
+#characterScreen.show .sqDetailTabs[style*="none"] + .sqDetailBody{border-top:3px solid #a8692e;border-radius:18px}
