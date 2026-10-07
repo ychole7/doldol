@@ -346,3 +346,19 @@
 #characterScreen.show .sqSkinCard b{margin-top:3px;font-size:12px;text-align:center}
 #characterScreen.show .sqSkinLock{border-radius:10px}
 #characterScreen.show .sqSkinPage>.sqDetailHead{margin-left:-4px;margin-right:-4px}
+
+/* ===== 6단계: 레벨업 팝업 (시안) ===== */
+#characterScreen .sqLevelPanel{border:3px solid #e0a23c;box-shadow:0 0 0 3px #5a2f12,0 18px 48px rgba(0,0,0,.55)}
+#characterScreen .sqLevelHead{height:60px;border-bottom:3px solid #5a2f12}
+#characterScreen .sqLevelHead b{font-size:22px;text-shadow:0 2px 0 #0006;letter-spacing:1px}
+#characterScreen .sqLevelClose{box-shadow:0 2px 0 #4a2610}
+#characterScreen .sqLevelJump{font-size:22px}
+#characterScreen .sqLevelStat{grid-template-columns:1fr auto 18px auto 42px}
+#characterScreen .sqLevelStat .up{font-style:normal;font-size:12px;font-weight:1000;color:#35e08a;text-align:right}
+#characterScreen .sqLevelCost{display:block;border:2px solid #e3c88c}
+#characterScreen .sqLevelCost b{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+#characterScreen .sqLevelCost b span{font-size:26px;font-weight:1000}
+#characterScreen .sqLevelCost b span.short{color:#d93a2b}
+#characterScreen .sqLevelCost b .have{display:block;width:100%;margin:0;font-size:12px;font-weight:800;color:#8a7358;text-align:center}
+#characterScreen .sqLevelConfirm{height:58px;font-size:21px;letter-spacing:1px;border:2px solid #fff3b0;box-shadow:0 5px 0 #b57a12,0 8px 14px #0005}
+#characterScreen .sqLevelConfirm:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #b57a12}
