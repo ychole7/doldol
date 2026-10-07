@@ -55,7 +55,7 @@ function sync(){
       shiba:"character_shiba.png",
       charge:"character_charge.png"
     };
-    const src="./assets/characters/"+(ART[c.id]||ART.doldol);
+    const sk=window.__doldolSkinArt&&window.__doldolSkinArt(c.id);const src=sk||("./assets/characters/"+(ART[c.id]||ART.doldol));
     let im=av.querySelector("img");
     if(!im){
       av.textContent="";

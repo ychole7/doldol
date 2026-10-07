@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad16';
+    link.href='css/squad.css?v=20261006-squad17';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2836,6 +2836,41 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     return `<div class="sqStory"><div class="sqStoryHead"><span>📖</span><b>${s[0]}의 이야기</b></div><p>${s[1]}</p>${s[2]?`<q>${s[2]}</q>`:''}<div class="sqStoryFoot">${c.role||''} · ${c.skill||''}</div></div>`;
   }
   function coreIc(){return '<img class="coreIc" src="./assets/doldol_stone_core.png" alt="돌핵">'}
+  /* ===== 스킨 시스템 (외형만 변경, 능력치 영향 없음) ===== */
+  const SKIN_KEY='doldol_skins_v1';
+  const SKINS={
+    doldol:[
+      {id:'army',name:'육군 스킨',art:'./assets/skins/doldol_army.webp',cond:{type:'level',v:5},desc:'거친 지형도 문제없다. 믿음직한 육군 전투복.',quote:'"땅은 내가 지킨다꽥!"'},
+      {id:'navy',name:'해군 스킨',art:'./assets/skins/doldol_navy.webp',cond:{type:'level',v:10},desc:'거친 파도를 가르는 해군 전투복.',quote:'"출항 준비 완료꽥!"'},
+      {id:'airforce',name:'공군 스킨',art:'./assets/skins/doldol_airforce.webp',cond:{type:'core',v:5000},desc:'하늘을 지배하는 공군 비행복.',quote:'"하늘은 내 구역이다꽥!"'},
+      {id:'marines',name:'해병 스킨',art:'./assets/skins/doldol_marines.webp',cond:{type:'gem',v:500},desc:'상륙 작전의 선봉, 해병 전투복.',quote:'"한 번 해병은 영원한 해병꽥!"'}
+    ]
+  };
+  function skinState(){try{const s=JSON.parse(localStorage.getItem(SKIN_KEY)||'{}')||{};return{owned:s.owned||{},equipped:s.equipped||{}}}catch(e){return{owned:{},equipped:{}}}}
+  function saveSkin(s){try{localStorage.setItem(SKIN_KEY,JSON.stringify(s))}catch(e){}}
+  function skinList(cid){
+    const c=uiRoster.find(x=>x.id===cid)||{};
+    return [{id:'base',name:'기본 스킨',art:null,cond:null,desc:'특공대의 기본 전투복. 언제 어디서든 달려갈 준비가 되어있다.',quote:((STORY[cid]||[])[2])||''}].concat(SKINS[cid]||[]);
+  }
+  function skinOwned(cid,sk){
+    if(!sk.cond)return true;
+    if(((skinState().owned[cid])||[]).includes(sk.id))return true;
+    return sk.cond.type==='level'&&progress(cid).level>=sk.cond.v;
+  }
+  function equippedSkin(cid){
+    const list=skinList(cid),id=skinState().equipped[cid]||'base';
+    const sk=list.find(x=>x.id===id);
+    return sk&&skinOwned(cid,sk)?sk:list[0];
+  }
+  function skinArt(cid){return equippedSkin(cid).art||null}
+  window.__doldolSkinArt=skinArt;
+  uiRoster.forEach(c=>{const base=c.art;c.baseArt=base;Object.defineProperty(c,'art',{configurable:true,enumerable:true,get(){return skinArt(c.id)||base},set(v){}})});
+  function skinCondText(sk){
+    if(!sk.cond)return '';
+    if(sk.cond.type==='level')return 'Lv.'+sk.cond.v+' 달성';
+    if(sk.cond.type==='core')return sk.cond.v.toLocaleString()+' 돌핵';
+    return '💎 '+sk.cond.v;
+  }
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
   function clearedStage(){
@@ -2893,8 +2928,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         <div class="sqSkinPage" id="sqSkinPage" hidden>
           <div class="sqDetailHead"><button class="sqDetailBack" id="sqSkinBack">‹</button><div class="sqDetailTitle">스킨</div></div>
           <div class="sqSkinHero" id="sqSkinHero"></div>
-          <div class="sqSkinLabel" id="sqSkinLabel">기본 스킨</div>
-          <div class="sqSkinEquipped">✓ 장착중</div>
+          <div class="sqSkinInfo"><div class="sqSkinLabel" id="sqSkinLabel"></div><p id="sqSkinDesc"></p><q id="sqSkinQuote"></q></div>
+          <button class="sqSkinAction" id="sqSkinAction" type="button"></button>
           <div class="sqSkinRail" id="sqSkinRail"></div>
         </div>
         <div class="sqLevelModal" id="sqLevelModal" hidden>
@@ -3060,17 +3095,64 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
   }
 
+  let skinIdx=0;
   function openSkinPage(){
     const c=current(),page=screen.querySelector('#sqSkinPage'); if(!page)return;
+    const list=skinList(c.id),eq=equippedSkin(c.id);
+    skinIdx=Math.max(0,list.findIndex(x=>x.id===eq.id));
     screen.querySelector('#sqDetailPage').hidden=true; page.hidden=false;
-    screen.querySelector('#sqSkinHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
-    screen.querySelector('#sqSkinLabel').textContent='기본 스킨';
-    const skins=[['기본',true],['파일럿',false],['특공대',false],['우주복',false]];
-    screen.querySelector('#sqSkinRail').innerHTML=skins.map((x,i)=>`<button class="sqSkinCard ${i===0?'on':''}" ${x[1]?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:c.face}</span><b>${x[0]}</b>${x[1]?'':`<span class="sqSkinLock">${lockIc()}</span>`}</button>`).join('');
+    renderSkinPage();
+  }
+  function syncSkinEverywhere(){
+    renderHud(); renderGrid();
+    try{if(window.__doldolSyncHomeHud)window.__doldolSyncHomeHud()}catch(e){}
+    try{if(window.__duckSyncLobby)window.__duckSyncLobby()}catch(e){}
+  }
+  function renderSkinPage(){
+    const c=current(),list=skinList(c.id),sk=list[skinIdx]||list[0],own=skinOwned(c.id,sk),eq=equippedSkin(c.id).id===sk.id;
+    const art=sk.art||c.baseArt;
+    const dim=own?'':'filter:grayscale(.85) brightness(.7);';
+    screen.querySelector('#sqSkinHero').innerHTML=
+      (art?`<img src="${art}" alt="${sk.name}" style="${dim}">`:`<span class="emoji">${c.face}</span>`)+
+      (list.length>1?'<button class="sqSkinArrow l" type="button" aria-label="이전">‹</button><button class="sqSkinArrow r" type="button" aria-label="다음">›</button>':'');
+    const go=d=>{skinIdx=(skinIdx+d+list.length)%list.length;renderSkinPage()};
+    const al=screen.querySelector('.sqSkinArrow.l'),ar=screen.querySelector('.sqSkinArrow.r');
+    if(al)al.onclick=()=>go(-1); if(ar)ar.onclick=()=>go(1);
+    screen.querySelector('#sqSkinLabel').textContent=sk.name;
+    screen.querySelector('#sqSkinDesc').textContent=sk.desc;
+    const q=screen.querySelector('#sqSkinQuote'); q.textContent=sk.quote; q.style.display=sk.quote?'':'none';
+    const btn=screen.querySelector('#sqSkinAction');
+    btn.className='sqSkinAction'; btn.disabled=false;
+    const equip=()=>{const s=skinState();s.equipped[c.id]=sk.id;saveSkin(s);renderSkinPage();syncSkinEverywhere()};
+    if(eq){btn.className='sqSkinAction on';btn.disabled=true;btn.innerHTML='✓ 장착중';}
+    else if(own){btn.innerHTML='장착하기';btn.onclick=equip;}
+    else if(sk.cond.type==='level'){btn.className='sqSkinAction off';btn.disabled=true;btn.innerHTML=`${lockIc()} ${c.name} Lv.${sk.cond.v} 달성 필요`;}
+    else{
+      const isGem=sk.cond.type==='gem';
+      const have=isGem?((window.__doldolResources&&window.__doldolResources.gems)||0):core();
+      const enough=have>=sk.cond.v;
+      btn.disabled=!enough; if(!enough)btn.className='sqSkinAction off';
+      btn.innerHTML=(isGem?'💎':coreIc())+` ${sk.cond.v.toLocaleString()} 구매${enough?'':' (부족)'}`;
+      btn.onclick=()=>{
+        if(isGem){const R=window.__doldolResources; if(!R||R.gems<sk.cond.v)return; R.setGems(R.gems-sk.cond.v);}
+        else if(!window.__duckWallet||!window.__duckWallet.spendCoins(sk.cond.v))return;
+        const s=skinState();(s.owned[c.id]=s.owned[c.id]||[]).push(sk.id);s.equipped[c.id]=sk.id;saveSkin(s);
+        renderSkinPage();syncSkinEverywhere();
+      };
+    }
+    const rail=screen.querySelector('#sqSkinRail');
+    rail.style.gridTemplateColumns=`repeat(${Math.max(list.length,4)},minmax(0,1fr))`;
+    rail.innerHTML=list.map((x,i)=>{
+      const o=skinOwned(c.id,x),e=equippedSkin(c.id).id===x.id;
+      const a=x.art||c.baseArt;
+      const sub=e?'<em class="ok">장착중</em>':(o?'<em></em>':`<em>${skinCondText(x)}</em>`);
+      return `<button class="sqSkinCard ${i===skinIdx?'on':''} ${o?'':'locked'}" data-i="${i}" type="button"><span class="sqSkinThumb">${a?`<img src="${a}" alt="">`:c.face}${o?'':`<span class="sqSkinLock">${lockIc()}</span>`}</span><b>${x.name.replace(' 스킨','')}</b>${sub}</button>`;
+    }).join('');
+    rail.querySelectorAll('.sqSkinCard').forEach(b=>b.onclick=()=>{skinIdx=Number(b.dataset.i);renderSkinPage()});
   }
   function closeSkinPage(){
     screen.querySelector('#sqSkinPage').hidden=true;
-    screen.querySelector('#sqDetailPage').hidden=false;
+    openDetail();
   }
 
   function levelStats(c,level){
