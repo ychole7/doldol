@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad19';
+    link.href='css/squad.css?v=20261006-squad20';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2840,10 +2840,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const SKIN_KEY='doldol_skins_v1';
   const SKINS={
     doldol:[
-      {id:'army',name:'육군 스킨',art:'./assets/skins/doldol_army.webp',cond:{type:'level',v:5},desc:'거친 지형도 문제없다. 믿음직한 육군 전투복.',quote:'"땅은 내가 지킨다꽥!"'},
-      {id:'navy',name:'해군 스킨',art:'./assets/skins/doldol_navy.webp',cond:{type:'level',v:10},desc:'거친 파도를 가르는 해군 전투복.',quote:'"출항 준비 완료꽥!"'},
-      {id:'airforce',name:'공군 스킨',art:'./assets/skins/doldol_airforce.webp',cond:{type:'core',v:5000},desc:'하늘을 지배하는 공군 비행복.',quote:'"하늘은 내 구역이다꽥!"'},
-      {id:'marines',name:'해병 스킨',art:'./assets/skins/doldol_marines.webp',cond:{type:'gem',v:500},desc:'상륙 작전의 선봉, 해병 전투복.',quote:'"한 번 해병은 영원한 해병꽥!"'}
+      {id:'army',name:'육군 스킨',art:'./assets/skins/doldol_army.png',cond:{type:'level',v:5},desc:'거친 지형도 문제없다. 믿음직한 육군 전투복.',quote:'"땅은 내가 지킨다꽥!"'},
+      {id:'navy',name:'해군 스킨',art:'./assets/skins/doldol_navy.png',cond:{type:'level',v:10},desc:'거친 파도를 가르는 해군 전투복.',quote:'"출항 준비 완료꽥!"'},
+      {id:'airforce',name:'공군 스킨',art:'./assets/skins/doldol_airforce.png',cond:{type:'core',v:5000},desc:'하늘을 지배하는 공군 비행복.',quote:'"하늘은 내 구역이다꽥!"'},
+      {id:'marines',name:'해병 스킨',art:'./assets/skins/doldol_marines.png',cond:{type:'gem',v:500},desc:'상륙 작전의 선봉, 해병 전투복.',quote:'"한 번 해병은 영원한 해병꽥!"'}
     ]
   };
   function skinState(){try{const s=JSON.parse(localStorage.getItem(SKIN_KEY)||'{}')||{};return{owned:s.owned||{},equipped:s.equipped||{}}}catch(e){return{owned:{},equipped:{}}}}
@@ -3112,7 +3112,6 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const c=current(),list=skinList(c.id),sk=list[skinIdx]||list[0],own=skinOwned(c.id,sk),eq=equippedSkin(c.id).id===sk.id;
     const art=sk.art||c.baseArt;
     const dim=own?'':'filter:grayscale(.85) brightness(.7);';
-    screen.querySelector('#sqSkinHero').style.setProperty('--skinBg',sk.art?`url("${new URL(sk.art,location.href).href}")`:'none');
     screen.querySelector('#sqSkinHero').innerHTML=
       (art?`<img src="${art}" alt="${sk.name}" style="${dim}">`:`<span class="emoji">${c.face}</span>`)+
       (list.length>1?'<button class="sqSkinArrow l" type="button" aria-label="이전">‹</button><button class="sqSkinArrow r" type="button" aria-label="다음">›</button>':'');
