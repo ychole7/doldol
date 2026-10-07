@@ -388,10 +388,15 @@
 #characterScreen.show .sqSkinCard em.ok{color:#7dff9c}
 #characterScreen.show .sqSkinCard.locked b{color:#bba98b}
 #characterScreen.show .sqSkinCard:not(.on){opacity:.95}
-#characterScreen.show .sqSkinPage .sqSkinHero{margin-top:48px}
+#characterScreen.show .sqSkinPage .sqSkinHero{margin-top:22px}
 #characterScreen.show #sqDetailHero img[src*="/skins/"]{border-radius:18px;object-position:center 32%!important;box-shadow:0 0 0 3px #c9a15a,0 6px 14px #0007}
 
 /* 스킨 화면: 전신이 다 보이도록 contain + 같은 그림을 흐리게 배경으로 */
-#characterScreen.show .sqSkinHero::before{content:'';position:absolute;inset:-24px;background:var(--skinBg,none) center/cover;filter:blur(16px) brightness(.85);z-index:0}
 #characterScreen.show .sqSkinHero img{z-index:1}
-#characterScreen.show .sqSkinPage .sqSkinHero img[src*="/skins/"]{object-fit:contain!important;object-position:center!important}
+#characterScreen.show .sqSkinPage .sqSkinHero img[src*="/skins/"]{object-fit:cover!important;object-position:center 52%!important}
+/* 스킨 화면: 정보 카드를 슬림하게 해서 그림 영역 확보 */
+#characterScreen.show .sqSkinInfo{margin-top:6px;padding:6px 12px 7px}
+#characterScreen.show .sqSkinInfo .sqSkinLabel{font-size:16px}
+#characterScreen.show .sqSkinInfo p{margin-top:1px;font-size:12px;line-height:1.3}
+#characterScreen.show .sqSkinInfo q{margin-top:2px;font-size:12px}
+#characterScreen.show .sqSkinAction{margin:6px 0;min-height:46px;font-size:17px}
