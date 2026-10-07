@@ -305,3 +305,11 @@
 #characterScreen .sqLevelCost .coreIc{width:38px;height:38px;vertical-align:0}
 /* 해금/버튼 안의 돌핵 */
 #characterScreen .sqSelectBig .coreIc,#characterScreen .sqUnlockReq .coreIc{width:18px;height:18px;vertical-align:-4px}
+
+/* ===== 자물쇠 아이콘 (assets/ui_icons/ui_lock.png) ===== */
+#characterScreen .lockIc{display:inline-block;width:1.1em;height:1.1em;object-fit:contain;vertical-align:-.18em;pointer-events:none}
+#characterScreen.show .sqLock .lockIc{width:22px;height:22px;vertical-align:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+#characterScreen.show .sqSkinLock .lockIc{width:34px;height:34px;vertical-align:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
+#characterScreen.show .sqSkillUp .lockIc{width:15px;height:15px;vertical-align:-3px}
+#characterScreen .sqUnlockBody h3 .lockIc{width:28px;height:28px;vertical-align:-6px;margin-right:2px}
+#characterScreen .sqUnlockReq .lockIc{width:19px;height:19px;vertical-align:-4px}
