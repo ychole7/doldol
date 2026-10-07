@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad17';
+    link.href='css/squad.css?v=20261006-squad18';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -3112,6 +3112,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const c=current(),list=skinList(c.id),sk=list[skinIdx]||list[0],own=skinOwned(c.id,sk),eq=equippedSkin(c.id).id===sk.id;
     const art=sk.art||c.baseArt;
     const dim=own?'':'filter:grayscale(.85) brightness(.7);';
+    screen.querySelector('#sqSkinHero').style.setProperty('--skinBg',sk.art?`url("${new URL(sk.art,location.href).href}")`:'none');
     screen.querySelector('#sqSkinHero').innerHTML=
       (art?`<img src="${art}" alt="${sk.name}" style="${dim}">`:`<span class="emoji">${c.face}</span>`)+
       (list.length>1?'<button class="sqSkinArrow l" type="button" aria-label="이전">‹</button><button class="sqSkinArrow r" type="button" aria-label="다음">›</button>':'');
