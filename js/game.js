@@ -3121,7 +3121,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function renderDetailTab(tab='stats'){
     const c=current(), body=screen.querySelector('#sqDetailBody');
     screen.querySelectorAll('.sqDetailTabs button').forEach((x,i)=>x.classList.toggle('on',['stats','skill','story'][i]===tab));
-    { const sb=screen.querySelector('#sqSelectBig'); if(sb) sb.style.display=(tab==='story')?'':'none'; }
+    { const sb=screen.querySelector('#sqSelectBig'); if(sb) sb.style.display=''; }
     if(tab==='skill'){
       const charLevel=progress(c.id).level;
       let sl=1, sl2=1;
