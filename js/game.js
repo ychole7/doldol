@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad11';
+    link.href='css/squad.css?v=20261006-squad12';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2818,8 +2818,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   document.head.appendChild(style);
 
   /* ===== UI 아이콘 (assets/ui_icons/*.png) — 파일이 없으면 이모지로 자동 대체 ===== */
-  const UI_ICON={atk:'stat_attack',defense:'stat_defense',hp:'stat_hp',special:'stat_special',counter:'stat_counter',timing:'stat_timing',speed:'role_speed',critical:'role_critical',combo:'role_combo',power:'role_power',balance:'role_balance'};
+  const UI_ICON={atk:'stat_attack',defense:'stat_defense',hp:'stat_hp',special:'stat_special',counter:'stat_counter',timing:'stat_timing',speed:'role_speed',critical:'role_critical',combo:'role_combo',power:'role_power',balance:'role_balance',lock:'ui_lock'};
   function uiIc(key,fb){return `<img class="uiIc" src="./assets/ui_icons/${UI_ICON[key]}.png" alt="" data-fb="${fb}" onerror="this.outerHTML=this.dataset.fb">`}
+  function lockIc(){return `<img class="lockIc" src="./assets/ui_icons/${UI_ICON.lock}.png" alt="잠금" data-fb="🔒" onerror="this.outerHTML=this.dataset.fb">`}
   function coreIc(){return '<img class="coreIc" src="./assets/doldol_stone_core.png" alt="돌핵">'}
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
@@ -3039,7 +3040,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           <span class="sqRole"><i class="sqRoleIc">${roleIc}</i>${c.role}</span>
           <span class="sqLv">Lv.${p.level}</span>
         </span>
-        ${lock?`<span class="sqLock" title="${c.gate}">🔒</span>`:''}
+        ${lock?`<span class="sqLock" title="${c.gate}">${lockIc()}</span>`:''}
       </button>`;
     }).join('');
     grid.querySelectorAll('.sqCard').forEach(b=>b.onclick=()=>{selectedId=b.dataset.id;openDetail()});
@@ -3051,7 +3052,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.querySelector('#sqSkinHero').innerHTML=c.art?`<img src="${c.art}" alt="${c.name}">`:`<span class="emoji">${c.face}</span>`;
     screen.querySelector('#sqSkinLabel').textContent='기본 스킨';
     const skins=[['기본',true],['파일럿',false],['특공대',false],['우주복',false]];
-    screen.querySelector('#sqSkinRail').innerHTML=skins.map((x,i)=>`<button class="sqSkinCard ${i===0?'on':''}" ${x[1]?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:c.face}</span><b>${x[0]}</b>${x[1]?'':'<span class="sqSkinLock">🔒</span>'}</button>`).join('');
+    screen.querySelector('#sqSkinRail').innerHTML=skins.map((x,i)=>`<button class="sqSkinCard ${i===0?'on':''}" ${x[1]?'':'disabled'}><span class="sqSkinThumb">${c.art?`<img src="${c.art}" alt="">`:c.face}</span><b>${x[0]}</b>${x[1]?'':`<span class="sqSkinLock">${lockIc()}</span>`}</button>`).join('');
   }
   function closeSkinPage(){
     screen.querySelector('#sqSkinPage').hidden=true;
@@ -3116,7 +3117,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       }catch(e){}
       const cost=sl*100, cost2=sl2*150, max=sl>=5, max2=sl2>=5, leaderLocked=charLevel<10;
       body.innerHTML=`<div class="sqSkillCard"><div class="sqSkillIcon">${uiIc('power','💥')}</div><div class="sqSkillInfo"><strong>${c.skill}</strong><small>Lv.${sl} / 5</small><p>${c.skillDesc}</p></div><button class="sqSkillUp primary" ${max||core()<cost?'disabled':''}>${max?'MAX':`업그레이드<br>${coreIc()} ${cost}`}</button></div>
-      <div class="sqSkillCard ${leaderLocked?'lockedSkill':''}"><div class="sqSkillIcon">${uiIc('defense','🛡️')}</div><div class="sqSkillInfo"><strong>특공대 리더</strong><small>${leaderLocked?'잠금':`Lv.${sl2} / 5`}</small><p>${leaderLocked?'캐릭터 Lv.10 달성 시 잠금 해제':'아군의 전투 능력을 강화합니다.'}</p></div><button class="sqSkillUp leader" ${leaderLocked||max2||core()<cost2?'disabled':''}>${leaderLocked?'🔒 Lv.10 해금':max2?'MAX':`업그레이드<br>${coreIc()} ${cost2}`}</button></div>`;
+      <div class="sqSkillCard ${leaderLocked?'lockedSkill':''}"><div class="sqSkillIcon">${uiIc('defense','🛡️')}</div><div class="sqSkillInfo"><strong>특공대 리더</strong><small>${leaderLocked?'잠금':`Lv.${sl2} / 5`}</small><p>${leaderLocked?'캐릭터 Lv.10 달성 시 잠금 해제':'아군의 전투 능력을 강화합니다.'}</p></div><button class="sqSkillUp leader" ${leaderLocked||max2||core()<cost2?'disabled':''}>${leaderLocked?`${lockIc()} Lv.10 해금`:max2?'MAX':`업그레이드<br>${coreIc()} ${cost2}`}</button></div>`;
       const primary=body.querySelector('.sqSkillUp.primary');
       if(primary&&!primary.disabled)primary.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost))return;try{localStorage.setItem('doldol_skill_'+c.id,String(sl+1))}catch(e){}renderHud();renderDetailTab('skill')};
       const leader=body.querySelector('.sqSkillUp.leader');
@@ -3152,7 +3153,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       tabs.style.display='none'; level.style.display='none';
       btn.style.display='';
       const stageOk=canUnlock(c), moneyOk=core()>=Number(c.unlockCost||0);
-      body.innerHTML=`<div class="sqUnlockBody"><h3>🔒 미보유 특공대</h3><p>${c.role} · ${c.skill}</p><div class="sqUnlockReq"><div class="${stageOk?'ok':'no'}">${stageOk?'✓':'🔒'} STAGE ${c.gateStage} ${stageOk?'달성':'클리어 필요'}</div><div class="${moneyOk?'ok':'no'}">${moneyOk?'✓':coreIc()} 필요 돌핵 ${(c.unlockCost||0).toLocaleString()} · 보유 ${core().toLocaleString()}</div></div></div>`;
+      body.innerHTML=`<div class="sqUnlockBody"><h3>${lockIc()} 미보유 특공대</h3><p>${c.role} · ${c.skill}</p><div class="sqUnlockReq"><div class="${stageOk?'ok':'no'}">${stageOk?'✓':lockIc()} STAGE ${c.gateStage} ${stageOk?'달성':'클리어 필요'}</div><div class="${moneyOk?'ok':'no'}">${moneyOk?'✓':coreIc()} 필요 돌핵 ${(c.unlockCost||0).toLocaleString()} · 보유 ${core().toLocaleString()}</div></div></div>`;
       btn.disabled=!(stageOk&&moneyOk);
       btn.innerHTML=!stageOk?`STAGE ${c.gateStage} 클리어 필요`:!moneyOk?'돌핵 부족':`해금하기 ${coreIc()} ${(c.unlockCost||0).toLocaleString()}`;
       btn.onclick=()=>{
