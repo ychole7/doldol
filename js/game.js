@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad15';
+    link.href='css/squad.css?v=20261006-squad16';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -3191,7 +3191,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   window.__duckRefreshCharacters=render;
   window.__duckOpenCharacters=function(){
     selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
-    render(); screen.classList.add('show'); return true;
+    render(); renderHud(); screen.classList.add('show'); return true;
   };
 })();
 
