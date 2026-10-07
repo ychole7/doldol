@@ -8,20 +8,36 @@
 #characterScreen.show .sqDetailPage,
 #characterScreen.show .sqSkinPage{inset:var(--sq-top) 0 0}
 
-/* ===== 타이틀 바 ===== */
-#characterScreen.show .sqTop{grid-template-columns:50px 1fr;gap:7px;margin:0 0 9px}
+/* ===== 타이틀 바: 로프로 묶인 나무 간판 (시안) ===== */
+#characterScreen.show .sqTop{
+  position:relative;display:grid;grid-template-columns:1fr 64% 1fr;align-items:center;
+  min-height:56px;margin:0 0 10px;gap:0;
+}
 #characterScreen.show .sqBack{
-  width:50px;height:50px;border:2px solid #d79a4a;border-radius:14px;
-  background:linear-gradient(#8a4c1f,#5a2e12);color:#fff;
-  box-shadow:inset 0 0 0 3px #4a250f,inset 0 0 0 4px #b97a38,0 3px 0 #2e180a;
+  grid-column:1;justify-self:start;margin-left:2px;
+  width:46px;height:46px;border:2px solid #c98b3f;border-radius:13px;
+  background:linear-gradient(#7d4620,#55290f);color:#fff;font-size:30px;line-height:1;
+  box-shadow:inset 0 0 0 2px #3c1f0c,0 3px 0 #2e180a,0 5px 9px rgba(0,0,0,.35);
 }
 #characterScreen.show .sqTitle{
-  min-height:50px;display:flex;align-items:center;justify-content:center;gap:20px;
-  border:2px solid #d79a4a;border-radius:14px;
-  background:linear-gradient(#8a4c1f,#5a2e12);
-  box-shadow:inset 0 0 0 3px #4a250f,inset 0 0 0 4px #b97a38,0 3px 0 #2e180a;
-  font-size:26px;font-weight:900;letter-spacing:1px;
+  grid-column:2;position:relative;min-height:52px;
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  border:3px solid #3f240f;border-radius:10px;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 3px,rgba(255,255,255,.035) 3px 7px),
+    linear-gradient(#85511f,#5c3516);
+  box-shadow:inset 0 0 0 2px #a8692e,inset 0 -6px 10px rgba(0,0,0,.22),0 4px 0 #2e180a,0 7px 12px rgba(0,0,0,.35);
+  font-size:28px;font-weight:900;letter-spacing:1px;text-shadow:0 2px 3px rgba(0,0,0,.55);
 }
+/* 간판 양쪽 끝을 감은 밧줄 */
+#characterScreen.show .sqTop::before,
+#characterScreen.show .sqTop::after{
+  content:"";position:absolute;top:-1px;bottom:-1px;width:15px;z-index:3;border-radius:8px;
+  background:repeating-linear-gradient(160deg,#ecce86 0 4px,#a97a37 4px 8px);
+  box-shadow:inset 0 0 0 1px rgba(60,35,10,.55),0 2px 4px rgba(0,0,0,.45);
+}
+#characterScreen.show .sqTop::before{left:calc(18% - 8px)}
+#characterScreen.show .sqTop::after{right:calc(18% - 8px)}
 #characterScreen.show .sqTitle::before,
 #characterScreen.show .sqTitle::after{
   content:"";width:24px;height:22px;flex:0 0 auto;opacity:.95;
@@ -91,23 +107,9 @@
   filter:grayscale(1) brightness(1.35) drop-shadow(0 3px 4px rgba(0,0,0,.5));
 }
 #characterScreen.show .sqSelected{
-  top:-1px;padding:4px 13px 5px;border-radius:0 0 11px 11px;background:#20bdf2;font-size:11px;
+  top:7px;left:9px;transform:none;padding:4px 11px 5px;border-radius:999px;background:#20bdf2;font-size:11px;
+  border:1px solid rgba(255,255,255,.55);
 }
-
-@media(max-width:360px){
-  #characterScreen.show .sqHud{
-    grid-template-columns:minmax(0,.98fr) minmax(0,1.10fr) minmax(0,.82fr) auto;
-    gap:3px;
-  }
-  #characterScreen.show .sqHudRes{padding-left:3px;padding-right:3px}
-  #characterScreen.show .sqHudRes button{
-    width:22px;height:22px;min-width:22px;font-size:17px;
-  }
-  #characterScreen.show .sqHudGemIcon{font-size:17px}
-  #characterScreen.show .sqHudRes b{font-size:13px}
-  #characterScreen.show .sqHudCoreRes b{font-size:12px;margin-left:1px}
-}
-
 
 /* ===== V5: 풀스크린 느낌 강화 ===== */
 #characterScreen .sqWrap{
@@ -116,15 +118,6 @@
   padding-bottom:calc(6px + env(safe-area-inset-bottom));
 }
 #characterScreen.show .sqWrap{padding-top:var(--sq-top)}
-#characterScreen.show .sqTop{
-  grid-template-columns:52px 1fr;gap:8px;margin:0 0 8px;
-}
-#characterScreen.show .sqBack{
-  width:52px;height:52px;border-radius:15px;
-}
-#characterScreen.show .sqTitle{
-  min-height:52px;font-size:28px;gap:22px;
-}
 #characterScreen.show .sqTabs,
 #characterScreen.show .sqGrid{
   width:100%;
@@ -143,17 +136,11 @@
 }
 @media (max-width:420px){
   #characterScreen .sqWrap{padding-left:3px;padding-right:3px}
-  #characterScreen.show .sqTop{gap:7px;margin-bottom:7px}
-  #characterScreen.show .sqBack{width:50px;height:50px}
-  #characterScreen.show .sqTitle{min-height:50px;font-size:26px;gap:18px}
   #characterScreen.show .sqTabs{gap:6px;padding:7px 7px 4px}
   #characterScreen.show .sqGrid{padding:6px 7px 9px;gap:7px}
 }
 @media (max-width:380px){
   #characterScreen .sqWrap{padding-left:2px;padding-right:2px}
-  #characterScreen.show .sqTop{gap:6px;margin-bottom:6px}
-  #characterScreen.show .sqBack{width:48px;height:48px}
-  #characterScreen.show .sqTitle{min-height:48px;font-size:24px;gap:14px}
   #characterScreen.show .sqTabs{gap:5px;padding:6px 6px 4px}
   #characterScreen.show .sqTab{min-height:42px;font-size:12px}
   #characterScreen.show .sqGrid{grid-auto-rows:minmax(172px,1fr);padding:6px;gap:6px}
@@ -164,8 +151,8 @@
 #characterScreen.show .sqGrid{
   flex:1 1 auto;
   min-height:0;
-  grid-template-rows:repeat(3,minmax(150px,1fr));
-  grid-auto-rows:minmax(150px,1fr);
+  grid-template-rows:repeat(3,minmax(136px,1fr));
+  grid-auto-rows:minmax(136px,1fr);
   align-content:stretch;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
