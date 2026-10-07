@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad14';
+    link.href='css/squad.css?v=20261006-squad15';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -3103,8 +3103,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.querySelector('#sqLevelName').textContent=c.name;
     screen.querySelector('#sqLevelJump').innerHTML=max?`Lv.${p.level} · MAX`:`Lv.${p.level}　›　<em>Lv.${nextLevel}</em>`;
     const rows=[[uiIc('atk','⚔'),'공격력','atk'],[uiIc('defense','🛡'),'방어력','defense'],[uiIc('hp','❤'),'체력','hp'],[uiIc('special','★'),'특수','special']];
-    screen.querySelector('#sqLevelStats').innerHTML=rows.map(([icon,name,key])=>`<div class="sqLevelStat"><span>${icon} ${name}</span><b>${now[key]}</b><span>›</span><b class="next">${max?now[key]:next[key]}</b></div>`).join('');
-    screen.querySelector('#sqLevelCost').innerHTML=max?'MAX':`${coreIc()}<span>${core().toLocaleString()} / ${cost.toLocaleString()}</span>`;
+    screen.querySelector('#sqLevelStats').innerHTML=rows.map(([icon,name,key])=>`<div class="sqLevelStat"><span>${icon} ${name}</span><b>${now[key]}</b><span>›</span><b class="next">${max?now[key]:next[key]}</b><i class="up">${max?'':'+'+(next[key]-now[key])}</i></div>`).join('');
+    screen.querySelector('#sqLevelCost').innerHTML=max?'MAX':`${coreIc()}<span class="${core()<cost?'short':''}">${cost.toLocaleString()}</span><small class="have">보유 ${core().toLocaleString()}</small>`;
     const btn=screen.querySelector('#sqLevelConfirm');
     btn.disabled=max||core()<cost;
     btn.textContent=max?'최대 레벨':core()<cost?'돌핵 부족':'레벨업';
