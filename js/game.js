@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad9';
+    link.href='css/squad.css?v=20261006-squad10';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -3101,6 +3101,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function renderDetailTab(tab='stats'){
     const c=current(), body=screen.querySelector('#sqDetailBody');
     screen.querySelectorAll('.sqDetailTabs button').forEach((x,i)=>x.classList.toggle('on',['stats','skill','story'][i]===tab));
+    { const sb=screen.querySelector('#sqSelectBig'); if(sb) sb.style.display=(tab==='story')?'':'none'; }
     if(tab==='skill'){
       const charLevel=progress(c.id).level;
       let sl=1, sl2=1;
@@ -3119,7 +3120,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     else if(tab==='story') body.innerHTML=`<div class="skillBox"><strong>${c.name}</strong><p>${c.role} 특공대원입니다.</p></div>`;
     else {
       const st=levelStats(c,progress(c.id).level);
-      body.innerHTML=`<div class="row"><span>⚔ 공격력</span><b>${st.atk}</b></div><div class="row"><span>🛡 방어력</span><b>${st.defense}</b></div><div class="row"><span>❤ 체력</span><b>${st.hp}</b></div><div class="row"><span>★ 특수</span><b>${st.special}</b></div><div class="row"><span>↩ 반격</span><b>${'★'.repeat(c.counter)}${'☆'.repeat(5-c.counter)}</b></div><div class="row"><span>✦ 타이밍</span><b>${'★'.repeat(c.timing)}${'☆'.repeat(5-c.timing)}</b></div>`;
+      const stars=n=>`<b class="stars"><i>${'★'.repeat(n)}</i><u>${'★'.repeat(5-n)}</u></b>`;
+      body.innerHTML=`<div class="row"><span><em>⚔️</em>공격력</span><b>${st.atk}</b></div><div class="row"><span><em>🛡️</em>방어력</span><b>${st.defense}</b></div><div class="row"><span><em>❤️</em>체력</span><b>${st.hp}</b></div><div class="row"><span><em>⭐</em>특수</span><b>${st.special}</b></div><div class="row"><span><em>🔄</em>반격</span>${stars(c.counter)}</div><div class="row"><span><em>🎯</em>타이밍</span>${stars(c.timing)}</div>`;
     }
   }
   function openDetail(){
@@ -3143,6 +3145,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       renderDetailTab('stats');
     }else{
       tabs.style.display='none'; level.style.display='none';
+      btn.style.display='';
       const stageOk=canUnlock(c), moneyOk=core()>=Number(c.unlockCost||0);
       body.innerHTML=`<div class="sqUnlockBody"><h3>🔒 미보유 특공대</h3><p>${c.role} · ${c.skill}</p><div class="sqUnlockReq"><div class="${stageOk?'ok':'no'}">${stageOk?'✓':'🔒'} STAGE ${c.gateStage} ${stageOk?'달성':'클리어 필요'}</div><div class="${moneyOk?'ok':'no'}">${moneyOk?'✓':'🔥'} 필요 돌핵 ${(c.unlockCost||0).toLocaleString()} · 보유 ${core().toLocaleString()}</div></div></div>`;
       btn.disabled=!(stageOk&&moneyOk);
