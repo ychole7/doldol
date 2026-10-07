@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad12';
+    link.href='css/squad.css?v=20261006-squad13';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2821,6 +2821,20 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   const UI_ICON={atk:'stat_attack',defense:'stat_defense',hp:'stat_hp',special:'stat_special',counter:'stat_counter',timing:'stat_timing',speed:'role_speed',critical:'role_critical',combo:'role_combo',power:'role_power',balance:'role_balance',lock:'ui_lock'};
   function uiIc(key,fb){return `<img class="uiIc" src="./assets/ui_icons/${UI_ICON[key]}.png" alt="" data-fb="${fb}" onerror="this.outerHTML=this.dataset.fb">`}
   function lockIc(){return `<img class="lockIc" src="./assets/ui_icons/${UI_ICON.lock}.png" alt="잠금" data-fb="🔒" onerror="this.outerHTML=this.dataset.fb">`}
+  const STORY={
+    doldol:['돌돌이','돌을 사랑하는 노란 오리 대장. 겁은 많지만 동료가 위험할 때면 누구보다 먼저 돌을 던집니다.','"돌 하나면 충분하다꽥!"'],
+    nyang:['냥특공','발소리 없이 전장을 누비는 날쌘 고양이. 눈 깜짝할 새에 연타를 꽂아 넣습니다.','"느리다냥. 이미 끝났다냥."'],
+    rabbit:['토끼특공','먼 곳의 적도 놓치지 않는 저격수. 숨을 고르고 딱 한 발, 정확한 타이밍을 노립니다.','"지금이야, 딱 한 번!"'],
+    panda:['판다특공','든든한 몸으로 동료 앞에 서는 방패. 느긋해 보여도 한번 막으면 절대 물러서지 않습니다.','"내 뒤로 와~ 괜찮아."'],
+    king:['그림자특공','그림자 속에서 나타나 급소만 노리는 암살자. 정체는 아직 아무도 모릅니다.','"…이미 뒤에 있어."'],
+    turtle:['거북특공','단단한 등껍질로 모든 공격을 받아내는 철벽. 느리지만 끝까지 살아남습니다.','"천천히, 그래도 확실하게."'],
+    shiba:['시바특공','콤보가 이어질수록 흥분하는 열혈 대원. 꼬리가 흔들리면 폭풍 공격이 시작됩니다.','"더 더 더! 멈추지 마!"'],
+    charge:['돌격특공','앞뒤 가리지 않고 적진으로 뛰어드는 파워 대원. 한 방의 무게가 남다릅니다.','"전원 돌격! 내가 선두다!"']
+  };
+  function storyHtml(c){
+    const s=STORY[c.id]||[c.name,(c.role||'')+' 특공대원입니다.',''];
+    return `<div class="sqStory"><div class="sqStoryHead"><span>📖</span><b>${s[0]}의 이야기</b></div><p>${s[1]}</p>${s[2]?`<q>${s[2]}</q>`:''}<div class="sqStoryFoot">${c.role||''} · ${c.skill||''}</div></div>`;
+  }
   function coreIc(){return '<img class="coreIc" src="./assets/doldol_stone_core.png" alt="돌핵">'}
   function progress(id){return window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1,xp:0,next:50}}
   function core(){try{return window.__duckWallet?window.__duckWallet.coins:Number(localStorage.getItem('doldol_coins_v1')||0)}catch(e){return 0}}
@@ -3123,7 +3137,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const leader=body.querySelector('.sqSkillUp.leader');
       if(leader&&!leader.disabled)leader.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost2))return;try{localStorage.setItem('doldol_skill2_'+c.id,String(sl2+1))}catch(e){}renderHud();renderDetailTab('skill')};
     }
-    else if(tab==='story') body.innerHTML=`<div class="skillBox"><strong>${c.name}</strong><p>${c.role} 특공대원입니다.</p></div>`;
+    else if(tab==='story') body.innerHTML=storyHtml(c);
     else {
       const st=levelStats(c,progress(c.id).level);
       const stars=n=>`<b class="stars"><i>${'★'.repeat(n)}</i><u>${'★'.repeat(5-n)}</u></b>`;
@@ -3146,7 +3160,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const btn=screen.querySelector('#sqSelectBig');
     if(isOwned){
       tabs.style.display='grid'; level.style.display='grid'; skin.style.display=''; levelBtn.style.display='';
-      btn.disabled=active===c.id; btn.textContent=active===c.id?'선택중':'선택하기';
+      btn.disabled=active===c.id; btn.innerHTML=active===c.id?'<i>🐾</i>선택중<i>🐾</i>':'선택하기'; btn.classList.toggle('isOn',active===c.id);
       btn.onclick=()=>{try{localStorage.setItem('doldol_character_v1',c.id)}catch(e){} renderHud();openDetail();if(window.__duckSyncLobby)window.__duckSyncLobby();};
       renderDetailTab('stats');
     }else{
