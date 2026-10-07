@@ -390,3 +390,8 @@
 #characterScreen.show .sqSkinCard:not(.on){opacity:.95}
 #characterScreen.show .sqSkinPage .sqSkinHero{margin-top:48px}
 #characterScreen.show #sqDetailHero img[src*="/skins/"]{border-radius:18px;object-position:center 32%!important;box-shadow:0 0 0 3px #c9a15a,0 6px 14px #0007}
+
+/* 스킨 화면: 전신이 다 보이도록 contain + 같은 그림을 흐리게 배경으로 */
+#characterScreen.show .sqSkinHero::before{content:'';position:absolute;inset:-24px;background:var(--skinBg,none) center/cover;filter:blur(16px) brightness(.85);z-index:0}
+#characterScreen.show .sqSkinHero img{z-index:1}
+#characterScreen.show .sqSkinPage .sqSkinHero img[src*="/skins/"]{object-fit:contain!important;object-position:center!important}
