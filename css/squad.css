@@ -279,3 +279,29 @@
 #characterScreen.show .sqSkillUp:disabled{
   background:linear-gradient(#85796e,#5f564e);color:#e0d7cc;box-shadow:0 3px 0 #3f3832;
 }
+
+/* ===== 4단계: UI 아이콘 (assets/ui_icons) — 이모지 대신 그려진 아이콘 ===== */
+#characterScreen .uiIc{display:inline-block;width:1.15em;height:1.15em;object-fit:contain;vertical-align:-.2em;pointer-events:none}
+#characterScreen .coreIc{
+  display:inline-block;width:20px;height:20px;object-fit:cover;object-position:29% 50%;
+  vertical-align:-5px;pointer-events:none;
+}
+/* 필터 탭 */
+#characterScreen.show .sqTab .uiIc{width:20px;height:20px;margin-right:3px;vertical-align:-5px}
+/* 카드 역할 아이콘 */
+#characterScreen.show .sqRoleIc{width:22px;height:22px;background:#1b130d;border:1px solid rgba(255,214,128,.45)}
+#characterScreen.show .sqRoleIc .uiIc{width:18px;height:18px;vertical-align:0}
+/* 능력치 행 */
+#characterScreen.show .sqDetailBody .row em{width:34px;height:34px;display:grid;place-items:center}
+#characterScreen.show .sqDetailBody .row em .uiIc{width:34px;height:34px;vertical-align:0;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+/* 스킬 카드 아이콘: 그려진 아이콘이 틀을 대신함 */
+#characterScreen.show .sqSkillIcon:has(.uiIc){background:linear-gradient(#5c3720,#3b2112);border-color:#d39a55;box-shadow:inset 0 0 0 2px rgba(0,0,0,.35)}
+#characterScreen.show .sqSkillIcon .uiIc{width:52px;height:52px;vertical-align:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+#characterScreen.show .lockedSkill .sqSkillIcon .uiIc{filter:grayscale(.55) brightness(.8) drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+#characterScreen.show .sqSkillUp .coreIc{width:15px;height:15px;vertical-align:-3px}
+/* 레벨업 팝업 */
+#characterScreen .sqLevelStat span .uiIc{width:26px;height:26px;vertical-align:-7px;margin-right:6px}
+#characterScreen .sqLevelCost b{display:flex;align-items:center;justify-content:center;gap:8px}
+#characterScreen .sqLevelCost .coreIc{width:38px;height:38px;vertical-align:0}
+/* 해금/버튼 안의 돌핵 */
+#characterScreen .sqSelectBig .coreIc,#characterScreen .sqUnlockReq .coreIc{width:18px;height:18px;vertical-align:-4px}
