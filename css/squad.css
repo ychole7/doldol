@@ -313,3 +313,18 @@
 #characterScreen.show .sqSkillUp .lockIc{width:15px;height:15px;vertical-align:-3px}
 #characterScreen .sqUnlockBody h3 .lockIc{width:28px;height:28px;vertical-align:-6px;margin-right:2px}
 #characterScreen .sqUnlockReq .lockIc{width:19px;height:19px;vertical-align:-4px}
+
+/* ===== 4단계: 스토리 탭 + 선택 버튼 (시안) ===== */
+#characterScreen.show .sqStory{position:relative;margin:2px 0;padding:14px 16px 12px;border-radius:14px;color:#4a3421;
+  background:linear-gradient(#f7edd8,#ecdcb9);border:2px solid #c9a15a;box-shadow:inset 0 0 0 2px #fff6df,0 3px 8px #0005}
+#characterScreen.show .sqStoryHead{display:flex;align-items:center;gap:8px;padding-bottom:8px;margin-bottom:8px;border-bottom:2px dashed #c9a15a}
+#characterScreen.show .sqStoryHead b{font-size:17px;color:#5a3a16}
+#characterScreen.show .sqStory p{margin:0;font-size:14px;line-height:1.6;font-weight:700}
+#characterScreen.show .sqStory q{display:block;margin:10px 0 0;padding:8px 10px;border-radius:10px;background:#00000012;font-size:14px;font-weight:900;color:#7a4a14;quotes:none}
+#characterScreen.show .sqStoryFoot{margin-top:10px;font-size:12px;font-weight:800;color:#8a7358;text-align:right}
+#characterScreen.show .sqSelectBig{display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;font-size:19px;letter-spacing:1px;
+  border:2px solid #fff3b0;border-radius:16px;box-shadow:0 4px 0 #b57a12,0 6px 12px #0006}
+#characterScreen.show .sqSelectBig i{font-style:normal;font-size:20px}
+#characterScreen.show .sqSelectBig:active{transform:translateY(3px);box-shadow:0 1px 0 #b57a12}
+#characterScreen.show .sqSelectBig:disabled{opacity:1;color:#3d2b10;background:linear-gradient(#ffe168,#ffb92f)}
+#characterScreen.show .sqSelectBig i{filter:grayscale(1) brightness(.25) sepia(1) saturate(3)}
