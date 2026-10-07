@@ -364,9 +364,7 @@
 #characterScreen .sqLevelConfirm:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #b57a12}
 
 /* ===== 스킨 시스템 ===== */
-#characterScreen img[src*="/skins/"]{object-fit:cover!important;object-position:center 25%!important}
 #characterScreen.show .sqSkinHero{border-radius:20px;overflow:hidden;border:3px solid #c9a15a;box-shadow:0 6px 16px #0007;background:#1a1208 url(../assets/home_base_bg.png) center/cover}
-#characterScreen.show .sqSkinHero img[src*="/skins/"]{filter:none}
 #characterScreen.show .sqSkinArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:52px;border:2px solid #fff3b0;border-radius:14px;background:linear-gradient(#ffe168,#ffb92f);color:#3d2b10;font-size:30px;font-weight:1000;line-height:1;box-shadow:0 3px 0 #b57a12,0 4px 8px #0006;padding:0}
 #characterScreen.show .sqSkinArrow.l{left:8px}#characterScreen.show .sqSkinArrow.r{right:8px}
 #characterScreen.show .sqSkinInfo{flex:0 0 auto;margin:8px 0 0;padding:9px 14px 10px;border-radius:14px;background:rgba(30,18,8,.88);border:2px solid #7a5a3a;color:#fff}
@@ -380,7 +378,7 @@
 #characterScreen.show .sqSkinAction .lockIc{width:20px;height:20px}
 #characterScreen.show .sqSkinAction .coreIc{width:22px;height:22px}
 #characterScreen.show .sqSkinThumb{position:relative;overflow:hidden;border-radius:9px}
-#characterScreen.show .sqSkinThumb img{object-fit:cover;object-position:center 22%}
+#characterScreen.show .sqSkinThumb img{object-fit:contain;object-position:center}
 #characterScreen.show .sqSkinThumb .sqSkinLock{inset:0;border-radius:9px;background:rgba(9,11,12,.55)}
 #characterScreen.show .sqSkinThumb .sqSkinLock .lockIc{width:26px;height:26px}
 #characterScreen.show .sqSkinCard b{font-size:12px}
@@ -389,11 +387,7 @@
 #characterScreen.show .sqSkinCard.locked b{color:#bba98b}
 #characterScreen.show .sqSkinCard:not(.on){opacity:.95}
 #characterScreen.show .sqSkinPage .sqSkinHero{margin-top:22px}
-#characterScreen.show #sqDetailHero img[src*="/skins/"]{border-radius:18px;object-position:center 32%!important;box-shadow:0 0 0 3px #c9a15a,0 6px 14px #0007}
 
-/* 스킨 화면: 전신이 다 보이도록 contain + 같은 그림을 흐리게 배경으로 */
-#characterScreen.show .sqSkinHero img{z-index:1}
-#characterScreen.show .sqSkinPage .sqSkinHero img[src*="/skins/"]{object-fit:cover!important;object-position:center 52%!important}
 /* 스킨 화면: 정보 카드를 슬림하게 해서 그림 영역 확보 */
 #characterScreen.show .sqSkinInfo{margin-top:6px;padding:6px 12px 7px}
 #characterScreen.show .sqSkinInfo .sqSkinLabel{font-size:16px}
