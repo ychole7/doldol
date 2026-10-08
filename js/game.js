@@ -4171,7 +4171,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     /* ---------- 화면 뼈대 ---------- */
     if(!document.querySelector('link[data-doldol-equip-style]')){
       const link=document.createElement('link');
-      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip3'; link.dataset.doldolEquipStyle='1';
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip4'; link.dataset.doldolEquipStyle='1';
       document.head.appendChild(link);
     }
     let es=document.getElementById('equipScreen');
@@ -4336,6 +4336,25 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     es.classList.add('show');
     lobby.classList.add('hidden');
     const old=document.getElementById('menuScreen'); if(old)old.classList.remove('show');
+
+    /* 특공대 화면과 같은 높이에서 시작: 특공대 간판 위치를 그대로 재서 맞춘다 */
+    try{
+      const cs=document.getElementById('characterScreen');
+      if(cs){
+        const had=cs.classList.contains('show');
+        if(!cs.querySelector('.sqTop')&&window.__duckOpenCharacters){window.__duckOpenCharacters();}
+        cs.style.visibility='hidden'; cs.classList.add('show');
+        const t=cs.querySelector('.sqTop'); const top=t?t.getBoundingClientRect().top:0;
+        if(!had)cs.classList.remove('show'); cs.style.visibility='';
+        if(top>0)$q('.eqWrap').style.paddingTop=top+'px';
+      }
+    }catch(e){}
+    /* 하단 메뉴 높이만큼 비워두기 (홈 표시줄 영역 포함) */
+    const eqNav=$q('.ddBottomNav');
+    if(eqNav){
+      es.style.setProperty('--eq-nav-h',eqNav.offsetHeight+'px');
+      if(window.ResizeObserver)new ResizeObserver(()=>es.style.setProperty('--eq-nav-h',eqNav.offsetHeight+'px')).observe(eqNav);
+    }
   }
 
   // Replace legacy menu-close listeners so closing the armory has one deterministic path.
