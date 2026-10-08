@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle9','data-doldol-battle-style']].forEach(function(x){
+  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261009-set1','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -874,6 +874,7 @@ function burst(x,y,n=12){
 function feedbackV1(kind){
   try{
     if(!navigator.vibrate) return;
+    if(window.__duckSettings&&window.__duckSettings.get().vib===false) return;
     const ms=kind==='clear'?55:kind==='kill'?28:kind==='pickup'?18:kind==='parry'?22:kind==='upgrade'?30:12;
     navigator.vibrate(ms);
   }catch(e){}
@@ -1613,8 +1614,9 @@ function drawUpgrade(){
 function draw(){
   ctx.clearRect(0,0,vw,vh);
 
-  const sx=shake?(Math.random()-.5)*shake:0;
-  const sy=shake?(Math.random()-.5)*shake:0;
+  const __shk=shake&&!(window.__duckSettings&&window.__duckSettings.get().shake===false);
+  const sx=__shk?(Math.random()-.5)*shake:0;
+  const sy=__shk?(Math.random()-.5)*shake:0;
   ctx.save();
   ctx.translate(sx,sy);
 
@@ -5330,4 +5332,42 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   });
   if('requestIdleCallback' in window) requestIdleCallback(warm,{timeout:1800});
   else setTimeout(warm,900);
+})();
+
+
+/* SETTINGS V1 - home/squad/equip/shop gear button */
+(function(){
+  const KEY='doldol_settings_v1';
+  const DEF={vib:true,shake:true,hint:true};
+  function get(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}')||{})}catch(e){return Object.assign({},DEF)}}
+  function save(st){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+  function apply(){document.documentElement.dataset.hint=get().hint===false?'off':'on'}
+  window.__duckSettings={get:get,set:function(k,v){const st=get();st[k]=v;save(st);apply()}};
+  apply();
+  const ROWS=[['vib','진동','패링·타격 때 폰이 진동해요'],['shake','화면 흔들림','타격 때 화면이 흔들려요'],['hint','패링 안내 말풍선','전투 시작 때 "가까이 올 때 탭!"을 보여줘요']];
+  function close(){const o=document.getElementById('doldolSettings');if(o)o.remove()}
+  function open(){
+    if(document.getElementById('doldolSettings'))return;
+    const st=get(),ver=((document.querySelector('.titleImageVersion')||{}).textContent||'').trim();
+    const o=document.createElement('div');o.id='doldolSettings';o.className='dsOverlay';
+    o.innerHTML='<div class="dsSheet" role="dialog" aria-label="설정">'+
+      '<div class="dsTitle"><span>설정</span><button type="button" class="dsX" aria-label="닫기">✕</button></div>'+
+      '<div class="dsGroup"><h4>게임</h4>'+ROWS.map(r=>'<div class="dsRow"><div class="dsTxt"><b>'+r[1]+'</b><small>'+r[2]+'</small></div><button type="button" class="dsToggle'+(st[r[0]]!==false?' on':'')+'" data-k="'+r[0]+'" role="switch" aria-checked="'+(st[r[0]]!==false)+'" aria-label="'+r[1]+'"><i></i></button></div>').join('')+'</div>'+
+      '<div class="dsGroup"><h4>데이터</h4><div class="dsRow" id="dsResetRow"><div class="dsTxt"><b>게임 데이터 초기화</b><small>캐릭터, 장비, 재화 등 모든 진행이 삭제돼요</small></div><button type="button" class="dsDanger" id="dsReset">초기화</button></div>'+
+      '<div class="dsRow dsConfirm" id="dsConfirm" hidden><div class="dsTxt"><b>정말 모두 삭제할까요?</b><small>되돌릴 수 없어요</small></div><div class="dsBtns"><button type="button" class="dsGhost" id="dsNo">취소</button><button type="button" class="dsDanger" id="dsYes">삭제</button></div></div></div>'+
+      '<div class="dsInfo">돌돌 특공대 '+ver+'</div>'+
+      '<button type="button" class="dsOk">닫기</button></div>';
+    o.addEventListener('click',e=>{if(e.target===o||e.target.closest('.dsX,.dsOk'))close()});
+    o.querySelectorAll('.dsToggle').forEach(b=>b.onclick=()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);b.setAttribute('aria-checked',on);window.__duckSettings.set(b.dataset.k,on);if(b.dataset.k==='vib'&&on&&navigator.vibrate){try{navigator.vibrate(20)}catch(e){}}});
+    o.querySelector('#dsReset').onclick=()=>{o.querySelector('#dsResetRow').hidden=true;o.querySelector('#dsConfirm').hidden=false};
+    o.querySelector('#dsNo').onclick=()=>{o.querySelector('#dsConfirm').hidden=true;o.querySelector('#dsResetRow').hidden=false};
+    o.querySelector('#dsYes').onclick=()=>{try{Object.keys(localStorage).filter(k=>k.indexOf('doldol')===0&&k!==KEY).forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()};
+    document.body.appendChild(o);
+  }
+  window.__duckOpenSettings=open;
+  document.addEventListener('click',e=>{
+    const t=e.target.closest&&e.target.closest('#lobbySettings,.ddSettings,.homeSettings');
+    if(!t)return;
+    e.preventDefault();open();
+  },true);
 })();
