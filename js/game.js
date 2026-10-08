@@ -654,8 +654,8 @@ function getEquippedGearStats(){
   let loadout={armor:'helmet',support:'gloves'};
   try{
     const saved=JSON.parse(localStorage.getItem('doldol_gear_loadout_v1')||'{}')||{};
-    if(saved.armor)loadout.armor=saved.armor;
-    if(saved.support)loadout.support=saved.support;
+    if(saved.armor!==undefined)loadout.armor=saved.armor;
+    if(saved.support!==undefined)loadout.support=saved.support;
   }catch(e){}
   const out={atk:24,def:0,hp:0,special:0,loadout:Object.assign({},loadout)};
   ['armor','support'].forEach(slot=>{
@@ -4139,8 +4139,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     let upgradeLevels={};
     try{
       const saved=JSON.parse(localStorage.getItem(GEAR_KEY)||'{}')||{};
-      if(saved.armor)loadout.armor=saved.armor;
-      if(saved.support)loadout.support=saved.support;
+      if(saved.armor!==undefined)loadout.armor=saved.armor;
+      if(saved.support!==undefined)loadout.support=saved.support;
     }catch(e){}
     try{const v=JSON.parse(localStorage.getItem(OWN_KEY)||'null');if(Array.isArray(v)&&v.length)owned=v;}catch(e){}
     try{upgradeLevels=JSON.parse(localStorage.getItem(UPGRADE_KEY)||'{}')||{};}catch(e){}
@@ -4171,7 +4171,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     /* ---------- 화면 뼈대 ---------- */
     if(!document.querySelector('link[data-doldol-equip-style]')){
       const link=document.createElement('link');
-      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip4'; link.dataset.doldolEquipStyle='1';
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip6'; link.dataset.doldolEquipStyle='1';
       document.head.appendChild(link);
     }
     let es=document.getElementById('equipScreen');
@@ -4269,44 +4269,100 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       save(); paint(); toast('방어구·보조장비를 가장 좋은 장비로 바꿨어요');
     };
 
-    /* ---------- 상세 팝업 ---------- */
+    /* ---------- 상세 팝업 (시안) ---------- */
+    const GEAR_DESC={
+      helmet:'기본 방어에 충실한 전술 헬멧',vest:'체력을 든든하게 보강하는 전투조끼',heavy:'높은 방어에 특화된 중장갑',light:'기동성과 생존력의 균형이 좋은 경량장갑',
+      gloves:'반격 타이밍을 안정시켜 주는 전술 장갑',boots:'반격 타이밍을 도와주는 전투화',scope:'공격과 반격 판정을 함께 높이는 조준경',pack:'버티는 힘을 길러주는 전술 배낭'
+    };
+    const STAT_META=[['atk','공격','stat_attack','⚔'],['def','방어','stat_defense','🛡'],['hp','체력','stat_hp','♥'],['special','특수','stat_special','✦']];
+    const statIc=(key,fb)=>'<img class="eqStIc" src="./assets/ui_icons/'+key+'.png" alt="" onerror="this.outerHTML=\''+fb+'\'">';
+    const coreIc='<img class="eqCoreIc" src="./assets/doldol_stone_core.png" alt="">';
+    const statVal=(g,k,lv)=>scaled(g[k],g.id,lv);
+    function statRows(g,lv,cls){
+      return STAT_META.filter(s=>g[s[0]]).map(s=>'<div class="eqStRow"><span>'+statIc(s[2],s[3])+s[1]+'</span><b class="'+(cls||'')+'">+'+statVal(g,s[0],lv)+'</b></div>').join('');
+    }
     function closeModal(){const m=$q('#eqModal');if(m)m.hidden=true;}
-    function openDetail(kind,id){
+    function dotsHtml(lv){
+      let a='';
+      for(let i=1;i<=20;i++)a+='<i class="'+(i<=lv?'on':'')+(i===lv?' cur':'')+'"><u></u><s>'+i+'</s></i>';
+      return a;
+    }
+    function openDetail(kind,id,flash){
       const modal=$q('#eqModal'),sheet=$q('#eqSheet');
       modal.hidden=false;
       modal.onclick=e=>{if(e.target===modal)closeModal();};
       if(kind==='stone'){
-        const d=defs[id]||defs.basic,ok=stoneUnlocked(id),on=currentStone().id===id,rc=rarityCls[stoneRarity[id]||'일반'];
+        const d=defs[id]||defs.basic,ok=stoneUnlocked(id),on=currentStone().id===id,rar=stoneRarity[id]||'일반',rc=rarityCls[rar];
         sheet.innerHTML=
           '<button type="button" class="eqClose" id="eqClose" aria-label="닫기">×</button>'+
-          '<div class="eqHero r-'+rc+'"><span class="eqHeroArt"><img src="'+d.art+'" alt="'+d.name+'"></span><div><small>'+(stoneRarity[id]||'일반')+' · 돌</small><h2>'+d.name+'</h2><p>'+d.role+'</p></div></div>'+
-          '<div class="eqStatBox"><small>효과</small><b>'+d.desc+'</b><em>돌은 공격 방식만 바꾸고, 장비 능력치와는 별개예요.</em></div>'+
-          '<button type="button" id="eqDoEquip" class="eqBtn'+(on?' on':'')+'" '+(ok?'':'disabled')+'>'+(on?'✓ 장착중':ok?'이 돌 장착하기':'🔒 STAGE '+d.unlock+' 클리어 후 해금')+'</button>';
+          '<div class="eqHero r-'+rc+'"><span class="eqHeroArt"><img src="'+d.art+'" alt="'+d.name+'"></span><div class="eqHeroTxt">'+
+            '<div class="eqPills"><em class="eqPill rar">'+rar+'</em><i class="eqDot">•</i><em class="eqPill">돌</em>'+(on?'<em class="eqPill on">장착중</em>':'')+'</div>'+
+            '<h2>'+d.name+'</h2><span class="eqLvPill">'+d.role+'</span><p>'+d.desc+'</p></div></div>'+
+          '<div class="eqInfoBox"><span class="eqInfoIc">🪨</span><div><b>돌 = 전투 방식</b><small>장비 능력치와 별개로 공격 특성만 바뀝니다.</small></div></div>'+
+          (ok?'':'<div class="eqInfoBox warn"><span class="eqInfoIc">🔒</span><div><b>STAGE '+d.unlock+' 클리어 후 해금</b><small>스테이지를 진행하면 사용할 수 있어요.</small></div></div>')+
+          '<div class="eqBtns one"><button type="button" id="eqDoEquip" class="eqBtn'+(on?' on':'')+'" '+(ok&&!on?'':'disabled')+'>'+(on?'✓ 장착중':ok?'이 돌 장착하기':'잠금')+'</button></div>';
         $q('#eqClose').onclick=closeModal;
-        const b=$q('#eqDoEquip'); if(ok)b.onclick=()=>{equipStone(id);paint();openDetail('stone',id);};
+        if(ok&&!on)$q('#eqDoEquip').onclick=()=>{equipStone(id);paint();openDetail('stone',id);};
         return;
       }
       const g=gearDefs.find(x=>x.id===id); if(!g){closeModal();return;}
-      const lv=gearLevel(g.id),nextLv=Math.min(20,lv+1),cost=upgradeCost(lv);
+      const lv=gearLevel(g.id),nextLv=Math.min(20,lv+1),cost=upgradeCost(lv),max=lv>=20;
       const on=loadout[g.slot]===g.id;
-      const wallet=window.__duckWallet; const have=wallet?wallet.coins:0;
+      const cur=on?null:equipped(g.slot);
+      const wallet=window.__duckWallet; const have=wallet?Number(wallet.coins)||0:0;
+      const can=!max&&have>=cost;
+      const rc=rarityCls[g.rarity];
+      const slotIc=g.slot==='armor'?statIc('stat_defense','🛡'):statIc('stat_special','✦');
+
+      let compare='';
+      if(!on){
+        const keys=STAT_META.filter(s=>g[s[0]]||(cur&&cur[s[0]]));
+        const rows=keys.map(s=>{
+          const a=cur?statVal(cur,s[0],gearLevel(cur.id)):0,b=statVal(g,s[0],lv);
+          const cls=b>a?'up':b<a?'down':'';
+          return '<div class="eqCmpRow"><span>'+statIc(s[2],s[3])+s[1]+'</span><em>+'+a+'</em><u>▶</u><b class="'+cls+'">+'+b+'</b></div>';
+        }).join('');
+        compare='<div class="eqCmp"><div class="eqCmpHead"><b>장착 전 비교</b>'+
+          (cur?'<div class="eqCmpCur"><img src="'+cur.art+'" alt=""><span><small>현재 장착 중인 장비</small><b>'+cur.name+'</b><em>Lv.'+gearLevel(cur.id)+'</em></span></div>'
+              :'<div class="eqCmpCur"><span><small>현재 장착 중인 장비</small><b>없음</b></span></div>')+
+          '</div>'+rows+'</div>';
+      }
+      const equippedBox=on?'<div class="eqInfoBox"><span class="eqInfoIc">⚙</span><div><b>현재 출격 세팅에 장착 중인 장비입니다.</b><small>해제하면 출격 세팅에서 자동으로 장비가 해제됩니다.</small></div></div>':'';
+
       sheet.innerHTML=
         '<button type="button" class="eqClose" id="eqClose" aria-label="닫기">×</button>'+
-        '<div class="eqHero r-'+rarityCls[g.rarity]+'"><span class="eqHeroArt"><img src="'+g.art+'" alt="'+g.name+'"></span><div><small>'+g.rarity+' · '+slotName[g.slot]+'</small><h2>'+g.name+'</h2><p>'+g.role+'</p><strong>Lv.'+lv+' / 20</strong></div></div>'+
-        '<div class="eqStatBox"><small>현재 능력치</small><b>'+statText(g,lv)+'</b>'+(lv<20?'<em>강화 후 · '+statText(g,nextLv)+'</em>':'<em>MAX LEVEL</em>')+'</div>'+
-        '<button type="button" id="eqDoEquip" class="eqBtn'+(on?' on':'')+'">'+(on?'✓ 장착중':'장착하기')+'</button>'+
-        '<button type="button" id="eqDoUp" class="eqBtn up" '+(lv>=20||have<cost?'disabled':'')+'>'+(lv>=20?'MAX LEVEL':'강화하기 · 돌핵 '+cost.toLocaleString())+'</button>'+
-        (lv<20&&have<cost?'<div class="eqNeed">돌핵이 부족합니다 · 보유 '+Number(have).toLocaleString()+'</div>':'');
+        '<div class="eqHero r-'+rc+'"><span class="eqHeroArt'+(flash?' pulse':'')+'"><img src="'+g.art+'" alt="'+g.name+'"></span><div class="eqHeroTxt">'+
+          '<div class="eqPills"><em class="eqPill rar">'+g.rarity+'</em><i class="eqDot">•</i><em class="eqPill">'+slotIc+slotName[g.slot]+'</em>'+(on?'<em class="eqPill on">장착중</em>':'')+'</div>'+
+          '<h2>'+g.name+'</h2><span class="eqLvPill">Lv.'+lv+' / 20</span><p>'+(GEAR_DESC[g.id]||g.role)+'</p></div>'+
+          (flash?'<div class="eqUpFlash">강화 성공! Lv.'+lv+'</div>':'')+'</div>'+
+        '<div class="eqStats">'+
+          '<div class="eqStBox"><div class="eqStHead"><b>현재 능력치</b></div>'+statRows(g,lv)+'</div>'+
+          '<i class="eqArrow">❯</i>'+
+          '<div class="eqStBox"><div class="eqStHead"><b>강화 미리보기</b>'+(max?'':'<span class="eqExp">Lv.'+nextLv+' 예상</span>')+'</div>'+(max?'<div class="eqMaxTxt">MAX LEVEL</div>':statRows(g,nextLv,'grow'))+'</div>'+
+        '</div>'+
+        compare+
+        '<div class="eqSteps"><b>강화 단계 <span>'+lv+'</span> / 20</b><div class="eqDots">'+dotsHtml(lv)+'</div></div>'+
+        '<div class="eqCost"><span>'+coreIc+'<small>보유 돌핵</small><b>'+have.toLocaleString()+'</b></span><i></i><span><small>강화 비용</small>'+coreIc+'<b class="'+(max||can?'':'lack')+'">'+(max?'MAX':cost.toLocaleString())+'</b></span></div>'+
+        equippedBox+
+        '<div class="eqBtns"><button type="button" id="eqDoEquip" class="eqBtn sub"><img src="'+g.art+'" alt="">'+(on?'해제':'장착하기')+'</button>'+
+        '<button type="button" id="eqDoUp" class="eqBtn up" '+(can?'':'disabled')+'>'+(max?'<b>MAX LEVEL</b>':'<b>강화하기</b><span>'+coreIc+cost.toLocaleString()+'</span>')+'</button></div>'+
+        (!max&&!can?'<div class="eqNeed">돌핵이 부족합니다 · 보유 '+have.toLocaleString()+'</div>':'');
       $q('#eqClose').onclick=closeModal;
-      $q('#eqDoEquip').onclick=()=>{loadout[g.slot]=g.id;save();paint();openDetail('gear',id);};
+      const refresh=()=>{
+        try{if(player&&player.gearStats)applyGrowthToPlayer();}catch(e){}
+        if(window.__duckSyncLobby)window.__duckSyncLobby();
+        paint();
+      };
+      $q('#eqDoEquip').onclick=()=>{
+        if(on){loadout[g.slot]='';}else{loadout[g.slot]=g.id;}
+        save(); refresh(); openDetail('gear',id);
+      };
       $q('#eqDoUp').onclick=()=>{
         const now=gearLevel(g.id),c=upgradeCost(now); if(now>=20)return;
         if(!window.__duckWallet||!window.__duckWallet.spendCoins(c)){openDetail('gear',id);return;}
         upgradeLevels[g.id]=now+1; save();
         if(window.__duckMissionEvent)window.__duckMissionEvent('gear',1);
-        if(player&&player.gearStats) applyGrowthToPlayer();
-        if(window.__duckSyncLobby)window.__duckSyncLobby();
-        paint(); openDetail('gear',id);
+        refresh(); openDetail('gear',id,true);
       };
     }
 
