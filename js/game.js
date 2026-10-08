@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad22';
+    link.href='css/squad.css?v=20261006-squad23';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2850,8 +2850,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'night',name:'야간잠입 스킨',short:'야간잠입',art:'./assets/skins/nyang_night.png',cond:{type:'level',v:10},desc:'어둠 속에서 움직이는 야간 잠입 장비.',quote:'"밤은 내 편이다냥."'},
       {id:'pilot',name:'파일럿 스킨',short:'파일럿',art:'./assets/skins/nyang_pilot.png',cond:{type:'core',v:5000},desc:'하늘을 가르는 비행사 스타일 전투복.',quote:'"이륙 준비 완료다냥!"'},
       {id:'cyber',name:'사이버 스카우트 스킨',short:'스카우트',art:'./assets/skins/nyang_cyber.png',cond:{type:'gem',v:500},desc:'네온빛 첨단 장비를 갖춘 사이버 정찰병.',quote:'"데이터 확인 완료다냥."'}
+    ],
+    rabbit:[
+      {id:'recon',name:'정찰저격 스킨',short:'정찰',art:'./assets/skins/rabbit_recon.png',cond:{type:'level',v:5},desc:'먼 곳을 살피는 정찰 저격수 복장.',quote:'"조준 완료, 숨을 고르고…"'},
+      {id:'snow',name:'설원저격 스킨',short:'설원',art:'./assets/skins/rabbit_snow.png',cond:{type:'level',v:10},desc:'눈밭에 완벽히 녹아드는 설원 위장복.',quote:'"눈에 띄지 않는 게 내 실력이야."'},
+      {id:'desert',name:'사막저격 스킨',short:'사막',art:'./assets/skins/rabbit_desert.png',cond:{type:'core',v:5000},desc:'뜨거운 모래바람을 견디는 사막 저격 장비.',quote:'"바람을 읽고 쏜다."'},
+      {id:'gold',name:'황금명사수 스킨',short:'황금',art:'./assets/skins/rabbit_gold.png',cond:{type:'gem',v:500},desc:'전설의 명사수에게만 허락된 황금 장비.',quote:'"한 발이면 충분해!"'}
     ]
   };
+  /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
+  const TEST_UNLOCK_ALL=true;
   function skinState(){try{const s=JSON.parse(localStorage.getItem(SKIN_KEY)||'{}')||{};return{owned:s.owned||{},equipped:s.equipped||{}}}catch(e){return{owned:{},equipped:{}}}}
   function saveSkin(s){try{localStorage.setItem(SKIN_KEY,JSON.stringify(s))}catch(e){}}
   function skinList(cid){
@@ -2859,7 +2867,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     return [{id:'base',name:'기본 스킨',art:null,cond:null,desc:'특공대의 기본 전투복. 언제 어디서든 달려갈 준비가 되어있다.',quote:((STORY[cid]||[])[2])||''}].concat(SKINS[cid]||[]);
   }
   function skinOwned(cid,sk){
-    if(!sk.cond)return true;
+    if(!sk.cond||TEST_UNLOCK_ALL)return true;
     if(((skinState().owned[cid])||[]).includes(sk.id))return true;
     return sk.cond.type==='level'&&progress(cid).level>=sk.cond.v;
   }
@@ -2884,7 +2892,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function owned(id){
     const c=uiRoster.find(x=>x.id===id);
-    if(!c || id==='doldol') return true;
+    if(!c || id==='doldol' || TEST_UNLOCK_ALL) return true;
     const p=progress(id);
     if(Number(p.level||1)>1 || Number(p.xp||0)>0) return true;
     try{
