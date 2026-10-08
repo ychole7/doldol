@@ -2874,6 +2874,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'fortress',name:'요새수비 스킨',short:'요새수비',art:'./assets/skins/turtle_fortress.png',cond:{type:'level',v:10},desc:'움직이는 요새가 된 수비 전문 장비.',quote:'"이 자리가 내 요새다거북."'},
       {id:'naval',name:'해상수비 스킨',short:'해상수비',art:'./assets/skins/turtle_naval.png',cond:{type:'core',v:5000},desc:'파도 위를 지키는 해상 방어 장비.',quote:'"바다는 내가 지킨다거북."'},
       {id:'paladin',name:'성기사풍 스킨',short:'성기사',art:'./assets/skins/turtle_paladin.png',cond:{type:'gem',v:500},desc:'신성한 빛을 두른 성기사풍 갑옷.',quote:'"모두를 지키는 것이 내 사명이다거북."'}
+    ],
+    shiba:[
+      {id:'assault',name:'돌격대 스킨',short:'돌격대',art:'./assets/skins/shiba_assault.png',cond:{type:'level',v:5},desc:'가장 앞에서 달려나가는 돌격대 장비.',quote:'"돌격! 앞으로 가자!"'},
+      {id:'racer',name:'레이서 스킨',short:'레이서',art:'./assets/skins/shiba_racer.png',cond:{type:'level',v:10},desc:'바람보다 빠른 스피드 레이서 슈트.',quote:'"따라올 수 있으면 따라와!"'},
+      {id:'flame',name:'화염 스킨',short:'화염',art:'./assets/skins/shiba_flame.png',cond:{type:'core',v:5000},desc:'뜨겁게 타오르는 화염 전투복.',quote:'"전부 불태워버리자!"'},
+      {id:'berserker',name:'광전사 스킨',short:'광전사',art:'./assets/skins/shiba_berserker.png',cond:{type:'gem',v:500},desc:'멈추지 않는 광전사의 폭주 모드.',quote:'"더 더 더! 아직 멀었어!"'}
     ]
   };
   /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
