@@ -2856,6 +2856,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'snow',name:'설원저격 스킨',short:'설원',art:'./assets/skins/rabbit_snow.png',cond:{type:'level',v:10},desc:'눈밭에 완벽히 녹아드는 설원 위장복.',quote:'"눈에 띄지 않는 게 내 실력이야."'},
       {id:'desert',name:'사막저격 스킨',short:'사막',art:'./assets/skins/rabbit_desert.png',cond:{type:'core',v:5000},desc:'뜨거운 모래바람을 견디는 사막 저격 장비.',quote:'"바람을 읽고 쏜다."'},
       {id:'gold',name:'황금명사수 스킨',short:'황금',art:'./assets/skins/rabbit_gold.png',cond:{type:'gem',v:500},desc:'전설의 명사수에게만 허락된 황금 장비.',quote:'"한 발이면 충분해!"'}
+    ],
+    panda:[
+      {id:'heavy',name:'중장갑 스킨',short:'중장갑',art:'./assets/skins/panda_heavy.png',cond:{type:'level',v:5},desc:'어떤 공격도 버텨내는 두꺼운 중장갑 전투복.',quote:'"덤벼봐, 끄떡없다판다!"'},
+      {id:'swat',name:'진압대 스킨',short:'진압대',art:'./assets/skins/panda_swat.png',cond:{type:'level',v:10},desc:'앞장서서 길을 여는 진압대 장비.',quote:'"내가 먼저 간다판다!"'},
+      {id:'shield',name:'공성방패 스킨',short:'공성방패',art:'./assets/skins/panda_shield.png',cond:{type:'core',v:5000},desc:'성벽처럼 든든한 대형 공성 방패.',quote:'"여긴 절대 못 지나간다판다."'},
+      {id:'gold',name:'황금수호 스킨',short:'황금',art:'./assets/skins/panda_gold.png',cond:{type:'gem',v:500},desc:'동료를 지키는 황금빛 수호자의 갑옷.',quote:'"모두 내 뒤로 오라판다!"'}
     ]
   };
   /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
