@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle4','data-doldol-battle-style']].forEach(function(x){
+  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle5','data-doldol-battle-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -186,6 +186,7 @@ let skillCooldown=0;
 let skillTimer=0;
 let skillState=null;
 let skillFx=0;
+let parryFxList=[];
 let skillMessage='';
 // V40: battle stone selection / ammo
 const STONE_DEFS={
@@ -290,6 +291,7 @@ function showBattleHud(){
     host.appendChild(hud);
   }
 
+  const hintEl=host.querySelector('.battleHint'); if(hintEl&&hintEl.dataset.t!=='1'){ hintEl.dataset.t='1'; hintEl.textContent='적 총알이 가까이 오면 화면을 탭!'; }
   const c=getSelectedCharacter();
   const waveCount=Math.max(1,Math.min(3,Math.ceil((total||1)/3)));
   const waveNow=Math.max(1,Math.min(waveCount,Math.floor((kills||0)/Math.max(1,(total||1)/waveCount))+1));
@@ -1076,6 +1078,8 @@ function parryAt(x,y){
     messageTimer=.38;
     shake=4;
   }
+  parryFxList.push({x:player.x,y:player.y,rx:r.x,ry:r.y,t:performance.now(),p:!!isPerfect});
+  if(parryFxList.length>6)parryFxList.shift();
   burst(r.x,r.y,isPerfect?18:10);
   feedbackV1('parry');
   return true;
@@ -1795,6 +1799,39 @@ function draw(){
   }
 
   if(player.inv<=0 || Math.floor(performance.now()/70)%2===0) drawDuck(player.x,player.y);
+  // Parry effect: shock ring + sparks on the player, flash where the rock was caught.
+  if(parryFxList.length){
+    const now=performance.now();
+    parryFxList=parryFxList.filter(f=>now-f.t<(f.p?520:340));
+    for(const f of parryFxList){
+      const dur=f.p?520:340, a=(now-f.t)/dur, e=1-Math.pow(1-a,3);
+      const col=f.p?'255,216,77':'155,231,255';
+      const R=(f.p?86:58)*e+16;
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      const g=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,R);
+      g.addColorStop(0,'rgba('+col+','+(.38*(1-a))+')'); g.addColorStop(1,'rgba('+col+',0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(f.x,f.y,R,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='rgba('+col+','+(1-a)+')'; ctx.lineWidth=(f.p?6:4)*(1-a)+1; ctx.beginPath(); ctx.arc(f.x,f.y,R,0,Math.PI*2); ctx.stroke();
+      if(f.p){ ctx.strokeStyle='rgba(255,255,255,'+(.8*(1-a))+')'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(f.x,f.y,R*.62,0,Math.PI*2); ctx.stroke(); }
+      const n=f.p?12:8;
+      ctx.lineCap='round'; ctx.strokeStyle='rgba(255,255,255,'+(.9*(1-a))+')'; ctx.lineWidth=f.p?3:2;
+      for(let i=0;i<n;i++){
+        const ang=i/n*Math.PI*2+(f.p?.2:0), r1=R*.7, r2=R*(.7+.45*(1-a));
+        ctx.beginPath(); ctx.moveTo(f.x+Math.cos(ang)*r1,f.y+Math.sin(ang)*r1); ctx.lineTo(f.x+Math.cos(ang)*r2,f.y+Math.sin(ang)*r2); ctx.stroke();
+      }
+      const h=ctx.createRadialGradient(f.rx,f.ry,0,f.rx,f.ry,26*(1-a)+6);
+      h.addColorStop(0,'rgba(255,255,255,'+(1-a)+')'); h.addColorStop(1,'rgba('+col+',0)');
+      ctx.fillStyle=h; ctx.beginPath(); ctx.arc(f.rx,f.ry,26*(1-a)+6,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      if(f.p){
+        ctx.save(); ctx.globalAlpha=Math.min(1,(1-a)*1.6); ctx.textAlign='center'; ctx.font='1000 22px system-ui';
+        ctx.lineWidth=5; ctx.strokeStyle='#7a3a08'; ctx.fillStyle='#fff2a8';
+        const ty=f.y-44-a*26; ctx.strokeText('PERFECT!',f.x,ty); ctx.fillText('PERFECT!',f.x,ty); ctx.restore();
+      }
+    }
+  }
+
 
   let dangerRock=null, dangerDist=Infinity;
   for(const r of rocks){
