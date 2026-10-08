@@ -3073,14 +3073,15 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     });
   }
 
-  function renderHud(){
+  function renderHud(root){
+    root=root||screen;
     const active=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
     const c=uiRoster.find(x=>x.id===active)||uiRoster[0], p=progress(c.id);
-    const face=screen.querySelector('#sqHudFace');
+    const face=root.querySelector('#sqHudFace');
     if(face) face.innerHTML=c.art?`<img src="${c.art}" alt="">`:`<span>${c.face}</span>`;
-    const n=screen.querySelector('#sqHudName'); if(n)n.textContent=c.name;
-    const lv=screen.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
-    const xpi=screen.querySelector('#sqHudXp');
+    const n=root.querySelector('#sqHudName'); if(n)n.textContent=c.name;
+    const lv=root.querySelector('#sqHudLv'); if(lv)lv.textContent='Lv.'+p.level;
+    const xpi=root.querySelector('#sqHudXp');
     if(xpi){
       const pct=Math.max(0,Math.min(100,(Number(p.xp)||0)/Math.max(1,Number(p.next)||1)*100));
       xpi.style.width=pct+'%';
@@ -3096,7 +3097,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const b=n/1000000000;
       return (b<10?b.toFixed(1):Math.floor(b)).toString().replace(/\.0$/,'')+'B';
     };
-    const co=screen.querySelector('#sqHudCore');
+    const co=root.querySelector('#sqHudCore');
     if(co){
       const v=core();
       co.textContent=compact(v);
@@ -3110,9 +3111,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         if(v!==null){gems=Number(v)||0;break;}
       }
     }catch(e){}
-    const ge=screen.querySelector('#sqHudGem');
+    const ge=root.querySelector('#sqHudGem');
     if(ge){ge.textContent=compact(gems);ge.title=Number(gems||0).toLocaleString();}
   }
+  window.__doldolRenderHud=renderHud;
 
   function renderGrid(filter=()=>true){
     const grid=screen.querySelector('#charGrid'); if(!grid)return;
@@ -4113,6 +4115,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(window.__duckSyncLobby) window.__duckSyncLobby();
   }
 
+  /* ===== 장비 화면 (시안): 전체 화면 #equipScreen, 장착·강화 로직은 기존과 동일 ===== */
   function renderEquipmentMenu(){
     const GEAR_KEY='doldol_gear_loadout_v1';
     const OWN_KEY='doldol_gear_owned_v1';
@@ -4127,7 +4130,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'scope',slot:'support',art:'./assets/gear/gear_scope.png',name:'조준경',role:'공격 보조',rarity:'영웅',atk:14,special:6},
       {id:'pack',slot:'support',art:'./assets/gear/gear_tactical_backpack.png',name:'전술 배낭',role:'생존 보조',rarity:'영웅',hp:24,special:5}
     ];
-    const slotName={armor:'방어구',support:'보조장비'};
+    const slotName={stone:'돌',armor:'방어구',support:'보조장비'};
+    const stoneRarity={basic:'일반',fire:'희귀',ice:'희귀',bomb:'영웅',lightning:'전설',skill:'전설'};
+    const rarityRank={'일반':0,'희귀':1,'영웅':2,'전설':3};
+    const rarityCls={'일반':'common','희귀':'rare','영웅':'epic','전설':'legend'};
     let loadout={armor:'helmet',support:'gloves'};
     let owned=gearDefs.map(x=>x.id);
     let upgradeLevels={};
@@ -4149,6 +4155,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(g.hp)a.push('체력 +'+scaled(g.hp,g.id,lv)); if(g.special)a.push('특수 +'+scaled(g.special,g.id,lv));
       return a.join(' · ')||'기본 장비';
     }
+    const statTotal=g=>scaled(g.atk,g.id)+scaled(g.def,g.id)+scaled(g.hp,g.id)+scaled(g.special,g.id);
     function equipped(slot){return gearDefs.find(x=>x.id===loadout[slot]);}
     function currentStone(){
       let id=getPreparedStone()||'basic';
@@ -4159,84 +4166,175 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(!defs[id]||!stoneUnlocked(id))return;
       savePreparedStone(id); window.__duckPreparedStone=id;
       if(window.__duckEquipStone)window.__duckEquipStone(id);
-      render('stone');
     }
-    function renderStoneDetail(id){
-      const d=defs[id]||defs.basic,ok=stoneUnlocked(id),on=currentStone().id===id;
-      menuTitle.textContent='돌 상세';
-      menuBody.innerHTML='<div class="stoneGearDetail">'+
-        '<button type="button" class="gearDetailBack" id="stoneDetailBack">‹</button>'+
-        '<div class="stoneGearHero"><span><img src="'+d.art+'" alt="'+d.name+'"></span><div><small>'+d.role+'</small><h2>'+d.name+'</h2><p>'+d.desc+'</p>'+(ok?'<strong>사용 가능</strong>':'<strong>STAGE '+d.unlock+' 클리어 후 해금</strong>')+'</div></div>'+
-        '<div class="stoneGearRule"><b>돌 = 전투 방식</b><small>장비 능력치와 별개로 공격 특성만 바뀝니다.</small></div>'+
-        '<button type="button" id="stoneDetailEquip" class="gearDetailEquip '+(on?'on':'')+'" '+(ok?'':'disabled')+'>'+(on?'✓ 장착중':ok?'이 돌 장착하기':'🔒 잠금')+'</button>'+
-      '</div>';
-      menuBody.querySelector('#stoneDetailBack').onclick=()=>render('stone');
-      const btn=menuBody.querySelector('#stoneDetailEquip');
-      if(btn&&ok)btn.onclick=()=>equipStone(id);
+
+    /* ---------- 화면 뼈대 ---------- */
+    if(!document.querySelector('link[data-doldol-equip-style]')){
+      const link=document.createElement('link');
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip2'; link.dataset.doldolEquipStyle='1';
+      document.head.appendChild(link);
     }
-    function renderDetail(id,returnFilter='all'){
-      const g=gearDefs.find(x=>x.id===id); if(!g)return render(returnFilter);
-      const lv=gearLevel(g.id), nextLv=Math.min(20,lv+1), cost=upgradeCost(lv);
-      const equippedNow=loadout[g.slot]===g.id;
-      const wallet=window.__duckWallet;
-      const have=wallet?wallet.coins:0;
-      menuTitle.textContent='장비 상세';
-      menuBody.innerHTML='<div class="gearDetailV1">'+
-        '<button type="button" class="gearDetailBack" id="gearDetailBack">‹</button>'+
-        '<div class="gearDetailHero"><img src="'+g.art+'" alt="'+g.name+'"><div><small>'+g.rarity+' · '+slotName[g.slot]+'</small><h2>'+g.name+'</h2><p>'+g.role+'</p><strong>Lv.'+lv+' / 20</strong></div></div>'+
-        '<div class="gearDetailStat"><small>현재 능력치</small><b>'+statText(g,lv)+'</b>'+(lv<20?'<em>강화 후 · '+statText(g,nextLv)+'</em>':'<em>MAX LEVEL</em>')+'</div>'+
-        '<button type="button" id="gearDetailEquip" class="gearDetailEquip '+(equippedNow?'on':'')+'">'+(equippedNow?'✓ 장착중':'장착하기')+'</button>'+
-        '<button type="button" id="gearDetailUpgrade" class="gearDetailUpgrade" '+(lv>=20||have<cost?'disabled':'')+'>'+(lv>=20?'MAX LEVEL':'강화하기 · 돌핵 '+cost)+'</button>'+
-        (lv<20&&have<cost?'<div class="gearDetailNeed">돌핵이 부족합니다 · 보유 '+have+'</div>':'')+'</div>';
-      const back=menuBody.querySelector('#gearDetailBack'); if(back)back.onclick=()=>render(returnFilter);
-      const equipBtn=menuBody.querySelector('#gearDetailEquip'); if(equipBtn)equipBtn.onclick=()=>{loadout[g.slot]=g.id;save();renderDetail(g.id,returnFilter);};
-      const upBtn=menuBody.querySelector('#gearDetailUpgrade'); if(upBtn)upBtn.onclick=()=>{
-        const now=gearLevel(g.id), c=upgradeCost(now); if(now>=20)return;
-        if(!window.__duckWallet||!window.__duckWallet.spendCoins(c))return renderDetail(g.id,returnFilter);
+    let es=document.getElementById('equipScreen');
+    if(!es){es=document.createElement('div');es.id='equipScreen';document.body.appendChild(es);}
+    const navIc=n=>'<span class="ddNavIcon"><img src="./assets/home_nav/home_nav_'+n+'.png" alt=""></span>';
+    es.innerHTML=
+      '<header class="ddHomeHud" id="eqHud">'+
+        '<div class="ddProfile"><div class="ddAvatar" id="sqHudFace"></div><div class="ddProfileText"><b id="sqHudName"></b><span id="sqHudLv"></span><div class="ddXp"><i id="sqHudXp"></i></div></div></div>'+
+        '<div class="ddResources">'+
+          '<div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="sqHudCore">0</b><button class="ddPlus" type="button" aria-label="돌핵 추가">+</button></div>'+
+          '<div class="ddRes"><span class="ddGem">💎</span><b id="sqHudGem">0</b><button class="ddPlus" type="button" aria-label="보석 추가">+</button></div>'+
+        '</div>'+
+        '<button class="ddSettings" id="eqSettings" type="button" aria-label="설정">⚙</button>'+
+      '</header>'+
+      '<div class="eqWrap">'+
+        '<div class="eqTop"><div class="eqTitle"><b><i>⚔</i>장비</b><small>장비를 정비하고 전투력을 높이세요.</small></div></div>'+
+        '<section class="eqLoadout">'+
+          '<div class="eqLoadHead"><span class="eqLoadIc">⚙</span><div><b>출격 세팅</b><small>현재 장착한 장비로 전투에 출격합니다.</small></div><button type="button" class="eqAuto" id="eqAuto"><i>⟳</i>자동 세팅</button></div>'+
+          '<div class="eqSlots" id="eqSlots"></div>'+
+        '</section>'+
+        '<div class="eqTabs" id="eqTabs"></div>'+
+        '<div class="eqGrid" id="eqGrid"></div>'+
+        '<div class="eqToast" id="eqToast" hidden></div>'+
+      '</div>'+
+      '<div class="eqModal" id="eqModal" hidden><div class="eqSheet" id="eqSheet"></div></div>'+
+      '<nav class="ddBottomNav" aria-label="메인 메뉴">'+
+        '<button type="button" class="ddNavItem" data-eq-nav="home">'+navIc('home')+'<b>홈</b></button>'+
+        '<button type="button" class="ddNavItem" data-eq-nav="squad">'+navIc('squad')+'<b>특공대</b></button>'+
+        '<button type="button" class="ddNavItem isActive" aria-current="page" data-eq-nav="gear">'+navIc('gear')+'<b>장비</b></button>'+
+        '<button type="button" class="ddNavItem" data-eq-nav="shop">'+navIc('shop')+'<b>상점</b></button>'+
+      '</nav>';
+    const $q=s=>es.querySelector(s);
+    const hud=()=>{if(window.__doldolRenderHud)window.__doldolRenderHud(es);};
+
+    /* ---------- 상태 ---------- */
+    let filter='all', sortMode=0;
+    const SORTS=['기본순','등급순','레벨순'];
+    const FILTERS=[['all','전체'],['stone','돌'],['armor','방어구'],['support','보조장비']];
+
+    function allItems(){
+      const cur=currentStone().id;
+      const st=order.map(id=>({kind:'stone',id,slot:'stone',art:defs[id].art,name:defs[id].name,rarity:stoneRarity[id]||'일반',lv:0,line:defs[id].desc,role:defs[id].role,locked:!stoneUnlocked(id),unlock:defs[id].unlock,on:cur===id}));
+      const gr=gearDefs.filter(g=>owned.includes(g.id)).map(g=>({kind:'gear',id:g.id,slot:g.slot,art:g.art,name:g.name,rarity:g.rarity,lv:gearLevel(g.id),line:statText(g),role:g.role,locked:false,on:loadout[g.slot]===g.id}));
+      return st.concat(gr);
+    }
+    const lockImg='<img class="eqLockIc" src="./assets/ui_icons/ui_lock.png" alt="" onerror="this.outerHTML=\'🔒\'">';
+
+    function slotHtml(slot){
+      let it;
+      if(slot==='stone'){const s=currentStone();it={art:s.art,name:s.name,rarity:stoneRarity[s.id]||'일반',sub:s.role,line:s.role+' · '+s.desc};}
+      else{const g=equipped(slot);it=g?{art:g.art,name:g.name,rarity:g.rarity,sub:'Lv.'+gearLevel(g.id),line:statText(g)}:null;}
+      if(!it)return '<button type="button" class="eqSlot empty" data-jump="'+slot+'"><span class="eqSlotLabel">'+slotName[slot]+'</span><span class="eqSlotBody"><span class="eqSlotArt">＋</span><span class="eqSlotTxt"><b>미장착</b></span></span><span class="eqSlotStat">장비를 선택하세요</span></button>';
+      return '<button type="button" class="eqSlot r-'+rarityCls[it.rarity]+'" data-jump="'+slot+'"><span class="eqSlotLabel">'+slotName[slot]+'</span>'+
+        '<span class="eqSlotBody"><span class="eqSlotArt"><img src="'+it.art+'" alt="'+it.name+'" draggable="false"></span><span class="eqSlotTxt"><b>'+it.name+'</b><em>'+it.sub+'</em></span></span>'+
+        '<span class="eqSlotStat">'+(slot==='stone'?it.line:it.line)+'</span></button>';
+    }
+    function cardHtml(it){
+      const rc=rarityCls[it.rarity];
+      return '<button type="button" class="eqCard r-'+rc+(it.on?' on':'')+(it.locked?' locked':'')+'" data-kind="'+it.kind+'" data-id="'+it.id+'">'+
+        '<span class="eqArt"><img src="'+it.art+'" alt="'+it.name+'" draggable="false">'+(it.kind==='gear'?'<i class="eqLv">Lv.'+it.lv+'</i>':'')+'</span>'+
+        '<span class="eqInfo"><b>'+it.name+'</b><em class="eqRar">'+it.rarity+'</em>'+
+          (it.locked?'<small class="eqLock">'+lockImg+'STAGE '+it.unlock+' 해금</small>':'<small>'+it.line+'</small>')+
+        '</span>'+(it.on?'<span class="eqOn">장착중</span>':'')+'</button>';
+    }
+    function sorted(list){
+      const l=list.slice();
+      if(sortMode===1)l.sort((a,b)=>(a.locked-b.locked)||(rarityRank[b.rarity]-rarityRank[a.rarity]));
+      else if(sortMode===2)l.sort((a,b)=>(a.locked-b.locked)||(b.lv-a.lv)||(rarityRank[b.rarity]-rarityRank[a.rarity]));
+      return l;
+    }
+    function paint(){
+      hud();
+      $q('#eqSlots').innerHTML=['stone','armor','support'].map(slotHtml).join('');
+      $q('#eqTabs').innerHTML=FILTERS.map(f=>'<button type="button" class="eqTab'+(filter===f[0]?' on':'')+'" data-f="'+f[0]+'">'+f[1]+'</button>').join('')+
+        '<button type="button" class="eqSort" id="eqSort"><i>▼</i>'+SORTS[sortMode]+'</button>';
+      const list=sorted(allItems().filter(it=>filter==='all'||it.slot===filter));
+      $q('#eqGrid').innerHTML=list.map(cardHtml).join('');
+      es.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{filter=b.dataset.jump;paint();});
+      es.querySelectorAll('.eqTab').forEach(b=>b.onclick=()=>{filter=b.dataset.f;paint();});
+      $q('#eqSort').onclick=()=>{sortMode=(sortMode+1)%SORTS.length;paint();};
+      es.querySelectorAll('.eqCard').forEach(b=>b.onclick=()=>openDetail(b.dataset.kind,b.dataset.id));
+    }
+    function toast(msg){
+      const t=$q('#eqToast'); if(!t)return; t.textContent=msg; t.hidden=false;
+      clearTimeout(toast._t); toast._t=setTimeout(()=>{t.hidden=true;},1700);
+    }
+
+    /* ---------- 자동 세팅 ---------- */
+    $q('#eqAuto').onclick=()=>{
+      ['armor','support'].forEach(slot=>{
+        const best=gearDefs.filter(g=>g.slot===slot&&owned.includes(g.id))
+          .sort((a,b)=>(rarityRank[b.rarity]-rarityRank[a.rarity])||(gearLevel(b.id)-gearLevel(a.id))||(statTotal(b)-statTotal(a)))[0];
+        if(best)loadout[slot]=best.id;
+      });
+      save(); paint(); toast('방어구·보조장비를 가장 좋은 장비로 바꿨어요');
+    };
+
+    /* ---------- 상세 팝업 ---------- */
+    function closeModal(){const m=$q('#eqModal');if(m)m.hidden=true;}
+    function openDetail(kind,id){
+      const modal=$q('#eqModal'),sheet=$q('#eqSheet');
+      modal.hidden=false;
+      modal.onclick=e=>{if(e.target===modal)closeModal();};
+      if(kind==='stone'){
+        const d=defs[id]||defs.basic,ok=stoneUnlocked(id),on=currentStone().id===id,rc=rarityCls[stoneRarity[id]||'일반'];
+        sheet.innerHTML=
+          '<button type="button" class="eqClose" id="eqClose" aria-label="닫기">×</button>'+
+          '<div class="eqHero r-'+rc+'"><span class="eqHeroArt"><img src="'+d.art+'" alt="'+d.name+'"></span><div><small>'+(stoneRarity[id]||'일반')+' · 돌</small><h2>'+d.name+'</h2><p>'+d.role+'</p></div></div>'+
+          '<div class="eqStatBox"><small>효과</small><b>'+d.desc+'</b><em>돌은 공격 방식만 바꾸고, 장비 능력치와는 별개예요.</em></div>'+
+          '<button type="button" id="eqDoEquip" class="eqBtn'+(on?' on':'')+'" '+(ok?'':'disabled')+'>'+(on?'✓ 장착중':ok?'이 돌 장착하기':'🔒 STAGE '+d.unlock+' 클리어 후 해금')+'</button>';
+        $q('#eqClose').onclick=closeModal;
+        const b=$q('#eqDoEquip'); if(ok)b.onclick=()=>{equipStone(id);paint();openDetail('stone',id);};
+        return;
+      }
+      const g=gearDefs.find(x=>x.id===id); if(!g){closeModal();return;}
+      const lv=gearLevel(g.id),nextLv=Math.min(20,lv+1),cost=upgradeCost(lv);
+      const on=loadout[g.slot]===g.id;
+      const wallet=window.__duckWallet; const have=wallet?wallet.coins:0;
+      sheet.innerHTML=
+        '<button type="button" class="eqClose" id="eqClose" aria-label="닫기">×</button>'+
+        '<div class="eqHero r-'+rarityCls[g.rarity]+'"><span class="eqHeroArt"><img src="'+g.art+'" alt="'+g.name+'"></span><div><small>'+g.rarity+' · '+slotName[g.slot]+'</small><h2>'+g.name+'</h2><p>'+g.role+'</p><strong>Lv.'+lv+' / 20</strong></div></div>'+
+        '<div class="eqStatBox"><small>현재 능력치</small><b>'+statText(g,lv)+'</b>'+(lv<20?'<em>강화 후 · '+statText(g,nextLv)+'</em>':'<em>MAX LEVEL</em>')+'</div>'+
+        '<button type="button" id="eqDoEquip" class="eqBtn'+(on?' on':'')+'">'+(on?'✓ 장착중':'장착하기')+'</button>'+
+        '<button type="button" id="eqDoUp" class="eqBtn up" '+(lv>=20||have<cost?'disabled':'')+'>'+(lv>=20?'MAX LEVEL':'강화하기 · 돌핵 '+cost.toLocaleString())+'</button>'+
+        (lv<20&&have<cost?'<div class="eqNeed">돌핵이 부족합니다 · 보유 '+Number(have).toLocaleString()+'</div>':'');
+      $q('#eqClose').onclick=closeModal;
+      $q('#eqDoEquip').onclick=()=>{loadout[g.slot]=g.id;save();paint();openDetail('gear',id);};
+      $q('#eqDoUp').onclick=()=>{
+        const now=gearLevel(g.id),c=upgradeCost(now); if(now>=20)return;
+        if(!window.__duckWallet||!window.__duckWallet.spendCoins(c)){openDetail('gear',id);return;}
         upgradeLevels[g.id]=now+1; save();
         if(window.__duckMissionEvent)window.__duckMissionEvent('gear',1);
         if(player&&player.gearStats) applyGrowthToPlayer();
         if(window.__duckSyncLobby)window.__duckSyncLobby();
-        renderDetail(g.id,returnFilter);
+        paint(); openDetail('gear',id);
       };
     }
-    function render(filter='all'){
-      menuTitle.textContent='장비';
-      const stone=currentStone();
-      const stoneSlot='<button type="button" class="gearV1Slot stoneSlot" data-gear-filter-jump="stone"><small>돌</small><span class="gearV1SlotArt stoneEmoji"><img src="'+stone.art+'" alt="'+stone.name+'"></span><b>'+stone.name+'</b><em>'+stone.role+' · '+stone.desc+'</em></button>';
-      const gearSlots=['armor','support'].map(slot=>{
-        const g=equipped(slot);
-        return '<button type="button" class="gearV1Slot" data-gear-slot="'+slot+'"><small>'+slotName[slot]+'</small><span class="gearV1SlotArt">'+(g?'<img src="'+g.art+'" alt="'+g.name+'">':'＋')+'</span><b>'+(g?g.name:'미장착')+'</b><em>'+(g?statText(g):'장비를 선택하세요')+'</em></button>';
-      }).join('');
-      const stoneCards=order.map(id=>{
-        const d=defs[id],ok=stoneUnlocked(id),on=stone.id===id;
-        return '<button type="button" class="gearV1Card stoneGearCard '+(on?'equipped ':'')+(ok?'':'locked')+'" data-stone-id="'+id+'">'+
-          '<i class="gearV1Art stoneGearArt"><img src="'+d.art+'" alt="'+d.name+'"></i><span><strong>'+d.name+'</strong><small>'+d.role+(ok?'':' · 🔒 STAGE '+d.unlock)+'</small><em>'+d.desc+'</em></span>'+
-          (on?'<b>장착중</b>':'')+'</button>';
-      }).join('');
-      const gearList=gearDefs.filter(g=>filter==='all'||g.slot===filter).map(g=>{
-        const on=loadout[g.slot]===g.id;
-        return '<button type="button" class="gearV1Card '+(on?'equipped':'')+'" data-gear-id="'+g.id+'">'+
-          '<i class="gearV1Art gearV1Art-'+g.id+'"><img src="'+g.art+'" alt="'+g.name+'"></i><span><strong>'+g.name+'</strong><small>'+g.rarity+' · '+g.role+'</small><em>'+statText(g)+'</em></span>'+
-          (on?'<b>장착중</b>':'')+'</button>';
-      }).join('');
-      const list=filter==='stone'?stoneCards:(filter==='all'?stoneCards+gearList:gearList);
-      menuBody.innerHTML=
-        '<div class="gearV1Summary"><strong>출격 세팅</strong><small>돌은 공격 방식을, 방어구와 보조장비는 기본 능력치를 결정합니다.</small></div>'+
-        '<div class="gearV1Slots">'+stoneSlot+gearSlots+'</div>'+
-        '<div class="gearV1Tabs stoneGearTabs">'+
-          '<button data-gear-filter="all" class="'+(filter==='all'?'on':'')+'">전체</button>'+
-          '<button data-gear-filter="stone" class="'+(filter==='stone'?'on':'')+'">돌</button>'+
-          '<button data-gear-filter="armor" class="'+(filter==='armor'?'on':'')+'">방어구</button>'+
-          '<button data-gear-filter="support" class="'+(filter==='support'?'on':'')+'">보조장비</button>'+
-        '</div><div class="gearV1Inventory">'+list+'</div>';
-      menuBody.querySelectorAll('[data-gear-filter]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilter));
-      menuBody.querySelectorAll('[data-gear-filter-jump]').forEach(b=>b.onclick=()=>render(b.dataset.gearFilterJump));
-      menuBody.querySelectorAll('[data-gear-slot]').forEach(b=>b.onclick=()=>render(b.dataset.gearSlot));
-      menuBody.querySelectorAll('[data-stone-id]').forEach(b=>b.onclick=()=>renderStoneDetail(b.dataset.stoneId));
-      menuBody.querySelectorAll('[data-gear-id]').forEach(b=>b.onclick=()=>renderDetail(b.dataset.gearId,filter));
-    }
-    render('all');
+
+    /* ---------- 하단 메뉴 / HUD ---------- */
+    $q('#eqSettings').onclick=()=>{
+      const btn=['lobbySettings','settingsBtn','settingBtn'].map(i=>document.getElementById(i)).find(Boolean);
+      if(btn)btn.click();
+    };
+    es.querySelectorAll('[data-eq-nav]').forEach(btn=>{
+      btn.onclick=()=>{
+        const t=btn.dataset.eqNav;
+        if(t==='gear')return;
+        es.classList.remove('show');
+        if(t==='home'){
+          lobby.classList.remove('hidden');
+          if(window.__duckSyncLobby)window.__duckSyncLobby();
+        }else if(t==='squad'){
+          if(window.__duckOpenCharacters)window.__duckOpenCharacters();
+        }else if(t==='shop'){
+          if(window.__duckOpenShop)window.__duckOpenShop();
+        }
+      };
+    });
+
+    paint();
+    es.classList.add('show');
+    lobby.classList.add('hidden');
+    const old=document.getElementById('menuScreen'); if(old)old.classList.remove('show');
   }
 
   // Replace legacy menu-close listeners so closing the armory has one deterministic path.
@@ -4267,7 +4365,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function handleLobbyGear(e){
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-    renderEquipmentMenu(); showMenu();
+    renderEquipmentMenu();
   }
   if(lobbyStart)lobbyStart.onclick=handleLobbyStart;
   const directGear=document.getElementById('lobbyGear');if(directGear)directGear.onclick=handleLobbyGear;
@@ -4347,7 +4445,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   lobbyStages.onclick=function(e){e.preventDefault();e.stopPropagation();openStageList();};
 
   // Equipment is opened only from the bottom equipment button.
-  const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderEquipmentMenu();showMenu();};
+  const gear=$('lobbyGear'); if(gear) gear.onclick=function(e){e.preventDefault();e.stopPropagation();renderEquipmentMenu();};
 })();
 
 /* V41 styles */

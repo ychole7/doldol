@@ -99,7 +99,7 @@ saved.forEach(e=>{if(e.id==="lobbySettings"){e.className="ddSettings";e.innerHTM
 const st=document.createElement("style");st.id="doldol-home-clean-css";st.textContent=`
 #gameLobby.doldolHomeClean{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;background:url('./assets/home_base_bg.png') center/cover no-repeat!important;z-index:20!important;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
 #gameLobby.doldolHomeClean.hidden{display:none!important}#gameLobby .homeControl{display:none!important}
-:is(#gameLobby,#characterScreen) .ddHomeHud{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddHomeHud{
   position:absolute;
   left:clamp(8px,2.6vw,16px);
   right:clamp(8px,2.6vw,16px);
@@ -112,7 +112,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   color:#fff;
   box-sizing:border-box;
 }
-:is(#gameLobby,#characterScreen) .ddProfile{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddProfile{
   min-width:0;
   height:clamp(44px,7.1vw,52px);
   display:flex;
@@ -126,7 +126,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   box-shadow:0 4px 12px #0005;
   overflow:hidden;
 }
-:is(#gameLobby,#characterScreen) .ddAvatar{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddAvatar{
   width:clamp(36px,6.4vw,42px);
   height:clamp(36px,6.4vw,42px);
   flex:0 0 auto;
@@ -138,33 +138,33 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   border:2px solid #fffd;
   box-sizing:border-box;
 }
-:is(#gameLobby,#characterScreen) .ddAvatar img{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddAvatar img{
   width:100%;
   height:100%;
   object-fit:contain;
   display:block;
   pointer-events:none;
 }
-:is(#gameLobby,#characterScreen) .ddProfileText{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddProfileText{
   min-width:0;
   display:flex;
   flex-direction:column;
   line-height:1.05;
 }
-:is(#gameLobby,#characterScreen) .ddProfileText b{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddProfileText b{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   font-size:clamp(11px,2.25vw,13px);
 }
-:is(#gameLobby,#characterScreen) .ddProfileText span{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddProfileText span{
   font-size:clamp(9px,1.8vw,10px);
   color:#fff;
   margin-top:3px;
   font-weight:800;
 }
-:is(#gameLobby,#characterScreen) .ddXp{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddXp{
   width:100%;
   height:clamp(4px,.9vw,5px);
   margin-top:5px;
@@ -172,20 +172,20 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   border-radius:5px;
   overflow:hidden;
 }
-:is(#gameLobby,#characterScreen) .ddXp i{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddXp i{
   display:block;
   height:100%;
   background:#ffd34e;
   border-radius:5px;
 }
-#gameLobby.doldolHomeClean #lobbyCoins,#characterScreen #sqHudCore{
+#gameLobby.doldolHomeClean #lobbyCoins,#characterScreen #sqHudCore,#equipScreen #sqHudCore{
   font-size:15px!important;
   line-height:1!important;
   white-space:nowrap!important;
   overflow:visible!important;
   text-overflow:clip!important;
 }
-#gameLobby.doldolHomeClean #lobbyCoins[data-long="1"],#characterScreen #sqHudCore[data-long="1"]{
+#gameLobby.doldolHomeClean #lobbyCoins[data-long="1"],#characterScreen #sqHudCore[data-long="1"],#equipScreen #sqHudCore[data-long="1"]{
   font-size:14px!important;
   letter-spacing:-.35px!important;
 }
@@ -194,10 +194,10 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   display:none!important;
 }
 
-:is(#gameLobby,#characterScreen) .ddResources{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddResources{
   display:contents;
 }
-:is(#gameLobby,#characterScreen) .ddRes{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddRes{
   min-width:0;
   height:clamp(36px,6.2vw,42px);
   display:flex;
@@ -212,7 +212,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   white-space:nowrap;
   overflow:hidden;
 }
-:is(#gameLobby,#characterScreen) .ddRes b{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddRes b{
   min-width:0;
   flex:1 1 auto;
   margin:0;
@@ -222,7 +222,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-:is(#gameLobby,#characterScreen) .ddCore img{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddCore img{
   width:26px;
   height:26px;
   object-fit:cover;
@@ -230,7 +230,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   display:block;
   flex:0 0 auto;
 }
-:is(#gameLobby,#characterScreen) .ddCore b{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddCore b{
   min-width:0;
   text-align:left;
   margin-left:4px;
@@ -238,18 +238,18 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   font-size:15px;
   letter-spacing:-.2px;
 }
-:is(#gameLobby,#characterScreen) .ddCore b[data-long="1"]{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddCore b[data-long="1"]{
   font-size:14px;
   letter-spacing:-.3px;
 }
-:is(#gameLobby,#characterScreen) .ddCore .ddPlus{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddCore .ddPlus{
   margin-left:0!important;
 }
-:is(#gameLobby,#characterScreen) .ddGem{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddGem{
   font-size:clamp(18px,3.4vw,21px);
   flex:0 0 auto;
 }
-:is(#gameLobby,#characterScreen) .ddPlus{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddPlus{
   width:clamp(22px,4.3vw,27px)!important;
   height:clamp(22px,4.3vw,27px)!important;
   min-width:clamp(22px,4.3vw,27px)!important;
@@ -267,7 +267,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   box-shadow:none!important;
   flex:0 0 auto;
 }
-:is(#gameLobby,#characterScreen) .ddSettings{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddSettings{
   position:static!important;
   width:clamp(36px,6.2vw,42px)!important;
   height:clamp(36px,6.2vw,42px)!important;
@@ -403,7 +403,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 }
 
 /* STEP 5 — real bottom navigation */
-:is(#gameLobby,#characterScreen) .ddBottomNav{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddBottomNav{
   position:absolute!important;
   left:0!important;
   right:0!important;
@@ -420,7 +420,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   box-shadow:0 -9px 24px rgba(37,21,10,.28)!important;
   z-index:26!important;
 }
-:is(#gameLobby,#characterScreen) .ddNavItem,
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavItem,
 #gameLobby #lobbyGrowth.ddNavItem,
 #gameLobby #lobbyGear.ddNavItem,
 #gameLobby #lobbyShop.ddNavItem{
@@ -443,7 +443,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   overflow:visible!important;
   -webkit-tap-highlight-color:transparent!important;
 }
-:is(#gameLobby,#characterScreen) .ddNavItem.isActive,
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavItem.isActive,
 #gameLobby #lobbyGrowth.ddNavItem.isActive,
 #gameLobby #lobbyGear.ddNavItem.isActive,
 #gameLobby #lobbyShop.ddNavItem.isActive{
@@ -451,7 +451,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   background:linear-gradient(180deg,rgba(255,205,73,.20),rgba(255,171,39,.10))!important;
   box-shadow:0 0 14px rgba(255,201,64,.58),inset 0 0 12px rgba(255,210,90,.12)!important;
 }
-:is(#gameLobby,#characterScreen) .ddNavIcon{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavIcon{
   height:clamp(42px,5.4vh,54px)!important;
   display:flex!important;
   align-items:center!important;
@@ -460,14 +460,14 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   line-height:1!important;
   filter:drop-shadow(0 4px 3px rgba(0,0,0,.28));
 }
-:is(#gameLobby,#characterScreen) .ddNavIcon img{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavIcon img{
   width:100%!important;
   height:100%!important;
   object-fit:contain!important;
   display:block!important;
   pointer-events:none!important;
 }
-:is(#gameLobby,#characterScreen) .ddNavItem b{
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavItem b{
   font-size:clamp(11px,2.35vw,14px)!important;
   line-height:1!important;
   font-weight:900!important;
@@ -475,31 +475,31 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   text-shadow:0 2px 3px rgba(0,0,0,.55)!important;
   white-space:nowrap!important;
 }
-:is(#gameLobby,#characterScreen) .ddNavItem.isActive b{color:#fff6cf!important}
-:is(#gameLobby,#characterScreen) .ddNavItem:active{transform:translateY(2px)!important}
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavItem.isActive b{color:#fff6cf!important}
+:is(#gameLobby,#characterScreen,#equipScreen) .ddNavItem:active{transform:translateY(2px)!important}
 @media(max-height:760px){
-  :is(#gameLobby,#characterScreen) .ddBottomNav{min-height:78px!important;padding-top:6px!important}
-  :is(#gameLobby,#characterScreen) .ddNavItem{height:62px!important}
-  :is(#gameLobby,#characterScreen) .ddNavIcon{height:36px!important;font-size:31px!important}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddBottomNav{min-height:78px!important;padding-top:6px!important}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddNavItem{height:62px!important}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddNavIcon{height:36px!important;font-size:31px!important}
 }
 
 /* Narrow phones: keep all four columns, compress content rather than overlap. */
 @media(max-width:420px){
-  :is(#gameLobby,#characterScreen) .ddHomeHud{
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddHomeHud{
     grid-template-columns:minmax(0,.95fr) minmax(0,1.12fr) minmax(0,.75fr) auto;
     gap:4px;
   }
-  :is(#gameLobby,#characterScreen) .ddProfile{padding-right:5px}
-  :is(#gameLobby,#characterScreen) .ddRes{padding-left:4px;padding-right:4px}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddProfile{padding-right:5px}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddRes{padding-left:4px;padding-right:4px}
 }
 @media(max-width:360px){
-  :is(#gameLobby,#characterScreen) .ddProfileText span{display:none}
-  :is(#gameLobby,#characterScreen) .ddProfile{height:42px}
-  :is(#gameLobby,#characterScreen) .ddAvatar{width:34px;height:34px}
-  :is(#gameLobby,#characterScreen) .ddRes{height:34px}
-  :is(#gameLobby,#characterScreen) .ddCore img{width:24px;height:24px}
-  :is(#gameLobby,#characterScreen) .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
-  :is(#gameLobby,#characterScreen) .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddProfileText span{display:none}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddProfile{height:42px}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddAvatar{width:34px;height:34px}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddRes{height:34px}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddCore img{width:24px;height:24px}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddPlus{width:21px!important;height:21px!important;min-width:21px!important}
+  :is(#gameLobby,#characterScreen,#equipScreen) .ddSettings{width:34px!important;height:34px!important;min-width:34px!important}
 }
 `;document.head.appendChild(st);
 const old=window.__duckSyncLobby;
