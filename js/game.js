@@ -2862,6 +2862,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'swat',name:'진압대 스킨',short:'진압대',art:'./assets/skins/panda_swat.png',cond:{type:'level',v:10},desc:'앞장서서 길을 여는 진압대 장비.',quote:'"내가 먼저 간다판다!"'},
       {id:'shield',name:'공성방패 스킨',short:'공성방패',art:'./assets/skins/panda_shield.png',cond:{type:'core',v:5000},desc:'성벽처럼 든든한 대형 공성 방패.',quote:'"여긴 절대 못 지나간다판다."'},
       {id:'gold',name:'황금수호 스킨',short:'황금',art:'./assets/skins/panda_gold.png',cond:{type:'gem',v:500},desc:'동료를 지키는 황금빛 수호자의 갑옷.',quote:'"모두 내 뒤로 오라판다!"'}
+    ],
+    king:[
+      {id:'night',name:'야간 스킨',short:'야간',art:'./assets/skins/shadow_night.png',cond:{type:'level',v:5},desc:'어둠에 녹아드는 야간 작전용 복장.',quote:'"밤이 되면 시작이야."'},
+      {id:'ninja',name:'닌자 스킨',short:'닌자',art:'./assets/skins/shadow_ninja.png',cond:{type:'level',v:10},desc:'소리 없이 움직이는 전통 닌자 복장.',quote:'"…흔적은 남기지 않아."'},
+      {id:'stealth',name:'스텔스 스킨',short:'스텔스',art:'./assets/skins/shadow_stealth.png',cond:{type:'core',v:5000},desc:'빛마저 흡수하는 첨단 스텔스 슈트.',quote:'"보이지 않으면 막을 수도 없지."'},
+      {id:'phantom',name:'팬텀 스킨',short:'팬텀',art:'./assets/skins/shadow_phantom.png',cond:{type:'gem',v:500},desc:'전설로만 전해지는 유령 암살자의 모습.',quote:'"나는 그림자 그 자체다."'}
     ]
   };
   /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
