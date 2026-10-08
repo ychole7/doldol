@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle5','data-doldol-battle-style']].forEach(function(x){
+  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle6','data-doldol-battle-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -291,7 +291,7 @@ function showBattleHud(){
     host.appendChild(hud);
   }
 
-  const hintEl=host.querySelector('.battleHint'); if(hintEl&&hintEl.dataset.t!=='1'){ hintEl.dataset.t='1'; hintEl.textContent='적 총알이 가까이 오면 화면을 탭!'; }
+  const hintEl=host.querySelector('.battleHint'); if(hintEl&&hintEl.dataset.t!=='1'){ hintEl.dataset.t='1'; hintEl.textContent='가까이 올 때 탭!'; }
   const c=getSelectedCharacter();
   const waveCount=Math.max(1,Math.min(3,Math.ceil((total||1)/3)));
   const waveNow=Math.max(1,Math.min(waveCount,Math.floor((kills||0)/Math.max(1,(total||1)/waveCount))+1));
