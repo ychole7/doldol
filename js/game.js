@@ -4171,7 +4171,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     /* ---------- 화면 뼈대 ---------- */
     if(!document.querySelector('link[data-doldol-equip-style]')){
       const link=document.createElement('link');
-      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip6'; link.dataset.doldolEquipStyle='1';
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip7'; link.dataset.doldolEquipStyle='1';
       document.head.appendChild(link);
     }
     let es=document.getElementById('equipScreen');
@@ -4278,8 +4278,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const statIc=(key,fb)=>'<img class="eqStIc" src="./assets/ui_icons/'+key+'.png" alt="" onerror="this.outerHTML=\''+fb+'\'">';
     const coreIc='<img class="eqCoreIc" src="./assets/doldol_stone_core.png" alt="">';
     const statVal=(g,k,lv)=>scaled(g[k],g.id,lv);
-    function statRows(g,lv,cls){
-      return STAT_META.filter(s=>g[s[0]]).map(s=>'<div class="eqStRow"><span>'+statIc(s[2],s[3])+s[1]+'</span><b class="'+(cls||'')+'">+'+statVal(g,s[0],lv)+'</b></div>').join('');
+    function statRows(g,lv,cls,baseLv){
+      return STAT_META.filter(s=>g[s[0]]).map(s=>{
+        const v=statVal(g,s[0],lv),d=baseLv?v-statVal(g,s[0],baseLv):0;
+        return '<div class="eqStRow"><span>'+statIc(s[2],s[3])+s[1]+'</span><b class="'+(cls||'')+'">'+(d>0?'<i class="eqDelta">(+'+d+')</i>':'')+'+'+v+'</b></div>';
+      }).join('');
     }
     function closeModal(){const m=$q('#eqModal');if(m)m.hidden=true;}
     function dotsHtml(lv){
@@ -4338,7 +4341,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         '<div class="eqStats">'+
           '<div class="eqStBox"><div class="eqStHead"><b>현재 능력치</b></div>'+statRows(g,lv)+'</div>'+
           '<i class="eqArrow">❯</i>'+
-          '<div class="eqStBox"><div class="eqStHead"><b>강화 미리보기</b>'+(max?'':'<span class="eqExp">Lv.'+nextLv+' 예상</span>')+'</div>'+(max?'<div class="eqMaxTxt">MAX LEVEL</div>':statRows(g,nextLv,'grow'))+'</div>'+
+          '<div class="eqStBox"><div class="eqStHead"><b>강화 미리보기</b>'+(max?'':'<span class="eqExp">Lv.'+nextLv+' 예상</span>')+'</div>'+(max?'<div class="eqMaxTxt">MAX LEVEL</div>':statRows(g,nextLv,'grow',lv))+'</div>'+
         '</div>'+
         compare+
         '<div class="eqSteps"><b>강화 단계 <span>'+lv+'</span> / 20</b><div class="eqDots">'+dotsHtml(lv)+'</div></div>'+
