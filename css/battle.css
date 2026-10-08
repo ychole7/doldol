@@ -1,0 +1,54 @@
+/* 돌돌 특공대 — 전투 화면 HUD (시안) */
+#battleControls{font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif}
+#battleControls #battleHud{position:absolute;inset:0;pointer-events:none;z-index:28;display:block}
+#battleControls .bhFrame{position:absolute;inset:0;width:100%;height:100%;display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+#battleControls .bhPlayer,#battleControls .bhStage,#battleControls .bhCombo{position:absolute;top:calc(env(safe-area-inset-top) + 8px);pointer-events:none}
+.bhPlayer b,.bhStage b,.bhCombo b,.bhPlayer span,.bhStage span,.bhCombo span{position:absolute}
+
+/* 프로필 + HP (900x300) */
+#battleControls .bhPlayer{left:2px;width:min(36vw,176px);aspect-ratio:3/1}
+.bhFace{left:8.1%;top:22.7%;width:18.9%;aspect-ratio:1;border-radius:50%;background:#2a2018 center/cover no-repeat;display:grid;place-items:center;font-size:18px;overflow:hidden}
+.bhHpMask{position:absolute;right:3.2%;top:36%;height:15.3%;width:0;background:linear-gradient(#2a2527,#1b1718);border-radius:0 6px 6px 0;transition:width .12s ease}
+.bhHpText{left:30.7%;width:66%;top:36%;height:16%;display:flex;align-items:center;justify-content:center;font-size:clamp(8px,2.5vw,11px);font-weight:1000;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000;letter-spacing:.2px}
+.bhName{left:30.7%;top:56%;width:66%;font-size:clamp(10px,3.1vw,13px);font-weight:1000;color:#fff6d8;text-shadow:0 2px 3px #000,0 0 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 스테이지 + 웨이브 (720x360) */
+#battleControls .bhStage{left:50%;transform:translateX(-50%);width:min(35vw,170px);aspect-ratio:2/1}
+.bhStage b{left:0;right:0;top:38%;text-align:center;font-size:clamp(12px,3.9vw,17px);font-weight:1000;color:#fff;letter-spacing:.3px;text-shadow:0 2px 3px #000;white-space:nowrap}
+.bhStage b.boss{color:#ff8a6a}
+.bhStage span{left:50%;top:79%;transform:translateX(-50%);padding:1px 8px;border-radius:99px;background:rgba(18,14,10,.62);text-align:center;font-size:clamp(9px,2.8vw,11px);font-weight:900;color:#f0dcae;text-shadow:0 1px 2px #000;white-space:nowrap}
+.bhRail{position:absolute;left:29.4%;top:65.8%;width:41.5%;height:8%;background:#19171a;border-radius:99px;display:flex;align-items:center;justify-content:space-evenly}
+.bhRail i{height:78%;aspect-ratio:1;border-radius:50%;background:radial-gradient(#4a4238,#2a2520);border:1px solid #7a5a22;box-sizing:border-box}
+.bhRail i.done{background:radial-gradient(#ffe9a0,#d9a021);border-color:#ffd24a}
+.bhRail i.now{background:radial-gradient(#fff6c8,#ffc83a);border-color:#fff1a8;box-shadow:0 0 6px 1px rgba(255,208,70,.9)}
+
+/* 콤보 (600x300) */
+#battleControls .bhCombo{right:2px;width:min(26vw,124px);aspect-ratio:2/1}
+.bhCombo b{left:24%;top:48%;transform:translate(-50%,-50%);font-size:clamp(14px,4.6vw,20px);font-weight:1000;color:#ffd84d;text-shadow:0 2px 3px #000,0 0 3px #000;line-height:1}
+.bhCombo span{left:63%;top:48%;transform:translate(-50%,-50%);font-size:clamp(8px,2.6vw,11px);font-weight:1000;color:#f1e3c4;text-shadow:0 1px 2px #000;letter-spacing:.5px}
+
+/* 일시정지 */
+#battleControls .battlePause{left:10px;top:calc(env(safe-area-inset-top) + 66px);width:38px;height:38px;border-radius:12px;font-size:15px}
+
+/* 스킬 버튼 (금색 원) */
+#battleControls #battleSkill.bhSkill{position:absolute;right:8px;bottom:calc(46px + env(safe-area-inset-bottom));width:min(24vw,104px);aspect-ratio:1;height:auto;padding:0;border:0;background:none;border-radius:50%;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;cursor:pointer;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45));transition:transform .1s,filter .15s}
+.bhSkillBg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#battleSkill.bhSkill strong{position:relative;font-size:clamp(13px,4.1vw,18px);font-weight:1000;color:#fff;-webkit-text-stroke:3px #6a3a0a;paint-order:stroke fill;letter-spacing:.2px;line-height:1.05}
+#battleSkill.bhSkill small{position:relative;font-size:clamp(8px,2.5vw,11px);font-weight:900;color:#fff4d0;-webkit-text-stroke:2.5px #6a3a0a;paint-order:stroke fill;line-height:1.1;margin-top:1px}
+#battleSkill.bhSkill:active{transform:scale(.94)}
+#battleControls #battleSkill.bhSkill.cd{filter:grayscale(.85) brightness(.8) drop-shadow(0 6px 8px rgba(0,0,0,.45))}
+#battleControls #battleSkill.bhSkill.on{filter:drop-shadow(0 0 10px rgba(255,214,90,.95)) drop-shadow(0 0 22px rgba(255,170,40,.8));animation:bhPulse .5s ease-in-out infinite alternate}
+@keyframes bhPulse{from{transform:scale(1)}to{transform:scale(1.06)}}
+
+/* 패링 버튼은 왼쪽 아래로 */
+#battleControls #battleParry.battleSkill{right:auto;left:10px;bottom:calc(46px + env(safe-area-inset-bottom));width:min(19vw,78px);height:min(19vw,78px)}
+#battleControls .battleHint{right:auto;left:10px;bottom:calc(46px + min(19vw,78px) + 8px + env(safe-area-inset-bottom))}
+
+/* 아이템 슬롯 */
+#battleControls #battleItemSlots{position:absolute;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:2px}
+#battleControls #battleItemSlots .battleItemBtn{position:relative;width:clamp(50px,15vw,62px);height:clamp(50px,15vw,62px);padding:0;border:0;background:none;border-radius:0;box-shadow:none;display:block;touch-action:manipulation}
+#battleItemSlots .biSlot{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+#battleItemSlots .biIcon{position:absolute;left:14%;top:17%;width:62%;height:62%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+#battleControls #battleItemSlots .battleItemCount{position:absolute;left:auto;top:auto;right:3%;top:7%;width:30%;height:30%;min-width:0;padding:0;border:0;background:none;color:#fff;font-size:clamp(9px,2.8vw,12px);font-weight:1000;display:grid;place-items:center;text-shadow:0 1px 2px #000}
+#battleControls #battleItemSlots .battleItemBtn:active{transform:scale(.94)}
+#battleControls #battleItemSlots .battleItemBtn:disabled{opacity:.45;filter:grayscale(1)}
