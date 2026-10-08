@@ -2556,7 +2556,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   if(!document.querySelector('link[data-doldol-squad-style]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
-    link.href='css/squad.css?v=20261006-squad21';
+    link.href='css/squad.css?v=20261006-squad22';
     link.dataset.doldolSquadStyle='1';
     document.head.appendChild(link);
   }
@@ -2844,6 +2844,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'navy',name:'해군 스킨',art:'./assets/skins/doldol_navy.png',cond:{type:'level',v:10},desc:'거친 파도를 가르는 해군 전투복.',quote:'"출항 준비 완료꽥!"'},
       {id:'airforce',name:'공군 스킨',art:'./assets/skins/doldol_airforce.png',cond:{type:'core',v:5000},desc:'하늘을 지배하는 공군 비행복.',quote:'"하늘은 내 구역이다꽥!"'},
       {id:'marines',name:'해병 스킨',art:'./assets/skins/doldol_marines.png',cond:{type:'gem',v:500},desc:'상륙 작전의 선봉, 해병 전투복.',quote:'"한 번 해병은 영원한 해병꽥!"'}
+    ],
+    nyang:[
+      {id:'recon',name:'정찰대 스킨',short:'정찰대',art:'./assets/skins/nyang_recon.png',cond:{type:'level',v:5},desc:'소리 없이 정보를 모으는 정찰대 전투복.',quote:'"조용히, 빠르게, 정확하다냥."'},
+      {id:'night',name:'야간잠입 스킨',short:'야간잠입',art:'./assets/skins/nyang_night.png',cond:{type:'level',v:10},desc:'어둠 속에서 움직이는 야간 잠입 장비.',quote:'"밤은 내 편이다냥."'},
+      {id:'pilot',name:'파일럿 스킨',short:'파일럿',art:'./assets/skins/nyang_pilot.png',cond:{type:'core',v:5000},desc:'하늘을 가르는 비행사 스타일 전투복.',quote:'"이륙 준비 완료다냥!"'},
+      {id:'cyber',name:'사이버 스카우트 스킨',short:'스카우트',art:'./assets/skins/nyang_cyber.png',cond:{type:'gem',v:500},desc:'네온빛 첨단 장비를 갖춘 사이버 정찰병.',quote:'"데이터 확인 완료다냥."'}
     ]
   };
   function skinState(){try{const s=JSON.parse(localStorage.getItem(SKIN_KEY)||'{}')||{};return{owned:s.owned||{},equipped:s.equipped||{}}}catch(e){return{owned:{},equipped:{}}}}
@@ -3146,7 +3152,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const o=skinOwned(c.id,x),e=equippedSkin(c.id).id===x.id;
       const a=x.art||c.baseArt;
       const sub=e?'<em class="ok">장착중</em>':(o?'<em></em>':`<em>${skinCondText(x)}</em>`);
-      return `<button class="sqSkinCard ${i===skinIdx?'on':''} ${o?'':'locked'}" data-i="${i}" type="button"><span class="sqSkinThumb">${a?`<img src="${a}" alt="">`:c.face}${o?'':`<span class="sqSkinLock">${lockIc()}</span>`}</span><b>${x.name.replace(' 스킨','')}</b>${sub}</button>`;
+      return `<button class="sqSkinCard ${i===skinIdx?'on':''} ${o?'':'locked'}" data-i="${i}" type="button"><span class="sqSkinThumb">${a?`<img src="${a}" alt="">`:c.face}${o?'':`<span class="sqSkinLock">${lockIc()}</span>`}</span><b>${x.short||x.name.replace(' 스킨','')}</b>${sub}</button>`;
     }).join('');
     rail.querySelectorAll('.sqSkinCard').forEach(b=>b.onclick=()=>{skinIdx=Number(b.dataset.i);renderSkinPage()});
   }
