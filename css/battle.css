@@ -31,7 +31,7 @@
 #battleControls .battlePause{left:10px;top:calc(env(safe-area-inset-top) + 66px);width:38px;height:38px;border-radius:12px;font-size:15px}
 
 /* 스킬 버튼 (금색 원) */
-#battleControls #battleSkill.bhSkill{position:absolute;right:8px;bottom:calc(46px + env(safe-area-inset-bottom));width:min(24vw,104px);aspect-ratio:1;height:auto;padding:0;border:0;background:none;border-radius:50%;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;cursor:pointer;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45));transition:transform .1s,filter .15s}
+#battleControls #battleSkill.bhSkill{pointer-events:auto;position:absolute;right:8px;bottom:calc(46px + env(safe-area-inset-bottom));width:min(24vw,104px);aspect-ratio:1;height:auto;padding:0;border:0;background:none;border-radius:50%;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;cursor:pointer;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45));transition:transform .1s,filter .15s}
 .bhSkillBg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #battleSkill.bhSkill strong{position:relative;font-size:clamp(13px,4.1vw,18px);font-weight:1000;color:#fff;-webkit-text-stroke:3px #6a3a0a;paint-order:stroke fill;letter-spacing:.2px;line-height:1.05}
 #battleSkill.bhSkill small{position:relative;font-size:clamp(8px,2.5vw,11px);font-weight:900;color:#fff4d0;-webkit-text-stroke:2.5px #6a3a0a;paint-order:stroke fill;line-height:1.1;margin-top:1px}
@@ -40,9 +40,9 @@
 #battleControls #battleSkill.bhSkill.on{filter:drop-shadow(0 0 10px rgba(255,214,90,.95)) drop-shadow(0 0 22px rgba(255,170,40,.8));animation:bhPulse .5s ease-in-out infinite alternate}
 @keyframes bhPulse{from{transform:scale(1)}to{transform:scale(1.06)}}
 
-/* 패링 버튼은 왼쪽 아래로 */
-#battleControls #battleParry.battleSkill{right:auto;left:10px;bottom:calc(46px + env(safe-area-inset-bottom));width:min(19vw,78px);height:min(19vw,78px)}
-#battleControls .battleHint{right:auto;left:10px;bottom:calc(46px + min(19vw,78px) + 8px + env(safe-area-inset-bottom))}
+/* 패링은 화면 탭으로 — 별도 버튼 없음 */
+#battleControls #battleParry{display:none!important}
+#battleControls .battleHint{left:50%;right:auto;transform:translateX(-50%);bottom:calc(8px + clamp(50px,15vw,62px) + 10px + env(safe-area-inset-bottom));white-space:nowrap}
 
 /* 아이템 슬롯 */
 #battleControls #battleItemSlots{position:absolute;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:2px}
