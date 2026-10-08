@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style']].forEach(function(x){
+  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle4','data-doldol-battle-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -63,6 +63,10 @@ STAGE2_BG.decoding = "async";
 STAGE2_BG.onload = () => { window.__duckStage2BgReady = true; };
 STAGE2_BG.onerror = () => { window.__duckStage2BgReady = false; };
 __duckQueueAsset(STAGE2_BG,"../assets/stage2_training.jpg","defer");
+
+const BATTLE_BG = new Image();
+BATTLE_BG.decoding = "async";
+__duckQueueAsset(BATTLE_BG,"../assets/battle/battle_background.png","critical");
 
 const ENEMY_ASSAULT_IMG = new Image();
 let enemyAssaultReady = false;
@@ -275,53 +279,15 @@ function showBattleHud(){
   const host=document.getElementById('battleControls');
   if(!host) return;
   let hud=document.getElementById('battleHud');
+  const A='./assets/battle/';
   if(!hud){
     hud=document.createElement('div');
     hud.id='battleHud';
-    Object.assign(hud.style,{
-      position:'absolute',left:'12px',right:'12px',
-      top:'calc(10px + env(safe-area-inset-top))',
-      display:'flex',alignItems:'center',justifyContent:'center',
-      pointerEvents:'none',zIndex:'28',fontFamily:'system-ui',
-      textShadow:'0 2px 5px rgba(0,0,0,.55)'
-    });
-    hud.innerHTML=`
-      <div id="hudStage" style="min-width:150px;padding:8px 14px;border-radius:16px;background:rgba(10,16,22,.76);border:1px solid rgba(255,255,255,.16);box-shadow:0 7px 18px rgba(0,0,0,.18);text-align:center">
-        <div id="hudStageMain" style="font-size:15px;font-weight:1000;letter-spacing:.5px;color:#fff">STAGE 1</div>
-        <div id="hudWave" style="font-size:10px;font-weight:800;color:#cfd6df;margin-top:1px">WAVE 1/3</div>
-      </div>`;
+    hud.innerHTML=
+      '<div id="hudPlayer" class="bhPlayer"><span class="bhFace" id="hudFace"></span><img class="bhFrame" src="'+A+'hud_profile_hp.png" alt=""><i class="bhHpMask" id="hudHpBar"></i><b class="bhHpText" id="hudHpText"></b><span class="bhName" id="hudName"></span></div>'+
+      '<div id="hudStage" class="bhStage"><img class="bhFrame" src="'+A+'hud_stage_wave.png" alt=""><b id="hudStageMain">STAGE 1</b><span id="hudWave">WAVE 1/3</span><div class="bhRail" id="hudRail"></div></div>'+
+      '<div id="hudCombo" class="bhCombo"><img class="bhFrame" src="'+A+'hud_combo.png" alt=""><b id="hudComboNum">0</b><span>COMBO</span></div>';
     host.appendChild(hud);
-
-    const left=document.createElement('div');
-    left.id='hudPlayer';
-    Object.assign(left.style,{
-      position:'absolute',left:'0',top:'54px',width:'min(230px,46vw)',
-      padding:'9px 11px',borderRadius:'14px',
-      background:'rgba(10,16,22,.72)',border:'1px solid rgba(255,255,255,.15)',
-      boxShadow:'0 7px 18px rgba(0,0,0,.16)',color:'#fff'
-    });
-    left.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <span id="hudName" style="font-size:11px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
-        <span id="hudHpText" style="font-size:10px;font-weight:900"></span>
-      </div>
-      <div style="height:8px;background:rgba(255,255,255,.13);border-radius:6px;overflow:hidden;margin-top:6px">
-        <i id="hudHpBar" style="display:block;width:100%;height:100%;border-radius:6px;background:linear-gradient(90deg,#ff6262,#ff9d42);transition:width .12s ease"></i>
-      </div>`;
-    host.appendChild(left);
-
-    const right=document.createElement('div');
-    right.id='hudCombo';
-    Object.assign(right.style,{
-      position:'absolute',right:'0',top:'54px',minWidth:'88px',
-      padding:'8px 10px',borderRadius:'14px',
-      background:'rgba(10,16,22,.72)',border:'1px solid rgba(255,255,255,.15)',
-      boxShadow:'0 7px 18px rgba(0,0,0,.16)',color:'#fff',textAlign:'center'
-    });
-    right.innerHTML=`
-      <div style="font-size:9px;font-weight:900;color:#cfd6df">COMBO</div>
-      <div id="hudComboNum" style="font-size:22px;font-weight:1000;line-height:24px;color:#ffd84d">0</div>`;
-    host.appendChild(right);
   }
 
   const c=getSelectedCharacter();
@@ -337,12 +303,26 @@ function showBattleHud(){
   const hpText=document.getElementById('hudHpText');
   const hpBar=document.getElementById('hudHpBar');
   const comboNum=document.getElementById('hudComboNum');
+  const rail=document.getElementById('hudRail');
+  const face=document.getElementById('hudFace');
 
-  if(stageMain) stageMain.textContent='STAGE '+(stage||1)+(boss?' · BOSS':'');
-  if(wave) wave.textContent=`WAVE ${waveNow}/${waveCount}`;
-  if(name) name.textContent=`${c.face} ${c.name}`;
-  if(hpText) hpText.textContent=`${Math.ceil(hp)} / ${Math.ceil(maxHp)}`;
-  if(hpBar) hpBar.style.width=pct+'%';
+  if(stageMain){ stageMain.textContent='STAGE '+(stage||1); stageMain.classList.toggle('boss',!!boss); }
+  if(wave) wave.textContent=boss?'BOSS':`WAVE ${waveNow}/${waveCount}`;
+  if(rail){
+    const key=waveCount+':'+waveNow;
+    if(rail.dataset.k!==key){
+      rail.dataset.k=key;
+      rail.innerHTML=Array.from({length:waveCount},(_,i)=>'<i class="'+(i<waveNow-1?'done':(i===waveNow-1?'now':''))+'"></i>').join('');
+    }
+  }
+  if(name) name.textContent=c.name;
+  if(face){
+    let art='';
+    try{ if(window.__doldolHudFace) art=window.__doldolHudFace().art||''; }catch(e){}
+    if(face.dataset.art!==art){ face.dataset.art=art; face.style.backgroundImage=art?'url("'+art+'")':''; face.textContent=art?'':c.face; }
+  }
+  if(hpText) hpText.textContent=`${Math.ceil(hp)}/${Math.ceil(maxHp)}`;
+  if(hpBar) hpBar.style.width=(100-pct)+'%';
   if(comboNum) comboNum.textContent=String(Math.max(0,combo||0));
 }
 
@@ -398,21 +378,9 @@ function showSkillButton(){
     b=document.createElement('button');
     b.id='battleSkill';
     b.type='button';
+    b.className='bhSkill';
     b.setAttribute('aria-label','고유 스킬');
-    b.innerHTML='<strong>SKILL</strong><small>고유 스킬</small>';
-    Object.assign(b.style,{
-      position:'absolute',right:'14px',bottom:'92px',
-      width:'78px',height:'78px',borderRadius:'50%',
-      border:'2px solid rgba(255,255,255,.24)',
-      background:'linear-gradient(180deg,#8c5cff,#5a2fd1)',
-      color:'#fff',display:'none',flexDirection:'column',
-      alignItems:'center',justifyContent:'center',
-      boxShadow:'0 10px 24px rgba(0,0,0,.28)',
-      fontFamily:'system-ui',fontWeight:'900',zIndex:'30',
-      touchAction:'manipulation',cursor:'pointer',padding:'0'
-    });
-    b.querySelector('strong').style.fontSize='17px';
-    b.querySelector('small').style.fontSize='9px';
+    b.innerHTML='<img class="bhSkillBg" src="./assets/battle/button_skill.png" alt=""><strong>★ SKILL</strong><small>고유 스킬</small>';
     b.addEventListener('pointerdown',e=>{
       e.preventDefault();
       e.stopPropagation();
@@ -421,26 +389,12 @@ function showSkillButton(){
     host.appendChild(b);
   }
   const def=getActiveSkillDef();
-  const visual=getSkillVisual(getSelectedCharacter().id);
   b.querySelector('small').textContent=skillCooldown>0 ? Math.ceil(skillCooldown)+'s' : def.name;
   b.style.display=(running?'flex':'none');
-  b.style.opacity=skillCooldown>0?.58:'1';
-  b.style.transform=skillCooldown>0?'scale(.96)':'scale(1)';
-  b.style.borderColor=visual.accent;
-  b.style.boxShadow=skillTimer>0
-    ? `0 0 0 7px ${visual.glow}, 0 12px 26px rgba(0,0,0,.30)`
-    : `0 10px 24px rgba(0,0,0,.28)`;
+  b.classList.toggle('cd',skillCooldown>0&&skillTimer<=0);
+  b.classList.toggle('on',skillTimer>0);
   b.title=def.name+' — '+def.desc;
-  if(skillTimer>0) {
-    b.style.background=`linear-gradient(180deg,${visual.accent},#ff8a22)`;
-    b.querySelector('strong').textContent='ACTIVE';
-  } else if(skillCooldown<=0) {
-    b.style.background=`linear-gradient(180deg,${visual.accent},#6d35cf)`;
-    b.querySelector('strong').textContent=visual.icon+' SKILL';
-  } else {
-    b.style.background='linear-gradient(180deg,#5b6270,#39404b)';
-    b.querySelector('strong').textContent=visual.icon+' SKILL';
-  }
+  b.querySelector('strong').textContent=skillTimer>0?'ACTIVE':'★ SKILL';
   return b;
 }
 function activateSkill(){
@@ -1665,7 +1619,7 @@ function draw(){
   // Training-camp background rotation.
   // Stage 1/2 keep their original backgrounds; stage 3+ reuse them alternately
   // so later stages never fall back to the old black placeholder arena.
-  const bg = stage===1 ? STAGE1_BG : (stage===2 ? STAGE2_BG : (stage % 2 === 1 ? STAGE1_BG : STAGE2_BG));
+  const bg = (BATTLE_BG.complete&&BATTLE_BG.naturalWidth) ? BATTLE_BG : (stage===1 ? STAGE1_BG : (stage===2 ? STAGE2_BG : (stage % 2 === 1 ? STAGE1_BG : STAGE2_BG)));
   if(bg && bg.complete && bg.naturalWidth){
     const iw=bg.naturalWidth, ih=bg.naturalHeight;
     const scale=Math.max(vw/iw,vh/ih);
@@ -2054,7 +2008,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
   function renderBattleItems(){
     const box=document.getElementById('battleItemSlots'); if(!box)return;
     const inv=readBattleItems();
-    box.innerHTML='<div class="battleItemTitle">ITEM</div>'+Object.entries(BATTLE_ITEM_DEFS).map(([id,it])=>`<button class="battleItemBtn" data-battle-item="${id}" aria-label="${it.name}" ${inv[id]<=0?'disabled':''}><span class="battleItemIcon">${it.icon}</span><span class="battleItemCount">${inv[id]}</span></button>`).join('');
+    box.innerHTML=Object.entries(BATTLE_ITEM_DEFS).map(([id,it])=>`<button class="battleItemBtn" data-battle-item="${id}" aria-label="${it.name}" ${inv[id]<=0?'disabled':''}><img class="biSlot" src="./assets/battle/slot_item.png" alt=""><img class="biIcon" src="./assets/shop/item_${id}.png" alt="${it.name}"><span class="battleItemCount">${inv[id]}</span></button>`).join('');
   }
   function useBattleItem(id){
     if(!running||paused||!player||!BATTLE_ITEM_DEFS[id])return false;
@@ -3128,6 +3082,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     if(ge){ge.textContent=compact(gems);ge.title=Number(gems||0).toLocaleString();}
   }
   window.__doldolRenderHud=renderHud;
+  window.__doldolHudFace=function(){
+    const id=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
+    const c=uiRoster.find(x=>x.id===id)||uiRoster[0];
+    return {art:c.art||'',name:c.name};
+  };
 
   function renderGrid(filter=()=>true){
     const grid=screen.querySelector('#charGrid'); if(!grid)return;
