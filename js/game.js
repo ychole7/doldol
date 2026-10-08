@@ -1,3 +1,11 @@
+/* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
+(function(){
+  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style']].forEach(function(x){
+    if(document.querySelector('link['+x[1]+']'))return;
+    var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
+  });
+})();
+
 
 /* DOLDOL SPECIAL FORCES V26 - PERSISTENT CHARACTER GROWTH */
 /* DOLDOL SPECIAL FORCE V20 - Combat Variety */
