@@ -3041,6 +3041,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
           return;
         }
         if(target==='gear'){
+          if(typeof window.__duckOpenEquip==='function'){
+            screen.classList.remove('show');
+            window.__duckOpenEquip();
+            return;
+          }
           leaveSquadToLobby();
           requestAnimationFrame(()=>{
             const gear=document.getElementById('lobbyGear');
@@ -4446,6 +4451,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
     renderEquipmentMenu();
   }
+  window.__duckOpenEquip=renderEquipmentMenu;
   if(lobbyStart)lobbyStart.onclick=handleLobbyStart;
   const directGear=document.getElementById('lobbyGear');if(directGear)directGear.onclick=handleLobbyGear;
 
@@ -5127,7 +5133,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const lobby=document.getElementById('gameLobby');
       if(t==='home'){if(lobby)lobby.classList.remove('hidden');if(window.__duckSyncLobby)window.__duckSyncLobby()}
       else if(t==='squad'){if(window.__duckOpenCharacters)window.__duckOpenCharacters()}
-      else if(t==='gear'){if(lobby)lobby.classList.remove('hidden');requestAnimationFrame(()=>{const g=document.getElementById('lobbyGear');if(g)g.click()})}
+      else if(t==='gear'){if(window.__duckOpenEquip)window.__duckOpenEquip();else{if(lobby)lobby.classList.remove('hidden');requestAnimationFrame(()=>{const g=document.getElementById('lobbyGear');if(g)g.click()})}}
     });
     const nav=page.querySelector('.ddBottomNav');
     page.style.setProperty('--sp-nav-h',nav.offsetHeight+'px');
