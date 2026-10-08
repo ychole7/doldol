@@ -56,3 +56,5 @@
 #battleControls #battleItemSlots .battleItemCount{position:absolute;left:auto;right:3%;top:7%;width:30%;height:30%;min-width:0;padding:0;border:0;background:none;color:#fff;font-size:clamp(10px,3vw,13px);font-weight:1000;display:grid;place-items:center;text-shadow:0 1px 2px #000}
 #battleControls #battleItemSlots .battleItemBtn:active{transform:scale(.94)}
 #battleControls #battleItemSlots .battleItemBtn:disabled{opacity:.45;filter:grayscale(1)}
+
+html[data-hint="off"] #battleControls .battleHint{display:none!important}
