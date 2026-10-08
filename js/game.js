@@ -2880,6 +2880,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'racer',name:'레이서 스킨',short:'레이서',art:'./assets/skins/shiba_racer.png',cond:{type:'level',v:10},desc:'바람보다 빠른 스피드 레이서 슈트.',quote:'"따라올 수 있으면 따라와!"'},
       {id:'flame',name:'화염 스킨',short:'화염',art:'./assets/skins/shiba_flame.png',cond:{type:'core',v:5000},desc:'뜨겁게 타오르는 화염 전투복.',quote:'"전부 불태워버리자!"'},
       {id:'berserker',name:'광전사 스킨',short:'광전사',art:'./assets/skins/shiba_berserker.png',cond:{type:'gem',v:500},desc:'멈추지 않는 광전사의 폭주 모드.',quote:'"더 더 더! 아직 멀었어!"'}
+    ],
+    charge:[
+      {id:'leader',name:'강습대장 스킨',short:'강습',art:'./assets/skins/charge_leader.png',cond:{type:'level',v:5},desc:'선두에서 부대를 이끄는 강습대장 복장.',quote:'"전원 나를 따르라!"'},
+      {id:'air_assault',name:'공중돌격 스킨',short:'공중',art:'./assets/skins/charge_air_assault.png',cond:{type:'level',v:10},desc:'하늘에서 단숨에 내리꽂는 공중돌격 장비.',quote:'"하늘에서 간다!"'},
+      {id:'bombardier',name:'폭격특공 스킨',short:'폭격',art:'./assets/skins/charge_bombardier.png',cond:{type:'core',v:5000},desc:'묵직한 폭격 장비로 무장한 특공 복장.',quote:'"폭격 개시!"'},
+      {id:'gold_eagle',name:'황금독수리 스킨',short:'황금',art:'./assets/skins/charge_gold_eagle.png',cond:{type:'gem',v:500},desc:'전설의 황금 독수리를 닮은 최상급 장비.',quote:'"하늘의 왕은 바로 나다!"'}
     ]
   };
   /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
