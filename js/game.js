@@ -4171,7 +4171,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     /* ---------- 화면 뼈대 ---------- */
     if(!document.querySelector('link[data-doldol-equip-style]')){
       const link=document.createElement('link');
-      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip2'; link.dataset.doldolEquipStyle='1';
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip3'; link.dataset.doldolEquipStyle='1';
       document.head.appendChild(link);
     }
     let es=document.getElementById('equipScreen');
@@ -4187,7 +4187,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         '<button class="ddSettings" id="eqSettings" type="button" aria-label="설정">⚙</button>'+
       '</header>'+
       '<div class="eqWrap">'+
-        '<div class="eqTop"><div class="eqTitle"><b><i>⚔</i>장비</b><small>장비를 정비하고 전투력을 높이세요.</small></div></div>'+
+        '<div class="sqTop"><button type="button" class="sqBack" id="eqBack" aria-label="뒤로">‹</button><div class="sqTitle">장비</div></div>'+
         '<section class="eqLoadout">'+
           '<div class="eqLoadHead"><span class="eqLoadIc">⚙</span><div><b>출격 세팅</b><small>현재 장착한 장비로 전투에 출격합니다.</small></div><button type="button" class="eqAuto" id="eqAuto"><i>⟳</i>자동 세팅</button></div>'+
           '<div class="eqSlots" id="eqSlots"></div>'+
@@ -4311,6 +4311,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
 
     /* ---------- 하단 메뉴 / HUD ---------- */
+    $q('#eqBack').onclick=()=>{es.classList.remove('show');lobby.classList.remove('hidden');if(window.__duckSyncLobby)window.__duckSyncLobby();};
     $q('#eqSettings').onclick=()=>{
       const btn=['lobbySettings','settingsBtn','settingBtn'].map(i=>document.getElementById(i)).find(Boolean);
       if(btn)btn.click();
