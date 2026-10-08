@@ -2868,6 +2868,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       {id:'ninja',name:'닌자 스킨',short:'닌자',art:'./assets/skins/shadow_ninja.png',cond:{type:'level',v:10},desc:'소리 없이 움직이는 전통 닌자 복장.',quote:'"…흔적은 남기지 않아."'},
       {id:'stealth',name:'스텔스 스킨',short:'스텔스',art:'./assets/skins/shadow_stealth.png',cond:{type:'core',v:5000},desc:'빛마저 흡수하는 첨단 스텔스 슈트.',quote:'"보이지 않으면 막을 수도 없지."'},
       {id:'phantom',name:'팬텀 스킨',short:'팬텀',art:'./assets/skins/shadow_phantom.png',cond:{type:'gem',v:500},desc:'전설로만 전해지는 유령 암살자의 모습.',quote:'"나는 그림자 그 자체다."'}
+    ],
+    turtle:[
+      {id:'armor',name:'철갑 스킨',short:'철갑',art:'./assets/skins/turtle_armor.png',cond:{type:'level',v:5},desc:'단단한 강철로 두른 등껍질 갑옷.',quote:'"느려도 뚫리진 않는다거북."'},
+      {id:'fortress',name:'요새수비 스킨',short:'요새수비',art:'./assets/skins/turtle_fortress.png',cond:{type:'level',v:10},desc:'움직이는 요새가 된 수비 전문 장비.',quote:'"이 자리가 내 요새다거북."'},
+      {id:'naval',name:'해상수비 스킨',short:'해상수비',art:'./assets/skins/turtle_naval.png',cond:{type:'core',v:5000},desc:'파도 위를 지키는 해상 방어 장비.',quote:'"바다는 내가 지킨다거북."'},
+      {id:'paladin',name:'성기사풍 스킨',short:'성기사',art:'./assets/skins/turtle_paladin.png',cond:{type:'gem',v:500},desc:'신성한 빛을 두른 성기사풍 갑옷.',quote:'"모두를 지키는 것이 내 사명이다거북."'}
     ]
   };
   /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
