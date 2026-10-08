@@ -55,3 +55,26 @@
 .spToast{position:absolute;left:50%;bottom:calc(var(--sp-nav-h) + 14px);transform:translate(-50%,16px);opacity:0;pointer-events:none;background:rgba(20,24,22,.92);color:#fff;border-radius:20px;padding:10px 16px;font-size:13px;font-weight:900;transition:.2s;z-index:80;white-space:nowrap}
 .spToast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-height:700px){.spSign{max-height:110px}.spBanner{min-height:80px}}
+
+/* ===== 구매 완료 팝업 ===== */
+.spCard.hit{border-color:#ffd24a;box-shadow:0 0 0 3px rgba(255,210,74,.55),0 0 18px rgba(255,210,74,.7),0 4px 0 rgba(104,75,39,.18)}
+.spPopWrap{position:absolute;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:70px 0 40px;background:rgba(10,6,2,.62);animation:spFade .18s ease-out}
+.spPop{position:relative;width:min(84vw,330px);margin-top:20px;border:5px solid #7a4520;border-radius:20px;background:linear-gradient(#f9e9bd,#f0d794);box-shadow:inset 0 0 0 3px #c98b3f,0 10px 24px rgba(0,0,0,.6);animation:spPopIn .32s cubic-bezier(.2,1.4,.4,1)}
+.spPopHead{position:absolute;left:50%;top:0;width:118%;aspect-ratio:700/475;transform:translate(-50%,-70%);pointer-events:none}
+.spPopHead img{width:100%;height:100%;display:block}
+.spPopHead b{position:absolute;left:20%;right:20%;top:63%;height:20%;display:flex;align-items:center;justify-content:center;font-size:clamp(22px,7vw,30px);font-weight:1000;letter-spacing:1px;color:#fff6cf;-webkit-text-stroke:5px #8a1410;paint-order:stroke fill;text-shadow:0 3px 0 #6a0e0a;transform:rotate(-1.5deg)}
+.spPopBody{position:relative;padding:76px 14px 36px;text-align:center;color:#4a3016;overflow:hidden;border-radius:14px}
+.spPopIcon{position:relative;width:120px;height:120px;margin:0 auto 4px;display:grid;place-items:center;background:radial-gradient(circle,#fff7c8 0,#ffe28a 45%,rgba(255,226,138,0) 72%)}
+.spPopItem{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 5px 5px rgba(0,0,0,.35));animation:spItem .5s .1s cubic-bezier(.2,1.5,.4,1) both}
+.spPopCheck{position:absolute;right:6px;bottom:6px;width:38px;height:38px;object-fit:contain;animation:spItem .4s .35s cubic-bezier(.2,1.6,.4,1) both}
+.spPop h3{margin:6px 0 4px;font-size:clamp(20px,6vw,24px);font-weight:1000;color:#4a2f12}
+.spPop p{margin:0 0 10px;font-size:12px;font-weight:700;color:#7d6445;word-break:keep-all}
+.spPopOwn{display:flex;align-items:center;justify-content:center;gap:9px;padding:7px 10px;border-radius:12px;background:#e6d3a0;font-size:14px;font-weight:900;color:#5a4528}
+.spPopOwn span{font-size:19px;color:#6b5a3e}.spPopOwn em{font-style:normal;color:#8a6a3a}.spPopOwn strong{font-size:23px;color:#2f8a1c}
+.spPopOk{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);width:58%;height:48px;border:4px solid #7a4520;border-radius:14px;background:linear-gradient(#ffe27a,#ffbf2e);box-shadow:inset 0 0 0 2px #fff0a8,0 4px 0 #4a2810,0 6px 10px rgba(0,0,0,.4);color:#4a2c0c;font-size:19px;font-weight:1000}
+.spPopOk:active{transform:translate(-50%,calc(50% + 2px))}
+.spConf{position:absolute;width:10px;height:18px;border-radius:2px;transform:rotate(var(--r));opacity:.9;animation:spConf 1.6s ease-in-out infinite alternate}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
+@keyframes spPopIn{from{opacity:0;transform:scale(.8) translateY(20px)}to{opacity:1;transform:none}}
+@keyframes spItem{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+@keyframes spConf{from{transform:translateY(-4px) rotate(var(--r))}to{transform:translateY(6px) rotate(calc(var(--r) + 25deg))}}
