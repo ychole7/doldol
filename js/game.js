@@ -5088,7 +5088,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function ensure(){
     let page=document.getElementById('doldolShopPage'); if(page)return page;
     if(!document.querySelector('link[data-doldol-shop-style]')){
-      const link=document.createElement('link');link.rel='stylesheet';link.href='css/shop.css?v=20261008-shop2';link.dataset.doldolShopStyle='1';document.head.appendChild(link);
+      const link=document.createElement('link');link.rel='stylesheet';link.href='css/shop.css?v=20261008-shop3';link.dataset.doldolShopStyle='1';document.head.appendChild(link);
     }
     page=document.createElement('div');page.id='doldolShopPage';
     const navIc=n=>'<span class="ddNavIcon"><img src="./assets/home_nav/home_nav_'+n+'.png" alt=""></span>';
@@ -5135,14 +5135,24 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return page;
   }
   function toast(msg){const el=document.getElementById('shopToast');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1100)}
-  function buy(id){const it=SHOP_ITEMS[id];if(!it||!window.__duckWallet||!window.__duckBattleItems)return;if(!window.__duckWallet.spendCoins(it.price)){toast('돌핵이 부족합니다');return}window.__duckBattleItems.add(id,it.qty);if(window.__duckSyncLobby)window.__duckSyncLobby();toast(it.name+' ×'+it.qty+' 구매 완료');render()}
+  let hit='';
+  function closePop(){const pop=document.getElementById('spPop');if(pop)pop.remove();hit='';render()}
+  function showPop(id,before,after){
+    const it=SHOP_ITEMS[id],page=ensure();const old=document.getElementById('spPop');if(old)old.remove();
+    const pop=document.createElement('div');pop.id='spPop';pop.className='spPopWrap';
+    const conf=[['8%','14%','#e84b3c','-18deg'],['86%','12%','#ffc83a','24deg'],['14%','46%','#ffc83a','40deg'],['90%','44%','#e84b3c','-30deg'],['22%','30%','#ff9a2e','12deg'],['78%','28%','#ffc83a','-12deg']].map(c=>'<i class="spConf" style="left:'+c[0]+';top:'+c[1]+';background:'+c[2]+';--r:'+c[3]+'"></i>').join('');
+    pop.innerHTML='<div class="spPop" role="dialog" aria-label="구매 완료"><div class="spPopHead"><img src="'+IMG+'purchase_header.png" alt=""><b>구매 완료!</b></div><div class="spPopBody">'+conf+'<div class="spPopIcon"><img class="spPopItem" src="'+IMG+it.img+'" alt=""><img class="spPopCheck" src="'+IMG+'purchase_check.png" alt=""></div><h3>'+it.name+' x'+it.qty+'</h3><p>전투 아이템이 보급품 창고에 추가되었어요.</p><div class="spPopOwn">보유 수량 <span>'+before+'</span><em>→</em><strong>'+after+'</strong></div></div><button type="button" class="spPopOk">확인</button></div>';
+    pop.onclick=e=>{if(e.target===pop||e.target.closest('.spPopOk'))closePop()};
+    page.appendChild(pop);
+  }
+  function buy(id){const it=SHOP_ITEMS[id];if(!it||!window.__duckWallet||!window.__duckBattleItems)return;const before=Number(inv()[id]||0);if(!window.__duckWallet.spendCoins(it.price)){toast('돌핵이 부족합니다');return}window.__duckBattleItems.add(id,it.qty);if(window.__duckSyncLobby)window.__duckSyncLobby();hit=id;render();showPop(id,before,Number(inv()[id]||0))}
   function render(){
     const page=ensure(),stock=inv();
     if(window.__doldolRenderHud)window.__doldolRenderHud(page);
     page.querySelectorAll('[data-shop-tab]').forEach(b=>b.classList.toggle('active',b.dataset.shopTab===tab));
     const box=page.querySelector('#shopContent');
     if(tab==='currency'){box.innerHTML='<div class="spSoon"><img src="'+IMG+'tab_currency.png" alt=""><b>재화 상품</b><span>준비 중입니다. 곧 만나요!</span></div>';return}
-    const cards=Object.entries(SHOP_ITEMS).map(([id,it])=>'<article class="spCard"><div class="spIcon"><img src="'+IMG+it.img+'" alt=""></div><h3>'+it.name+' <small>x'+it.qty+'</small></h3><p>'+it.desc+'</p><div class="spOwned">보유 '+Number(stock[id]||0)+'</div><button type="button" class="spBuy" data-shop-buy="'+id+'"'+(core()<it.price?' disabled':'')+'><img src="./assets/doldol_stone_core.png" alt="">'+it.price.toLocaleString()+'</button></article>').join('');
+    const cards=Object.entries(SHOP_ITEMS).map(([id,it])=>'<article class="spCard'+(hit===id?' hit':'')+'"><div class="spIcon"><img src="'+IMG+it.img+'" alt=""></div><h3>'+it.name+' <small>x'+it.qty+'</small></h3><p>'+it.desc+'</p><div class="spOwned">보유 '+Number(stock[id]||0)+'</div><button type="button" class="spBuy" data-shop-buy="'+id+'"'+(core()<it.price?' disabled':'')+'><img src="./assets/doldol_stone_core.png" alt="">'+it.price.toLocaleString()+'</button></article>').join('');
     box.innerHTML='<div class="spHead"><i>★</i>'+(tab==='recommend'?'추천 상품':'전투 아이템')+'<i>★</i></div><div class="spGrid">'+cards+'</div>';
     box.querySelectorAll('[data-shop-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.shopBuy));
   }
@@ -5150,7 +5160,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const page=ensure();
     ['menuScreen','mapScreen','resultScreen','equipScreen','characterScreen'].forEach(i=>{const e=document.getElementById(i);if(e)e.classList.remove('show')});
     const lobby=document.getElementById('gameLobby');if(lobby)lobby.classList.add('hidden');
-    tab='recommend';render();page.classList.add('show');
+    tab='recommend';hit='';const pp=document.getElementById('spPop');if(pp)pp.remove();render();page.classList.add('show');
     const w=page.querySelector('.spWrap');if(w)w.scrollTop=0;
   };
 })();
