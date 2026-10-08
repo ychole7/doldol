@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle6','data-doldol-battle-style']].forEach(function(x){
+  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle8','data-doldol-battle-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -769,7 +769,7 @@ function startStage(n){
   showSkillButton();
   player.hp=Math.min(player.maxHp, player.hp+25);
   player.x=clamp(player.x,32,Math.max(32,vw-32));
-  player.y=clamp(player.y,vh*.20,Math.max(vh*.20,vh-90));
+  player.y=clamp(player.y,vh*.20,Math.max(vh*.20,vh-175));
   player.inv=.8;
   running=true;
   last=performance.now();
@@ -1203,7 +1203,7 @@ function update(dt){
   const len=Math.hypot(ax,ay)||1;
   moveAroundCovers(player,ax/len*player.speed*1.06*dt,ay/len*player.speed*1.06*dt);
   player.x=clamp(player.x,32,vw-32);
-  player.y=clamp(player.y,vh*.20,vh-90);
+  player.y=clamp(player.y,vh*.20,vh-175);
 
   player.fire-=dt;
   if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)-(level-1)*.012);shootPlayer();}
@@ -1990,7 +1990,7 @@ function loop(t){
     rocks=[]; shots=[]; particles=[];
     if(player){
       player.x=clamp(player.x||vw*.5,32,Math.max(32,vw-32));
-      player.y=clamp(player.y||vh*.8,vh*.48,Math.max(vh*.48,vh-90));
+      player.y=clamp(player.y||vh*.8,vh*.48,Math.max(vh*.48,vh-175));
     }
   }
   requestAnimationFrame(loop);
