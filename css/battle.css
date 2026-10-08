@@ -42,13 +42,16 @@
 
 /* 패링은 화면 탭으로 — 별도 버튼 없음 */
 #battleControls #battleParry{display:none!important}
-#battleControls .battleHint{left:50%;right:auto;transform:translateX(-50%);bottom:calc(8px + clamp(50px,15vw,62px) + 10px + env(safe-area-inset-bottom));white-space:nowrap}
 
-/* 아이템 슬롯 */
-#battleControls #battleItemSlots{position:absolute;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:2px}
-#battleControls #battleItemSlots .battleItemBtn{position:relative;width:clamp(50px,15vw,62px);height:clamp(50px,15vw,62px);padding:0;border:0;background:none;border-radius:0;box-shadow:none;display:block;touch-action:manipulation}
+/* 말풍선 힌트 */
+#battleControls .battleHint{left:50%;right:auto;transform:translateX(-50%);bottom:calc(10px + clamp(52px,15.5vw,64px) + 14px + 10px + 10px + env(safe-area-inset-bottom));padding:8px 16px;border-radius:14px;background:rgba(36,26,16,.92);border:1px solid rgba(217,167,58,.7);color:#fff;font-size:clamp(12px,3.4vw,14px);font-weight:900;opacity:1;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.4);text-shadow:0 1px 2px #000}
+#battleControls .battleHint:after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:rgba(36,26,16,.92);border-right:1px solid rgba(217,167,58,.7);border-bottom:1px solid rgba(217,167,58,.7);transform:translateX(-50%) rotate(45deg)}
+
+/* 아이템 슬롯 — 금테 트레이 */
+#battleControls #battleItemSlots{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:20px;background:linear-gradient(rgba(44,32,18,.86),rgba(24,17,9,.88));border:2px solid #d9a73a;box-shadow:0 0 0 1px rgba(60,36,8,.9),0 0 14px rgba(255,200,70,.45),0 6px 14px rgba(0,0,0,.45),inset 0 0 8px rgba(0,0,0,.5)}
+#battleControls #battleItemSlots .battleItemBtn{position:relative;width:clamp(52px,15.5vw,64px);height:clamp(52px,15.5vw,64px);padding:0;border:0;background:none;border-radius:0;box-shadow:none;display:block;touch-action:manipulation}
 #battleItemSlots .biSlot{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
 #battleItemSlots .biIcon{position:absolute;left:14%;top:17%;width:62%;height:62%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
-#battleControls #battleItemSlots .battleItemCount{position:absolute;left:auto;top:auto;right:3%;top:7%;width:30%;height:30%;min-width:0;padding:0;border:0;background:none;color:#fff;font-size:clamp(9px,2.8vw,12px);font-weight:1000;display:grid;place-items:center;text-shadow:0 1px 2px #000}
+#battleControls #battleItemSlots .battleItemCount{position:absolute;left:auto;right:3%;top:7%;width:30%;height:30%;min-width:0;padding:0;border:0;background:none;color:#fff;font-size:clamp(10px,3vw,13px);font-weight:1000;display:grid;place-items:center;text-shadow:0 1px 2px #000}
 #battleControls #battleItemSlots .battleItemBtn:active{transform:scale(.94)}
 #battleControls #battleItemSlots .battleItemBtn:disabled{opacity:.45;filter:grayscale(1)}
