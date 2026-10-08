@@ -1,0 +1,195 @@
+/* 돌돌 특공대 — 장비 화면 (시안) · HUD/하단 메뉴는 홈과 같은 .dd* 스타일(home.js) 사용 */
+#equipScreen{
+  position:fixed;inset:0;z-index:99998;display:none;overflow:hidden;box-sizing:border-box;
+  background:linear-gradient(rgba(29,22,13,.12),rgba(29,22,13,.34)),url('../assets/home_base_bg.png') center/cover;
+  color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --eq-hud-top:max(clamp(10px,2vw,16px),env(safe-area-inset-top));
+  --eq-hud-h:clamp(44px,7.1vw,52px);
+  --eq-top:calc(var(--eq-hud-top) + var(--eq-hud-h) + 8px - env(safe-area-inset-top));
+  --eq-nav-h:clamp(92px,11vh,112px);
+}
+#equipScreen.show{display:block}
+#equipScreen *{box-sizing:border-box}
+#equipScreen button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+#equipScreen .ddHomeHud,#equipScreen .ddBottomNav{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+#equipScreen .ddBottomNav{z-index:60!important}
+#equipScreen #sqHudCore{color:#ffd866;font-weight:1000}
+
+.eqWrap{
+  position:relative;width:min(100%,560px);height:100%;margin:0 auto;
+  padding:calc(var(--eq-top) + env(safe-area-inset-top)) 8px calc(var(--eq-nav-h) + 8px);
+  display:flex;flex-direction:column;min-height:0;
+}
+
+/* ===== 타이틀 간판 ===== */
+.eqTop{flex:0 0 auto;position:relative;display:flex;justify-content:center;margin:0 0 9px}
+.eqTitle{
+  position:relative;width:min(88%,440px);padding:7px 14px 8px;text-align:center;
+  border:3px solid #3f240f;border-radius:10px;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 3px,rgba(255,255,255,.035) 3px 7px),linear-gradient(#85511f,#5c3516);
+  box-shadow:inset 0 0 0 2px #a8692e,inset 0 -6px 10px rgba(0,0,0,.22),0 4px 0 #2e180a,0 7px 12px rgba(0,0,0,.35);
+}
+.eqTitle b{display:flex;align-items:center;justify-content:center;gap:10px;font-size:26px;line-height:1.1;font-weight:900;letter-spacing:1px;text-shadow:0 2px 3px rgba(0,0,0,.55)}
+.eqTitle b i{font-style:normal;font-size:22px;color:#f2c667}
+.eqTitle small{display:block;margin-top:2px;font-size:11.5px;color:#f3dfc0;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.eqTop::before,.eqTop::after{
+  content:"";position:absolute;top:-2px;bottom:-2px;width:14px;z-index:3;border-radius:8px;
+  background:repeating-linear-gradient(160deg,#ecce86 0 4px,#a97a37 4px 8px);
+  box-shadow:inset 0 0 0 1px rgba(60,35,10,.55),0 2px 4px rgba(0,0,0,.45);
+}
+.eqTop::before{left:calc(6% - 6px)}
+.eqTop::after{right:calc(6% - 6px)}
+
+/* ===== 출격 세팅 ===== */
+.eqLoadout{
+  flex:0 0 auto;margin:0 0 9px;padding:9px 9px 10px;border-radius:16px;
+  background:linear-gradient(#f3dfb4,#e2c58a);border:3px solid #a8692e;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 5px 10px rgba(0,0,0,.3);color:#4a3017;
+}
+.eqLoadHead{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.eqLoadIc{
+  width:36px;height:36px;flex:0 0 auto;display:grid;place-items:center;border-radius:50%;
+  background:linear-gradient(#8a5524,#5c3516);color:#f5d484;font-size:20px;border:2px solid #3f240f
+}
+.eqLoadHead>div{flex:1;min-width:0}
+.eqLoadHead b{display:block;font-size:17px;font-weight:1000;line-height:1.15;color:#43290f}
+.eqLoadHead small{display:block;margin-top:1px;font-size:10.5px;color:#7a5a36;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eqAuto{
+  flex:0 0 auto;min-height:38px;padding:0 12px;border:2px solid #c98b1f;border-radius:12px;
+  background:linear-gradient(#ffe98a,#ffc83f);color:#4a3017;font-size:13px;font-weight:1000;
+  box-shadow:0 3px 0 #a96d1d,inset 0 1px rgba(255,255,255,.5);display:flex;align-items:center;gap:5px
+}
+.eqAuto i{font-style:normal;font-size:16px}
+.eqAuto:active{transform:translateY(2px);box-shadow:0 1px 0 #a96d1d}
+.eqSlots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.eqSlot{
+  position:relative;display:flex;flex-direction:column;min-width:0;padding:0 0 6px;text-align:center;
+  border:2px solid #6c4a2a;border-radius:12px;color:#fff;overflow:hidden;
+  background:linear-gradient(#4f3a27,#2a1f16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 3px 6px rgba(0,0,0,.25)
+}
+.eqSlotLabel{display:block;padding:3px 0 2px;font-size:11px;font-weight:900;color:#f1dcb4;background:rgba(0,0,0,.28)}
+.eqSlotBody{display:flex;align-items:center;gap:3px;padding:5px 4px 2px;min-height:54px}
+.eqSlotArt{flex:0 0 auto;width:40px;height:40px;display:grid;place-items:center;font-size:24px;color:#d9b97c}
+.eqSlotArt img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+.eqSlotTxt{flex:1;min-width:0;text-align:left}
+.eqSlotTxt b{display:block;font-size:11.5px;font-weight:1000;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eqSlotTxt em{display:block;margin-top:2px;font-style:normal;font-size:11px;font-weight:1000;color:#ffd866}
+.eqSlotStat{display:block;padding:0 4px;font-size:10px;font-weight:700;color:#e9dcc5;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eqSlot.empty{opacity:.85}
+.eqSlot.r-rare{border-color:#3f86e0}.eqSlot.r-epic{border-color:#9a5be8}.eqSlot.r-legend{border-color:#d3a645}.eqSlot.r-common{border-color:#9a9ea3}
+
+/* ===== 탭 + 정렬 ===== */
+.eqTabs{
+  flex:0 0 auto;display:flex;align-items:center;gap:5px;padding:7px 7px 6px;
+  border:3px solid #a8692e;border-bottom:0;border-radius:16px 16px 0 0;background:#3a2414
+}
+.eqTab{
+  flex:1 1 0;min-width:0;min-height:38px;padding:0 4px;border:2px solid #5a3c25;border-radius:11px;
+  background:#241b17;color:#ead9c5;font-size:13px;font-weight:1000;white-space:nowrap
+}
+.eqTab.on{background:linear-gradient(#ffe985,#ffc83f);color:#3f2b14;border-color:#e0a82c;box-shadow:0 3px 0 #a96d1d,inset 0 1px rgba(255,255,255,.46)}
+.eqSort{
+  flex:0 0 auto;min-height:38px;padding:0 9px;border:2px solid #d9d2c3;border-radius:19px;background:#1f1713;color:#fff;
+  font-size:12px;font-weight:1000;display:flex;align-items:center;gap:5px
+}
+.eqSort i{font-style:normal;font-size:10px;color:#ffd866}
+
+/* ===== 카드 그리드 ===== */
+.eqGrid{
+  flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:min-content;gap:7px;padding:6px 7px 10px;
+  border:3px solid #a8692e;border-top:0;border-radius:0 0 16px 16px;background:#3a2414
+}
+.eqGrid::-webkit-scrollbar{display:none}
+.eqCard{
+  position:relative;display:flex;align-items:center;gap:6px;min-width:0;min-height:76px;padding:6px 6px 6px 5px;text-align:left;
+  border:2px solid #8d9296;border-radius:13px;color:#fff;
+  background:linear-gradient(180deg,#4a4d52,#26282b);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 3px 7px rgba(0,0,0,.28)
+}
+.eqCard.r-rare{border-color:#2d6fc4;background:linear-gradient(180deg,#1f3558,#121f38)}
+.eqCard.r-epic{border-color:#8a4fd8;background:linear-gradient(180deg,#44276f,#22143a)}
+.eqCard.r-legend{border-color:#b6924f;background:linear-gradient(180deg,#6b5630,#3a2e1c)}
+.eqCard.on{
+  border:3px solid #39d5ff;padding:5px 5px 5px 4px;
+  box-shadow:0 0 0 2px rgba(255,214,89,.55),0 0 15px rgba(44,211,255,.5)
+}
+.eqCard.locked{filter:saturate(.55) brightness(.8)}
+.eqCard:active{transform:translateY(1px)}
+.eqArt{position:relative;flex:0 0 auto;width:60px;height:62px;display:grid;place-items:center;border-radius:10px;background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.eqArt img{width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}
+.eqLv{
+  position:absolute;left:2px;bottom:2px;padding:1px 5px;border-radius:7px;font-style:normal;
+  font-size:10.5px;font-weight:1000;color:#fff;background:rgba(10,12,16,.82);border:1px solid rgba(255,255,255,.2)
+}
+.eqInfo{flex:1;min-width:0}
+.eqInfo b{display:block;font-size:13px;font-weight:1000;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eqRar{
+  display:inline-block;margin:3px 0 2px;padding:1px 8px;border-radius:9px;font-style:normal;
+  font-size:10.5px;font-weight:1000;color:#fff;background:#6b7076
+}
+.eqCard.r-rare .eqRar{background:#2f6fe0}
+.eqCard.r-epic .eqRar{background:#8f56e8}
+.eqCard.r-legend .eqRar{background:#d9a63a;color:#3d2a08}
+.eqInfo small{display:block;font-size:11px;font-weight:700;color:#e8e0d2;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.eqInfo small.eqLock{display:flex;align-items:center;gap:3px;color:#e0d8c8;font-size:10px;white-space:nowrap}
+.eqLockIc{width:14px;height:14px;flex:0 0 auto;object-fit:contain}
+.eqOn{
+  position:absolute;top:-2px;right:-2px;padding:1px 7px 2px;border-radius:0 10px 0 9px;
+  font-size:10px;font-weight:1000;color:#fff;background:linear-gradient(#2fbdf2,#1479c9);box-shadow:0 2px 4px rgba(0,0,0,.4)
+}
+
+/* ===== 알림 ===== */
+.eqToast{
+  position:absolute;left:50%;bottom:calc(var(--eq-nav-h) + 16px);transform:translateX(-50%);z-index:40;
+  max-width:88%;padding:9px 16px;border-radius:20px;background:rgba(20,14,10,.92);color:#ffe9b0;
+  font-size:13px;font-weight:900;border:1px solid rgba(255,214,89,.5);box-shadow:0 4px 12px rgba(0,0,0,.4);text-align:center
+}
+.eqToast[hidden]{display:none}
+
+/* ===== 상세 팝업 ===== */
+.eqModal{
+  position:absolute;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(8,5,3,.62);padding:0 8px calc(var(--eq-nav-h) + 8px)
+}
+.eqModal[hidden]{display:none}
+.eqSheet{
+  position:relative;width:min(100%,520px);padding:16px 14px 14px;border-radius:20px;
+  background:linear-gradient(#5a3a20,#35210f);border:3px solid #c98b3f;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.25),0 -4px 24px rgba(0,0,0,.5)
+}
+.eqClose{
+  position:absolute;top:8px;right:8px;width:34px;height:34px;border:2px solid #c98b3f;border-radius:11px;
+  background:linear-gradient(#7d4620,#55290f);color:#fff;font-size:22px;line-height:1;font-weight:900;z-index:2
+}
+.eqHero{
+  display:grid;grid-template-columns:98px 1fr;gap:14px;align-items:center;padding:12px;border-radius:16px;
+  background:linear-gradient(145deg,#4a4d52,#26282b);border:2px solid #8d9296
+}
+.eqHero.r-rare{background:linear-gradient(145deg,#1f3558,#121f38);border-color:#2d6fc4}
+.eqHero.r-epic{background:linear-gradient(145deg,#44276f,#22143a);border-color:#8a4fd8}
+.eqHero.r-legend{background:linear-gradient(145deg,#6b5630,#3a2e1c);border-color:#b6924f}
+.eqHeroArt{display:grid;place-items:center;width:98px;height:98px;border-radius:50%;background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 2px rgba(255,216,102,.22)}
+.eqHeroArt img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+.eqHero small{color:#ffd866;font-weight:1000;font-size:12px}
+.eqHero h2{margin:3px 0;font-size:23px;line-height:1.1}
+.eqHero p{margin:0 0 6px;color:#d6cdbd;font-size:12.5px}
+.eqHero strong{color:#ffd866;font-size:14px}
+.eqStatBox{margin:10px 0;padding:11px 14px;border-radius:14px;background:rgba(0,0,0,.28)}
+.eqStatBox small{display:block;color:#e3c690;font-size:11px;font-weight:900}
+.eqStatBox b{display:block;margin-top:3px;font-size:16px}
+.eqStatBox em{display:block;margin-top:3px;font-style:normal;font-size:12px;color:#a9e7ff}
+.eqBtn{
+  width:100%;min-height:48px;margin-top:7px;border:2px solid #c98b1f;border-radius:14px;
+  background:linear-gradient(#ffe985,#ffc83f);color:#3f2b14;font-size:16px;font-weight:1000;
+  box-shadow:0 4px 0 #a96d1d,inset 0 1px rgba(255,255,255,.5)
+}
+.eqBtn.on{background:linear-gradient(#5d7b52,#3d5a35);border-color:#7fa774;color:#eaffd9;box-shadow:0 4px 0 #26391f}
+.eqBtn.up{background:linear-gradient(#58b8f5,#2a83cf);border-color:#8fd0ff;color:#fff;box-shadow:0 4px 0 #1a5a97}
+.eqBtn:disabled{filter:grayscale(.8);opacity:.6}
+.eqNeed{margin-top:7px;text-align:center;font-size:12px;font-weight:900;color:#ffb0a0}
+
+@media(max-width:360px){
+  .eqSlotArt{width:40px;height:40px}
+  .eqArt{width:54px;height:56px}.eqArt img{width:50px;height:50px}
+  .eqInfo b{font-size:13px}
+}
