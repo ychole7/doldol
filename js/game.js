@@ -137,7 +137,7 @@ let pendingNextStage=0;
 const FARM_ITEMS_V2=[
   {id:'wood',name:'나무 조각',icon:'🪵'},
   {id:'stone',name:'단단한 돌',icon:'🪨'},
-  {id:'ember',name:'불씨',icon:'🪨'},
+  {id:'ember',name:'불씨',icon:'🔥'},
   {id:'ice',name:'얼음 조각',icon:'❄️'},
   {id:'herb',name:'약초',icon:'🌿'},
   {id:'gem',name:'보석 조각',icon:'💎'},
@@ -162,6 +162,9 @@ const FARM_DROP_TABLE_V2=[['wood',35],['stone',35],['ember',15],['ice',15]];
 let runFarmV2={};
 window.__duckRunFarm=()=>({...runFarmV2});
 window.__duckResetRunFarm=()=>{runFarmV2={};};
+// 전투 중 바닥에 떨어지는 재료 이미지(없으면 이모지로 대체)
+const FARM_IMG_V2={};
+['wood','stone','ember','ice'].forEach(id=>{const im=new Image();im.src='./assets/materials/mat_'+id+'.png';FARM_IMG_V2[id]=im;});
 function farmRandomItemV2(){
   let r=Math.random()*100;
   for(const [id,w] of FARM_DROP_TABLE_V2){ if((r-=w)<0) return FARM_ITEMS_V2.find(x=>x.id===id); }
@@ -1755,8 +1758,10 @@ function draw(){
       const pulse=1+Math.sin(performance.now()/150)*.08;
       ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
       ctx.globalAlpha=1;
-      ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(p.farmIcon||'⭐',0,1);
+      const fim=FARM_IMG_V2[p.farmId];
+      ctx.textAlign='center';
+      if(fim&&fim.complete&&fim.naturalWidth){ ctx.drawImage(fim,-16,-17,32,32); }
+      else{ ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textBaseline='middle';ctx.fillText(p.farmIcon||'⭐',0,1); }
       ctx.textBaseline='alphabetic';
       ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
     }else{
