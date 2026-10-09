@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261009-equip8','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261009-set1','data-doldol-settings-style']].forEach(function(x){
+  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261009-set1','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -4280,7 +4280,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     /* ---------- 화면 뼈대 ---------- */
     if(!document.querySelector('link[data-doldol-equip-style]')){
       const link=document.createElement('link');
-      link.rel='stylesheet'; link.href='css/equip.css?v=20261009-equip8'; link.dataset.doldolEquipStyle='1';
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261009-equip9'; link.dataset.doldolEquipStyle='1';
       document.head.appendChild(link);
     }
     let es=document.getElementById('equipScreen');
@@ -4401,10 +4401,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     function weaponUpHtml(id){
       const w=window.__duckWeaponUpgradeInfo&&window.__duckWeaponUpgradeInfo(id); if(!w)return '';
-      const mats=w.mats.map(m=>'<span class="eqWuMat'+(m.have>=m.need?'':' lack')+'"><i>'+m.icon+'</i><small>'+m.name+'</small><b>'+m.have+' / '+m.need+'</b></span>').join('');
+      const steps=[1,2,3,4,5].map(n=>'<i class="eqWuStep'+(n<=w.lv?' on':'')+(n===w.lv?' cur':'')+'">'+n+'</i>').join('<s></s>');
+      const mats=w.mats.map(m=>'<span class="eqWuMat'+(m.have>=m.need?'':' lack')+'"><img src="./assets/materials/mat_'+m.id+'.png" alt="" draggable="false" onerror="this.outerHTML=\''+m.icon+'\'"><small>'+m.name+'</small><b>'+m.have+' / '+m.need+'</b></span>').join('');
       return '<div class="eqWu"><div class="eqWuHead"><b>돌 강화</b><span id="eqWuLv">Lv.'+w.lv+' / '+w.maxLv+'</span></div>'+
-        '<div class="eqWuFx">공격력 +'+w.pct+'%'+(w.max?' · MAX':' <u>▶</u> <em>+'+w.nextPct+'%</em>')+'</div>'+
-        (w.max?'':'<div class="eqWuMats">'+mats+'</div>'+
+        (w.max?'<div class="eqWuMax"><span>MAX LEVEL</span></div>':'')+
+        '<div class="eqWuSteps">'+steps+'</div>'+
+        '<div class="eqWuFx">공격력 <b>+'+w.pct+'%</b>'+(w.max?'':' <u>▶</u> <em>+'+w.nextPct+'%</em>')+'</div>'+
+        (w.max?'<div class="eqWuDone">✔ 최대 레벨에 도달했습니다</div>':'<div class="eqWuMats">'+mats+'</div>'+
         '<button type="button" id="eqWuBtn" class="eqWuBtn" '+(w.can?'':'disabled')+'>'+(w.can?'강화하기':'재료가 부족합니다')+'</button>')+
         '</div>';
     }
@@ -4414,11 +4417,13 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       modal.onclick=e=>{if(e.target===modal)closeModal();};
       if(kind==='stone'){
         const d=defs[id]||defs.basic,ok=stoneUnlocked(id),on=currentStone().id===id,rar=stoneRarity[id]||'일반',rc=rarityCls[rar];
+        const wlv=window.__duckWeaponUpgradeLevel?window.__duckWeaponUpgradeLevel(id):1;
         sheet.innerHTML=
           '<button type="button" class="eqClose" id="eqClose" aria-label="닫기">×</button>'+
-          '<div class="eqHero r-'+rc+'"><span class="eqHeroArt"><img src="'+d.art+'" alt="'+d.name+'"></span><div class="eqHeroTxt">'+
+          '<div class="eqHero r-'+rc+'"><span class="eqHeroArt'+(flash?' pulse':'')+'"><img src="'+d.art+'" alt="'+d.name+'"></span><div class="eqHeroTxt">'+
             '<div class="eqPills"><em class="eqPill rar">'+rar+'</em><i class="eqDot">•</i><em class="eqPill">돌</em>'+(on?'<em class="eqPill on">장착중</em>':'')+'</div>'+
-            '<h2>'+d.name+'</h2><span class="eqLvPill">'+d.role+'</span><p>'+d.desc+'</p></div></div>'+
+            '<h2>'+d.name+'</h2><span class="eqLvPill">'+d.role+'</span><p>'+d.desc+'</p></div>'+
+            (flash?'<div class="eqUpFlash">강화 성공! Lv.'+wlv+'</div>':'')+'</div>'+
           '<div class="eqInfoBox"><span class="eqInfoIc">🪨</span><div><b>돌 = 전투 방식</b><small>장비 능력치와 별개로 공격 특성만 바뀝니다.</small></div></div>'+
           (ok?'':'<div class="eqInfoBox warn"><span class="eqInfoIc">🔒</span><div><b>STAGE '+d.unlock+' 클리어 후 해금</b><small>스테이지를 진행하면 사용할 수 있어요.</small></div></div>')+
           (ok?weaponUpHtml(id):'')+
@@ -4428,7 +4433,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         const wu=$q('#eqWuBtn');
         if(wu)wu.onclick=()=>{
           const r=window.__duckUpgradeWeapon&&window.__duckUpgradeWeapon(id);
-          if(r&&r.ok){ if(window.__duckMissionEvent)window.__duckMissionEvent('gear',1); openDetail('stone',id); const t=$q('#eqWuLv'); if(t){t.classList.add('pop');} }
+          if(r&&r.ok){ if(window.__duckMissionEvent)window.__duckMissionEvent('gear',1); openDetail('stone',id,true); }
           else openDetail('stone',id);
         };
         return;
