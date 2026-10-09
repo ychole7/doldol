@@ -1555,11 +1555,17 @@ function drawDuck(x,y,scale=1){
   if(DUCK_POSE.center.ok || DUCK_POSE.left.ok || DUCK_POSE.right.ok || DUCK_READY_IMG.complete && DUCK_READY_IMG.naturalWidth){
     const now=performance.now(), dtf=Math.min(.05,Math.max(.001,(now-duckT)/1000)); duckT=now;
     // 방향 결정: 가장 가까운 적 기준, 진입/이탈 임계값을 다르게 + 최소 100ms 유지
+    const vx=(player.x-duckLX)/dtf; duckLX=player.x; duckLY=player.y;
+    duckVx += (vx-duckVx)*Math.min(1,dtf*10);
     let near=null,nd=1e9;
     for(const e of enemies){ if(e.dead) continue; const d=Math.hypot(e.x-player.x,e.y-player.y); if(d<nd){nd=d;near=e;} }
     const sc=Math.max(.8,Math.min(1.4,vw/393)), enter=40*sc, leave=24*sc;
     let want=duckDir;
-    if(!near) want='center';
+    if(!near){
+      // 적이 없으면(출구 등) 이동하는 방향을 바라봄, 멈추면 정면
+      if(duckVx>70) want='right'; else if(duckVx<-70) want='left';
+      else if(Math.abs(duckVx)<25) want='center';
+    }
     else{
       const dx=near.x-player.x;
       if(dx<-enter) want='left';
@@ -1574,8 +1580,6 @@ function drawDuck(x,y,scale=1){
     const curImg = parrying?DUCK_POSE.parry.img:pick(duckDir);
     const tt=Math.min(1,(now-duckSwitchT)/110);                 // 방향 전환 0~1
     const press = (!parrying && tt<1)? Math.sin(tt*Math.PI)*.03 : 0; // 아주 미세한 눌림
-    const vx=(player.x-duckLX)/dtf; duckLX=player.x; duckLY=player.y;
-    duckVx += (vx-duckVx)*Math.min(1,dtf*10);
     const mv=Math.min(1,Math.abs(duckVx)/260);
     duckPhase += dtf*(6+mv*12);
     const drawImg=(im,alpha)=>{
