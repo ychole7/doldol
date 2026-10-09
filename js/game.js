@@ -101,8 +101,12 @@ const DUCK_POSE_H = 92;          // 자세 이미지를 그릴 높이(px). 캐�
 const DUCK_POSE = {};
 ['left','center','right','parry'].forEach(k=>{
   const im=new Image(); const o={img:im,ok:false};
-  im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
-  im.src='./assets/characters/duck_'+(k==='parry'?'parry':'idle_'+k)+'.png';
+  const u='./assets/characters/duck_'+(k==='parry'?'parry':'idle_'+k)+'.png';
+  let retried=false;
+  im.onload=()=>{o.ok=true;};
+  // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
+  im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u+'?r='+Date.now();}};
+  im.src=u+'?v=20261009-pose1';
   DUCK_POSE[k]=o;
 });
 let duckDir='center', duckPrevDir='center', duckDirSince=0, duckSwitchT=-1e9, duckParryUntil=0;
