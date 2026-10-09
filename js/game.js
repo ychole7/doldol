@@ -95,6 +95,8 @@ __duckQueueAsset(ENEMY_BOSS_IMG,"../assets/enemy_boss.png","defer");
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
+const DUCK_READY_IMG = new Image(); DUCK_READY_IMG.src = "./assets/battle/duck_ready.png";
+let duckFace = 1;
 DUCK_IMG.src = "./assets/characters/character_doldol.png";
 window.__duckReady = false;
 
@@ -1525,7 +1527,16 @@ function roundRect(x,y,w,h,r){
 function drawDuck(x,y,scale=1){
   ctx.save();
   ctx.translate(x,y);
-  if(window.__duckReady && DUCK_IMG.naturalWidth){
+  if(DUCK_READY_IMG.complete && DUCK_READY_IMG.naturalWidth){
+    // 가장 가까운 적 쪽을 바라봄(이미지는 오른쪽 기준, 왼쪽이면 좌우 반전)
+    let near=null,nd=1e9;
+    for(const e of enemies){const d=Math.hypot(e.x-player.x,e.y-player.y); if(d<nd){nd=d;near=e;}}
+    if(near && Math.abs(near.x-player.x)>14) duckFace = near.x>=player.x?1:-1;
+    const h=78*scale, w=h*DUCK_READY_IMG.naturalWidth/DUCK_READY_IMG.naturalHeight;
+    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h*.36,w*.36,h*.07,0,0,Math.PI*2);ctx.fill();
+    ctx.scale(duckFace,1);
+    ctx.drawImage(DUCK_READY_IMG,-w/2,-h*.62,w,h);
+  }else if(window.__duckReady && DUCK_IMG.naturalWidth){
     const w=58*scale, h=64*scale;
     ctx.shadowColor='rgba(0,0,0,.35)';
     ctx.shadowBlur=10;
