@@ -95,8 +95,18 @@ __duckQueueAsset(ENEMY_BOSS_IMG,"../assets/enemy_boss.png","defer");
 const DUCK_IMG = new Image();
 DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
-const DUCK_READY_IMG = new Image(); DUCK_READY_IMG.src = "./assets/battle/duck_ready.png";
-let duckFace = 1;
+const DUCK_READY_IMG = new Image(); DUCK_READY_IMG.src = "./assets/battle/duck_ready.png"; // 방향별 이미지가 없을 때의 임시 대기 자세(반전 없음)
+// 돌돌이 전투 자세: 방향별 대기 3종 + 패링 1종 (768x706 투명 PNG, 같은 발 위치/스케일)
+const DUCK_POSE_H = 92;          // 자세 이미지를 그릴 높이(px). 캐릭터 크기 조절용
+const DUCK_POSE = {};
+['left','center','right','parry'].forEach(k=>{
+  const im=new Image(); const o={img:im,ok:false};
+  im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
+  im.src='./assets/characters/duck_'+(k==='parry'?'parry':'idle_'+k)+'.png';
+  DUCK_POSE[k]=o;
+});
+let duckDir='center', duckPrevDir='center', duckDirSince=0, duckSwitchT=-1e9, duckParryUntil=0;
+let duckT = performance.now(), duckLX = 0, duckLY = 0, duckVx = 0, duckVy = 0, duckPhase = 0;
 DUCK_IMG.src = "./assets/characters/character_doldol.png";
 window.__duckReady = false;
 
@@ -1079,6 +1089,7 @@ function parryAt(x,y){
     message=''; messageTimer=0;
     shake=4;
   }
+  duckParryUntil=performance.now()+150;
   parryFxList.push({x:player.x,y:player.y,rx:r.x,ry:r.y,dx:dx/L,dy:dy/L,t:performance.now(),p:!!isPerfect,sp:Array.from({length:isPerfect?40:28},()=>({a:Math.random()*Math.PI*2,v:50+Math.random()*210,l:6+Math.random()*18,w:Math.random()<.35}))});
   if(parryFxList.length>6)parryFxList.shift();
   burst(r.x,r.y,isPerfect?18:10);
@@ -1133,6 +1144,7 @@ cv.addEventListener('pointerdown',e=>{
     // 아래쪽 첫 터치 = 이동 조이스틱. 짧게 톡 치고 뗄 때만 패링(드래그 이동은 패링 안 함)
     joy.active=true; joy.id=e.pointerId; joy.baseX=p.x; joy.baseY=p.y; joy.x=p.x; joy.y=p.y;
     joy.tap={x:p.x,y:p.y,t:performance.now(),moved:false};
+    try{cv.setPointerCapture(e.pointerId);}catch(_){}
     return;
   }
   parryAt(p.x,p.y);
@@ -1153,6 +1165,7 @@ function joyEnd(e){
 }
 cv.addEventListener('pointerup',joyEnd);
 cv.addEventListener('pointercancel',joyEnd);
+cv.addEventListener('lostpointercapture',joyEnd);
 
 function update(dt){
   if(!running || paused) return;
@@ -1535,15 +1548,47 @@ function roundRect(x,y,w,h,r){
 function drawDuck(x,y,scale=1){
   ctx.save();
   ctx.translate(x,y);
-  if(DUCK_READY_IMG.complete && DUCK_READY_IMG.naturalWidth){
-    // 가장 가까운 적 쪽을 바라봄(이미지는 오른쪽 기준, 왼쪽이면 좌우 반전)
+  if(DUCK_POSE.center.ok || DUCK_POSE.left.ok || DUCK_POSE.right.ok || DUCK_READY_IMG.complete && DUCK_READY_IMG.naturalWidth){
+    const now=performance.now(), dtf=Math.min(.05,Math.max(.001,(now-duckT)/1000)); duckT=now;
+    // 방향 결정: 가장 가까운 적 기준, 진입/이탈 임계값을 다르게 + 최소 100ms 유지
     let near=null,nd=1e9;
-    for(const e of enemies){const d=Math.hypot(e.x-player.x,e.y-player.y); if(d<nd){nd=d;near=e;}}
-    if(near && Math.abs(near.x-player.x)>14) duckFace = near.x>=player.x?1:-1;
-    const h=78*scale, w=h*DUCK_READY_IMG.naturalWidth/DUCK_READY_IMG.naturalHeight;
-    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h*.36,w*.36,h*.07,0,0,Math.PI*2);ctx.fill();
-    ctx.scale(duckFace,1);
-    ctx.drawImage(DUCK_READY_IMG,-w/2,-h*.62,w,h);
+    for(const e of enemies){ if(e.dead) continue; const d=Math.hypot(e.x-player.x,e.y-player.y); if(d<nd){nd=d;near=e;} }
+    const sc=Math.max(.8,Math.min(1.4,vw/393)), enter=40*sc, leave=24*sc;
+    let want=duckDir;
+    if(!near) want='center';
+    else{
+      const dx=near.x-player.x;
+      if(dx<-enter) want='left';
+      else if(dx>enter) want='right';
+      else if(duckDir==='left' && dx>-leave) want='center';
+      else if(duckDir==='right' && dx<leave) want='center';
+    }
+    if(want!==duckDir && now-duckDirSince>=100){ duckPrevDir=duckDir; duckDir=want; duckDirSince=now; duckSwitchT=now; }
+    // 자세 이미지 선택(없으면 center → 기존 이미지 순으로 대체, 반전 없음)
+    const pick=k=>{ const o=DUCK_POSE[k]; return o&&o.ok?o.img:(DUCK_POSE.center.ok?DUCK_POSE.center.img:DUCK_READY_IMG); };
+    const parrying = now<duckParryUntil && DUCK_POSE.parry.ok;
+    const curImg = parrying?DUCK_POSE.parry.img:pick(duckDir);
+    const tt=Math.min(1,(now-duckSwitchT)/110);                 // 방향 전환 0~1
+    const press = (!parrying && tt<1)? Math.sin(tt*Math.PI)*.03 : 0; // 아주 미세한 눌림
+    const vx=(player.x-duckLX)/dtf; duckLX=player.x; duckLY=player.y;
+    duckVx += (vx-duckVx)*Math.min(1,dtf*10);
+    const mv=Math.min(1,Math.abs(duckVx)/260);
+    duckPhase += dtf*(6+mv*12);
+    const drawImg=(im,alpha)=>{
+      const isPose=im!==DUCK_READY_IMG, h=(isPose?DUCK_POSE_H:78)*scale, w=h*im.naturalWidth/im.naturalHeight;
+      ctx.globalAlpha=alpha; ctx.drawImage(im,-w/2,-h*.62,w,h);
+    };
+    const h0=DUCK_POSE_H*scale, w0=h0*(768/706);
+    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h0*.36,w0*.30,h0*.065,0,0,Math.PI*2);ctx.fill();
+    // 발끝(바닥) 기준으로만 변형: 위치는 고정, 이동 중 아주 약한 기울기/통통
+    ctx.translate(0,h0*.38);
+    ctx.rotate(Math.max(-1,Math.min(1,duckVx/300))*.07);
+    const bob=Math.abs(Math.sin(duckPhase))*mv;
+    ctx.scale(1+bob*.02, 1-bob*.03-press);
+    ctx.translate(0,-bob*3-h0*.38);
+    if(!parrying && tt<1 && pick(duckPrevDir)!==curImg){ drawImg(pick(duckPrevDir),1-tt); drawImg(curImg,tt); }
+    else drawImg(curImg,1);
+    ctx.globalAlpha=1;
   }else if(window.__duckReady && DUCK_IMG.naturalWidth){
     const w=58*scale, h=64*scale;
     ctx.shadowColor='rgba(0,0,0,.35)';
