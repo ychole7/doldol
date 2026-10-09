@@ -178,6 +178,9 @@ window.__duckRunFarm=()=>({...runFarmV2});
 window.__duckResetRunFarm=()=>{runFarmV2={};};
 // 전투 중 바닥에 떨어지는 재료 이미지(없으면 이모지로 대체)
 const FARM_IMG_V2={};
+// 전투 중 코인/XP 드랍 아이콘(없으면 기존 원형 그림으로 대체)
+const DROP_COIN_IMG=new Image(); DROP_COIN_IMG.src='./assets/materials/reward_coin.png';
+const DROP_XP_IMG=new Image(); DROP_XP_IMG.src='./assets/materials/reward_xp.png';
 ['wood','stone','ember','ice'].forEach(id=>{const im=new Image();im.src='./assets/materials/mat_'+id+'.png';FARM_IMG_V2[id]=im;});
 function farmRandomItemV2(){
   let r=Math.random()*100;
@@ -1773,9 +1776,12 @@ function draw(){
     const bob=Math.sin(p.bob)*3;
     ctx.save();ctx.translate(p.x,p.y+bob);
     if(p.type==='coin'){
+      if(DROP_COIN_IMG.complete&&DROP_COIN_IMG.naturalWidth){ ctx.drawImage(DROP_COIN_IMG,-15,-15,30,30); }
+      else{
       ctx.fillStyle='#ffd34f';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='#fff0a6';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='#7a5510';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('₩',0,4);
+      }
     }else if(p.type==='farm'){
       const pulse=1+Math.sin(performance.now()/150)*.08;
       ctx.globalAlpha=.18;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.arc(0,0,18*pulse,0,Math.PI*2);ctx.fill();
@@ -1786,6 +1792,8 @@ function draw(){
       else{ ctx.font='24px "Apple Color Emoji","Segoe UI Emoji",system-ui';ctx.textBaseline='middle';ctx.fillText(p.farmIcon||'⭐',0,1); }
       ctx.textBaseline='alphabetic';
       ctx.font='800 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.farmName||'재료',0,23);
+    }else if(DROP_XP_IMG.complete&&DROP_XP_IMG.naturalWidth){
+      ctx.drawImage(DROP_XP_IMG,-13,-13,26,26);
     }else{
       ctx.fillStyle='#76d8ff';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e8fbff';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('XP',0,3);
