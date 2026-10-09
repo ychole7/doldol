@@ -109,6 +109,20 @@ const DUCK_POSE = {};
   im.src=u+'?v=20261009-pose2';
   DUCK_POSE[k]=o;
 });
+// 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
+const DUCK_POSE_SETS={doldol:DUCK_POSE};
+function duckPoses(id){
+  if(!id||id==='doldol') return DUCK_POSE;
+  if(DUCK_POSE_SETS[id]) return DUCK_POSE_SETS[id];
+  const set={};
+  ['left','center','right','parry'].forEach(k=>{
+    const im=new Image(), o={img:im,ok:false};
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
+    im.src='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k)+'.png?v=20261009-pose2';
+    set[k]=o;
+  });
+  return (DUCK_POSE_SETS[id]=set);
+}
 let duckDir='center', duckPrevDir='center', duckDirSince=0, duckSwitchT=-1e9, duckParryUntil=0;
 let duckT = performance.now(), duckLX = 0, duckLY = 0, duckVx = 0, duckVy = 0, duckPhase = 0;
 DUCK_IMG.src = "./assets/characters/character_doldol.png";
@@ -561,13 +575,13 @@ function moveAroundCovers(obj,dx,dy){
 }
 const CHARACTER_DEFS=[
   {id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',desc:'기본에 충실한 올라운더',skill:{name:'특공대 정신',desc:'3초간 무적 + 패링 판정 강화',cd:9},mods:{atk:1.00,speed:1.00,hp:1.00,parry:1.00,move:1.00,perfect:1.00}},
-  {id:'nyang',face:'🐱',name:'냥특공',role:'기동형',desc:'빠르게 움직이고 연속 공격합니다.',skill:{name:'질풍돌진',desc:'3초간 이동/공격 속도 대폭 증가',cd:8},mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
-  {id:'rabbit',face:'🐰',name:'토끼특공',role:'정밀형',desc:'완벽한 타이밍에 특화됩니다.',skill:{name:'초집중',desc:'2.5초간 PERFECT 보정 극대화',cd:8},mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
-  {id:'panda',face:'🐼',name:'판다특공',role:'방어형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',skill:{name:'철벽 방패',desc:'5초간 보호막 1회 + HP 회복',cd:10},mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
-  {id:'king',face:'🤖',name:'킹특공',role:'공격형',desc:'공격력은 높지만 공격 템포가 느립니다.',skill:{name:'화력 폭주',desc:'4초간 공격력 대폭 증가 + 3연발',cd:10},mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
-  {id:'turtle',face:'🐢',name:'거북특공',role:'탱커형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',skill:{name:'거대 등껍질',desc:'2초간 무적 + 큰 폭의 즉시 회복',cd:11},mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
-  {id:'shiba',face:'🦊',name:'시바특공',role:'특수형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
-  {id:'charge',face:'🐶',name:'돌격특공',role:'근접형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
+  {id:'nyang',face:'🐱',name:'냥특공',role:'스피드형',desc:'빠르게 움직이고 연속 공격합니다.',skill:{name:'질풍돌진',desc:'3초간 이동/공격 속도 대폭 증가',cd:8},mods:{atk:.92,speed:1.16,hp:.90,parry:.95,move:1.18,perfect:.95}},
+  {id:'rabbit',face:'🐰',name:'토끼특공',role:'타이밍형',desc:'완벽한 타이밍에 특화됩니다.',skill:{name:'초집중',desc:'2.5초간 PERFECT 보정 극대화',cd:8},mods:{atk:1.05,speed:.98,hp:.94,parry:1.18,move:1.04,perfect:1.25}},
+  {id:'panda',face:'🐼',name:'판다특공',role:'탱커형',desc:'튼튼하게 버티며 묵직하게 공격합니다.',skill:{name:'철벽 방패',desc:'5초간 보호막 1회 + HP 회복',cd:10},mods:{atk:1.10,speed:.86,hp:1.25,parry:1.05,move:.88,perfect:1.05}},
+  {id:'king',face:'🥷',name:'그림자특공',role:'치명타형',desc:'공격력은 높지만 공격 템포가 느립니다.',skill:{name:'화력 폭주',desc:'4초간 공격력 대폭 증가 + 3연발',cd:10},mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
+  {id:'turtle',face:'🐢',name:'거북특공',role:'방어형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',skill:{name:'거대 등껍질',desc:'2초간 무적 + 큰 폭의 즉시 회복',cd:11},mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
+  {id:'shiba',face:'🦊',name:'시바특공',role:'콤보형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
+  {id:'charge',face:'🦅',name:'돌격특공',role:'파워형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
 ];
 window.CHARACTER_DEFS=CHARACTER_DEFS;
 /* --- V26 persistent character level / XP --- */
@@ -601,6 +615,8 @@ window.__duckAddCharacterXP=addCharacterXP;
 window.__duckIsCharacterUnlocked=isCharacterUnlocked;
 function isCharacterUnlocked(c){
   if(!c) return false;
+  // 특공대 화면에서 보유/해금한 캐릭터는 전투에서도 같은 기준으로 사용 가능
+  if(window.__duckCharacterOwned) { try{ return !!window.__duckCharacterOwned(c.id); }catch(e){} }
   if(!c.locked) return true;
   return getCharacterProgress(c.id).level>=10;
 }
@@ -1588,9 +1604,15 @@ function drawDuck(x,y,scale=1){
     }
     if(want!==duckDir && now-duckDirSince>=100){ duckPrevDir=duckDir; duckDir=want; duckDirSince=now; duckSwitchT=now; }
     // 자세 이미지 선택(없으면 center → 기존 이미지 순으로 대체, 반전 없음)
-    const pick=k=>{ const o=DUCK_POSE[k]; return o&&o.ok?o.img:(DUCK_POSE.center.ok?DUCK_POSE.center.img:DUCK_READY_IMG); };
-    const parrying = now<duckParryUntil && DUCK_POSE.parry.ok;
-    const curImg = parrying?DUCK_POSE.parry.img:pick(duckDir);
+    const PS=duckPoses(player.characterId);
+    const pick=k=>{
+      const o=PS[k]; if(o&&o.ok) return o.img;
+      if(PS.center.ok) return PS.center.img;
+      const d=DUCK_POSE[k]; if(d&&d.ok) return d.img;
+      return DUCK_POSE.center.ok?DUCK_POSE.center.img:DUCK_READY_IMG;
+    };
+    const parrying = now<duckParryUntil && (PS.parry.ok||DUCK_POSE.parry.ok);
+    const curImg = parrying?(PS.parry.ok?PS.parry.img:DUCK_POSE.parry.img):pick(duckDir);
     const tt=Math.min(1,(now-duckSwitchT)/110);                 // 방향 전환 0~1
     const press = (!parrying && tt<1)? Math.sin(tt*Math.PI)*.03 : 0; // 아주 미세한 눌림
     const mv=Math.min(1,Math.abs(duckVx)/260);
@@ -3035,6 +3057,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       return Array.isArray(list)&&list.includes(id);
     }catch(e){return false}
   }
+  window.__duckCharacterOwned=owned;
   function canUnlock(c){ return clearedStage()>=Number(c.gateStage||999); }
   function markOwned(id){
     try{
