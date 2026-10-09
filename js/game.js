@@ -106,7 +106,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u+'?r='+Date.now();}};
-  im.src=u+'?v=20261009-pose1';
+  im.src=u+'?v=20261009-pose2';
   DUCK_POSE[k]=o;
 });
 let duckDir='center', duckPrevDir='center', duckDirSince=0, duckSwitchT=-1e9, duckParryUntil=0;
@@ -1093,7 +1093,7 @@ function parryAt(x,y){
     message=''; messageTimer=0;
     shake=4;
   }
-  duckParryUntil=performance.now()+150;
+  duckParryUntil=performance.now()+260;
   parryFxList.push({x:player.x,y:player.y,rx:r.x,ry:r.y,dx:dx/L,dy:dy/L,t:performance.now(),p:!!isPerfect,sp:Array.from({length:isPerfect?40:28},()=>({a:Math.random()*Math.PI*2,v:50+Math.random()*210,l:6+Math.random()*18,w:Math.random()<.35}))});
   if(parryFxList.length>6)parryFxList.shift();
   burst(r.x,r.y,isPerfect?18:10);
@@ -1581,19 +1581,20 @@ function drawDuck(x,y,scale=1){
     const tt=Math.min(1,(now-duckSwitchT)/110);                 // 방향 전환 0~1
     const press = (!parrying && tt<1)? Math.sin(tt*Math.PI)*.03 : 0; // 아주 미세한 눌림
     const mv=Math.min(1,Math.abs(duckVx)/260);
-    duckPhase += dtf*(6+mv*12);
+    duckPhase += dtf*(4+mv*10);
     const drawImg=(im,alpha)=>{
       const isPose=im!==DUCK_READY_IMG, h=(isPose?DUCK_POSE_H:78)*scale, w=h*im.naturalWidth/im.naturalHeight;
       ctx.globalAlpha=alpha; ctx.drawImage(im,-w/2,-h*.62,w,h);
     };
     const h0=DUCK_POSE_H*scale, w0=h0*(768/706);
-    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h0*.36,w0*.30,h0*.065,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h0*.36,w0*.30*(1-Math.abs(Math.sin(duckPhase))*mv*.12),h0*.065,0,0,Math.PI*2);ctx.fill();
     // 발끝(바닥) 기준으로만 변형: 위치는 고정, 이동 중 아주 약한 기울기/통통
     ctx.translate(0,h0*.38);
-    ctx.rotate(Math.max(-1,Math.min(1,duckVx/300))*.07);
+    // 이동 중: 이동 방향으로 약 4도 기울이고, 걸음 박자에 맞춰 좌우로 살짝 흔들리며 위아래로 통통(착지 때 살짝 눌림)
+    ctx.rotate(Math.max(-1,Math.min(1,duckVx/300))*.07 + Math.sin(duckPhase)*.045*mv);
     const bob=Math.abs(Math.sin(duckPhase))*mv;
-    ctx.scale(1+bob*.02, 1-bob*.03-press);
-    ctx.translate(0,-bob*3-h0*.38);
+    ctx.scale(1+(1-bob)*.025*mv, 1-(1-bob)*.035*mv-press);
+    ctx.translate(0,-bob*6-h0*.38);
     if(!parrying && tt<1 && pick(duckPrevDir)!==curImg){ drawImg(pick(duckPrevDir),1-tt); drawImg(curImg,tt); }
     else drawImg(curImg,1);
     ctx.globalAlpha=1;
