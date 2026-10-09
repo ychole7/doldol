@@ -1129,19 +1129,27 @@ cv.addEventListener('pointerdown',e=>{
     // Never call legacy reset() here: reset() sends the run back to STAGE 1.
     return;
   }
-  if(p.y>vh*.55){
+  if(p.y>vh*.55 && !joy.active){
+    // 아래쪽 첫 터치 = 이동 조이스틱. 짧게 톡 치고 뗄 때만 패링(드래그 이동은 패링 안 함)
     joy.active=true; joy.id=e.pointerId; joy.baseX=p.x; joy.baseY=p.y; joy.x=p.x; joy.y=p.y;
+    joy.tap={x:p.x,y:p.y,t:performance.now(),moved:false};
+    return;
   }
   parryAt(p.x,p.y);
 });
 cv.addEventListener('pointermove',e=>{
   if(!joy.active || e.pointerId!==joy.id) return;
   const p=pointerPos(e), dx=p.x-joy.baseX,dy=p.y-joy.baseY,L=Math.hypot(dx,dy),m=62;
+  if(joy.tap && L>10) joy.tap.moved=true;
   if(L>m){joy.x=joy.baseX+dx/L*m;joy.y=joy.baseY+dy/L*m;}
   else {joy.x=p.x;joy.y=p.y;}
 });
 function joyEnd(e){
-  if(e.pointerId===joy.id){joy.active=false;joy.id=null;}
+  if(e.pointerId===joy.id){
+    const t=joy.tap; joy.tap=null;
+    joy.active=false;joy.id=null;
+    if(e.type==='pointerup' && t && !t.moved && performance.now()-t.t<280 && running) parryAt(t.x,t.y);
+  }
 }
 cv.addEventListener('pointerup',joyEnd);
 cv.addEventListener('pointercancel',joyEnd);
