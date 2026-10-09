@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261008-equip7','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261009-set1','data-doldol-settings-style']].forEach(function(x){
+  [['css/equip.css?v=20261009-equip8','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261009-set1','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -157,7 +157,16 @@ function farmLoadV2(){
 }
 let farmInventoryV2=farmLoadV2();
 function farmSaveV2(){try{localStorage.setItem(FARM_INV_KEY_V2,JSON.stringify(farmInventoryV2));}catch(e){}}
-function farmRandomItemV2(){return FARM_ITEMS_V2[Math.floor(Math.random()*FARM_ITEMS_V2.length)];}
+// 현재 드랍되는 재료(돌 강화에 쓰이는 4종). 나머지는 인벤토리 정의만 유지.
+const FARM_DROP_TABLE_V2=[['wood',35],['stone',35],['ember',15],['ice',15]];
+let runFarmV2={};
+window.__duckRunFarm=()=>({...runFarmV2});
+window.__duckResetRunFarm=()=>{runFarmV2={};};
+function farmRandomItemV2(){
+  let r=Math.random()*100;
+  for(const [id,w] of FARM_DROP_TABLE_V2){ if((r-=w)<0) return FARM_ITEMS_V2.find(x=>x.id===id); }
+  return FARM_ITEMS_V2[0];
+}
 function spawnFarmDropV2(x,y){
   if(Math.random()>=0.45) return false;
   const item=farmRandomItemV2();
@@ -684,7 +693,7 @@ function reset(){
   player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:325,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,skillAttackMul:1,skillParryMul:1,skillPerfectMul:1,skillMultiShot:false,skillInvincible:false,skillShield:0,skillAutoParry:false};
 showSkillButton();
   applyGrowthToPlayer();
-  enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[];
+  enemies=[]; rocks=[]; shots=[]; particles=[]; damageTexts=[]; pickups=[]; runFarmV2={};
   xp=0; level=1; levelXp=0; nextXp=50; levelFlash=0; upgradeOpen=false;
   makeCovers();
   for(let i=0;i<total;i++){
@@ -1454,6 +1463,7 @@ function update(dt){
         if(window.__duckSyncLobby)window.__duckSyncLobby();
       }else if(p.type==='farm'){
         const count=window.__doldolFarmV2.add(p.farmId,1);
+        runFarmV2[p.farmId]=(runFarmV2[p.farmId]||0)+1;
         message=(p.farmIcon||'⭐')+' '+(p.farmName||'재료')+' +1';
         messageTimer=.65;
         p.farmPicked=true;
@@ -4270,7 +4280,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     /* ---------- 화면 뼈대 ---------- */
     if(!document.querySelector('link[data-doldol-equip-style]')){
       const link=document.createElement('link');
-      link.rel='stylesheet'; link.href='css/equip.css?v=20261008-equip7'; link.dataset.doldolEquipStyle='1';
+      link.rel='stylesheet'; link.href='css/equip.css?v=20261009-equip8'; link.dataset.doldolEquipStyle='1';
       document.head.appendChild(link);
     }
     let es=document.getElementById('equipScreen');
@@ -4389,6 +4399,15 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       for(let i=1;i<=20;i++)a+='<i class="'+(i<=lv?'on':'')+(i===lv?' cur':'')+'"><u></u><s>'+i+'</s></i>';
       return a;
     }
+    function weaponUpHtml(id){
+      const w=window.__duckWeaponUpgradeInfo&&window.__duckWeaponUpgradeInfo(id); if(!w)return '';
+      const mats=w.mats.map(m=>'<span class="eqWuMat'+(m.have>=m.need?'':' lack')+'"><i>'+m.icon+'</i><small>'+m.name+'</small><b>'+m.have+' / '+m.need+'</b></span>').join('');
+      return '<div class="eqWu"><div class="eqWuHead"><b>돌 강화</b><span id="eqWuLv">Lv.'+w.lv+' / '+w.maxLv+'</span></div>'+
+        '<div class="eqWuFx">공격력 +'+w.pct+'%'+(w.max?' · MAX':' <u>▶</u> <em>+'+w.nextPct+'%</em>')+'</div>'+
+        (w.max?'':'<div class="eqWuMats">'+mats+'</div>'+
+        '<button type="button" id="eqWuBtn" class="eqWuBtn" '+(w.can?'':'disabled')+'>'+(w.can?'강화하기':'재료가 부족합니다')+'</button>')+
+        '</div>';
+    }
     function openDetail(kind,id,flash){
       const modal=$q('#eqModal'),sheet=$q('#eqSheet');
       modal.hidden=false;
@@ -4402,9 +4421,16 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
             '<h2>'+d.name+'</h2><span class="eqLvPill">'+d.role+'</span><p>'+d.desc+'</p></div></div>'+
           '<div class="eqInfoBox"><span class="eqInfoIc">🪨</span><div><b>돌 = 전투 방식</b><small>장비 능력치와 별개로 공격 특성만 바뀝니다.</small></div></div>'+
           (ok?'':'<div class="eqInfoBox warn"><span class="eqInfoIc">🔒</span><div><b>STAGE '+d.unlock+' 클리어 후 해금</b><small>스테이지를 진행하면 사용할 수 있어요.</small></div></div>')+
+          (ok?weaponUpHtml(id):'')+
           '<div class="eqBtns one"><button type="button" id="eqDoEquip" class="eqBtn'+(on?' on':'')+'" '+(ok&&!on?'':'disabled')+'>'+(on?'✓ 장착중':ok?'이 돌 장착하기':'잠금')+'</button></div>';
         $q('#eqClose').onclick=closeModal;
         if(ok&&!on)$q('#eqDoEquip').onclick=()=>{equipStone(id);paint();openDetail('stone',id);};
+        const wu=$q('#eqWuBtn');
+        if(wu)wu.onclick=()=>{
+          const r=window.__duckUpgradeWeapon&&window.__duckUpgradeWeapon(id);
+          if(r&&r.ok){ if(window.__duckMissionEvent)window.__duckMissionEvent('gear',1); openDetail('stone',id); const t=$q('#eqWuLv'); if(t){t.classList.add('pop');} }
+          else openDetail('stone',id);
+        };
         return;
       }
       const g=gearDefs.find(x=>x.id===id); if(!g){closeModal();return;}
@@ -5077,21 +5103,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 /* ================================================================
-   ARMORY WEAPON UPGRADE V1 - lightweight release scope
-   - Upgrade only the currently equipped stone
-   - Uses existing farm materials (wood + stone)
-   - Max Lv.5, +8% damage per level
-   - No new screens / no crafting / no economy expansion
+   WEAPON(STONE) UPGRADE V2 - 파밍 재료로 돌 강화
+   - 돌마다 Lv.1~5, 레벨당 공격력 +8% (장착 중인 돌의 레벨이 전투에 적용)
+   - 재료: 나무 조각 + 단단한 돌 (불돌은 불씨, 얼음돌은 얼음 조각 추가)
+   - UI는 장비 화면의 돌 상세(openDetail)에서 사용
    ================================================================ */
 (function(){
   'use strict';
   const KEY='doldol_weapon_upgrade_v1';
   const MAX=5;
   function load(){
-    try{
-      const raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{};
-      return Object.assign({},raw);
-    }catch(e){return {};}
+    try{ return Object.assign({},JSON.parse(localStorage.getItem(KEY)||'{}')||{}); }catch(e){return {};}
   }
   let levels=load();
   function save(){try{localStorage.setItem(KEY,JSON.stringify(levels));}catch(e){}}
@@ -5099,78 +5121,38 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{return window.__duckGetEquippedStone?window.__duckGetEquippedStone():(window.__duckPreparedStone||'basic');}catch(e){return 'basic';}
   }
   function level(id){return Math.max(1,Math.min(MAX,Number(levels[id]||1)||1));}
-  function cost(lv){return {wood:2+lv*2,stone:1+lv};}
+  function cost(id,lv){
+    const c={wood:2+lv*2,stone:1+lv};
+    if(id==='fire') c.ember=1+Math.floor(lv/2);
+    if(id==='ice') c.ice=1+Math.floor(lv/2);
+    return c;
+  }
   function mult(id){return 1+(level(id)-1)*.08;}
   window.__duckWeaponUpgradeLevel=id=>level(id||stoneId());
   window.__duckWeaponUpgradeMul=()=>mult(stoneId());
-  window.__duckWeaponUpgradeCost=id=>cost(level(id||stoneId()));
-  window.__duckUpgradeWeapon=function(){
-    const id=stoneId();
-    const lv=level(id);
-    if(lv>=MAX) return {ok:false,reason:'max'};
-    const c=cost(lv);
-    const farm=window.__doldolFarmV2;
-    if(!farm) return {ok:false,reason:'farm'};
-    if(farm.get('wood')<c.wood || farm.get('stone')<c.stone) return {ok:false,reason:'material',cost:c,have:{wood:farm.get('wood'),stone:farm.get('stone')}};
-    // Consume via the existing inventory API without introducing another save system.
-    farm.spend('wood',c.wood);
-    farm.spend('stone',c.stone);
-    levels[id]=lv+1; save();
-    return {ok:true,id,level:lv+1,cost:c};
+  window.__duckWeaponUpgradeInfo=function(id){
+    id=id||stoneId();
+    const lv=level(id), max=lv>=MAX, farm=window.__doldolFarmV2;
+    const c=max?{}:cost(id,lv), mats=[];
+    let can=!max;
+    Object.keys(c).forEach(k=>{
+      const it=farm&&farm.items.find(x=>x.id===k)||{name:k,icon:'•'};
+      const have=farm?farm.get(k):0;
+      if(have<c[k]) can=false;
+      mats.push({id:k,name:it.name,icon:it.icon,need:c[k],have});
+    });
+    return {id,lv,max,maxLv:MAX,pct:(lv-1)*8,nextPct:lv*8,mats,can};
   };
-
-  function inject(){
-    const body=document.getElementById('menuBody');
-    const panel=document.getElementById('v42ArmoryWeapons');
-    if(!body||!panel) return;
-    if(panel.querySelector('#doldolWeaponUpgradeCard')) return;
-    const id=stoneId();
-    const defs={basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌'},fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌'},ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌'},bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌'},lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌'},skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌'}};
-    const d=defs[id]||defs.basic, lv=level(id), c=cost(lv), farm=window.__doldolFarmV2;
-    const wood=farm?farm.get('wood'):0, stone=farm?farm.get('stone'):0;
-    const can=lv<MAX&&wood>=c.wood&&stone>=c.stone;
-    const card=document.createElement('div');
-    card.id='doldolWeaponUpgradeCard';
-    card.style.cssText='margin-top:12px;padding:13px;border-radius:17px;background:rgba(255,255,255,.055);border:1px solid rgba(255,216,102,.16)';
-    card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-size:9px;opacity:.55;letter-spacing:.7px">WEAPON UPGRADE</div><b style="font-size:14px">'+d.icon+' '+d.name+'</b></div><strong style="color:#ffd866">Lv.'+lv+'/'+MAX+'</strong></div>'+
-      '<div style="font-size:10px;opacity:.65;margin:7px 0 9px">공격력 +'+((lv-1)*8)+'%'+(lv<MAX?' → 다음 +8%':' · MAX')+'</div>'+
-      '<button id="doldolWeaponUpgradeBtn" type="button" '+(can?'':'disabled')+' style="width:100%;padding:11px;border:0;border-radius:12px;background:'+(can?'#ffd866':'rgba(255,255,255,.08)')+';color:'+(can?'#30220b':'#7f8992')+';font-weight:1000;font-size:12px">'+(lv>=MAX?'✓ MAX':'강화 · 🪵 '+c.wood+'  🪨 '+c.stone)+'</button>';
-    const note=panel.querySelector('.v42EquipNote');
-    if(note) note.insertAdjacentElement('beforebegin',card); else panel.appendChild(card);
-    const btn=card.querySelector('#doldolWeaponUpgradeBtn');
-    if(btn) btn.onclick=function(e){
-      e.preventDefault(); e.stopPropagation();
-      const r=window.__duckUpgradeWeapon();
-      if(r.ok){
-        try{window.__duckMessage&&window.__duckMessage('돌 강화 완료! Lv.'+r.level);}catch(_){ }
-        const gear=document.getElementById('lobbyGear');
-        if(gear){ /* keep current menu open; re-render by reopening */ }
-        const active=document.querySelector('.v42ArmoryTab.active');
-        const evt=new Event('click');
-        // Re-render the menu through its existing button without changing navigation.
-        const done=document.getElementById('v42EquipDone');
-        if(done){ /* no-op: keep the menu stable */ }
-        inject();
-        card.remove();
-        setTimeout(inject,0);
-      }else if(r.reason==='material'){
-        btn.textContent='재료가 부족합니다';
-        setTimeout(inject,500);
-      }
-    };
-  }
-  function watch(){
-    const body=document.getElementById('menuBody');
-    if(!body) return;
-    inject();
-    if(!window.__doldolArmoryUpgradeObserver){
-      const obs=new MutationObserver(()=>inject());
-      obs.observe(body,{childList:true,subtree:true});
-      window.__doldolArmoryUpgradeObserver=obs;
-    }
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watch);else watch();
-  window.__duckRefreshArmoryUpgrade=watch;
+  window.__duckUpgradeWeapon=function(id){
+    id=id||stoneId();
+    const info=window.__duckWeaponUpgradeInfo(id), farm=window.__doldolFarmV2;
+    if(info.max) return {ok:false,reason:'max'};
+    if(!farm) return {ok:false,reason:'farm'};
+    if(!info.can) return {ok:false,reason:'material',info};
+    info.mats.forEach(m=>farm.spend(m.id,m.need));
+    levels[id]=info.lv+1; save();
+    return {ok:true,id,level:info.lv+1};
+  };
 })();
 
 
