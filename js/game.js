@@ -140,6 +140,7 @@ let pickups=[], coins=0, xp=0, level=1, levelXp=0, nextXp=50, levelFlash=0;
 let joy={active:false,id:null,baseX:0,baseY:0,x:0,y:0};
 let stage=1, kills=0, total=8, clearTimer=0, message='', messageTimer=0, combo=0, comboTimer=0, shake=0, perfect=0, gate=false, intro=1.25, boss=false, paused=false;
 let pendingNextStage=0;
+let runMaxCombo=0, runTime=0;
 
 /* =========================================================
    DOLDOL FARM MATERIALS V2
@@ -741,6 +742,7 @@ function stageFeatureLabel(n){
   return '전투 준비!';
 }
 function startStage(n){
+  runMaxCombo=0; runTime=0; try{runFarmV2={};}catch(e){}
   // V7: HUD wave is calculated from kills/total.
   // Do not assign an undeclared `wave` variable here; it aborts stage startup.
 
@@ -1110,7 +1112,7 @@ function parryAt(x,y){
 
   // 연속 난타를 막아 패링 타이밍을 만들기 위한 짧은 쿨다운.
   player.parryCd=isPerfect?.18:.34;
-  combo++;
+  combo++; if(combo>runMaxCombo)runMaxCombo=combo;
   comboTimer=1.6;
 
   if(isPerfect){
@@ -1205,6 +1207,7 @@ cv.addEventListener('lostpointercapture',joyEnd);
 function update(dt){
   if(!running || paused) return;
   if(intro>0){ intro-=dt; }
+  runTime+=dt;
 
   if(player.inv>0) player.inv-=dt;
   if(player.parryCd>0) player.parryCd=Math.max(0,player.parryCd-dt);
@@ -1459,7 +1462,8 @@ function update(dt){
             stage:Math.max(1,Number(stage)||1),
             hpNow:Math.max(0,Number(player.hp)||0),
             hpMax:Math.max(1,Number(player.maxHp)||1),
-            perfectCount:Math.max(0,Number(perfect)||0)
+            perfectCount:Math.max(0,Number(perfect)||0),
+            maxCombo:runMaxCombo, timeSec:Math.round(runTime), boss:!!boss, waveCount:Math.max(1,Math.min(3,Math.ceil((total||1)/3)))
           };
           try{if(window.__duckShowResult)window.__duckShowResult(false)}catch(e){}
         }
@@ -1568,7 +1572,8 @@ function update(dt){
         stage:Math.max(1,Number(stage)||1),
         hpNow:Math.max(0,Number(player.hp)||0),
         hpMax:Math.max(1,Number(player.maxHp)||1),
-        perfectCount:Math.max(0,Number(perfect)||0)
+        perfectCount:Math.max(0,Number(perfect)||0),
+            maxCombo:runMaxCombo, timeSec:Math.round(runTime), boss:!!boss, waveCount:Math.max(1,Math.min(3,Math.ceil((total||1)/3)))
       };
       try{if(window.__duckShowResult)window.__duckShowResult(true)}catch(e){}
     }
@@ -5466,4 +5471,110 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!t)return;
     e.preventDefault();open();
   },true);
+})();
+
+
+/* CLEAR POPUP V4 — 새 STAGE CLEAR / GAME OVER 팝업 (보상·진행 로직은 기존 __duckShowResult 그대로 사용) */
+(function(){
+  const A='./assets/clear/';
+  const MAT=['wood','stone','ember','ice'];
+  const MATNAME={wood:'나무 조각',stone:'단단한 돌',ember:'불씨',ice:'얼음 조각'};
+  if(!document.getElementById('clearV4Style')){
+    const st=document.createElement('style');st.id='clearV4Style';
+    st.textContent=`
+    #resultScreen.clearV4 .resultCard{display:none!important}
+    #resultScreen.clearV4{background:rgba(6,10,12,.78)!important;backdrop-filter:blur(3px)!important;overflow:auto;padding:0!important}
+    #clearV4{position:relative;width:min(94vw,372px);margin:auto;padding:10px 0 16px;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#fff4d2;-webkit-user-select:none;user-select:none}
+    #clearV4 img{display:block;pointer-events:none;-webkit-user-drag:none}
+    #clearV4 .cvHead{position:relative;z-index:3;width:100%;margin-bottom:-26px}
+    #clearV4 .cvHead img{width:100%;height:auto;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
+    #clearV4 .cvConf{position:absolute;left:0;top:-4px;width:100%;z-index:5;animation:cvConf 3.2s ease-in-out infinite}
+    @keyframes cvConf{0%,100%{transform:translateY(0);opacity:.95}50%{transform:translateY(7px);opacity:.7}}
+    #clearV4 .cvFailBan{position:relative;z-index:3;margin:0 auto -30px;width:88%;text-align:center}
+    #clearV4 .cvFailBan img{width:100%;height:auto;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
+    #clearV4 .cvFailBan em{position:absolute;left:0;right:0;top:86%;font-style:normal;font-size:11px;font-weight:900;letter-spacing:1px;color:#e8d3b0;text-shadow:0 1px 0 #1c1208}
+    #clearV4 .cvFailBan b{position:absolute;left:0;right:0;top:66%;font-size:25px;font-weight:1000;letter-spacing:1px;color:#fff0d6;text-shadow:0 3px 0 #5a0f0a,0 0 10px rgba(0,0,0,.5);white-space:nowrap}
+    #clearV4 .cvPanel{position:relative;z-index:2;padding:36px 24px 36px;background:url(${A}clear_panel.png) 0 0/100% 100% no-repeat;filter:drop-shadow(0 12px 18px rgba(0,0,0,.55))}
+    #clearV4 .cvPlq{position:relative;width:78%;margin:0 auto 8px}
+    #clearV4 .cvPlq img{width:100%;height:auto}
+    #clearV4 .cvPlq .t1,#clearV4 .cvPlq .t2{position:absolute;left:0;right:0;text-align:center;white-space:nowrap}
+    #clearV4 .cvPlq .t1{top:22%;font-size:19px;font-weight:1000;letter-spacing:.5px;color:#ffe9a8;text-shadow:0 2px 0 #4a2a0c,0 0 8px rgba(0,0,0,.6)}
+    #clearV4 .cvPlq .t2{top:63%;font-size:12px;font-weight:900;letter-spacing:1.5px;color:#f6dca0;text-shadow:0 1px 0 #3a210a}
+    #clearV4 .cvTitle{position:relative;width:62%;margin:6px auto 4px}
+    #clearV4 .cvTitle img{width:100%;height:auto}
+    #clearV4 .cvTitle span{position:absolute;left:0;right:0;top:50%;transform:translateY(-54%);text-align:center;font-size:13px;font-weight:1000;letter-spacing:1px;color:#ffe08a;text-shadow:0 2px 0 #3d230a}
+    #clearV4 .cvRew{display:flex;gap:7px;justify-content:center;margin:6px 0 10px}
+    #clearV4 .cvSlot{position:relative;flex:1;min-width:0;aspect-ratio:300/258;background:url(${A}clear_reward_slot.png) 0 0/100% 100% no-repeat}
+    #clearV4 .cvSlot .lb{position:absolute;left:0;right:0;top:11%;text-align:center;font-size:10.5px;font-weight:900;color:#f2d594;text-shadow:0 1px 0 #2a1707}
+    #clearV4 .cvSlot .ic{position:absolute;left:50%;top:27%;width:42%;height:38%;transform:translateX(-50%);object-fit:contain;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}
+    #clearV4 .cvSlot .v{position:absolute;left:0;right:0;bottom:12%;text-align:center;font-size:17px;font-weight:1000;color:#fff2c8;text-shadow:0 2px 0 #3a210a,0 0 6px rgba(0,0,0,.5);white-space:nowrap}
+    #clearV4 .cvSlot.empty .ic{opacity:.35;filter:grayscale(1)}
+    #clearV4 .cvStat{position:relative;width:100%;aspect-ratio:760/128;background:url(${A}clear_stat_bar.png) 0 0/100% 100% no-repeat;margin-bottom:12px}
+    #clearV4 .cvStat .c{position:absolute;top:0;bottom:0;display:flex;align-items:center;gap:5px;justify-content:center}
+    #clearV4 .cvStat .c1{left:3%;width:31%}#clearV4 .cvStat .c2{left:36%;width:28%}#clearV4 .cvStat .c3{left:65.5%;width:31%}
+    #clearV4 .cvStat .c img{width:22px;height:22px;object-fit:contain;flex:none}
+    #clearV4 .cvStat .c div{display:flex;flex-direction:column;line-height:1.15;text-align:left}
+    #clearV4 .cvStat .c i{font-style:normal;font-size:9.5px;font-weight:800;color:#e6c98c}
+    #clearV4 .cvStat .c b{font-size:14px;font-weight:1000;color:#fff2c8;text-shadow:0 1px 0 #2a1707}
+    #clearV4 .cvBtns{display:flex;gap:9px}
+    #clearV4 .cvBtn{appearance:none;-webkit-appearance:none;border:0;cursor:pointer;font:1000 17px system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;height:54px;padding:0;pointer-events:auto;touch-action:manipulation}
+    #clearV4 .cvBtn.go{flex:2.1;color:#4a2a05;background:none;border-style:solid;border-width:0 28px;border-image:url(${A}btn_gold.png) 0 57 fill/0 28px stretch;filter:drop-shadow(0 4px 0 #6e430a) drop-shadow(0 6px 8px rgba(0,0,0,.4));text-shadow:0 1px 0 rgba(255,255,255,.5)}
+    #clearV4 .cvBtn.ok{flex:1;color:#f3dcae;background:none;border-style:solid;border-width:0 28px;border-image:url(${A}btn_dark.png) 0 57 fill/0 28px stretch;filter:drop-shadow(0 4px 0 #1c1007) drop-shadow(0 6px 8px rgba(0,0,0,.4))}
+    #clearV4 .cvBtn:active{transform:translateY(3px)}
+    #clearV4.fail .cvPanel{filter:drop-shadow(0 12px 18px rgba(0,0,0,.55)) saturate(.8)}
+    @media(max-height:700px){#clearV4{transform:scale(.88);transform-origin:center}}
+    `;
+    document.head.appendChild(st);
+  }
+  const pad=n=>String(n).padStart(2,'0');
+  const fmtT=s=>pad(Math.floor(s/60))+':'+pad(Math.floor(s%60));
+  const num=n=>Number(n||0).toLocaleString('en-US');
+  function render(clear){
+    const result=document.getElementById('resultScreen');if(!result)return;
+    const snap=window.__duckBattleResultSnapshot||{};
+    const stage=Math.max(1,Number(window.__duckResultStage||snap.stage||1));
+    const coins=Number((document.getElementById('resultCoins')||{}).textContent)||0;
+    const xp=Number((document.getElementById('resultXp')||{}).textContent)||0;
+    let farm={};try{farm=(window.__duckRunFarm&&window.__duckRunFarm())||{};}catch(e){}
+    let total=0,topId=null,topN=0;
+    MAT.forEach(id=>{const n=Number(farm[id])||0;total+=n;if(n>topN){topN=n;topId=id;}});
+    Object.keys(farm).forEach(id=>{if(MAT.indexOf(id)<0)total+=Number(farm[id])||0;});
+    const wc=Math.max(1,Number(snap.waveCount)||3);
+    const waveTxt=snap.boss?'BOSS':(clear?wc+'/'+wc:'-/'+wc);
+    let box=document.getElementById('clearV4');
+    if(box)box.remove();
+    box=document.createElement('div');box.id='clearV4';box.className=clear?'ok':'fail';
+    const plqT1=clear?('STAGE '+stage+' CLEAR'):('STAGE '+stage);
+    const plqT2=snap.boss?'BOSS STAGE':('WAVE '+(clear?wc:'?')+'/'+wc);
+    const plqT2f='RETRY';
+    const head=clear
+      ?`<div class="cvHead"><img src="${A}clear_header.png" alt="STAGE CLEAR!"><img class="cvConf" src="${A}clear_confetti.png" alt=""></div>`
+      :`<div class="cvFailBan"><img src="${A}fail_header.png" alt=""><b>GAME OVER</b><em>작전 실패</em></div>`;
+    box.innerHTML=head+`
+     <div class="cvPanel">
+      <div class="cvPlq"><img src="${A}clear_plaque.png" alt=""><div class="t1">${plqT1}</div><div class="t2">${clear?plqT2:plqT2f}</div></div>
+      <div class="cvTitle"><img src="${A}clear_title_plate.png" alt=""><span>★ 획득 보상 ★</span></div>
+      <div class="cvRew">
+        <div class="cvSlot${coins?'':' empty'}"><div class="lb">코인</div><img class="ic" src="./assets/materials/reward_coin.png" alt=""><div class="v">x${num(coins)}</div></div>
+        <div class="cvSlot${xp?'':' empty'}"><div class="lb">경험치</div><img class="ic" src="./assets/materials/reward_xp.png" alt=""><div class="v">x${num(xp)}</div></div>
+        <div class="cvSlot${total?'':' empty'}"><div class="lb">${topId?MATNAME[topId]:'재료'}</div><img class="ic" src="./assets/materials/mat_${topId||'stone'}.png" alt=""><div class="v">x${num(total)}</div></div>
+      </div>
+      <div class="cvStat">
+        <div class="c c1"><img src="${A}stat_skull.png" alt=""><div><i>클리어 웨이브</i><b>${snap.boss?'BOSS':(clear?wc+'/'+wc:'-/'+wc)}</b></div></div>
+        <div class="c c2"><img src="${A}stat_combo.png" alt=""><div><i>최대 콤보</i><b>${num(snap.maxCombo)}</b></div></div>
+        <div class="c c3"><img src="${A}stat_timer.png" alt=""><div><i>클리어 타임</i><b>${fmtT(Number(snap.timeSec)||0)}</b></div></div>
+      </div>
+      <div class="cvBtns"><button class="cvBtn go" id="cvNext">${clear?'» 다음 스테이지':'다시 도전'}</button><button class="cvBtn ok" id="cvOk">확인</button></div>
+     </div>`;
+    result.appendChild(box);
+    result.classList.add('clearV4');
+    const fire=id=>{const b=document.getElementById(id);if(b)b.click();};
+    box.querySelector('#cvNext').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();box.remove();fire('resultNext');});
+    box.querySelector('#cvOk').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();box.remove();result.classList.remove('clearV4');fire('resultLobby');});
+  }
+  const prev=window.__duckShowResult;
+  window.__duckShowResult=function(clear){
+    try{if(prev)prev(clear);}catch(e){console.warn('result base failed',e);}
+    try{render(!!clear);}catch(e){console.warn('clear popup failed',e);}
+  };
 })();
