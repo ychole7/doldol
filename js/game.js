@@ -2110,11 +2110,6 @@ function draw(){
   drawUpgrade();
   if(paused){
     ctx.fillStyle='rgba(5,8,12,.58)';ctx.fillRect(0,0,vw,vh);
-    ctx.fillStyle='rgba(12,18,24,.94)';roundRect(vw/2-118,vh*.38,236,132,24);ctx.fill();
-    ctx.strokeStyle='rgba(255,216,102,.32)';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='#fff';ctx.font='900 26px system-ui';ctx.textAlign='center';ctx.fillText('PAUSED',vw/2,vh*.38+43);
-    ctx.fillStyle='#ffd866';ctx.font='800 14px system-ui';ctx.fillText('전투를 잠시 멈췄어요',vw/2,vh*.38+69);
-    ctx.fillStyle='#fff';ctx.font='800 12px system-ui';ctx.fillText('오른쪽 위 일시정지 버튼으로 계속',vw/2,vh*.38+97);
   }
   ctx.restore();
 }
@@ -5577,4 +5572,38 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{if(prev)prev(clear);}catch(e){console.warn('result base failed',e);}
     try{render(!!clear);}catch(e){console.warn('clear popup failed',e);}
   };
+})();
+
+
+/* --- PAUSE MENU V1 --- */
+(function(){
+  const st=document.createElement('style');
+  st.textContent=`#pauseV1{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif}
+#pauseV1.on{display:flex}
+#pauseV1 .pvBox{width:min(80vw,300px);padding:22px 18px 18px;border-radius:24px;background:linear-gradient(180deg,#2a2218,#15110c);border:2px solid #c9a24a;box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,255,255,.06);text-align:center;color:#fff}
+#pauseV1 h2{margin:0 0 4px;font-size:28px;font-weight:900;letter-spacing:1px}
+#pauseV1 p{margin:0 0 16px;font-size:13px;font-weight:800;color:#ffd866}
+#pauseV1 button{display:block;width:100%;height:50px;margin:8px 0 0;border:0;border-radius:16px;font-size:17px;font-weight:900;font-family:inherit}
+#pauseV1 .pvGo{background:linear-gradient(180deg,#ffd45a,#f0a020);color:#3a2300;box-shadow:0 4px 0 #a86a10}
+#pauseV1 .pvQuit{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);height:44px;font-size:15px}
+#pauseV1 .pvAsk{display:none}
+#pauseV1.ask .pvMain{display:none}#pauseV1.ask .pvAsk{display:block}
+#pauseV1 .pvRed{background:#c0392b;color:#fff;box-shadow:0 4px 0 #7d241a}
+#pauseV1 button:active{transform:translateY(2px)}`;
+  document.head.appendChild(st);
+  const box=document.createElement('div');box.id='pauseV1';
+  box.innerHTML=`<div class="pvBox"><div class="pvMain"><h2>PAUSED</h2><p>전투를 잠시 멈췄어요</p><button class="pvGo" id="pvResume">계속하기</button><button class="pvQuit" id="pvQuit">포기하고 홈으로</button></div><div class="pvAsk"><h2 style="font-size:22px">정말 포기할까요?</h2><p style="color:#ddd">이번 전투 보상은 받을 수 없어요</p><button class="pvRed" id="pvYes">포기하고 홈으로</button><button class="pvQuit" id="pvNo">돌아가기</button></div></div>`;
+  document.body.appendChild(box);
+  const $=id=>document.getElementById(id);
+  const hide=()=>box.classList.remove('on','ask');
+  const prev=window.__duckTogglePause;
+  window.__duckTogglePause=function(){
+    if(prev)prev();
+    const bp=$('battlePause');if(bp&&bp.textContent==='▶'){box.classList.remove('ask');box.classList.add('on');}else hide();
+  };
+  $('pvResume').onclick=e=>{e.preventDefault();window.__duckTogglePause();};
+  $('pvQuit').onclick=e=>{e.preventDefault();box.classList.add('ask');};
+  $('pvNo').onclick=e=>{e.preventDefault();box.classList.remove('ask');};
+  $('pvYes').onclick=e=>{e.preventDefault();hide();const b=$('battlePause');if(b)b.textContent='Ⅱ';const m=$('mapLobby');if(m)m.click();};
+  setInterval(()=>{const bp=$('battlePause');if(!bp||bp.textContent!=='▶')hide();},300);
 })();
