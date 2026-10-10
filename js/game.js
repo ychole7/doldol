@@ -5578,13 +5578,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
   const A='./assets/pause/',V='?v=20261010';
   const st=document.createElement('style');
-  st.textContent=`#pauseV1{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;background:rgba(4,7,10,.5)}
+  st.textContent=`#pauseV1{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;background:rgba(4,7,10,.12)}
 #pauseV1.on{display:flex}
-#pauseV1 .pvWrap{position:relative;width:min(84vw,330px);margin-top:70px}
-#pauseV1 .pvPanel{border:30px solid transparent;border-image:url(${A}panel_pause.png${V}) 70 fill/30px stretch;padding:6px 0 0;text-align:center;color:#fff;margin:0 -2px}
+#pauseV1 .pvWrap{position:relative;width:min(80vw,316px);margin-top:60px}
+#pauseV1 .pvPanel{border:28px solid transparent;border-bottom-width:16px;border-image:url(${A}panel_pause.png${V}) 70 fill/28px 28px 16px 28px stretch;padding:0;text-align:center;color:#fff}
 #pauseV1.ask .pvPanel{border-image-source:url(${A}panel_quit.png${V})}
-#pauseV1 .pvDuck{position:absolute;left:50%;top:-92px;width:62%;transform:translateX(-50%);pointer-events:none;z-index:2}
-#pauseV1 .pvTitle{position:absolute;left:50%;top:-34px;width:96%;transform:translateX(-50%);pointer-events:none;z-index:3}
+#pauseV1 .pvDuck{position:absolute;left:50%;bottom:calc(100% + 8px);width:48%;transform:translateX(-50%);pointer-events:none;z-index:2}
+#pauseV1 .pvDuck.pvAskImg{width:56%}
+#pauseV1 .pvTitle{position:absolute;left:50%;top:-26px;width:64%;transform:translateX(-50%);pointer-events:none;z-index:3}
+#pauseV1 .pvTitle.pvAskImg{width:90%}
 #pauseV1 .pvSub{margin:6px 0 16px;font-size:14px;font-weight:700;color:#f3ead8}
 #pauseV1 .pvBtn{position:relative;display:block;width:100%;height:50px;margin:0 0 10px;border:0;padding:0;background:transparent center/100% 100% no-repeat;color:#fff;font-size:16px;font-weight:900;font-family:inherit;padding:9px 0 0;text-shadow:0 1px 2px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}
 #pauseV1 .pvBtn:active{transform:translateY(2px);filter:brightness(.92)}
@@ -5604,8 +5606,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <img class="pvDuck pvMainImg" src="${A}duck_pause_idle.png${V}" alt=""><img class="pvDuck pvAskImg" src="${A}duck_pause_surprise.png${V}" alt="">
 <img class="pvTitle pvMainImg" src="${A}title_pause.png${V}" alt="일시정지"><img class="pvTitle pvAskImg" src="${A}title_quit.png${V}" alt="정말 포기하시겠어요?">
 <div class="pvPanel">
-<div class="pvMain"><div class="pvSub" style="margin-top:30px">전투를 잠시 멈췄어요.</div><button class="pvBtn pvY" id="pvResume"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M7 4l13 8-13 8z"/></svg>계속하기</button><button class="pvBtn pvG" id="pvQuit"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>포기하고 홈으로</button></div>
-<div class="pvAsk"><div class="pvWarn" style="margin-top:14px"><img src="${A}warning_icon.png${V}" alt=""><span>지금 포기하면<br>이번 전투 <b>보상</b>을 받을 수 없어요.</span></div><button class="pvBtn pvR" id="pvYes"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>포기하고 홈으로</button><button class="pvBtn pvG" id="pvNo"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M9 5L3 11l6 6v-4c5 0 8 1 11 5-1-6-4-10-11-10z"/></svg>돌아가기</button></div>
+<div class="pvMain"><div class="pvSub" style="margin-top:26px">전투를 잠시 멈췄어요.</div><button class="pvBtn pvY" id="pvResume"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M7 4l13 8-13 8z"/></svg>계속하기</button><button class="pvBtn pvG" id="pvQuit"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>포기하고 홈으로</button></div>
+<div class="pvAsk"><div class="pvWarn" style="margin-top:26px"><img src="${A}warning_icon.png${V}" alt=""><span>지금 포기하면<br>이번 전투 <b>보상</b>을 받을 수 없어요.</span></div><button class="pvBtn pvR" id="pvYes"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>포기하고 홈으로</button><button class="pvBtn pvG" id="pvNo"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M9 5L3 11l6 6v-4c5 0 8 1 11 5-1-6-4-10-11-10z"/></svg>돌아가기</button></div>
 </div></div>`;
   document.body.appendChild(box);
   const $=id=>document.getElementById(id);
