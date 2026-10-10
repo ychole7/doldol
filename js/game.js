@@ -112,6 +112,25 @@ const DUCK_POSE = {};
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
 const DUCK_POSE_SETS={doldol:DUCK_POSE};
 function duckPoses(id){
+  id=id||'doldol';
+  const base=basePoses(id);
+  const nowT=performance.now();
+  if(!duckPoses._t||nowT-duckPoses._t>400){duckPoses._t=nowT;try{duckPoses._sk=window.__doldolSkinId?window.__doldolSkinId(id):'base'}catch(e){duckPoses._sk='base'}duckPoses._id=id}
+  const sk=(duckPoses._id===id)?duckPoses._sk:(window.__doldolSkinId?window.__doldolSkinId(id):'base');
+  if(!sk||sk==='base') return base;
+  const key=id+'_'+sk;
+  if(DUCK_POSE_SETS[key]) return DUCK_POSE_SETS[key];
+  // 스킨 전투 자세: duck_<캐릭터>_<스킨>_idle_*.png / _parry.png (없으면 기본 복장 자세로 대체)
+  const set={};
+  ['left','center','right','parry'].forEach(k=>{
+    const im=new Image(), o={img:im,ok:false};
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
+    im.src='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k)+'.png?v=20261011-skin1';
+    Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
+  });
+  return (DUCK_POSE_SETS[key]=set);
+}
+function basePoses(id){
   if(!id||id==='doldol') return DUCK_POSE;
   if(DUCK_POSE_SETS[id]) return DUCK_POSE_SETS[id];
   const set={};
@@ -3041,6 +3060,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
   function skinArt(cid){return equippedSkin(cid).art||null}
   window.__doldolSkinArt=skinArt;
+  window.__doldolSkinId=function(cid){return equippedSkin(cid).id};
   uiRoster.forEach(c=>{const base=c.art;c.baseArt=base;Object.defineProperty(c,'art',{configurable:true,enumerable:true,get(){return skinArt(c.id)||base},set(v){}})});
   function skinCondText(sk){
     if(!sk.cond)return '';
