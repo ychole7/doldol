@@ -1734,7 +1734,6 @@ function draw(){
   const sx=__shk?(Math.random()-.5)*shake:0;
   const sy=__shk?(Math.random()-.5)*shake:0;
   ctx.save();
-  ctx.translate(sx,sy);
 
   // Training-camp background rotation.
   // Stage 1/2 keep their original backgrounds; stage 3+ reuse them alternately
@@ -1772,6 +1771,8 @@ function draw(){
     }
   }
 
+  // Shake moves only the objects, never the background (prevents edge flicker).
+  ctx.translate(sx,sy);
   // Draw the exact collision obstacles on top of every background.
   // This must live in draw(), not update(), otherwise clearRect erases them
   // and they behave like invisible walls.
