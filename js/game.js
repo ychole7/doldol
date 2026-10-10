@@ -5583,8 +5583,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #pauseV1 .pvWrap{position:relative;width:min(80vw,316px);margin-top:60px}
 #pauseV1 .pvPanel{border:28px solid transparent;border-bottom-width:16px;border-image:url(${A}panel_pause.png${V}) 70 fill/28px 28px 16px 28px stretch;padding:0;text-align:center;color:#fff}
 #pauseV1.ask .pvPanel{border-image-source:url(${A}panel_quit.png${V})}
-#pauseV1 .pvDuck{position:absolute;left:50%;bottom:calc(100% + 8px);width:48%;transform:translateX(-50%);pointer-events:none;z-index:2}
-#pauseV1 .pvDuck.pvAskImg{width:56%}
+#pauseV1 .pvDuck{position:absolute;left:50%;bottom:calc(100% + 14px);width:58%;transform:translateX(-50%);pointer-events:none;z-index:2}
+#pauseV1 .pvDuck.pvAskImg{width:66%}
 #pauseV1 .pvTitle{position:absolute;left:50%;top:-26px;width:64%;transform:translateX(-50%);pointer-events:none;z-index:3}
 #pauseV1 .pvTitle.pvAskImg{width:90%}
 #pauseV1 .pvSub{margin:6px 0 16px;font-size:14px;font-weight:700;color:#f3ead8}
