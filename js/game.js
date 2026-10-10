@@ -2095,8 +2095,6 @@ function draw(){
 
   if(messageTimer>0){
     const perfectMsg=message.includes('PERFECT');
-    ctx.fillStyle=perfectMsg?'rgba(255,184,50,.10)':'rgba(0,0,0,.22)';
-    ctx.fillRect(0,0,vw,vh);
     const mw=perfectMsg?210:150, mh=44, my=vh*.37;
     ctx.fillStyle=perfectMsg?'rgba(255,191,48,.94)':'rgba(10,16,23,.88)';
     roundRect(vw*.5-mw/2,my,mw,mh,16);ctx.fill();
