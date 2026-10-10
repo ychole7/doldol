@@ -5581,7 +5581,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   st.textContent=`#pauseV1{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;background:rgba(4,7,10,.5)}
 #pauseV1.on{display:flex}
 #pauseV1 .pvWrap{position:relative;width:min(84vw,330px);margin-top:70px}
-#pauseV1 .pvPanel{border:30px solid transparent;border-image:url(${A}panel_pause.png${V}) 70 fill/30px stretch;padding:30px 0 4px;text-align:center;color:#fff;margin:0 -2px}
+#pauseV1 .pvPanel{border:30px solid transparent;border-image:url(${A}panel_pause.png${V}) 70 fill/30px stretch;padding:6px 0 0;text-align:center;color:#fff;margin:0 -2px}
 #pauseV1.ask .pvPanel{border-image-source:url(${A}panel_quit.png${V})}
 #pauseV1 .pvDuck{position:absolute;left:50%;top:-92px;width:62%;transform:translateX(-50%);pointer-events:none;z-index:2}
 #pauseV1 .pvTitle{position:absolute;left:50%;top:-34px;width:96%;transform:translateX(-50%);pointer-events:none;z-index:3}
@@ -5604,8 +5604,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <img class="pvDuck pvMainImg" src="${A}duck_pause_idle.png${V}" alt=""><img class="pvDuck pvAskImg" src="${A}duck_pause_surprise.png${V}" alt="">
 <img class="pvTitle pvMainImg" src="${A}title_pause.png${V}" alt="일시정지"><img class="pvTitle pvAskImg" src="${A}title_quit.png${V}" alt="정말 포기하시겠어요?">
 <div class="pvPanel">
-<div class="pvMain"><div class="pvSub" style="margin-top:22px">전투를 잠시 멈췄어요.</div><button class="pvBtn pvY" id="pvResume">▶&nbsp; 계속하기</button><button class="pvBtn pvG" id="pvQuit">⌂&nbsp; 포기하고 홈으로</button></div>
-<div class="pvAsk"><div class="pvWarn" style="margin-top:22px"><img src="${A}warning_icon.png${V}" alt=""><span>지금 포기하면<br>이번 전투 <b>보상</b>을 받을 수 없어요.</span></div><button class="pvBtn pvR" id="pvYes">⌂&nbsp; 포기하고 홈으로</button><button class="pvBtn pvG" id="pvNo">↩&nbsp; 돌아가기</button></div>
+<div class="pvMain"><div class="pvSub" style="margin-top:30px">전투를 잠시 멈췄어요.</div><button class="pvBtn pvY" id="pvResume"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M7 4l13 8-13 8z"/></svg>계속하기</button><button class="pvBtn pvG" id="pvQuit"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>포기하고 홈으로</button></div>
+<div class="pvAsk"><div class="pvWarn" style="margin-top:14px"><img src="${A}warning_icon.png${V}" alt=""><span>지금 포기하면<br>이번 전투 <b>보상</b>을 받을 수 없어요.</span></div><button class="pvBtn pvR" id="pvYes"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>포기하고 홈으로</button><button class="pvBtn pvG" id="pvNo"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;margin-right:6px"><path d="M9 5L3 11l6 6v-4c5 0 8 1 11 5-1-6-4-10-11-10z"/></svg>돌아가기</button></div>
 </div></div>`;
   document.body.appendChild(box);
   const $=id=>document.getElementById(id);
