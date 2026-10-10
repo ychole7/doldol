@@ -2792,7 +2792,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     #characterScreen .sqDetail{margin-top:10px;padding:13px;border:2px solid rgba(194,132,66,.7);border-radius:18px;background:linear-gradient(180deg,rgba(57,38,24,.96),rgba(35,29,24,.97));box-shadow:0 10px 26px rgba(0,0,0,.28)}
     #characterScreen .sqHero{display:flex;align-items:center;gap:12px}
-    #characterScreen .sqHeroFace{width:76px;height:76px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(#e6b860,#81572b);border:2px solid #e9c77b;font-size:58px}
+    #characterScreen .sqHeroFace{width:76px;height:84px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(#e6b860,#81572b);border:2px solid #e9c77b;font-size:58px}
     #characterScreen .sqHeroText{flex:1;min-width:0}
     #characterScreen .sqHeroName{font-size:22px;font-weight:1000}
     #characterScreen .sqHeroRole{margin-top:2px;color:#ffd866;font-size:11px;font-weight:1000}
@@ -2819,7 +2819,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     #characterScreen .sqSkinCard{position:relative;min-height:105px;padding:5px;border:2px solid #806142;border-radius:11px;background:rgba(45,35,29,.92);color:#fff}
     #characterScreen .sqSkinCard.on{border-color:#ffd45a}
     #characterScreen .sqSkinThumb{height:68px;display:grid;place-items:center;overflow:hidden}
-    #characterScreen .sqSkinThumb img{width:82px;height:76px;object-fit:contain}
+    #characterScreen .sqSkinThumb img{width:82px;height:84px;object-fit:contain}
     #characterScreen .sqSkinCard b{display:block;margin-top:5px;font-size:10px}
     #characterScreen .sqSkinLock{position:absolute;inset:0;display:grid;place-items:center;border-radius:9px;background:rgba(9,11,12,.66);font-size:23px}
     #characterScreen .sqDetailHead{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;gap:8px;margin-bottom:8px}
@@ -3722,7 +3722,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
 }
 .achTop{
   display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;
-  min-height:76px;padding:10px 12px;
+  min-height:84px;padding:10px 12px;
   background:linear-gradient(145deg,#173b5a,#0c263c);
   border-bottom:1px solid rgba(140,215,255,.34);
 }
@@ -5574,24 +5574,39 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 
-/* --- PAUSE MENU V1 --- */
+/* --- PAUSE MENU V2 (art) --- */
 (function(){
+  const A='./assets/pause/',V='?v=20261010';
   const st=document.createElement('style');
-  st.textContent=`#pauseV1{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif}
+  st.textContent=`#pauseV1{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;background:rgba(4,7,10,.5)}
 #pauseV1.on{display:flex}
-#pauseV1 .pvBox{width:min(80vw,300px);padding:22px 18px 18px;border-radius:24px;background:linear-gradient(180deg,#2a2218,#15110c);border:2px solid #c9a24a;box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,255,255,.06);text-align:center;color:#fff}
-#pauseV1 h2{margin:0 0 4px;font-size:28px;font-weight:900;letter-spacing:1px}
-#pauseV1 p{margin:0 0 16px;font-size:13px;font-weight:800;color:#ffd866}
-#pauseV1 button{display:block;width:100%;height:50px;margin:8px 0 0;border:0;border-radius:16px;font-size:17px;font-weight:900;font-family:inherit}
-#pauseV1 .pvGo{background:linear-gradient(180deg,#ffd45a,#f0a020);color:#3a2300;box-shadow:0 4px 0 #a86a10}
-#pauseV1 .pvQuit{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);height:44px;font-size:15px}
-#pauseV1 .pvAsk{display:none}
-#pauseV1.ask .pvMain{display:none}#pauseV1.ask .pvAsk{display:block}
-#pauseV1 .pvRed{background:#c0392b;color:#fff;box-shadow:0 4px 0 #7d241a}
-#pauseV1 button:active{transform:translateY(2px)}`;
+#pauseV1 .pvWrap{position:relative;width:min(84vw,330px);margin-top:70px}
+#pauseV1 .pvPanel{border:30px solid transparent;border-image:url(${A}panel_pause.png${V}) 70 fill/30px stretch;padding:30px 0 4px;text-align:center;color:#fff;margin:0 -2px}
+#pauseV1.ask .pvPanel{border-image-source:url(${A}panel_quit.png${V})}
+#pauseV1 .pvDuck{position:absolute;left:50%;top:-92px;width:62%;transform:translateX(-50%);pointer-events:none;z-index:2}
+#pauseV1 .pvTitle{position:absolute;left:50%;top:-34px;width:96%;transform:translateX(-50%);pointer-events:none;z-index:3}
+#pauseV1 .pvSub{margin:6px 0 16px;font-size:14px;font-weight:700;color:#f3ead8}
+#pauseV1 .pvBtn{position:relative;display:block;width:100%;height:50px;margin:0 0 10px;border:0;padding:0;background:transparent center/100% 100% no-repeat;color:#fff;font-size:16px;font-weight:900;font-family:inherit;padding:9px 0 0;text-shadow:0 1px 2px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}
+#pauseV1 .pvBtn:active{transform:translateY(2px);filter:brightness(.92)}
+#pauseV1 .pvY{background-image:url(${A}btn_yellow.png${V});color:#3a2300;text-shadow:none}
+#pauseV1 .pvG{background-image:url(${A}btn_gray.png${V})}
+#pauseV1 .pvR{background-image:url(${A}btn_red.png${V})}
+#pauseV1 .pvWarn{position:relative;margin:2px 0 14px;height:84px;background:url(${A}warning_box_frame.png${V}) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px 6px;text-align:left;font-size:12.5px;font-weight:800;line-height:1.4}
+#pauseV1 .pvWarn img{width:34px;height:34px}
+#pauseV1 .pvWarn b{color:#ffd23f}
+#pauseV1 .pvMain,#pauseV1 .pvAsk{display:block}
+#pauseV1 .pvAsk,#pauseV1 .pvAskImg{display:none}
+#pauseV1.ask .pvMain,#pauseV1.ask .pvMainImg{display:none}
+#pauseV1.ask .pvAsk,#pauseV1.ask .pvAskImg{display:block}`;
   document.head.appendChild(st);
   const box=document.createElement('div');box.id='pauseV1';
-  box.innerHTML=`<div class="pvBox"><div class="pvMain"><h2>PAUSED</h2><p>전투를 잠시 멈췄어요</p><button class="pvGo" id="pvResume">계속하기</button><button class="pvQuit" id="pvQuit">포기하고 홈으로</button></div><div class="pvAsk"><h2 style="font-size:22px">정말 포기할까요?</h2><p style="color:#ddd">이번 전투 보상은 받을 수 없어요</p><button class="pvRed" id="pvYes">포기하고 홈으로</button><button class="pvQuit" id="pvNo">돌아가기</button></div></div>`;
+  box.innerHTML=`<div class="pvWrap">
+<img class="pvDuck pvMainImg" src="${A}duck_pause_idle.png${V}" alt=""><img class="pvDuck pvAskImg" src="${A}duck_pause_surprise.png${V}" alt="">
+<img class="pvTitle pvMainImg" src="${A}title_pause.png${V}" alt="일시정지"><img class="pvTitle pvAskImg" src="${A}title_quit.png${V}" alt="정말 포기하시겠어요?">
+<div class="pvPanel">
+<div class="pvMain"><div class="pvSub" style="margin-top:22px">전투를 잠시 멈췄어요.</div><button class="pvBtn pvY" id="pvResume">▶&nbsp; 계속하기</button><button class="pvBtn pvG" id="pvQuit">⌂&nbsp; 포기하고 홈으로</button></div>
+<div class="pvAsk"><div class="pvWarn" style="margin-top:22px"><img src="${A}warning_icon.png${V}" alt=""><span>지금 포기하면<br>이번 전투 <b>보상</b>을 받을 수 없어요.</span></div><button class="pvBtn pvR" id="pvYes">⌂&nbsp; 포기하고 홈으로</button><button class="pvBtn pvG" id="pvNo">↩&nbsp; 돌아가기</button></div>
+</div></div>`;
   document.body.appendChild(box);
   const $=id=>document.getElementById(id);
   const hide=()=>box.classList.remove('on','ask');
