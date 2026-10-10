@@ -2,18 +2,18 @@
 .dsOverlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:46px 14px 12px;background:rgba(10,6,2,.55);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;animation:dsFade .16s ease-out;overflow:auto}
 .dsOverlay *{box-sizing:border-box}
 .dsSheet{position:relative;width:min(100%,376px);margin:auto;color:#fff;animation:dsPop .24s cubic-bezier(.2,1.3,.4,1)}
-.dsPanel{border:18px solid transparent;border-image:url(../assets/settings/panel_settings.png) 34 fill/18px stretch;padding:16px 0 0;margin:0}
+.dsPanel{border:11px solid transparent;border-image:url(../assets/settings/panel_settings.png) 34/11px stretch;background:linear-gradient(180deg,#6a4529,#4a2e1a 55%,#3d2615) padding-box;border-radius:10px;padding:22px 6px 6px;margin:0}
 .dsDuck{display:none}
-.dsHead{position:absolute;left:50%;top:-30px;width:56%;transform:translateX(-50%);z-index:4}
+.dsHead{position:absolute;left:50%;top:-34px;width:60%;transform:translateX(-50%);z-index:4}
 .dsHead img{display:block;width:100%;height:auto}
 .dsHead span{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:21px;font-weight:1000;color:#fff2cc;text-shadow:0 3px 0 #3a1f0a,0 0 8px rgba(0,0,0,.5)}
-.dsX{position:absolute;right:-4px;top:-14px;width:44px;height:44px;padding:0;border:0;background:url(../assets/settings/button_close_x.png) center/100% 100% no-repeat;z-index:5}
+.dsX{position:absolute;right:-6px;top:-16px;width:44px;height:44px;padding:0;border:0;background:url(../assets/settings/button_close_x.png) center/100% 100% no-repeat;z-index:5}
 .dsX img{width:20px;height:20px;margin:-2px}
 .dsX:active{transform:translateY(2px)}
-.dsGroup{margin:0 0 8px;border:12px solid transparent;border-image:url(../assets/settings/section_panel.png) 30 fill/12px stretch;padding:0}
-.dsGroup h4{display:flex;align-items:center;gap:6px;margin:-4px 0 2px;font-size:15px;font-weight:900;color:#ffd878;letter-spacing:.3px}
+.dsGroup{margin:0 0 9px;padding:8px 8px 8px;background:rgba(40,24,12,.38);border:1px solid rgba(255,214,150,.14);border-radius:14px}
+.dsGroup h4{display:flex;align-items:center;gap:6px;margin:0 0 6px 2px;font-size:15px;font-weight:900;color:#ffd878;letter-spacing:.3px}
 .dsGroup h4 img{width:24px;height:24px}
-.dsRow{display:flex;align-items:center;gap:10px;min-height:46px;margin:0 0 4px;padding:2px 6px;border:8px solid transparent;border-image:url(../assets/settings/row_background.png) 22 fill/8px stretch;background:none}
+.dsRow{display:flex;align-items:center;gap:10px;min-height:50px;margin:0 0 5px;padding:4px 10px;background:rgba(20,10,4,.32);border-radius:12px;border:0}
 .dsRow:last-child{margin-bottom:0}
 .dsRow[hidden]{display:none}
 .dsRow>img.ri{width:30px;height:30px;flex:none;margin:-4px 0}
