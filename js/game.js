@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261010-set6','data-doldol-settings-style']].forEach(function(x){
+  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261011-set7','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -5454,7 +5454,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       '<div class="dsPanel">'+
       '<div class="dsGroup"><h4><img src="'+AS+'icon_speaker.png" alt="">사운드 설정</h4>'+sl('sfx','효과음','icon_speaker.png',st.sfx)+sl('bgm','배경음','icon_music.png',st.bgm)+'</div>'+
       '<div class="dsGroup"><h4><img src="'+AS+'icon_gamepad.png" alt="">게임 설정</h4>'+ROWS.map(r=>'<div class="dsRow"><img class="ri" src="'+AS+r[3]+'" alt=""><div class="dsTxt"><b>'+r[1]+'</b><small>'+r[2]+'</small></div><button type="button" class="dsToggle'+(st[r[0]]!==false?' on':'')+'" data-k="'+r[0]+'" role="switch" aria-checked="'+(st[r[0]]!==false)+'" aria-label="'+r[1]+'"><em class="t-on">ON</em><em class="t-off">OFF</em><i></i></button></div>').join('')+'</div>'+
-      '<div class="dsGroup"><h4><img src="'+AS+'icon_database.png" alt="">데이터 관리</h4><div class="dsRow" id="dsResetRow"><img class="ri" src="'+AS+'icon_reset.png" alt=""><div class="dsTxt"><b>게임 데이터 초기화</b><small>캐릭터, 장비, 재화 등 모든 진행이 삭제돼요</small></div><button type="button" class="dsBtn dsDanger" id="dsReset">초기화</button></div>'+
+      '<div class="dsGroup"><h4><img src="'+AS+'icon_database.png" alt="">데이터 관리</h4><div class="dsRow" id="dsResetRow"><img class="ri" src="'+AS+'icon_reset.png" alt=""><div class="dsTxt"><b>게임 데이터 초기화</b><small>모든 진행 상황이 삭제돼요</small></div><button type="button" class="dsBtn dsDanger" id="dsReset">초기화</button></div>'+
       '<div class="dsRow dsConfirm" id="dsConfirm" hidden><img class="ri" src="'+AS+'icon_warning.png" alt=""><div class="dsTxt"><b>정말 모두 삭제할까요?</b><small>되돌릴 수 없어요</small></div><div class="dsBtns"><button type="button" class="dsBtn dsGhost" id="dsNo">취소</button><button type="button" class="dsBtn dsDanger" id="dsYes">삭제</button></div></div></div>'+
       '<div class="dsInfo"><img src="'+AS+'icon_info.png" alt="">돌돌 특공대 '+ver+'</div>'+
       '<button type="button" class="dsOk">닫기</button></div></div>';
