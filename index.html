@@ -232,8 +232,26 @@ body{
 </style>
 
 
+<style id="titleCalmStyle">
+html:not(.titleReady) #titleScreen{opacity:0}
+html.titleReady #titleScreen{opacity:1;transition:opacity .45s ease-out}
+html,body{background:#0b1220}
+</style>
 </head>
 <body>
+<script>
+(function(){var d=document.documentElement,done=false;
+function go(){if(done)return;done=true;
+requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){d.classList.add('titleReady')},120)})})}
+window.addEventListener('DOMContentLoaded',function(){
+var im=document.querySelector('#titleScreen .titleArt');
+if(!im){go();return}
+function dec(){(im.decode?im.decode():Promise.resolve()).then(go,go)}
+if(im.complete)dec();else{im.addEventListener('load',dec);im.addEventListener('error',go)}
+});
+setTimeout(go,2500);
+})();
+</script>
 
 <div id="titleScreen" class="titleImageScreen">
   <img class="titleArt" src="assets/title_screen.jpg" alt="" fetchpriority="high" decoding="sync">
