@@ -97,6 +97,7 @@ DUCK_IMG.onload = () => { window.__duckReady = true; };
 DUCK_IMG.onerror = () => { window.__duckReady = false; };
 const DUCK_READY_IMG = new Image(); DUCK_READY_IMG.src = "./assets/battle/duck_ready.png"; // 방향별 이미지가 없을 때의 임시 대기 자세(반전 없음)
 // 돌돌이 전투 자세: 방향별 대기 3종 + 패링 1종 (768x706 투명 PNG, 같은 발 위치/스케일)
+const DUCK_POSE_SCALE={rabbit:1.17,panda:1.13,nyang:1.04,shiba:1.02,turtle:1.02};
 const DUCK_POSE_H = 92;          // 자세 이미지를 그릴 높이(px). 캐릭터 크기 조절용
 const DUCK_POSE = {};
 ['left','center','right','parry'].forEach(k=>{
@@ -1632,6 +1633,7 @@ function drawDuck(x,y,scale=1){
     if(want!==duckDir && now-duckDirSince>=100){ duckPrevDir=duckDir; duckDir=want; duckDirSince=now; duckSwitchT=now; }
     // 자세 이미지 선택(없으면 center → 기존 이미지 순으로 대체, 반전 없음)
     const PS=duckPoses(player.characterId);
+    const PF=(DUCK_POSE_SCALE[player.characterId||'doldol']||1); // 캐릭터별 크기 보정(날씬한 캐릭터가 작아 보이는 것 방지)
     const pick=k=>{
       const o=PS[k]; if(o&&o.ok) return o.img;
       if(PS.center.ok) return PS.center.img;
@@ -1645,8 +1647,8 @@ function drawDuck(x,y,scale=1){
     const mv=Math.min(1,Math.abs(duckVx)/260);
     duckPhase += dtf*(4+mv*10);
     const drawImg=(im,alpha)=>{
-      const isPose=im!==DUCK_READY_IMG, h=(isPose?DUCK_POSE_H:78)*scale, w=h*im.naturalWidth/im.naturalHeight;
-      ctx.globalAlpha=alpha; ctx.drawImage(im,-w/2,-h*.62,w,h);
+      const isPose=im!==DUCK_READY_IMG, hb=(isPose?DUCK_POSE_H:78)*scale, h=hb*(isPose?PF:1), w=h*im.naturalWidth/im.naturalHeight;
+      ctx.globalAlpha=alpha; ctx.drawImage(im,-w/2,.38*hb-h,w,h);
     };
     const h0=DUCK_POSE_H*scale, w0=h0*(768/706);
     ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h0*.36,w0*.30*(1-Math.abs(Math.sin(duckPhase))*mv*.12),h0*.065,0,0,Math.PI*2);ctx.fill();
