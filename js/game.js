@@ -112,6 +112,27 @@ const DUCK_POSE = {};
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
 const DUCK_POSE_SETS={doldol:DUCK_POSE};
+// 스킨 그림의 캐릭터 크기·위치가 기본 복장 그림과 달라도 자동으로 맞춤(알파 영역 기준)
+function poseBBox(im){
+  if(im.__bb) return im.__bb;
+  try{
+    const W=384,H=Math.max(1,Math.round(W*im.naturalHeight/im.naturalWidth)),c=document.createElement('canvas');c.width=W;c.height=H;
+    const g=c.getContext('2d');g.drawImage(im,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+    let x0=W,y0=H,x1=-1,y1=-1;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(d[(y*W+x)*4+3]>24){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+    if(x1<0) return null;
+    return (im.__bb={x0:x0/W,x1:(x1+1)/W,y0:y0/H,y1:(y1+1)/H});
+  }catch(e){return null}
+}
+function poseFit(im,base){
+  if(im.__fit!==undefined) return im.__fit;
+  if(!(im.complete&&im.naturalWidth&&base.complete&&base.naturalWidth)) return null;
+  const a=poseBBox(im),b=poseBBox(base);
+  if(!a||!b){im.__fit=null;return null}
+  const s=(b.y1-b.y0)/(a.y1-a.y0);
+  im.__fit={s:s,dx:((b.x0+b.x1)/2)-((a.x0+a.x1)/2)*s,dy:b.y1-a.y1*s};
+  return im.__fit;
+}
 function duckPoses(id){
   id=id||'doldol';
   const base=basePoses(id);
@@ -127,6 +148,7 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
     im.src='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k)+'.png?v=20261011-skin1';
+    if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
   return (DUCK_POSE_SETS[key]=set);
@@ -1648,7 +1670,9 @@ function drawDuck(x,y,scale=1){
     duckPhase += dtf*(4+mv*10);
     const drawImg=(im,alpha)=>{
       const isPose=im!==DUCK_READY_IMG, hb=(isPose?DUCK_POSE_H:78)*scale, h=hb*(isPose?PF:1), w=h*im.naturalWidth/im.naturalHeight;
-      ctx.globalAlpha=alpha; ctx.drawImage(im,-w/2,.38*hb-h,w,h);
+      let fx=0,fy=0,fs=1;
+      if(isPose&&im.__baseImg){const f=poseFit(im,im.__baseImg);if(f){fs=f.s;fx=f.dx*w;fy=f.dy*h}}
+      ctx.globalAlpha=alpha; ctx.drawImage(im,-w/2+fx,.38*hb-h+fy,w*fs,h*fs);
     };
     const h0=DUCK_POSE_H*scale, w0=h0*(768/706);
     ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,h0*.36,w0*.30*(1-Math.abs(Math.sin(duckPhase))*mv*.12),h0*.065,0,0,Math.PI*2);ctx.fill();
