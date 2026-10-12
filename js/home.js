@@ -32,8 +32,7 @@ function stageMeta(stage){
 }
 function formatGems(v){
   const n=Math.max(0,Math.floor(Number(v)||0));
-  if(n<=1000)return n.toLocaleString();
-  if(n<10000)return (Math.floor(n/100)/10).toFixed(1).replace(/\.0$/,"")+"K";
+  if(n<10000)return n.toLocaleString();
   if(n<1000000)return Math.floor(n/1000)+"K";
   return (Math.floor(n/100000)/10).toFixed(1).replace(/\.0$/,"")+"M";
 }
