@@ -52,6 +52,19 @@ window.__duckWallet = window.__duckWallet || {
   setCoins(n){ const v=Math.max(0,Number(n)||0); localStorage.setItem('doldol_coins_v1',String(v)); return v; }
 };
 
+// 붉은 베레모 전용 아트(방패병/폭탄병/저격병/돌진병). 로드 전·실패 시 기존 아트로 대체된다.
+const ENEMY_BERET_IMGS={};
+['shield','bomber','sniper','charger'].forEach(n=>{
+  const im=new Image(); im.decoding='async';
+  im.onload=()=>{im.__ok=true;}; im.onerror=()=>{im.__ok=false;};
+  ENEMY_BERET_IMGS[n]=im;
+  __duckQueueAsset(im,'./assets/enemies/enemy_red_beret_'+n+'.png?v=20261012-beret1','defer');
+});
+function enemyBeretArt(n,eh){
+  const im=ENEMY_BERET_IMGS[n];
+  if(!im||!im.__ok||!im.naturalWidth) return null;
+  return {art:im,ew:eh*im.naturalWidth/im.naturalHeight,eh};
+}
 const STAGE1_BG = new Image();
 STAGE1_BG.decoding = "async";
 STAGE1_BG.onload = () => { window.__duckStage1BgReady = true; };
@@ -1810,19 +1823,27 @@ function drawEnemy(e){
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=64; eh=74; }
   }else if(e.type==='shield'){
     // 방패병 전용 아트 전까지 중장병 아트를 임시 사용한다.
-    if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=70; eh=76; badge='🛡'; }
+    const nb=enemyBeretArt('shield',76);
+    if(nb){ art=nb.art; ew=nb.ew; eh=nb.eh; }
+    else if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=70; eh=76; badge='🛡'; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=62; eh=72; badge='🛡'; }
   }else if(e.type==='sniper'){
-    if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=58; eh=74; }
+    const nb=enemyBeretArt('sniper',70);
+    if(nb){ art=nb.art; ew=nb.ew; eh=nb.eh; }
+    else if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=58; eh=74; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=56; eh=68; }
   }else if(e.type==='fast'){
     // FAST 전용 아트는 출시 후 확장. V1에서는 돌격병 아트를 재사용하되 작고 빠르게 보이게 한다.
     if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=52; eh=62; badge='⚡'; }
   }else if(e.type==='charger'){
-    if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=68; eh=74; badge='➜'; }
+    const nb=enemyBeretArt('charger',70);
+    if(nb){ art=nb.art; ew=nb.ew; eh=nb.eh; }
+    else if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=68; eh=74; badge='➜'; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=58; eh=68; }
   }else if(e.type==='bomber'){
-    if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=60; eh=76; badge='●'; }
+    const nb=enemyBeretArt('bomber',72);
+    if(nb){ art=nb.art; ew=nb.ew; eh=nb.eh; }
+    else if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=60; eh=76; badge='●'; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=58; eh=68; }
   }else{
     if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=72; eh=84; } // V49: 돌격병 체감 크기 약 10% 추가 확대
@@ -1841,8 +1862,8 @@ function drawEnemy(e){
     if(e.type==='shield'){
       if(e.guardDown>0){
         ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe36b';ctx.fillText('WEAK!',0,-eh*.78);
-      }else{
-        ctx.lineWidth=7;ctx.lineCap='round';ctx.strokeStyle=e.blockFx>0?'#ffffff':'#8fc4e6';
+      }else if(badge||e.blockFx>0){
+        ctx.lineWidth=e.blockFx>0?5:7;ctx.lineCap='round';ctx.strokeStyle=e.blockFx>0?'#ffffff':'#8fc4e6';
         ctx.beginPath();ctx.arc(0,-eh*.12,ew*.52,.2*Math.PI,.8*Math.PI);ctx.stroke();
       }
     }
