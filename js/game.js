@@ -54,11 +54,11 @@ window.__duckWallet = window.__duckWallet || {
 
 // 붉은 베레모 전용 아트(방패병/폭탄병/저격병/돌진병). 로드 전·실패 시 기존 아트로 대체된다.
 const ENEMY_BERET_IMGS={};
-['shield','bomber','sniper','charger'].forEach(n=>{
+['shield','bomber','sniper','charger','rifleman'].forEach(n=>{
   const im=new Image(); im.decoding='async';
   im.onload=()=>{im.__ok=true;}; im.onerror=()=>{im.__ok=false;};
   ENEMY_BERET_IMGS[n]=im;
-  __duckQueueAsset(im,'./assets/enemies/enemy_red_beret_'+n+'.png?v=20261012-beret1','defer');
+  __duckQueueAsset(im,'./assets/enemies/enemy_red_beret_'+n+'.png?v=20261012-beret2','defer');
 });
 function enemyBeretArt(n,eh){
   const im=ENEMY_BERET_IMGS[n];
@@ -1834,7 +1834,9 @@ function drawEnemy(e){
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=56; eh=68; }
   }else if(e.type==='fast'){
     // FAST 전용 아트는 출시 후 확장. V1에서는 돌격병 아트를 재사용하되 작고 빠르게 보이게 한다.
-    if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=52; eh=62; badge='⚡'; }
+    const nb=enemyBeretArt('rifleman',68);
+    if(nb){ art=nb.art; ew=nb.ew; eh=nb.eh; }
+    else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=52; eh=62; badge='⚡'; }
   }else if(e.type==='charger'){
     const nb=enemyBeretArt('charger',70);
     if(nb){ art=nb.art; ew=nb.ew; eh=nb.eh; }
