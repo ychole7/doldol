@@ -30,6 +30,13 @@ function stageMeta(stage){
   if(stage===2)return{title:"2. 훈련장 진입",desc:"더 강한 적을 상대할 준비를 하자!",img:"./assets/stage2_training.jpg"};
   return{title:stage+". 특공 작전",desc:stage%5===0?"강력한 보스가 기다리고 있다!":"특공대의 다음 작전을 시작하자!",img:stage%2===0?"./assets/stage2_training.jpg":"./assets/stage1_training.jpg"};
 }
+function formatGems(v){
+  const n=Math.max(0,Math.floor(Number(v)||0));
+  if(n<1000)return String(n);
+  if(n<10000)return (Math.floor(n/100)/10).toFixed(1).replace(/\.0$/,"")+"K";
+  if(n<1000000)return Math.floor(n/1000)+"K";
+  return (Math.floor(n/100000)/10).toFixed(1).replace(/\.0$/,"")+"M";
+}
 function formatCore(v){
   const n=Math.max(0,Math.floor(Number(v)||0));
   if(n<100000)return n.toLocaleString();
@@ -71,7 +78,7 @@ function sync(){
   set("lobbyCoins",formatCore(coreValue));
   const coreEl=$("lobbyCoins");
   if(coreEl)coreEl.dataset.long=(Number(coreValue)>=10000 && Number(coreValue)<100000)?"1":"0";
-  set("homeGems",window.__doldolResources.gems.toLocaleString());
+  set("homeGems",formatGems(window.__doldolResources.gems));
   const stage=getHomeStage(),meta=stageMeta(stage);
   set("homeStageNo","STAGE "+stage);
   set("homeStageTitle",meta.title);

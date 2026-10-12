@@ -215,7 +215,7 @@ function farmLoadV2(){
 let farmInventoryV2=farmLoadV2();
 function farmSaveV2(){try{localStorage.setItem(FARM_INV_KEY_V2,JSON.stringify(farmInventoryV2));}catch(e){}}
 // 현재 드랍되는 재료(돌 강화에 쓰이는 4종). 나머지는 인벤토리 정의만 유지.
-const FARM_DROP_TABLE_V2=[['wood',35],['stone',35],['ember',15],['ice',15]];
+const FARM_DROP_TABLE_V2=[['wood',30],['stone',45],['ember',12.5],['ice',12.5]];
 let runFarmV2={};
 window.__duckRunFarm=()=>({...runFarmV2});
 window.__duckResetRunFarm=()=>{runFarmV2={};};
@@ -5433,7 +5433,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src;
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261012-gem1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
