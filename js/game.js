@@ -3310,10 +3310,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         </div>
       </div>
       <nav class="ddBottomNav" aria-label="메인 메뉴">
-        <button type="button" class="ddNavItem" data-sq-nav="home"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_home.png" alt=""></span><b>홈</b></button>
-        <button type="button" class="ddNavItem isActive" aria-current="page" data-sq-nav="squad"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_squad.png" alt=""></span><b>특공대</b></button>
-        <button type="button" class="ddNavItem" data-sq-nav="gear"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_gear.png" alt=""></span><b>장비</b></button>
-        <button type="button" class="ddNavItem" data-sq-nav="shop"><span class="ddNavIcon"><img src="./assets/home_nav/home_nav_shop.png" alt=""></span><b>상점</b></button>
+        <button type="button" class="ddNavItem" data-sq-nav="home"><span class="ddNavIcon"><img src="./assets/home_nav/nav_home.png" alt=""></span><b>홈</b></button>
+        <button type="button" class="ddNavItem isActive" aria-current="page" data-sq-nav="squad"><span class="ddNavIcon"><img src="./assets/home_nav/nav_squad.png" alt=""></span><b>특공대</b></button>
+        <button type="button" class="ddNavItem" data-sq-nav="gear"><span class="ddNavIcon"><img src="./assets/home_nav/nav_gear.png" alt=""></span><b>장비</b></button>
+        <button type="button" class="ddNavItem" data-sq-nav="shop"><span class="ddNavIcon"><img src="./assets/home_nav/nav_shop.png" alt=""></span><b>상점</b></button>
       </nav>`;
     screen.querySelector('#charBack').onclick=()=>{
       screen.classList.remove('show');
@@ -4516,7 +4516,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     }
     let es=document.getElementById('equipScreen');
     if(!es){es=document.createElement('div');es.id='equipScreen';document.body.appendChild(es);}
-    const navIc=n=>'<span class="ddNavIcon"><img src="./assets/home_nav/home_nav_'+n+'.png" alt=""></span>';
+    const navIc=n=>'<span class="ddNavIcon"><img src="./assets/home_nav/nav_'+n+'.png" alt=""></span>';
     es.innerHTML=
       '<header class="ddHomeHud" id="eqHud">'+
         '<div class="ddProfile"><div class="ddAvatar" id="sqHudFace"></div><div class="ddProfileText"><b id="sqHudName"></b><span id="sqHudLv"></span><div class="ddXp"><i id="sqHudXp"></i></div></div></div>'+
@@ -5416,7 +5416,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const link=document.createElement('link');link.rel='stylesheet';link.href='css/shop.css?v=20261008-shop3';link.dataset.doldolShopStyle='1';document.head.appendChild(link);
     }
     page=document.createElement('div');page.id='doldolShopPage';
-    const navIc=n=>'<span class="ddNavIcon"><img src="./assets/home_nav/home_nav_'+n+'.png" alt=""></span>';
+    const navIc=n=>'<span class="ddNavIcon"><img src="./assets/home_nav/nav_'+n+'.png" alt=""></span>';
     page.innerHTML=
       '<header class="ddHomeHud">'+
         '<div class="ddProfile"><div class="ddAvatar" id="sqHudFace"></div><div class="ddProfileText"><b id="sqHudName"></b><span id="sqHudLv"></span><div class="ddXp"><i id="sqHudXp"></i></div></div></div>'+
@@ -5577,7 +5577,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261012-gem4' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261012-nav1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
