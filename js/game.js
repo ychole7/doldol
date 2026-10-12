@@ -649,10 +649,8 @@ function addCharacterXP(amount,id){
   const all=loadCharacterProgress();
   const v=getCharacterProgress(cid);
   let gained=Math.max(0,Number(amount)||0), levels=0;
-  v.xp+=gained;
-  while(v.xp>=v.next && v.level<50){
-    v.xp-=v.next; v.level++; levels++; v.next=Math.round(v.next*1.24);
-  }
+  // 레벨업은 '경험치 가득 + 돌핵 지불'로 특공대 화면에서 직접 한다. 경험치는 자동 레벨업하지 않는다.
+  v.xp=Math.min(v.next,v.xp+gained);
   all[cid]=v; saveCharacterProgress(all);
   return {id:cid,level:v.level,xp:v.xp,next:v.next,levels};
 }
@@ -2133,9 +2131,9 @@ function draw(){
     ctx.globalAlpha=Math.min(1,levelFlash);
     ctx.fillStyle='rgba(255,216,102,.10)';ctx.fillRect(0,0,vw,vh);
     ctx.fillStyle='#ffd866';ctx.font='900 30px system-ui';ctx.textAlign='center';
-    ctx.fillText('LEVEL UP!',vw/2,vh*.31);
+    ctx.fillText('전투 레벨업!',vw/2,vh*.31);
     ctx.font='800 14px system-ui';
-    ctx.fillText('Lv.'+level,vw/2,vh*.345);
+    ctx.fillText('전투 Lv.'+level,vw/2,vh*.345);
     ctx.globalAlpha=1;
   }
 
@@ -3408,8 +3406,8 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function setCharacterLevel(id,level){
     try{
       const all=JSON.parse(localStorage.getItem('doldol_character_progress_v1')||'{}')||{};
-      const prev=all[id]||{}, next=Math.max(50,Number(prev.next)||50);
-      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,Number(prev.xp)||0),next};
+      const prev=all[id]||{}, pn=Math.max(50,Number(prev.next)||50);
+      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,(Number(prev.xp)||0)-pn),next:Math.round(pn*1.24)};
       localStorage.setItem('doldol_character_progress_v1',JSON.stringify(all));
     }catch(e){}
   }
@@ -3424,10 +3422,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.querySelector('#sqLevelStats').innerHTML=rows.map(([icon,name,key])=>`<div class="sqLevelStat"><span>${icon} ${name}</span><b>${now[key]}</b><span>›</span><b class="next">${max?now[key]:next[key]}</b><i class="up">${max?'':'+'+(next[key]-now[key])}</i></div>`).join('');
     screen.querySelector('#sqLevelCost').innerHTML=max?'MAX':`${coreIc()}<span class="${core()<cost?'short':''}">${cost.toLocaleString()}</span><small class="have">보유 ${core().toLocaleString()}</small>`;
     const btn=screen.querySelector('#sqLevelConfirm');
-    btn.disabled=max||core()<cost;
-    btn.textContent=max?'최대 레벨':core()<cost?'돌핵 부족':'레벨업';
+    const xpOk=p.xp>=p.next;
+    btn.disabled=max||core()<cost||!xpOk;
+    btn.textContent=max?'최대 레벨':!xpOk?'경험치 '+p.xp+' / '+p.next:core()<cost?'돌핵 부족':'레벨업';
     btn.onclick=()=>{
-      if(max||!window.__duckWallet||!window.__duckWallet.spendCoins(cost))return;
+      if(max||!xpOk||!window.__duckWallet||!window.__duckWallet.spendCoins(cost))return;
       setCharacterLevel(c.id,nextLevel);
       if(window.__duckMissionEvent)window.__duckMissionEvent('level',1);
       renderHud(); openDetail(); openLevelModal();
