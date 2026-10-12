@@ -222,7 +222,7 @@ window.__duckResetRunFarm=()=>{runFarmV2={};};
 // 전투 중 바닥에 떨어지는 재료 이미지(없으면 이모지로 대체)
 const FARM_IMG_V2={};
 // 전투 중 코인/XP 드랍 아이콘(없으면 기존 원형 그림으로 대체)
-const DROP_COIN_IMG=new Image(); DROP_COIN_IMG.src='./assets/materials/reward_coin.png';
+const DROP_COIN_IMG=new Image(); DROP_COIN_IMG.src='./assets/doldol_stone_core.png';
 const DROP_XP_IMG=new Image(); DROP_XP_IMG.src='./assets/materials/reward_xp.png';
 ['wood','stone','ember','ice'].forEach(id=>{const im=new Image();im.src='./assets/materials/mat_'+id+'.png';FARM_IMG_V2[id]=im;});
 function farmRandomItemV2(){
@@ -2414,7 +2414,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>감속 효과</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
     title.textContent="🛒 상점";
-    body.innerHTML='<div class="shopItem"><div>🪙 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
+    body.innerHTML='<div class="shopItem"><div>💠 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
       '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -2516,7 +2516,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
        '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>적 이동속도 감소</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
      menuTitle.textContent="🛒 상점";
-     body.innerHTML='<div class="shopItem"><div>🪙 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
+     body.innerHTML='<div class="shopItem"><div>💠 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
        '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
        '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
        '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -3672,14 +3672,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const q=id=>screen.querySelector('#'+id);
     const face=q('growthFace'),name=q('growthName'),role=q('growthRole'),role2=q('growthRole2'),xpEl=q('growthXp'),bar=q('growthXpBar'),coinsEl=q('growthCoins'),cards=q('growthCards'),levelEl=q('growthLevel');
     if(!face||!name||!role||!xpEl||!bar||!coinsEl||!cards) throw new Error('growth UI elements missing');
-    face.textContent=d.face||'🐥';name.textContent=d.name||'돌돌이';role.textContent=d.role||'밸런스형';if(role2)role2.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='🪙 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();if(levelEl)levelEl.textContent=cp.level;
+    face.textContent=d.face||'🐥';name.textContent=d.name||'돌돌이';role.textContent=d.role||'밸런스형';if(role2)role2.textContent=d.role||'밸런스형';xpEl.textContent='XP '+cp.xp+' / '+cp.next+(cp.level>=50?' · MAX':'');bar.style.width=pct+'%';coinsEl.textContent='💠 '+Number((window.__duckWallet&&window.__duckWallet.coins)||0).toLocaleString();if(levelEl)levelEl.textContent=cp.level;
     const walletCoins=Number((window.__duckWallet&&window.__duckWallet.coins)||0);
     const skillLevel=Math.max(1,Math.min(5,Number((window.__duckCharacterSkillProgress?window.__duckCharacterSkillProgress(d.id):{level:1}).level)||1));
     const skillCost=700+skillLevel*350,skillCan=skillLevel<5&&walletCoins>=skillCost;
     const cardBase='padding:15px;margin:10px 0;border-radius:20px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.085);box-shadow:0 8px 22px rgba(0,0,0,.10)';
     const btn=(can,label,accent)=>`width:100%;padding:12px;border:0;border-radius:13px;background:${can?accent:'rgba(255,255,255,.075)'};color:${can?(accent==='#ffd866'?'#30220b':'#10232d'):'#7f8992'};font-weight:1000;font-size:12px`;
-    const skillCard=`<div style="${cardBase};background:linear-gradient(135deg,rgba(123,215,255,.12),rgba(255,216,102,.08));border-color:rgba(123,215,255,.16)"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;opacity:.5;letter-spacing:.7px">SPECIAL SKILL</div><b style="font-size:15px">⚡ ${d.skill?.name||'특공 스킬'}</b></div><strong style="color:#7bd7ff">Lv.${skillLevel}/5</strong></div><div style="font-size:11px;opacity:.66;margin:6px 0 11px;line-height:1.45">${d.skill?.desc||'고유 스킬'}<br><span style="opacity:.7">레벨이 오를수록 스킬 효과가 강화됩니다.</span></div><button id="growthSkillUpgrade" ${skillCan?'':'disabled'} style="${btn(skillCan,skillLevel>=5?'MAX':'스킬 강화 · 🪙 '+skillCost,'#7bd7ff')}">${skillLevel>=5?'✓ MAX':'스킬 강화 · 🪙 '+skillCost}</button></div>`;
-    const statCards=stats.map(x=>{const v=Number(values[x.key]??x.base),can=v<x.max&&walletCoins>=x.cost,p=Math.max(0,Math.min(100,Math.round((v-x.base)/(x.max-x.base)*100)));return `<div style="${cardBase}"><div style="display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:14px">${x.icon} ${x.name}</b><div style="font-size:10px;opacity:.52;margin-top:3px">${x.desc}</div></div><strong style="font-size:17px">${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="height:5px;background:rgba(0,0,0,.24);border-radius:99px;overflow:hidden;margin:10px 0"><i style="display:block;width:${p}%;height:100%;background:#ffd866"></i></div><button data-grow="${x.key}" ${can?'':'disabled'} style="${btn(can,v>=x.max?'MAX':'강화 · 🪙 '+x.cost,'#ffd866')}">${v>=x.max?'✓ MAX':'강화 · 🪙 '+x.cost}</button></div>`}).join('');
+    const skillCard=`<div style="${cardBase};background:linear-gradient(135deg,rgba(123,215,255,.12),rgba(255,216,102,.08));border-color:rgba(123,215,255,.16)"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;opacity:.5;letter-spacing:.7px">SPECIAL SKILL</div><b style="font-size:15px">⚡ ${d.skill?.name||'특공 스킬'}</b></div><strong style="color:#7bd7ff">Lv.${skillLevel}/5</strong></div><div style="font-size:11px;opacity:.66;margin:6px 0 11px;line-height:1.45">${d.skill?.desc||'고유 스킬'}<br><span style="opacity:.7">레벨이 오를수록 스킬 효과가 강화됩니다.</span></div><button id="growthSkillUpgrade" ${skillCan?'':'disabled'} style="${btn(skillCan,skillLevel>=5?'MAX':'스킬 강화 · 💠 '+skillCost,'#7bd7ff')}">${skillLevel>=5?'✓ MAX':'스킬 강화 · 💠 '+skillCost}</button></div>`;
+    const statCards=stats.map(x=>{const v=Number(values[x.key]??x.base),can=v<x.max&&walletCoins>=x.cost,p=Math.max(0,Math.min(100,Math.round((v-x.base)/(x.max-x.base)*100)));return `<div style="${cardBase}"><div style="display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:14px">${x.icon} ${x.name}</b><div style="font-size:10px;opacity:.52;margin-top:3px">${x.desc}</div></div><strong style="font-size:17px">${x.key==='speed'?v.toFixed(2):v}${x.key==='parry'?'%':''}</strong></div><div style="height:5px;background:rgba(0,0,0,.24);border-radius:99px;overflow:hidden;margin:10px 0"><i style="display:block;width:${p}%;height:100%;background:#ffd866"></i></div><button data-grow="${x.key}" ${can?'':'disabled'} style="${btn(can,v>=x.max?'MAX':'강화 · 💠 '+x.cost,'#ffd866')}">${v>=x.max?'✓ MAX':'강화 · 💠 '+x.cost}</button></div>`}).join('');
     cards.innerHTML=skillCard+`<div style="font-size:11px;font-weight:1000;opacity:.62;margin:16px 3px 7px;letter-spacing:.5px">BASIC STATS</div>`+statCards;
     cards.querySelectorAll('[data-grow]').forEach(b=>b.onclick=()=>upgrade(b.dataset.grow));
     const skillBtn=cards.querySelector('#growthSkillUpgrade');if(skillBtn)skillBtn.onclick=()=>{if(skillLevel>=5||walletCoins<skillCost)return;if(window.__duckWallet&&window.__duckWallet.spendCoins(skillCost)){window.__duckUpgradeCharacterSkill(d.id);render();}};
@@ -5606,7 +5606,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <div class="cvPlq"><img src="${A}clear_plaque.png" alt=""><div class="t1">${plqT1}</div><div class="t2">${clear?plqT2:plqT2f}</div></div>
       <div class="cvTitle"><img src="${A}clear_title_plate.png" alt=""><span>★ 획득 보상 ★</span></div>
       <div class="cvRew">
-        <div class="cvSlot${coins?'':' empty'}"><div class="lb">돌핵</div><img class="ic" src="./assets/materials/reward_coin.png" alt=""><div class="v">x${num(coins)}</div></div>
+        <div class="cvSlot${coins?'':' empty'}"><div class="lb">돌핵</div><img class="ic" src="./assets/doldol_stone_core.png" alt=""><div class="v">x${num(coins)}</div></div>
         <div class="cvSlot${xp?'':' empty'}"><div class="lb">경험치</div><img class="ic" src="./assets/materials/reward_xp.png" alt=""><div class="v">x${num(xp)}</div></div>
         <div class="cvSlot${total?'':' empty'}"><div class="lb">${topId?MATNAME[topId]:'재료'}</div><img class="ic" src="./assets/materials/mat_${topId||'stone'}.png" alt=""><div class="v">x${num(total)}</div></div>
       </div>
