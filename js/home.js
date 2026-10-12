@@ -32,7 +32,7 @@ function stageMeta(stage){
 }
 function formatGems(v){
   const n=Math.max(0,Math.floor(Number(v)||0));
-  if(n<1000)return String(n);
+  if(n<=1000)return n.toLocaleString();
   if(n<10000)return (Math.floor(n/100)/10).toFixed(1).replace(/\.0$/,"")+"K";
   if(n<1000000)return Math.floor(n/1000)+"K";
   return (Math.floor(n/100000)/10).toFixed(1).replace(/\.0$/,"")+"M";
@@ -112,7 +112,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   right:clamp(8px,2.6vw,16px);
   top:max(clamp(10px,2vw,16px),env(safe-area-inset-top));
   display:grid;
-  grid-template-columns:minmax(0,.98fr) minmax(0,1.12fr) minmax(0,.78fr) auto;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.02fr) minmax(0,.94fr) auto;
   align-items:center;
   gap:clamp(4px,1.25vw,8px);
   z-index:30;
@@ -493,7 +493,7 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
 /* Narrow phones: keep all four columns, compress content rather than overlap. */
 @media(max-width:420px){
   :is(#gameLobby,#characterScreen,#equipScreen,#doldolShopPage) .ddHomeHud{
-    grid-template-columns:minmax(0,.95fr) minmax(0,1.12fr) minmax(0,.75fr) auto;
+    grid-template-columns:minmax(0,.88fr) minmax(0,1.02fr) minmax(0,.92fr) auto;
     gap:4px;
   }
   :is(#gameLobby,#characterScreen,#equipScreen,#doldolShopPage) .ddProfile{padding-right:5px}
