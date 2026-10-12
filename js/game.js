@@ -881,7 +881,7 @@ function startStage(n){
   if(boss){
     const bossScale=1+Math.min(3.6,(stage-1)*.082);
     enemies.push({
-      type:'boss',x:vw*.5,y:vh*.20,r:48,
+      type:'boss',x:vw*.5,y:vh*.25,r:48,
       hp:Math.max(12,Math.round(12*bossScale)),
       max:Math.max(12,Math.round(12*bossScale)),
       speed:38*(1+Math.min(.45,(stage-1)*.02)),
@@ -966,18 +966,18 @@ function spawnEnemy(i,opts){
              : stage===3 ? ['normal','sniper','tank']
              : stage===4 ? ['normal','sniper','tank','fast']
              // V50: 6~20 적 해금. 새 타입은 한꺼번에 넣지 않고 구간별로 하나씩 추가한다.
-             : stage>=18 ? ['normal','fast','tank','sniper','charger','bomber']
-             : stage>=15 ? ['normal','fast','tank','sniper','charger']
-             : stage>=11 ? ['normal','fast','tank','sniper']
-             : stage>=8  ? ['normal','fast','sniper','tank']
+             : stage>=16 ? ['normal','fast','tank','sniper','charger','bomber','shield']
+             : stage>=15 ? ['normal','fast','tank','sniper','charger','shield']
+             : stage>=11 ? ['normal','fast','tank','sniper','shield']
+             : stage>=8  ? ['normal','fast','sniper','tank','shield']
              : ['normal','fast','tank'];
   const difficulty=1+Math.min(3.25,(stage-1)*.066);
   const type=(opts&&opts.forcedType)||pool[i%pool.length];
   const margin=55;
-  const baseHp={tank:4,sniper:2,charger:3,bomber:3,fast:1,normal:2}[type]||2;
-  const baseSpeed={tank:42,sniper:45,charger:92,bomber:50,fast:115,normal:68}[type]||68;
-  const baseFire={tank:2.0,sniper:2.25,charger:1.75,bomber:2.35,fast:1.15,normal:1.55}[type]||1.55;
-  const radius={tank:30,sniper:21,charger:25,bomber:27,fast:20,normal:23}[type]||23;
+  const baseHp={tank:4,shield:3,sniper:2,charger:3,bomber:3,fast:1,normal:2}[type]||2;
+  const baseSpeed={tank:42,shield:46,sniper:45,charger:92,bomber:50,fast:115,normal:68}[type]||68;
+  const baseFire={tank:2.0,shield:2.5,sniper:2.25,charger:1.75,bomber:3.2,fast:1.15,normal:1.55}[type]||1.55;
+  const radius={tank:30,shield:28,sniper:21,charger:25,bomber:27,fast:20,normal:23}[type]||23;
   const earlyLayouts={
     1:[.22,.38,.54,.70,.82,.30,.66],
     2:[.18,.34,.50,.66,.82,.28,.58,.76],
@@ -1094,9 +1094,15 @@ function enemyShoot(e){
     // 돌진 적은 전조 후 플레이어 방향으로 한 번 강하게 돌진한다.
     e.chargeTimer=.75;
     addRock(base-.07,speed*1.12,9); addRock(base+.07,speed*1.12,9);
+  }else if(e.type==='shield'){
+    // 방패병: 던진 직후 1초간 방패를 내려 약점이 열린다.
+    addRock(base,speed,11);
+    e.guardDown=1.0;
   }else if(e.type==='bomber'){
-    // 폭격형은 느리지만 플레이어 주변으로 넓게 퍼지는 5발을 쏜다.
-    for(let i=-2;i<=2;i++) addRock(base+i*.19,speed*.9,11,{bomber:true});
+    // 폭탄병: 플레이어 위치로 느린 폭탄을 던진다. 착탄 지점에 경고 원이 표시되고,
+    // PERFECT 반격 시 적 쪽으로 되돌아가 범위 피해를 준다.
+    const bs=speed*.78, L=Math.hypot(player.x-e.x,player.y-e.y);
+    addRock(base,bs,13,{bomber:true,explosive:true,tx:player.x,ty:player.y,fuse:L/bs+.25});
   }else if(e.type==='fast' && stage>=4){
     addRock(base-.10,speed*1.08,9); addRock(base+.10,speed*1.08,9);
   }else if(e.type==='normal' && stage>=7){
@@ -1121,7 +1127,9 @@ function combatImpactFx(e,damage,dead){
 function hitEnemy(e,damage=1){
   damage=Math.max(1,Number(damage)||1);
   const wasBossPhase=e.bossPhase||1;
-  e.hp-=damage;
+  let blocked=false;
+  if(e.type==='shield'){ if(!(e.guardDown>0)){ blocked=true; e.blockFx=.22; } }
+  e.hp-=blocked?damage*.3:damage;
   if(e.type==='boss' && e.max>0){
     const ratio=e.hp/e.max;
     const nextPhase=ratio<=.33?3:(ratio<=.66?2:1);
@@ -1142,7 +1150,7 @@ function hitEnemy(e,damage=1){
   }
   e.hitFlash=.16;
   feedbackV1('hit');
-  damageTexts.push({x:e.x,y:e.y-e.r-8,text:'-'+damage,life:.55,vy:-34,crit:damage>1});
+  damageTexts.push({x:e.x,y:e.y-e.r-8,text:blocked?'BLOCK':(e.type==='shield'&&e.guardDown>0?'WEAK -'+damage:'-'+damage),life:.55,vy:-34,crit:!blocked&&damage>1});
   burst(e.x,e.y,10);
   combatImpactFx(e,damage,false);
   shake=Math.max(shake,damage>1?4:3);
@@ -1170,7 +1178,7 @@ function parryAt(x,y){
   let best=null, bestD=Infinity;
   for(let i=rocks.length-1;i>=0;i--){
     const r=rocks[i];
-    if(r.parried) continue;
+    if(r.parried||r.blast) continue;
     const d=Math.hypot(r.x-player.x,r.y-player.y);
     if(d<=range && d<bestD){ best=r; bestD=d; }
   }
@@ -1179,6 +1187,10 @@ function parryAt(x,y){
   const r=best;
   const nearPlayer=bestD;
   const perfectThreshold=30 + Math.min(18,Math.max(0,(player.growth?.parry||20)-20)*0.22);
+  if(r.explosive && nearPlayer>=perfectThreshold*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1)){
+    r.life=0; burst(r.x,r.y,12); message='불발!'; messageTimer=.35; player.parryCd=.34; combo++; if(combo>runMaxCombo)runMaxCombo=combo; comboTimer=1.6; feedbackV1('parry');
+    return true;
+  }
   const isPerfect=nearPlayer<perfectThreshold*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1);
   if(player.leaderWide)player.leaderWide=0;
 
@@ -1391,6 +1403,8 @@ function update(dt){
 
     const stoneSlow=(e.slowUntil && performance.now()<e.slowUntil)?.55:1;
     if(e.hitFlash>0) e.hitFlash-=dt;
+    if(e.guardDown>0) e.guardDown-=dt;
+    if(e.blockFx>0) e.blockFx-=dt;
     if(e.moveFx>0) e.moveFx-=dt;
     const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
     if(e.type==='charger' && !e.dead){
@@ -1415,13 +1429,13 @@ function update(dt){
       else e.x+=(vw*.5-e.x)*Math.min(1,dt*.7);
     }else{
       // V14: role-based spacing; combat stats and attack logic stay untouched.
-      const desired=e.type==='boss'?260:e.type==='fast'?145:e.type==='tank'?205:180;
+      const desired=e.type==='boss'?260:e.type==='fast'?145:e.type==='tank'?205:e.type==='shield'?190:180;
       if(e.roleSide==null) e.roleSide=(e.x<vw*.5?-1:1);
       if(L>desired){
-        const roleMul=e.type==='tank'?.78:e.type==='fast'?1.12:1;
+        const roleMul=e.type==='tank'?.78:e.type==='shield'?.85:e.type==='fast'?1.12:1;
         moveAroundCovers(e,dx/L*e.speed*stoneSlow*roleMul*dt,dy/L*e.speed*stoneSlow*roleMul*dt);
         if(e.type!=='boss'){
-          const spread=e.type==='tank'?.16:e.type==='fast'?.28:.22;
+          const spread=e.type==='tank'?.16:e.type==='shield'?.18:e.type==='fast'?.28:.22;
           const tx=vw*.5+e.roleSide*vw*spread;
           e.x+=(tx-e.x)*Math.min(1,dt*.24);
         }
@@ -1432,19 +1446,19 @@ function update(dt){
       if(bp===1){
         // 1페이즈: 느린 좌우 순환 — 공격 패턴을 읽기 쉽게
         const targetX=vw*.5+Math.sin(e.phase*.9)*vw*.28;
-        const targetY=vh*.18+Math.sin(e.phase*1.7)*18;
+        const targetY=vh*.23+Math.sin(e.phase*1.7)*18;
         e.x+=(targetX-e.x)*Math.min(1,dt*(e.enraged?4.4:3.2));
         e.y+=(targetY-e.y)*Math.min(1,dt*(e.enraged?4.4:3.2));
       }else if(bp===2){
         // 2페이즈: 좌우로 크게 움직이며 간헐적으로 반대편으로 전환
         const targetX=vw*.5+Math.sin(e.phase*1.65)*vw*.34;
-        const targetY=vh*.20+Math.sin(e.phase*2.4)*24;
+        const targetY=vh*.25+Math.sin(e.phase*2.4)*24;
         e.x+=(targetX-e.x)*Math.min(1,dt*5.5);
         e.y+=(targetY-e.y)*Math.min(1,dt*5.5);
       }else{
         // 3페이즈: 플레이어 위치를 일부 따라가되 상단 전투영역을 유지
         const desiredX=player.x+Math.sin(e.phase*2.2)*110;
-        const desiredY=vh*.19+Math.sin(e.phase*3.1)*30;
+        const desiredY=vh*.24+Math.sin(e.phase*3.1)*30;
         e.x+=(desiredX-e.x)*Math.min(1,dt*4.2);
         e.y+=(desiredY-e.y)*Math.min(1,dt*4.2);
       }
@@ -1456,7 +1470,7 @@ function update(dt){
     if(e.telegraph>0){
       e.telegraph-=dt;
       if(e.telegraph<=0){
-        e.fire=(e.type==='boss') ? ((e.bossPhase||1)===3?.58:(e.bossPhase||1)===2?.70:.90) : (e.type==='sniper'?2.25:(e.type==='charger'?1.75:(e.type==='bomber'?2.35:(e.type==='tank'?2.0:(e.type==='fast'?1.15:1.55)))));
+        e.fire=(e.type==='boss') ? ((e.bossPhase||1)===3?.58:(e.bossPhase||1)===2?.70:.90) : (e.type==='sniper'?2.25:(e.type==='charger'?1.75:(e.type==='bomber'?3.2:(e.type==='shield'?2.5:(e.type==='tank'?2.0:(e.type==='fast'?1.15:1.55))))));
         enemyShoot(e);
       }
     }else{
@@ -1541,7 +1555,15 @@ function update(dt){
 
   for(const r of rocks){
     r.x+=r.vx*dt;r.y+=r.vy*dt;r.life-=dt;
-    for(const c of covers){
+    if(r.explosive&&!r.parried){
+      r.fuse-=dt;
+      if(Math.hypot(r.x-r.tx,r.y-r.ty)<10||r.fuse<=0){
+        r.life=0; burst(r.x,r.y,24); shake=Math.max(shake,7);
+        rocks.push({x:r.x,y:r.y,vx:0,vy:0,r:40,life:.12,parried:false,blast:true,pattern:'bomber',source:r.source});
+        continue;
+      }
+    }
+    if(!r.blast) for(const c of covers){
       if(circleRectHit(r,c)){ r.life=0; burst(r.x,r.y,6); break; }
     }
     if(r.life<=0) continue;
@@ -1575,7 +1597,14 @@ function update(dt){
     if(r.parried){
       for(const e of enemies){
         if(e.dead) continue;
-        if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){r.life=0;hitEnemy(e,r.damage||1);break;}
+        if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){
+          r.life=0;hitEnemy(e,r.damage||1);
+          if(r.explosive){
+            burst(e.x,e.y,26); shake=Math.max(shake,8);
+            for(const e2 of enemies){ if(e2!==e&&!e2.dead&&Math.hypot(e2.x-e.x,e2.y-e.y)<80) hitEnemy(e2,Math.max(1,Math.round((r.damage||1)*.7))); }
+          }
+          break;
+        }
       }
     }
   }
@@ -1779,6 +1808,10 @@ function drawEnemy(e){
   }else if(e.type==='tank'){
     if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=78; eh=82; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=64; eh=74; }
+  }else if(e.type==='shield'){
+    // 방패병 전용 아트 전까지 중장병 아트를 임시 사용한다.
+    if(enemyHeavyReady && ENEMY_HEAVY_IMG.naturalWidth){ art=ENEMY_HEAVY_IMG; ew=70; eh=76; badge='🛡'; }
+    else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=62; eh=72; badge='🛡'; }
   }else if(e.type==='sniper'){
     if(enemyRifleReady && ENEMY_RIFLE_IMG.naturalWidth){ art=ENEMY_RIFLE_IMG; ew=58; eh=74; }
     else if(enemyAssaultReady && ENEMY_ASSAULT_IMG.naturalWidth){ art=ENEMY_ASSAULT_IMG; ew=56; eh=68; }
@@ -1804,6 +1837,14 @@ function drawEnemy(e){
       ctx.font='900 14px system-ui';ctx.textAlign='center';
       ctx.fillStyle=e.type==='fast'?'#ffe36b':e.type==='charger'?'#ffb45f':'#d9a4ff';
       ctx.fillText(badge,ew*.34,-eh*.48);
+    }
+    if(e.type==='shield'){
+      if(e.guardDown>0){
+        ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe36b';ctx.fillText('WEAK!',0,-eh*.78);
+      }else{
+        ctx.lineWidth=7;ctx.lineCap='round';ctx.strokeStyle=e.blockFx>0?'#ffffff':'#8fc4e6';
+        ctx.beginPath();ctx.arc(0,-eh*.12,ew*.52,.2*Math.PI,.8*Math.PI);ctx.stroke();
+      }
     }
   }else{
     // 첫 프레임 등 모든 이미지가 아직 준비되지 않은 극히 짧은 순간만 사용하는 중립 fallback.
@@ -1915,7 +1956,7 @@ function draw(){
     ctx.save();
     ctx.fillStyle='rgba(120,0,0,'+(0.12+0.18*Math.sin(t*Math.PI))+')';ctx.fillRect(0,0,vw,vh);
     ctx.strokeStyle='rgba(255,90,90,.75)';ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(vw/2,vh*.20,58+24*Math.sin(performance.now()/100),0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(vw/2,vh*.25,58+24*Math.sin(performance.now()/100),0,Math.PI*2);ctx.stroke();
     ctx.fillStyle='#fff';ctx.font='900 30px system-ui';ctx.textAlign='center';ctx.fillText('⚠ BOSS INCOMING',vw/2,vh*.34);
     ctx.fillStyle='#ffb5b5';ctx.font='800 13px system-ui';ctx.fillText('패턴을 읽고 PARRY 타이밍을 잡으세요',vw/2,vh*.34+25);
     ctx.restore();
@@ -1923,10 +1964,10 @@ function draw(){
   if(bossPatternTimer>0 && bossPatternLabel){
     const a=Math.min(1,bossPatternTimer*2.5);
     ctx.save();ctx.globalAlpha=a;
-    const bw=Math.min(vw-48,300),bh=38,bx=(vw-bw)/2,by=vh*.38;
+    const bw=Math.min(vw-48,300),bh=34,bx=(vw-bw)/2,by=vh*.27;
     ctx.fillStyle='rgba(8,12,18,.88)';roundRect(bx,by,bw,bh,19);ctx.fill();
     ctx.strokeStyle='rgba(255,110,110,.65)';ctx.lineWidth=1.5;ctx.stroke();
-    ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.fillText(bossPatternLabel,vw/2,by+24);ctx.restore();
+    ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.fillText(bossPatternLabel,vw/2,by+22);ctx.restore();
   }
   if(bossDefeatFx>0){
     ctx.save();const p=1-bossDefeatFx/1.8;ctx.globalAlpha=Math.max(0,bossDefeatFx/1.8);
@@ -1940,11 +1981,11 @@ function draw(){
   // combo cards do not overlap on mobile screens.
 
   if(boss && enemies[0] && !enemies[0].dead){
-    const be=enemies[0], bw=Math.min(vw-56,360), bx=(vw-bw)/2, by=vh*.105;
-    ctx.fillStyle='rgba(8,12,18,.78)';roundRect(bx,by,bw,26,13);ctx.fill();
-    ctx.fillStyle='#ff5964';roundRect(bx+3,by+3,(bw-6)*Math.max(0,be.hp/be.max),20,10);ctx.fill();
+    const be=enemies[0], bw=Math.min(vw-56,360), bx=(vw-bw)/2, by=vh*.15;
+    ctx.fillStyle='rgba(8,12,18,.78)';roundRect(bx,by,bw,22,11);ctx.fill();
+    ctx.fillStyle='#ff5964';roundRect(bx+3,by+3,(bw-6)*Math.max(0,be.hp/be.max),16,8);ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle='#fff';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('⚠ BOSS  ·  '+be.hp+' / '+be.max,vw/2,by+17);
+    ctx.fillStyle='#fff';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('⚠ BOSS  ·  '+be.hp+' / '+be.max,vw/2,by+15);
   }
 
   for(const s of shots){
@@ -1974,6 +2015,26 @@ function draw(){
     }
   }
   for(const r of rocks){
+    if(r.blast){
+      const t=1-Math.max(0,r.life)/.12;
+      ctx.save();ctx.globalAlpha=.6*(1-t*.6);ctx.fillStyle='#ffb347';
+      ctx.beginPath();ctx.arc(r.x,r.y,r.r*(.6+.6*t),0,Math.PI*2);ctx.fill();ctx.restore();
+      continue;
+    }
+    if(r.explosive){
+      ctx.save();
+      if(!r.parried){
+        const pu=1+Math.sin(performance.now()/90)*.08;
+        ctx.globalAlpha=.16;ctx.fillStyle='#ff3b3b';ctx.beginPath();ctx.arc(r.tx,r.ty,40*pu,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=.8;ctx.strokeStyle='#ff5a5a';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(r.tx,r.ty,40*pu,0,Math.PI*2);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+      ctx.fillStyle=r.parried?'#ffdc65':'#3b3440';ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=r.parried?'#fff2a8':'#ff8a3c';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.fillStyle='#ffd24a';ctx.beginPath();ctx.arc(r.x+r.r*.55,r.y-r.r*.85,2.5+Math.sin(performance.now()/60)*1.2,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      continue;
+    }
     ctx.save();
     ctx.globalAlpha=r.parried?.25:.16;
     ctx.fillStyle=r.parried?'#ffdc65':'#c5ccd1';
