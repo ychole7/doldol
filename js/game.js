@@ -1527,7 +1527,7 @@ function update(dt){
     if(d<42){
       if(p.type==='coin'){
         const walletCoins=window.__duckWallet.addCoins(1);
-        message='+1 COIN  ·  '+walletCoins.toLocaleString();
+        message='+1 돌핵  ·  '+walletCoins.toLocaleString();
         if(window.__duckSyncLobby)window.__duckSyncLobby();
       }else if(p.type==='farm'){
         const count=window.__doldolFarmV2.add(p.farmId,1);
@@ -2414,7 +2414,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>감속 효과</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
     title.textContent="🛒 상점";
-    body.innerHTML='<div class="shopItem"><div>🪙 코인 팩<small>코인 5,000</small></div><button class="buy">💎 300</button></div>'+
+    body.innerHTML='<div class="shopItem"><div>🪙 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
       '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
       '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -2516,7 +2516,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
        '<div class="menuGrid"><button class="menuItem">🪨 기본돌<small>기본 투사체</small></button><button class="menuItem">🔥 불돌<small>공격력 증가</small></button><button class="menuItem">❄️ 얼음돌<small>적 이동속도 감소</small></button><button class="menuItem">💥 폭발돌<small>범위 피해</small></button></div>';
    }else if(kind==="shop"){
      menuTitle.textContent="🛒 상점";
-     body.innerHTML='<div class="shopItem"><div>🪙 코인 팩<small>코인 5,000</small></div><button class="buy">💎 300</button></div>'+
+     body.innerHTML='<div class="shopItem"><div>🪙 돌핵 팩<small>돌핵 5,000</small></div><button class="buy">💎 300</button></div>'+
        '<div class="shopItem"><div>🎁 무기 상자<small>랜덤 무기 1개</small></div><button class="buy">💎 300</button></div>'+
        '<div class="shopItem"><div>🎨 스킨 상자<small>특공대 스킨</small></div><button class="buy">💎 500</button></div>'+
        '<div class="shopItem"><div>⭐ XP 부스터<small>1시간 동안 XP 증가</small></div><button class="buy">💎 300</button></div>';
@@ -3915,8 +3915,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       if(!d||state.claimed[d.id]||Number(state[d.key]||0)<d.goal)return;
       state.claimed[d.id]=true;
       if(window.__duckWallet)window.__duckWallet.addCoins(d.reward);
+      const gm=Math.max(5,Math.round(d.reward/100));
+      if(window.__doldolResources)window.__doldolResources.setGems(window.__doldolResources.gems+gm);
       sync();
-      toast('돌핵 '+d.reward.toLocaleString()+' 획득');
+      toast('돌핵 '+d.reward.toLocaleString()+' · 💎 '+gm+' 획득');
       render();
     });
   }
@@ -5373,12 +5375,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
        // Keep the best star result for each stage.
        const starKey='doldol_stage_stars_v1';
        const starData=JSON.parse(localStorage.getItem(starKey)||'{}')||{};
+       const __firstClear=clear&&!(Number(starData[current])>0);
        starData[current]=Math.max(Number(starData[current])||0,stars);
        localStorage.setItem(starKey,JSON.stringify(starData));
 
        if(!window.__duckBattleRewardGranted){
          window.__duckBattleRewardGranted=true;
          if(window.__duckWallet&&window.__duckWallet.addCoins) window.__duckWallet.addCoins(coreReward);
+         if(__firstClear&&window.__doldolResources){const g=current%10===0?30:10; window.__doldolResources.setGems(window.__doldolResources.gems+g); window.__duckFirstClearGems=g; try{toast('첫 클리어! 💎 '+g+' 획득')}catch(e){}}
          if(window.__duckAddCharacterXP) window.__duckAddCharacterXP(xpReward);
          if(window.__duckBattleItems&&window.__duckBattleItems.grantClearReward){
            const itemRewards=window.__duckBattleItems.grantClearReward(current)||[];
@@ -5602,7 +5606,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <div class="cvPlq"><img src="${A}clear_plaque.png" alt=""><div class="t1">${plqT1}</div><div class="t2">${clear?plqT2:plqT2f}</div></div>
       <div class="cvTitle"><img src="${A}clear_title_plate.png" alt=""><span>★ 획득 보상 ★</span></div>
       <div class="cvRew">
-        <div class="cvSlot${coins?'':' empty'}"><div class="lb">코인</div><img class="ic" src="./assets/materials/reward_coin.png" alt=""><div class="v">x${num(coins)}</div></div>
+        <div class="cvSlot${coins?'':' empty'}"><div class="lb">돌핵</div><img class="ic" src="./assets/materials/reward_coin.png" alt=""><div class="v">x${num(coins)}</div></div>
         <div class="cvSlot${xp?'':' empty'}"><div class="lb">경험치</div><img class="ic" src="./assets/materials/reward_xp.png" alt=""><div class="v">x${num(xp)}</div></div>
         <div class="cvSlot${total?'':' empty'}"><div class="lb">${topId?MATNAME[topId]:'재료'}</div><img class="ic" src="./assets/materials/mat_${topId||'stone'}.png" alt=""><div class="v">x${num(total)}</div></div>
       </div>
