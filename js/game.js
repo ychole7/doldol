@@ -639,10 +639,12 @@ function loadCharacterProgress(){
   }catch(e){ return {}; }
 }
 function saveCharacterProgress(data){ try{localStorage.setItem(CHAR_PROGRESS_KEY,JSON.stringify(data));}catch(e){} }
+function xpNeed(l){return Math.round(50*Math.pow(1.10,Math.max(1,l)-1));}
+window.__duckXpNeed=xpNeed;
 function getCharacterProgress(id){
   const all=loadCharacterProgress();
   const v=all[id]||{};
-  return {level:Math.max(1,Number(v.level)||1),xp:Math.max(0,Number(v.xp)||0),next:Math.max(50,Number(v.next)||50)};
+  return {level:Math.max(1,Number(v.level)||1),xp:Math.max(0,Number(v.xp)||0),next:xpNeed(Math.max(1,Number(v.level)||1))};
 }
 function addCharacterXP(amount,id){
   const cid=id||((localStorage.getItem('doldol_character_v1')||'doldol'));
@@ -3399,12 +3401,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       special:Math.round(specialBase+(specialMax-specialBase)*t)
     };
   }
-  function levelCost(level){ return 100+Math.max(1,level)*70; }
+  function levelCost(level){ return Math.max(100,Math.round(40*Math.pow(Math.max(1,level),1.5))); }
   function setCharacterLevel(id,level){
     try{
       const all=JSON.parse(localStorage.getItem('doldol_character_progress_v1')||'{}')||{};
-      const prev=all[id]||{}, pn=Math.max(50,Number(prev.next)||50);
-      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,(Number(prev.xp)||0)-pn),next:Math.round(pn*1.24)};
+      const prev=all[id]||{}, pn=xpNeed(Math.max(1,Number(prev.level)||1));
+      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,(Number(prev.xp)||0)-pn),next:xpNeed(Math.max(1,Math.min(50,level)))};
       localStorage.setItem('doldol_character_progress_v1',JSON.stringify(all));
     }catch(e){}
   }
@@ -4336,6 +4338,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     const gearLevel=id=>Math.max(1,Math.min(20,Number(upgradeLevels[id]||1)||1));
     const scaled=(v,id,lv=gearLevel(id))=>Math.round((Number(v)||0)*(1+(lv-1)*.10));
     const upgradeCost=lv=>180+lv*55;
+    // 장비 강화 재료: 5레벨까지 없음 / 5~9 나무 / 10~14 돌 / 15~19 돌 + (방어구 불씨, 보조장비 얼음)
+    const gearMats=(g,lv)=>{const c={};
+      if(lv>=5&&lv<=9)c.wood=lv-2;
+      else if(lv>=10&&lv<=14)c.stone=lv-8;
+      else if(lv>=15&&lv<=19){c.stone=lv-12;c[g.slot==='armor'?'ember':'ice']=1+Math.floor((lv-15)/2);}
+      return c;};
     window.__duckGearLoadout=()=>Object.assign({stone:getPreparedStone()},loadout);
 
     function statText(g,lv=gearLevel(g.id)){
@@ -4522,7 +4530,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const on=loadout[g.slot]===g.id;
       const cur=on?null:equipped(g.slot);
       const wallet=window.__duckWallet; const have=wallet?Number(wallet.coins)||0:0;
-      const can=!max&&have>=cost;
+      const gm=max?{}:gearMats(g,lv), farmV=window.__doldolFarmV2;
+      const gmList=Object.keys(gm).map(k=>{const it=(farmV&&farmV.items.find(x=>x.id===k))||{name:k,icon:'•'};const h=farmV?farmV.get(k):0;return {id:k,name:it.name,icon:it.icon,need:gm[k],have:h};});
+      const matsOk=gmList.every(m=>m.have>=m.need);
+      const can=!max&&have>=cost&&matsOk;
+      const gmHtml=gmList.length?'<div class="eqWuMats" style="margin:8px 0">'+gmList.map(m=>'<span class="eqWuMat'+(m.have>=m.need?'':' lack')+'"><img src="./assets/materials/mat_'+m.id+'.png" alt="" draggable="false" onerror="this.outerHTML=\''+m.icon+'\'"><small>'+m.name+'</small><b>'+m.have+' / '+m.need+'</b></span>').join('')+'</div>':'';
       const rc=rarityCls[g.rarity];
       const slotIc=g.slot==='armor'?statIc('stat_defense','🛡'):statIc('stat_special','✦');
 
@@ -4554,11 +4566,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         '</div>'+
         compare+
         '<div class="eqSteps"><b>강화 단계 <span>'+lv+'</span> / 20</b><div class="eqDots">'+dotsHtml(lv)+'</div></div>'+
-        '<div class="eqCost"><span>'+coreIc+'<small>보유 돌핵</small><b>'+have.toLocaleString()+'</b></span><i></i><span><small>강화 비용</small>'+coreIc+'<b class="'+(max||can?'':'lack')+'">'+(max?'MAX':cost.toLocaleString())+'</b></span></div>'+
+        gmHtml+'<div class="eqCost"><span>'+coreIc+'<small>보유 돌핵</small><b>'+have.toLocaleString()+'</b></span><i></i><span><small>강화 비용</small>'+coreIc+'<b class="'+(max||can?'':'lack')+'">'+(max?'MAX':cost.toLocaleString())+'</b></span></div>'+
         equippedBox+
         '<div class="eqBtns"><button type="button" id="eqDoEquip" class="eqBtn sub"><img src="'+g.art+'" alt="">'+(on?'해제':'장착하기')+'</button>'+
         '<button type="button" id="eqDoUp" class="eqBtn up" '+(can?'':'disabled')+'>'+(max?'<b>MAX LEVEL</b>':'<b>강화하기</b><span>'+coreIc+cost.toLocaleString()+'</span>')+'</button></div>'+
-        (!max&&!can?'<div class="eqNeed">돌핵이 부족합니다 · 보유 '+have.toLocaleString()+'</div>':'');
+        (!max&&!can?'<div class="eqNeed">'+(have<cost?'돌핵이 부족합니다 · 보유 '+have.toLocaleString():'재료가 부족합니다')+'</div>':'');
       $q('#eqClose').onclick=closeModal;
       const refresh=()=>{
         try{if(player&&player.gearStats)applyGrowthToPlayer();}catch(e){}
@@ -4571,7 +4583,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       };
       $q('#eqDoUp').onclick=()=>{
         const now=gearLevel(g.id),c=upgradeCost(now); if(now>=20)return;
+        const need=gearMats(g,now), fv=window.__doldolFarmV2;
+        if(Object.keys(need).some(k=>!fv||fv.get(k)<need[k])){openDetail('gear',id);return;}
         if(!window.__duckWallet||!window.__duckWallet.spendCoins(c)){openDetail('gear',id);return;}
+        Object.keys(need).forEach(k=>fv.spend(k,need[k]));
         upgradeLevels[g.id]=now+1; save();
         if(window.__duckMissionEvent)window.__duckMissionEvent('gear',1);
         refresh(); openDetail('gear',id,true);
