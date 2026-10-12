@@ -1544,7 +1544,6 @@ function update(dt){
           level++;
           levelXp-=nextXp;
           nextXp=Math.round(nextXp*1.28);
-          levelFlash=1.15;
           message='';
           messageTimer=0;
           // Combat level-up does not refill HP.
@@ -1553,8 +1552,6 @@ function update(dt){
           // 전투 화면에는 짧은 LEVEL UP 안내만 표시한다.
           upgradeOpen=false;
           running=true;
-          burst(player.x,player.y,24);
-          feedbackV1('levelup');
         }
         if(prog && prog.levels>0){
           player.characterLevel=prog.level;
@@ -3160,7 +3157,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
             <div class="sqLevelContent">
               <div class="sqLevelChar"><div class="sqLevelPortrait" id="sqLevelPortrait"></div><div><div class="sqLevelName" id="sqLevelName"></div><div class="sqLevelJump" id="sqLevelJump"></div></div></div>
               <div class="sqLevelStats" id="sqLevelStats"></div>
-              <div class="sqLevelCost"><small>필요 돌핵</small><b id="sqLevelCost"></b></div>
+              <div class="sqLevelCost"><small>필요 돌핵 · 경험치</small><b id="sqLevelCost"></b></div>
               <button class="sqLevelConfirm" id="sqLevelConfirm"></button>
             </div>
           </div>
@@ -3420,11 +3417,11 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     screen.querySelector('#sqLevelJump').innerHTML=max?`Lv.${p.level} · MAX`:`Lv.${p.level}　›　<em>Lv.${nextLevel}</em>`;
     const rows=[[uiIc('atk','⚔'),'공격력','atk'],[uiIc('defense','🛡'),'방어력','defense'],[uiIc('hp','❤'),'체력','hp'],[uiIc('special','★'),'특수','special']];
     screen.querySelector('#sqLevelStats').innerHTML=rows.map(([icon,name,key])=>`<div class="sqLevelStat"><span>${icon} ${name}</span><b>${now[key]}</b><span>›</span><b class="next">${max?now[key]:next[key]}</b><i class="up">${max?'':'+'+(next[key]-now[key])}</i></div>`).join('');
-    screen.querySelector('#sqLevelCost').innerHTML=max?'MAX':`${coreIc()}<span class="${core()<cost?'short':''}">${cost.toLocaleString()}</span><small class="have">보유 ${core().toLocaleString()}</small>`;
+    screen.querySelector('#sqLevelCost').innerHTML=max?'MAX':`${coreIc()}<span class="${core()<cost?'short':''}">${cost.toLocaleString()}</span><small class="have">보유 ${core().toLocaleString()}</small><small class="have" style="margin-top:6px;font-size:14px;color:${p.xp>=p.next?'#2e9a55':'#d93a2b'}">경험치 ${p.xp.toLocaleString()} / ${p.next.toLocaleString()}</small>`;
     const btn=screen.querySelector('#sqLevelConfirm');
     const xpOk=p.xp>=p.next;
     btn.disabled=max||core()<cost||!xpOk;
-    btn.textContent=max?'최대 레벨':!xpOk?'경험치 '+p.xp+' / '+p.next:core()<cost?'돌핵 부족':'레벨업';
+    btn.textContent=max?'최대 레벨':'레벨업';
     btn.onclick=()=>{
       if(max||!xpOk||!window.__duckWallet||!window.__duckWallet.spendCoins(cost))return;
       setCharacterLevel(c.id,nextLevel);
