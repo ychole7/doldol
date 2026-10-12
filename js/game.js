@@ -343,6 +343,55 @@ function upgradeCharacterSkill(id){
 window.__duckCharacterSkillProgress=getCharacterSkillProgress;
 window.__duckUpgradeCharacterSkill=upgradeCharacterSkill;
 function getSkillLevel(id){ return getCharacterSkillProgress(id).level; }
+// 특공대 리더 스킬(패시브): 캐릭터 Lv.10 이상에서 활성, 레벨은 doldol_skill2_<id>
+const LEADER_DEFS={
+  doldol:{name:'충격파',desc:lv=>'PERFECT 반격 피해 +'+Math.round(30*(1+.15*(lv-1)))+'%'},
+  nyang:{name:'냥냥 연타',desc:lv=>'PERFECT 후 2초간 공격속도 +'+Math.round(20*(1+.15*(lv-1)))+'%'},
+  rabbit:{name:'호흡 조절',desc:lv=>'4회 반격마다 다음 판정폭 +'+Math.round(35*(1+.15*(lv-1)))+'%'},
+  panda:{name:'철벽 자세',desc:lv=>(lv>=5?3:lv>=3?4:5)+'회 피격마다 다음 피해 '+Math.round(Math.min(90,70+3*(lv-1)))+'% 감소'},
+  king:{name:'그림자 일격',desc:lv=>'PERFECT 시 '+Math.round(25*(1+.15*(lv-1)))+'% 확률로 2배 피해'},
+  turtle:{name:'등껍질 방어',desc:lv=>(20-2*(lv-1))+'초마다 1회 피해 80% 감소'},
+  shiba:{name:'불굴의 추격',desc:lv=>'연속 반격마다 피해 +'+Math.round(5*(1+.15*(lv-1)))+'%, 최대 +'+Math.round(30*(1+.15*(lv-1)))+'%'},
+  charge:{name:'초강타',desc:lv=>'PERFECT 피해 +'+Math.round(60*(1+.15*(lv-1)))+'%'}
+};
+window.__duckLeaderDefs=LEADER_DEFS;
+function leaderLevel(id){
+  try{
+    const cp=window.__duckCharacterProgress?window.__duckCharacterProgress(id):{level:1};
+    if((cp.level||1)<10) return 0;
+    return Math.max(1,Math.min(5,Number(localStorage.getItem('doldol_skill2_'+id)||1)||1));
+  }catch(e){return 0;}
+}
+function leaderScale(lv){return 1+.15*(Math.max(1,lv)-1);}
+// 반격 피해 배율 (일반/PERFECT 공통 훅)
+function leaderDamageMul(isPerfect){
+  const id=(player&&player.characterId)||'doldol', lv=leaderLevel(id); if(!lv) return 1;
+  const k=leaderScale(lv); let m=1;
+  if(id==='doldol'&&isPerfect) m*=1+.30*k;
+  if(id==='charge'&&isPerfect) m*=1+.60*k;
+  if(id==='king'&&isPerfect&&Math.random()<.25*k) m*=2;
+  if(id==='shiba') m*=1+Math.min(.30*k,.05*k*combo);
+  return m;
+}
+function leaderAfterParry(isPerfect){
+  const id=(player&&player.characterId)||'doldol', lv=leaderLevel(id); if(!lv) return;
+  const k=leaderScale(lv);
+  if(id==='nyang'&&isPerfect) player.leaderFireBoost=2;
+  if(id==='rabbit'){ player.leaderParryCount=(player.leaderParryCount||0)+1; if(player.leaderParryCount>=4){player.leaderParryCount=0;player.leaderWide=1;} }
+}
+// 피격 피해 배율 (패링 성공 후 소비형)
+function leaderIncomingMul(){
+  const id=(player&&player.characterId)||'doldol', lv=leaderLevel(id); if(!lv) return 1;
+  let m=1;
+  if(id==='panda'){
+    if(player.leaderGuard>0){ player.leaderGuard=0; m=1-Math.min(.9,.7+.03*(lv-1)); }
+    player.leaderHits=(player.leaderHits||0)+1;
+    const need=lv>=5?3:lv>=3?4:5;
+    if(player.leaderHits>=need){player.leaderHits=0;player.leaderGuard=1;}
+  }
+  if(id==='turtle'&&(player.leaderTurtleCd||0)<=0){ m=.2; player.leaderTurtleCd=20-2*(lv-1); }
+  return m;
+}
 
 function getActiveSkillDef(){
   const c=getSelectedCharacter();
@@ -537,6 +586,12 @@ function activateSkill(){
     for(const r of rocks.slice()){
       if(!r.parried && Math.hypot(r.x-player.x,r.y-player.y)<170) parryAt(player.x,player.y);
     }
+  }else if(id==='charge'){
+    player.skillAttackMul=2.2+0.12*(skillLevel-1);
+    skillState.attackMul=player.skillAttackMul;
+    skillTimer=3+0.2*(skillLevel-1);
+    const sw=Math.max(2,Math.round((player.attack||25)/25*(2+0.5*(skillLevel-1))));
+    for(const e of enemies){ if(!e.dead && Math.hypot(e.x-player.x,e.y-player.y)<190) hitEnemy(e,sw); }
   }else{
     player.skillInvincible=true;
     skillTimer=2+0.2*(skillLevel-1);
@@ -627,7 +682,7 @@ const CHARACTER_DEFS=[
   {id:'king',face:'🥷',name:'그림자특공',role:'치명타형',desc:'공격력은 높지만 공격 템포가 느립니다.',skill:{name:'화력 폭주',desc:'4초간 공격력 대폭 증가 + 3연발',cd:10},mods:{atk:1.30,speed:.80,hp:.94,parry:.96,move:.92,perfect:1.10}},
   {id:'turtle',face:'🐢',name:'거북특공',role:'방어형',desc:'최대 HP와 패링 안정성이 뛰어납니다.',skill:{name:'거대 등껍질',desc:'2초간 무적 + 큰 폭의 즉시 회복',cd:11},mods:{atk:.82,speed:.76,hp:1.40,parry:1.22,move:.78,perfect:1.00}},
   {id:'shiba',face:'🦊',name:'시바특공',role:'콤보형',desc:'기동력과 PERFECT 보너스의 균형형입니다.',skill:{name:'반격 본능',desc:'3초간 자동 반격 보조 + PERFECT 강화',cd:9},mods:{atk:.98,speed:1.08,hp:.95,parry:1.10,move:1.12,perfect:1.18}},
-  {id:'charge',face:'🦅',name:'돌격특공',role:'파워형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'돌격',desc:'강한 근접 돌파 스킬',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
+  {id:'charge',face:'🦅',name:'돌격특공',role:'파워형',desc:'잠금 해제 후 사용할 수 있습니다.',skill:{name:'강타 돌파',desc:'3초간 공격 +120% + 주변 충격파',cd:10},mods:{atk:1.18,speed:.94,hp:1.08,parry:1.05,move:1.00,perfect:1.08},locked:true}
 ];
 window.CHARACTER_DEFS=CHARACTER_DEFS;
 /* --- V26 persistent character level / XP --- */
@@ -1124,7 +1179,8 @@ function parryAt(x,y){
   const r=best;
   const nearPlayer=bestD;
   const perfectThreshold=30 + Math.min(18,Math.max(0,(player.growth?.parry||20)-20)*0.22);
-  const isPerfect=nearPlayer<perfectThreshold;
+  const isPerfect=nearPlayer<perfectThreshold*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1);
+  if(player.leaderWide)player.leaderWide=0;
 
   // 패링 성공 후에는 발사자에게 정확히 되돌려 보낸다.
   let target=r.source && !r.source.dead ? r.source : null;
@@ -1168,6 +1224,8 @@ function parryAt(x,y){
     message=''; messageTimer=0;
     shake=4;
   }
+  r.damage=Math.max(1,Math.round(r.damage*leaderDamageMul(isPerfect)));
+  leaderAfterParry(isPerfect);
   duckParryUntil=performance.now()+260;
   parryFxList.push({x:player.x,y:player.y,rx:r.x,ry:r.y,dx:dx/L,dy:dy/L,t:performance.now(),p:!!isPerfect,sp:Array.from({length:isPerfect?40:28},()=>({a:Math.random()*Math.PI*2,v:50+Math.random()*210,l:6+Math.random()*18,w:Math.random()<.35}))});
   if(parryFxList.length>6)parryFxList.shift();
@@ -1253,6 +1311,8 @@ function update(dt){
 
   if(player.inv>0) player.inv-=dt;
   if(player.parryCd>0) player.parryCd=Math.max(0,player.parryCd-dt);
+  if(player.leaderFireBoost>0) player.leaderFireBoost-=dt;
+  if(player.leaderTurtleCd>0) player.leaderTurtleCd-=dt;
   if(messageTimer>0) messageTimer-=dt;
   for(const d of damageTexts){ d.y+=d.vy*dt; d.vy*=.96; d.life-=dt; }
   damageTexts=damageTexts.filter(d=>d.life>0);
@@ -1308,7 +1368,7 @@ function update(dt){
   player.y=clamp(player.y,vh*.20,vh-175);
 
   player.fire-=dt;
-  if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)-(level-1)*.012);shootPlayer();}
+  if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)/(player.leaderFireBoost>0?1+.20*leaderScale(leaderLevel('nyang')):1)-(level-1)*.012);shootPlayer();}
 
   for(const e of enemies){
     if(e.dead) continue;
@@ -1495,7 +1555,7 @@ function update(dt){
         r.life=0;
       }else{
         const stageDamage=14+Math.min(34,(Math.max(1,Number(stage)||1)-1)*.70);
-        const incomingDamage=Math.max(1,Math.round(stageDamage*(100/(100+Math.max(0,Number(player.defense)||0)))));
+        const incomingDamage=Math.max(1,Math.round(stageDamage*(100/(100+Math.max(0,Number(player.defense)||0)))*leaderIncomingMul()));
           player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
         if(player.hp<=0){
@@ -2737,14 +2797,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   }
 
   const uiRoster=[
-    {id:'doldol', face:'🐥', art:'./assets/characters/character_doldol.png', gateStage:1, unlockCost:0, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'돌핵 폭발', skillDesc:'PERFECT 반격 시 충격파 +30% 피해', gate:'기본 캐릭터'},
-    {id:'nyang', face:'🐱', art:'./assets/characters/character_nyang.png', gateStage:10, unlockCost:3000, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'냥냥 연타', skillDesc:'PERFECT 후 다음 반격속도 +20%', gate:'STAGE 10 · 돌핵 3,000'},
-    {id:'rabbit', face:'🐰', art:'./assets/characters/character_rabbit.png', gateStage:15, unlockCost:5000, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'4회 반격마다 다음 PERFECT 판정폭 +35%', gate:'STAGE 15 · 돌핵 5,000'},
-    {id:'panda', face:'🐼', art:'./assets/characters/character_panda.png', gateStage:20, unlockCost:7000, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 자세', skillDesc:'5회 피격마다 다음 피해 70% 감소', gate:'STAGE 20 · 돌핵 7,000'},
-    {id:'king', face:'🥷', art:'./assets/characters/character_shadow.png', gateStage:20, unlockCost:10000, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'그림자 일격', skillDesc:'PERFECT 시 25% 확률로 2배 피해', gate:'STAGE 20 · 돌핵 10,000'},
-    {id:'turtle', art:'./assets/characters/character_turtle.png', face:'🐢', gateStage:30, unlockCost:12000, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'등껍질 방어', skillDesc:'20초마다 1회 피해 80% 감소', gate:'STAGE 30 · 돌핵 12,000'},
-    {id:'shiba', art:'./assets/characters/character_shiba.png', face:'🐕', gateStage:40, unlockCost:15000, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'불굴의 추격', skillDesc:'연속 반격마다 공격 +5%, 최대 +30%', gate:'STAGE 40 · 돌핵 15,000'},
-    {id:'charge', art:'./assets/characters/character_charge.png', face:'🦅', gateStage:50, unlockCost:20000, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'초강타', skillDesc:'PERFECT 피해 +60%', gate:'STAGE 50 · 돌핵 20,000'}
+    {id:'doldol', face:'🐥', art:'./assets/characters/character_doldol.png', gateStage:1, unlockCost:0, name:'돌돌이', role:'밸런스형', atk:100, hp:100, counter:3, timing:3, skill:'특공대 정신', skillDesc:'3초간 무적 + 패링 판정과 PERFECT 피해 강화', gate:'기본 캐릭터'},
+    {id:'nyang', face:'🐱', art:'./assets/characters/character_nyang.png', gateStage:10, unlockCost:3000, name:'냥특공', role:'스피드형', atk:90, hp:85, counter:5, timing:3, skill:'질풍돌진', skillDesc:'3초간 이동 속도 +45%, 공격 +25%', gate:'STAGE 10 · 돌핵 3,000'},
+    {id:'rabbit', face:'🐰', art:'./assets/characters/character_rabbit.png', gateStage:15, unlockCost:5000, name:'토끼특공', role:'타이밍형', atk:95, hp:90, counter:4, timing:5, skill:'초집중', skillDesc:'2.5초간 PERFECT 판정폭 +75%, 패링 +30%', gate:'STAGE 15 · 돌핵 5,000'},
+    {id:'panda', face:'🐼', art:'./assets/characters/character_panda.png', gateStage:20, unlockCost:7000, name:'판다특공', role:'탱커형', atk:105, hp:150, counter:2, timing:3, skill:'철벽 방패', skillDesc:'5초간 보호막 1회 + HP 32 회복', gate:'STAGE 20 · 돌핵 7,000'},
+    {id:'king', face:'🥷', art:'./assets/characters/character_shadow.png', gateStage:20, unlockCost:10000, name:'그림자특공', role:'치명타형', atk:140, hp:75, counter:4, timing:2, skill:'화력 폭주', skillDesc:'4초간 공격 +90% + 3연발', gate:'STAGE 20 · 돌핵 10,000'},
+    {id:'turtle', art:'./assets/characters/character_turtle.png', face:'🐢', gateStage:30, unlockCost:12000, name:'거북특공', role:'방어형', atk:80, hp:180, counter:2, timing:4, skill:'거대 등껍질', skillDesc:'2초간 무적 + HP 50 즉시 회복', gate:'STAGE 30 · 돌핵 12,000'},
+    {id:'shiba', art:'./assets/characters/character_shiba.png', face:'🐕', gateStage:40, unlockCost:15000, name:'시바특공', role:'콤보형', atk:110, hp:105, counter:4, timing:3, skill:'반격 본능', skillDesc:'3초간 자동 패링 + PERFECT 강화', gate:'STAGE 40 · 돌핵 15,000'},
+    {id:'charge', art:'./assets/characters/character_charge.png', face:'🦅', gateStage:50, unlockCost:20000, name:'돌격특공', role:'파워형', atk:160, hp:100, counter:2, timing:2, skill:'강타 돌파', skillDesc:'3초간 공격 +120% + 주변 충격파', gate:'STAGE 50 · 돌핵 20,000'}
   ];
 
   let selectedId=(()=>{try{return localStorage.getItem('doldol_character_v1')||'doldol'}catch(e){return 'doldol'}})();
@@ -3442,14 +3502,14 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       const charLevel=progress(c.id).level;
       let sl=1, sl2=1;
       try{
-        sl=Math.max(1,Math.min(5,Number(localStorage.getItem('doldol_skill_'+c.id)||1)));
+        sl=Math.max(1,Math.min(5,Number((window.__duckCharacterSkillProgress?window.__duckCharacterSkillProgress(c.id).level:localStorage.getItem('doldol_skill_'+c.id))||1)));
         sl2=Math.max(1,Math.min(5,Number(localStorage.getItem('doldol_skill2_'+c.id)||1)));
       }catch(e){}
       const cost=sl*100, cost2=sl2*150, max=sl>=5, max2=sl2>=5, leaderLocked=charLevel<10;
       body.innerHTML=`<div class="sqSkillCard"><div class="sqSkillIcon">${uiIc('power','💥')}</div><div class="sqSkillInfo"><strong>${c.skill}</strong><small>Lv.${sl} / 5</small><p>${c.skillDesc}</p></div><button class="sqSkillUp primary" ${max||core()<cost?'disabled':''}>${max?'MAX':`업그레이드<br>${coreIc()} ${cost}`}</button></div>
-      <div class="sqSkillCard ${leaderLocked?'lockedSkill':''}"><div class="sqSkillIcon">${uiIc('defense','🛡️')}</div><div class="sqSkillInfo"><strong>특공대 리더</strong><small>${leaderLocked?'잠금':`Lv.${sl2} / 5`}</small><p>${leaderLocked?'캐릭터 Lv.10 달성 시 잠금 해제':'아군의 전투 능력을 강화합니다.'}</p></div><button class="sqSkillUp leader" ${leaderLocked||max2||core()<cost2?'disabled':''}>${leaderLocked?`${lockIc()} Lv.10 해금`:max2?'MAX':`업그레이드<br>${coreIc()} ${cost2}`}</button></div>`;
+      <div class="sqSkillCard ${leaderLocked?'lockedSkill':''}"><div class="sqSkillIcon">${uiIc('defense','🛡️')}</div><div class="sqSkillInfo"><strong>리더 · ${(window.__duckLeaderDefs&&window.__duckLeaderDefs[c.id]||{name:'특공대 리더'}).name}</strong><small>${leaderLocked?'잠금':`Lv.${sl2} / 5`}</small><p>${leaderLocked?'캐릭터 Lv.10 달성 시 잠금 해제':(window.__duckLeaderDefs&&window.__duckLeaderDefs[c.id]?window.__duckLeaderDefs[c.id].desc(sl2):'전투 내내 적용되는 패시브입니다.')}</p></div><button class="sqSkillUp leader" ${leaderLocked||max2||core()<cost2?'disabled':''}>${leaderLocked?`${lockIc()} Lv.10 해금`:max2?'MAX':`업그레이드<br>${coreIc()} ${cost2}`}</button></div>`;
       const primary=body.querySelector('.sqSkillUp.primary');
-      if(primary&&!primary.disabled)primary.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost))return;try{localStorage.setItem('doldol_skill_'+c.id,String(sl+1))}catch(e){}renderHud();renderDetailTab('skill')};
+      if(primary&&!primary.disabled)primary.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost))return;try{if(window.__duckUpgradeCharacterSkill)window.__duckUpgradeCharacterSkill(c.id);else localStorage.setItem('doldol_skill_'+c.id,String(sl+1))}catch(e){}renderHud();renderDetailTab('skill')};
       const leader=body.querySelector('.sqSkillUp.leader');
       if(leader&&!leader.disabled)leader.onclick=()=>{if(window.__duckWallet&&!window.__duckWallet.spendCoins(cost2))return;try{localStorage.setItem('doldol_skill2_'+c.id,String(sl2+1))}catch(e){}renderHud();renderDetailTab('skill')};
     }
