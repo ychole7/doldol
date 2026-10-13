@@ -91,7 +91,7 @@ const ENEMY_RIFLE_IMG = new Image();
 let enemyRifleReady = false;
 ENEMY_RIFLE_IMG.onload = () => { enemyRifleReady = true; };
 ENEMY_RIFLE_IMG.onerror = () => { enemyRifleReady = false; };
-__duckQueueAsset(ENEMY_RIFLE_IMG,"../assets/enemy_rifleman.png","defer");
+// (파일이 없는 구 소총병 이미지 로딩 제거 — 404 방지)
 
 const ENEMY_HEAVY_IMG = new Image();
 let enemyHeavyReady = false;
@@ -291,12 +291,12 @@ let parryFxList=[];
 let skillMessage='';
 // V40: battle stone selection / ammo
 const STONE_DEFS={
-  basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
-  fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
-  ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
-  bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
-  lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
-  skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
+  basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌',max:Infinity,damage:1.00,color:'#9da7ae',unlock:0,role:'표준형',desc:'안정적인 기본 공격'},
+  fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌',max:1,damage:1.00,color:'#ff7043',unlock:5,role:'지속딜',desc:'적중 시 추가 화상 피해'},
+  ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌',max:1,damage:.95,color:'#65cfff',unlock:10,role:'제어형',desc:'적중 시 이동속도 감소'},
+  bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌',max:1,damage:1.00,color:'#b9a6ff',unlock:15,role:'광역형',desc:'주변 적에게 범위 피해'},
+  lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌',max:1,damage:1.00,color:'#ffd84d',unlock:20,role:'연쇄형',desc:'주변 적에게 연쇄 피해'},
+  skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌',max:1,damage:.95,color:'#9d7cff',unlock:25,role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소'}
 };
 window.__duckStoneDefs=STONE_DEFS;
 let selectedStone='basic';
@@ -941,7 +941,7 @@ function nextStage(){
 // GAME18: load result/transition styles from external CSS without requiring an HTML rewrite.
 (function(){
   const href='CSS/result.css';
-  if(!document.querySelector('link[data-doldol-result-css]')){
+  if(false&&!document.querySelector('link[data-doldol-result-css]')){
     const link=document.createElement('link');
     link.rel='stylesheet';
     link.href=href;
@@ -1031,11 +1031,15 @@ function burst(x,y,n=12){
   }
 }
 function feedbackV1(kind){
-  try{ if(kind==='parry'&&window.__doldolBgm) window.__doldolBgm.duck(); }catch(e){}
+  try{
+    const S=window.__doldolSfx;
+    if(kind==='parry'||kind==='perfect'){ if(window.__doldolBgm) window.__doldolBgm.duck(); if(S) S.play(kind); }
+    else if(kind==='hit'){ if(S) S.hit(); }
+  }catch(e){}
   try{
     if(window.__duckSettings&&window.__duckSettings.get().vib===false) return;
     if(!navigator.vibrate){ if(window.__duckIosHaptic) window.__duckIosHaptic(kind); return; }
-    const ms=kind==='clear'?55:kind==='kill'?28:kind==='pickup'?18:kind==='parry'?22:kind==='upgrade'?30:12;
+    const ms=kind==='clear'?55:kind==='kill'?28:kind==='pickup'?18:kind==='parry'?22:kind==='perfect'?26:kind==='upgrade'?30:12;
     navigator.vibrate(ms);
   }catch(e){}
 }
@@ -1256,7 +1260,7 @@ function parryAt(x,y){
   parryFxList.push({x:player.x,y:player.y,rx:r.x,ry:r.y,dx:dx/L,dy:dy/L,t:performance.now(),p:!!isPerfect,sp:Array.from({length:isPerfect?40:28},()=>({a:Math.random()*Math.PI*2,v:50+Math.random()*210,l:6+Math.random()*18,w:Math.random()<.35}))});
   if(parryFxList.length>6)parryFxList.shift();
   burst(r.x,r.y,isPerfect?18:10);
-  feedbackV1('parry');
+  feedbackV1(isPerfect?'perfect':'parry');
   return true;
 }
 
@@ -1592,7 +1596,7 @@ function update(dt){
       }else{
         const stageDamage=14+Math.min(34,(Math.max(1,Number(stage)||1)-1)*.70);
         const incomingDamage=Math.max(1,Math.round(stageDamage*(100/(100+Math.max(0,Number(player.defense)||0)))*leaderIncomingMul()));
-          player.hp-=incomingDamage;player.inv=.55;burst(player.x,player.y,14);
+          player.hp-=incomingDamage;player.inv=.55;try{window.__doldolSfx&&window.__doldolSfx.play('player_hit');}catch(e){}burst(player.x,player.y,14);
         message='피격!';messageTimer=.28;
         if(player.hp<=0){
           running=false;gate=false;message='GAME OVER';messageTimer=999;
@@ -1709,6 +1713,7 @@ function update(dt){
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
+      try{window.__doldolSfx&&window.__doldolSfx.play('clear');}catch(e){}
       burst(gx,gy,42);
       window.__duckBattleResultSnapshot={
         stage:Math.max(1,Number(stage)||1),
@@ -4419,12 +4424,12 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     try{return Math.max(1,Math.min(500,Number(localStorage.getItem('doldol_unlocked_stage_v1')||1)||1));}catch(e){return 1;}
   }
   const defs={
-    basic:{icon:'🪨',art:'assets/%20%20%20%20stone_basic.png',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
-    fire:{icon:'🔥',art:'assets/%20%20%20%20stone_fire.png',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
-    ice:{icon:'❄️',art:'assets/%20%20%20%20stone_ice.png',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
-    bomb:{icon:'💥',art:'assets/%20%20%20%20stone_bomb.png',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
-    lightning:{icon:'⚡',art:'assets/%20%20%20%20stone_lightning.png',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
-    skill:{icon:'✨',art:'assets/%20%20%20%20stone_skill.png',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
+    basic:{icon:'🪨',art:'assets/stone_basic.webp',name:'기본돌',role:'표준형',desc:'안정적인 기본 공격',unlock:0},
+    fire:{icon:'🔥',art:'assets/stone_fire.webp',name:'불돌',role:'지속딜',desc:'적중 시 추가 화상 피해',unlock:5},
+    ice:{icon:'❄️',art:'assets/stone_ice.webp',name:'얼음돌',role:'제어형',desc:'적중 시 이동속도 감소',unlock:10},
+    bomb:{icon:'💥',art:'assets/stone_bomb.webp',name:'폭발돌',role:'광역형',desc:'주변 적에게 범위 피해',unlock:15},
+    lightning:{icon:'⚡',art:'assets/stone_lightning.webp',name:'번개돌',role:'연쇄형',desc:'주변 적에게 연쇄 피해',unlock:20},
+    skill:{icon:'✨',art:'assets/stone_skill.webp',name:'스킬돌',role:'특수형',desc:'적중 시 스킬 재사용 대기시간 감소',unlock:25}
   };
   const order=['basic','fire','ice','bomb','lightning','skill'];
   function highestCleared(){return Math.max(0,unlockedStage()-1)}
@@ -5579,7 +5584,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261013-bgm1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261013-clean1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
@@ -5620,12 +5625,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 (function(){
   const stoneSources=[
-    'assets/%20%20%20%20stone_basic.png',
-    'assets/%20%20%20%20stone_fire.png',
-    'assets/%20%20%20%20stone_ice.png',
-    'assets/%20%20%20%20stone_bomb.png',
-    'assets/%20%20%20%20stone_lightning.png',
-    'assets/%20%20%20%20stone_skill.png'
+    'assets/stone_basic.webp',
+    'assets/stone_fire.webp',
+    'assets/stone_ice.webp',
+    'assets/stone_bomb.webp',
+    'assets/stone_lightning.webp',
+    'assets/stone_skill.webp'
   ];
   const warm=()=>stoneSources.forEach(src=>{
     const im=new Image();
