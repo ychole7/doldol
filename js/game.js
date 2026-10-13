@@ -1031,6 +1031,7 @@ function burst(x,y,n=12){
   }
 }
 function feedbackV1(kind){
+  try{ if(kind==='parry'&&window.__doldolBgm) window.__doldolBgm.duck(); }catch(e){}
   try{
     if(window.__duckSettings&&window.__duckSettings.get().vib===false) return;
     if(!navigator.vibrate){ if(window.__duckIosHaptic) window.__duckIosHaptic(kind); return; }
@@ -2321,6 +2322,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
     try{ if(running && !paused && player) return parryAt(player.x,player.y); }catch(e){ console.error('parry failed:',e); }
     return false;
   };
+  window.__duckBattleInfo=function(){ return {running:running,paused:paused,boss:boss}; };
   window.__duckSkill=function(){
     try{ return activateSkill(); }catch(e){ console.error('skill failed:',e); return false; }
   };
@@ -5577,7 +5579,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261012-nav1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261013-bgm1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
