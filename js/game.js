@@ -3556,8 +3556,9 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
   function setCharacterLevel(id,level){
     try{
       const all=JSON.parse(localStorage.getItem('doldol_character_progress_v1')||'{}')||{};
-      const prev=all[id]||{}, pn=xpNeed(Math.max(1,Number(prev.level)||1));
-      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,(Number(prev.xp)||0)-pn),next:xpNeed(Math.max(1,Math.min(50,level)))};
+      const xn=l=>Math.round(50*Math.pow(1.10,Math.max(1,l)-1));
+      const prev=all[id]||{}, pn=xn(Math.max(1,Number(prev.level)||1));
+      all[id]={level:Math.max(1,Math.min(50,level)),xp:Math.max(0,(Number(prev.xp)||0)-pn),next:xn(Math.max(1,Math.min(50,level)))};
       localStorage.setItem('doldol_character_progress_v1',JSON.stringify(all));
     }catch(e){}
   }
@@ -3576,8 +3577,10 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     btn.disabled=max||core()<cost||!xpOk;
     btn.textContent=max?'최대 레벨':'레벨업';
     btn.onclick=()=>{
-      if(max||!xpOk||!window.__duckWallet||!window.__duckWallet.spendCoins(cost))return;
+      if(max||!xpOk||!window.__duckWallet||core()<cost)return;
       setCharacterLevel(c.id,nextLevel);
+      if(progress(c.id).level!==nextLevel)return;
+      window.__duckWallet.spendCoins(cost);
       if(window.__duckMissionEvent)window.__duckMissionEvent('level',1);
       renderHud(); openDetail(); openLevelModal();
       if(window.__duckSyncLobby)window.__duckSyncLobby();
@@ -5584,7 +5587,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261014-skinfix1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261014-lvfix1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
