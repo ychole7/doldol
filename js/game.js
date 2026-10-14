@@ -3652,7 +3652,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     renderGrid();
   }
 
-  function render(){ closeDetail(); }
+  function render(){ const sk=screen.querySelector('#sqSkinPage'); if(sk) sk.hidden=true; closeDetail(); }
 
   build();
   window.__duckRefreshCharacters=render;
@@ -5584,7 +5584,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261013-clean1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261014-skinfix1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
