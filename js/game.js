@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261015-tut1','data-doldol-settings-style']].forEach(function(x){
+  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261015-tut2','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -120,7 +120,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-tut1';
+  im.src=u+'?v=20261015-tut2';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -161,8 +161,8 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-tut1';}};
-    im.src=u2+'.webp?v=20261015-tut1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-tut2';}};
+    im.src=u2+'.webp?v=20261015-tut2';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -176,8 +176,8 @@ function basePoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-tut1';}};
-    im.src=u2+'.webp?v=20261015-tut1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-tut2';}};
+    im.src=u2+'.webp?v=20261015-tut2';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -1215,7 +1215,7 @@ function parryAt(x,y,manual){
     const d=Math.hypot(r.x-player.x,r.y-player.y);
     if(d<=range && d<bestD){ best=r; bestD=d; }
   }
-  if(!best){ if(manual && PARRY_TUNE.whiffLock>0) player.parryCd=Math.max(player.parryCd||0,PARRY_TUNE.whiffLock); return false; }
+  if(!best){ if(manual && TUT.active) tutWhiff(); if(manual && PARRY_TUNE.whiffLock>0) player.parryCd=Math.max(player.parryCd||0,PARRY_TUNE.whiffLock); return false; }
 
   const r=best;
   const nearPlayer=bestD;
@@ -1277,6 +1277,7 @@ function parryAt(x,y,manual){
   if(parryFxList.length>6)parryFxList.shift();
   burst(r.x,r.y,isPerfect?18:10);
   feedbackV1(isPerfect?'perfect':'parry');
+  if(TUT.active) tutOnParry(!!isPerfect,r);
   return true;
 }
 
@@ -1352,7 +1353,7 @@ cv.addEventListener('lostpointercapture',joyEnd);
 
 /* ===== 첫 전투 튜토리얼 (최초 1회 / 설정 > 게임 방법에서 다시 보기) ===== */
 const TUT_KEY='doldol_tutorial_v1';
-const TUT={active:false,step:0,t:0,rock:null,replay:false,perf0:0,mission:undefined,stage0:1,sel0:1};
+const TUT={active:false,step:0,t:0,rock:null,replay:false,perf0:0,mission:undefined,stage0:1,sel0:1,sc:1,hitstop:0,wave:null,pop:null,lastPerf:false,tries:0,hint:0,tick:0};
 const TUT_TXT={
   s1:'돌이 날아와요!<br>가까이 오면 <b>화면을 탭</b>해서 받아쳐요!',
   s2:'돌이 <b>더 가까이</b> 왔을 때 탭하면<br><b>퍼펙트!</b> 데미지 2배!',
@@ -1391,6 +1392,7 @@ function tutMaybeStart(s){
   if(!replay && (s!==1 || tutDone())) return;
   TUT.replay=replay;
   TUT.active=true; TUT.step=0; TUT.t=0; TUT.rock=null; TUT.perf0=perfect;
+  TUT.sc=1; TUT.hitstop=0; TUT.wave=null; TUT.pop=null; TUT.lastPerf=false; TUT.tries=0; TUT.hint=0; TUT.tick=0;
   if(replay){
     // 연습 전투: 보상/미션이 쌓이지 않도록 적 1명(사실상 불사)만 남기고 미션 이벤트를 막는다.
     window.__duckMissionEvent=null;
@@ -1400,11 +1402,14 @@ function tutMaybeStart(s){
 }
 function tutFinish(mode){
   if(!TUT.active) return;
-  TUT.active=false;
+  TUT.active=false; TUT.sc=1; TUT.hitstop=0; TUT.wave=null; TUT.pop=null;
   rocks=rocks.filter(r=>!r.tut);
   const b=document.getElementById('tutBubble'); if(b) b.style.display='none';
   tutGlow(false);
   if(mode!=='abort'){ try{ localStorage.setItem(TUT_KEY,'1'); }catch(e){} }
+  if(mode!=='abort'){ // 정상 전투로 자연스럽게: 적 공격은 잠깐 숨을 고른 뒤 시작
+    for(const e of enemies){ if(e&&!e.dead){ e.fire=Math.max(e.fire||0,.9+Math.random()*.9); e.telegraph=0; } }
+  }
   if(TUT.replay){
     TUT.replay=false;
     window.__duckMissionEvent=TUT.mission;
@@ -1416,54 +1421,145 @@ function tutFinish(mode){
     }
   }
 }
+function tutRockLive(){ const r=TUT.rock; return !!(r&&!r.parried&&rocks.indexOf(r)>=0); }
+function tutRockDist(){ const r=TUT.rock; return r?Math.hypot(r.x-player.x,r.y-player.y):1e9; }
+function tutParryRange(){ return (player.parryRange||72)*(player.skillParryMul||1); }
+// 슬로모션/히트스톱 배율. 첫 돌은 패링 범위 직전부터 느려지고, 두 번째 돌은 살짝만 느려진다.
+function tutScale(rd){
+  if(!TUT.active||!player) return 1;
+  if(TUT.hitstop>0){ TUT.hitstop-=rd; return 0; }
+  let target=1;
+  if((TUT.step===1||TUT.step===4)&&tutRockLive()){
+    const lim=tutParryRange()+(TUT.step===1?70:40);
+    if(tutRockDist()<lim) target=TUT.step===1?.22:.35;
+  }
+  TUT.sc+=(target-TUT.sc)*Math.min(1,rd*14);
+  return TUT.sc;
+}
+function tutWhiff(){
+  if(TUT.step!==1&&TUT.step!==4) return;
+  if(TUT.hint>0) return;
+  TUT.hint=1.2; tutSay('아직 멀어요! 돌이 <b>원 안</b>에 들어오면 탭!');
+}
+function tutOnParry(perf,r){
+  if(!TUT.active||!r||!r.tut) return;
+  TUT.lastPerf=perf;
+  TUT.wave={t:0,col:perf?'255,213,74':'255,255,255',max:perf?230:150};
+  TUT.pop=perf?null:{t:0,text:'NICE!',col:'#ffffff'}; // PERFECT! 문구는 기존 패링 이펙트가 이미 표시한다
+  if(perf) TUT.hitstop=.1;
+}
+function tutStepText(){ return TUT.step===1?TUT_TXT.s1:(TUT.step===4?TUT_TXT.s2:null); }
 function tutUpdate(dt){
   if(!TUT.active||!player) return;
-  TUT.t+=dt;
+  TUT.t+=dt; TUT.tick+=dt;
+  if(TUT.wave){ TUT.wave.t+=dt; if(TUT.wave.t>.55) TUT.wave=null; }
+  if(TUT.pop){ TUT.pop.t+=dt; if(TUT.pop.t>1.4) TUT.pop=null; }
+  if(TUT.hint>0){ TUT.hint-=dt; if(TUT.hint<=0){ const tx=tutStepText(); if(tx) tutSay(tx); } }
   const gone=()=>!TUT.rock||rocks.indexOf(TUT.rock)<0;
   switch(TUT.step){
     case 0: if(TUT.t>=1.9){ TUT.rock=tutRock(105); TUT.step=1; TUT.t=0; } break;
-    case 1:
-      if(TUT.rock&&TUT.rock.parried){ tutSay('좋아요! 잘 받아쳤어요 👍'); TUT.step=2; TUT.t=0; }
-      else if(gone()){ TUT.step=7; TUT.t=0; }
+    case 1: // 첫 패링: 성공할 때까지 반복 (놓친 돌은 HP를 깎지 않고 지나간다)
+      if(TUT.rock&&TUT.rock.parried){ tutSay('좋아요! 잘 받아쳤어요 👍'); TUT.step=2; TUT.t=0; TUT.hint=0; }
+      else if(gone()){ tutSay('놓쳤어요! 다시 한 번 해봐요'); TUT.step=7; TUT.t=0; TUT.hint=0; }
       break;
-    case 7: if(TUT.t>=.8){ TUT.rock=tutRock(105); TUT.step=1; TUT.t=0; } break;
-    case 2: if(TUT.t>=1.1){ tutSay(TUT_TXT.s2); TUT.step=3; TUT.t=0; } break;
+    case 7: if(TUT.t>=1.1){ TUT.rock=tutRock(105); tutSay(TUT_TXT.s1); TUT.step=1; TUT.t=0; } break;
+    case 2: if(TUT.t>=1.6){ tutSay(TUT_TXT.s2); TUT.step=3; TUT.t=0; } break;
     case 3: if(TUT.t>=1.4){ TUT.rock=tutRock(100); TUT.step=4; TUT.t=0; } break;
     case 4:
       if(TUT.rock&&TUT.rock.parried){
-        tutSay(perfect>TUT.perf0?'퍼펙트! 데미지 2배 🔥':'좋아요! 더 가까이서 노리면 퍼펙트!');
-        TUT.step=5; TUT.t=0;
-      }else if(gone()){ TUT.step=5; TUT.t=0; }
+        TUT.hint=0;
+        if(TUT.lastPerf){ tutSay('퍼펙트! 데미지 2배 🔥'); TUT.step=5; TUT.t=0; }
+        else if(++TUT.tries<3){ tutSay('좋아요! <b>금색 원 안</b>에서 탭하면 퍼펙트!'); TUT.step=9; TUT.t=0; }
+        else { tutSay('좋아요! 더 가까이서 노리면 퍼펙트!'); TUT.step=5; TUT.t=0; }
+      }else if(gone()){
+        TUT.hint=0;
+        if(++TUT.tries<3){ tutSay('다시 한 번! <b>금색 원 안</b>에서 탭!'); TUT.step=9; TUT.t=0; }
+        else { TUT.step=5; TUT.t=0; }
+      }
       break;
-    case 5: if(TUT.t>=1.4){ tutSay(TUT_TXT.s3); tutGlow(true); TUT.step=6; TUT.t=0; } break;
-    case 6: if(TUT.t>=3.2) tutFinish('done'); break;
+    case 9: if(TUT.t>=1.4){ TUT.rock=tutRock(100); tutSay(TUT_TXT.s2); TUT.step=4; TUT.t=0; } break;
+    case 5: if(TUT.t>=(TUT.lastPerf?2.1:1.5)){ tutSay(TUT_TXT.s3); tutGlow(true); TUT.step=6; TUT.t=0; } break;
+    case 6: if(TUT.t>=3.2){ tutSay('좋아요! 이제 <b>본격 전투</b> 시작!'); tutGlow(false); TUT.step=8; TUT.t=0; } break;
+    case 8: if(TUT.t>=1.1) tutFinish('done'); break;
   }
 }
 function tutDraw(){
   if(!TUT.active||!player||paused) return;
-  const st=TUT.step;
-  if(st<1||st>4) return;
+  const st=TUT.step, now=TUT.tick;
+  const slow=TUT.sc<.8&&(st===1||st===4);
+  // 화면 어둡게: 슬로모션 중, HP 안내 중(HUD는 canvas 위 DOM이라 그대로 밝게 보인다)
+  let dim=0;
+  if(slow) dim=.34*(1-TUT.sc)/.78;
+  else if(st===6) dim=.45;
+  else if(st===8) dim=.45*Math.max(0,1-TUT.t/1.0);
   ctx.save();
-  const range=(player.parryRange||72)*(player.skillParryMul||1);
-  ctx.setLineDash([6,6]); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.6)';
-  ctx.beginPath(); ctx.arc(player.x,player.y,range,0,Math.PI*2); ctx.stroke();
-  if(st>=3){
-    ctx.setLineDash([]); ctx.lineWidth=3; ctx.strokeStyle='rgba(255,213,74,.95)';
-    ctx.beginPath(); ctx.arc(player.x,player.y,perfectThresholdFor({r:10}),0,Math.PI*2); ctx.stroke();
+  ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; ctx.shadowBlur=0; // 앞선 이펙트의 합성 상태가 남아 있어도 안전하게
+  if(dim>0){
+    ctx.fillStyle='rgba(0,0,0,'+dim.toFixed(3)+')';
+    if(slow){ // 플레이어 주변(패링 범위+돌 경로)은 밝게 남긴다
+      const R=tutParryRange()+80;
+      ctx.beginPath(); ctx.rect(-30,-30,vw+60,vh+60); ctx.arc(player.x,player.y,R,0,Math.PI*2,true); ctx.fill();
+    }else ctx.fillRect(-30,-30,vw+60,vh+60);
   }
-  const r=TUT.rock;
-  if(r&&!r.parried&&rocks.indexOf(r)>=0){
-    ctx.setLineDash([]); ctx.lineWidth=3; ctx.strokeStyle='#ffd54a';
-    ctx.beginPath(); ctx.arc(r.x,r.y,r.r+8+Math.sin(TUT.t*9)*3,0,Math.PI*2); ctx.stroke();
+  if(st>=1&&st<=4){
+    const range=tutParryRange();
+    const showPerfect=(st>=3&&st<=4)||st===9;
+    const thr=perfectThresholdFor({r:10}); // 실제 퍼펙트 판정과 같은 함수/값
+    const pulse=.5+.5*Math.sin(now*8);
+    ctx.setLineDash([6,6]); ctx.lineWidth=slow?3:2; ctx.strokeStyle='rgba(255,255,255,'+(slow?.95:.6)+')';
+    ctx.beginPath(); ctx.arc(player.x,player.y,range,0,Math.PI*2); ctx.stroke();
+    const d=tutRockLive()?tutRockDist():1e9;
+    const inPerfect=showPerfect&&d<thr;
+    if(showPerfect){
+      ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,213,74,'+(inPerfect?.42:.16)+')';
+      ctx.beginPath(); ctx.arc(player.x,player.y,thr,0,Math.PI*2); ctx.fill();
+      ctx.lineWidth=inPerfect?5:3; ctx.strokeStyle='rgba(255,213,74,'+(inPerfect?1:.9)+')';
+      ctx.beginPath(); ctx.arc(player.x,player.y,thr,0,Math.PI*2); ctx.stroke();
+    }
+    const r=TUT.rock;
+    if(tutRockLive()){
+      ctx.setLineDash([]); ctx.lineWidth=slow?5:3; ctx.strokeStyle=inPerfect?'#fff2a8':'#ffd54a';
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.r+8+pulse*4,0,Math.PI*2); ctx.stroke();
+    }
+    // 탭 타이밍 안내 문구
+    let tip=null;
+    if(st===1&&slow) tip='지금 탭!';
+    else if(st===4&&inPerfect) tip='지금! 탭!';
+    else if(st===4&&d<range) tip='금색 원 안에서!';
+    if(tip){
+      ctx.font='900 '+(slow?26:22)+'px system-ui'; ctx.textAlign='center';
+      ctx.lineWidth=5; ctx.strokeStyle='rgba(0,0,0,.75)'; ctx.fillStyle=inPerfect?'#ffd54a':'#fff';
+      const ty=player.y-range-14-pulse*4; ctx.strokeText(tip,player.x,ty); ctx.fillText(tip,player.x,ty);
+    }
+  }
+  // 충격파 + 성공 텍스트
+  if(TUT.wave){
+    const w=TUT.wave, p=Math.min(1,w.t/.5), e=1-Math.pow(1-p,3);
+    ctx.setLineDash([]);
+    ctx.lineWidth=2+7*(1-p); ctx.strokeStyle='rgba('+w.col+','+(1-p).toFixed(3)+')';
+    ctx.beginPath(); ctx.arc(player.x,player.y,10+w.max*e,0,Math.PI*2); ctx.stroke();
+    ctx.lineWidth=1+3*(1-p); ctx.strokeStyle='rgba('+w.col+','+(.7*(1-p)).toFixed(3)+')';
+    ctx.beginPath(); ctx.arc(player.x,player.y,10+w.max*.6*e,0,Math.PI*2); ctx.stroke();
+  }
+  if(TUT.pop){
+    const q=TUT.pop, big=q.text==='PERFECT!';
+    const sc=1+.35*Math.max(0,1-q.t*6), a=q.t>1.0?Math.max(0,1-(q.t-1.0)/.4):1;
+    ctx.save(); ctx.globalAlpha=a; ctx.translate(player.x,player.y-150-q.t*14); ctx.scale(sc,sc);
+    ctx.font='900 '+(big?42:32)+'px system-ui'; ctx.textAlign='center'; ctx.lineJoin='round';
+    ctx.lineWidth=8; ctx.strokeStyle=big?'#7a3d00':'rgba(0,0,0,.7)'; ctx.strokeText(q.text,0,0);
+    ctx.fillStyle=q.col; ctx.shadowColor=big?'#ffb300':'transparent'; ctx.shadowBlur=big?18:0; ctx.fillText(q.text,0,0);
+    ctx.restore();
   }
   ctx.restore();
 }
 
 function update(dt){
   if(!running || paused) return;
+  const realDt=dt; dt*=tutScale(realDt); // 튜토리얼 슬로모션/히트스톱 (비활성 시 1배)
   if(intro>0){ intro-=dt; }
   runTime+=dt;
-  tutUpdate(dt);
+  tutUpdate(realDt);
 
   if(player.inv>0) player.inv-=dt;
   if(player.parryCd>0) player.parryCd=Math.max(0,player.parryCd-dt);
@@ -1712,7 +1808,7 @@ function update(dt){
       if(circleRectHit(r,c)){ r.life=0; burst(r.x,r.y,6); break; }
     }
     if(r.life<=0) continue;
-    if(!r.parried && player.inv<=0 && !player.skillInvincible && !(TUT.active&&TUT.step<6) && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
+    if(!r.parried && player.inv<=0 && !player.skillInvincible && !TUT.active && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
       if(player.skillShield>0){
         player.skillShield=0;
         player.inv=.55;
@@ -5722,7 +5818,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-tut1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-tut2' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
