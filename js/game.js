@@ -120,7 +120,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-sfx2';
+  im.src=u+'?v=20261015-sfx3';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -161,8 +161,8 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx2';}};
-    im.src=u2+'.webp?v=20261015-sfx2';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx3';}};
+    im.src=u2+'.webp?v=20261015-sfx3';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -176,8 +176,8 @@ function basePoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx2';}};
-    im.src=u2+'.webp?v=20261015-sfx2';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx3';}};
+    im.src=u2+'.webp?v=20261015-sfx3';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -1085,7 +1085,6 @@ function shootPlayer(){
 }
 
 function enemyShoot(e){
-  try{window.__doldolSfx&&window.__doldolSfx.play('incoming');}catch(_e){}
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
   const speed=190*(1+Math.min(.35,(stage-1)*.012));
@@ -5595,7 +5594,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-sfx2' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-sfx3' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);

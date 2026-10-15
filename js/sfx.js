@@ -4,9 +4,9 @@
   'use strict';
   var DIR='./assets/sfx/';
   var AC=window.AudioContext||window.webkitAudioContext;
-  var BASE={incoming:.3,parry:.8,perfect:1,reflect:.5,hit:.45,defeat:.6,player_hit:.85,block:.6,core:.45,diamond:.8};
+  var BASE={parry:.8,perfect:1,reflect:.5,hit:.45,defeat:.6,player_hit:.85,block:.6,core:.45,diamond:.8};
   var ctx=null,buf={},loading=false,last={};
-  var MIN_GAP={incoming:260,parry:60,perfect:60,reflect:60,hit:70,defeat:90,player_hit:90,block:90,core:70,diamond:300};
+  var MIN_GAP={parry:60,perfect:60,reflect:60,hit:70,defeat:90,player_hit:90,block:90,core:70,diamond:300};
   function ext(){try{var a=document.createElement('audio');return a.canPlayType&&a.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/,'')?'ogg':'mp3';}catch(e){return 'mp3';}}
   var EXT=ext();
   function vol(){
