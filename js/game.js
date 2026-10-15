@@ -120,7 +120,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-sfx3';
+  im.src=u+'?v=20261015-parry1';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -161,8 +161,8 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx3';}};
-    im.src=u2+'.webp?v=20261015-sfx3';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-parry1';}};
+    im.src=u2+'.webp?v=20261015-parry1';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -176,8 +176,8 @@ function basePoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx3';}};
-    im.src=u2+'.webp?v=20261015-sfx3';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-parry1';}};
+    im.src=u2+'.webp?v=20261015-parry1';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -1193,7 +1193,11 @@ function hitEnemy(e,damage=1){
   }
 }
 
-function parryAt(x,y){
+// 패링 판정 튜닝 값 (숫자만 바꾸면 난이도가 바뀝니다)
+// perfectBand: 돌이 '피격 거리' 바깥으로 이 거리 안에 있을 때 PERFECT (px). 성장 패링 스탯으로 최대 +perfectBandMax
+// whiffLock: 돌이 범위 안에 없는데 눌렀을 때 패링이 막히는 시간(초). 0이면 꺼짐 (켜면 연타가 우연히 PERFECT 구간에 걸릴 수 있어 기본 꺼둠)
+const PARRY_TUNE={perfectBand:16,perfectBandMax:8,whiffLock:0};
+function parryAt(x,y,manual){
   if(!player || player.parryCd>0) return false;
 
   // 패링은 누른 위치가 아니라 "플레이어 바로 앞에 들어온 돌"만 잡는다.
@@ -1206,16 +1210,17 @@ function parryAt(x,y){
     const d=Math.hypot(r.x-player.x,r.y-player.y);
     if(d<=range && d<bestD){ best=r; bestD=d; }
   }
-  if(!best) return false;
+  if(!best){ if(manual && PARRY_TUNE.whiffLock>0) player.parryCd=Math.max(player.parryCd||0,PARRY_TUNE.whiffLock); return false; }
 
   const r=best;
   const nearPlayer=bestD;
-  const perfectThreshold=30 + Math.min(18,Math.max(0,(player.growth?.parry||20)-20)*0.22);
-  if(r.explosive && nearPlayer>=perfectThreshold*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1)){
+  const hitR=(r.r||10)+(player.r||24); // 돌이 실제로 나를 맞히는 거리
+  const perfectThreshold=hitR + (PARRY_TUNE.perfectBand + Math.min(PARRY_TUNE.perfectBandMax,Math.max(0,(player.growth?.parry||20)-20)*0.13))*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1);
+  if(r.explosive && nearPlayer>=perfectThreshold){
     r.life=0; burst(r.x,r.y,12); message='불발!'; messageTimer=.35; player.parryCd=.34; combo++; if(combo>runMaxCombo)runMaxCombo=combo; comboTimer=1.6; feedbackV1('parry');
     return true;
   }
-  const isPerfect=nearPlayer<perfectThreshold*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1);
+  const isPerfect=nearPlayer<perfectThreshold;
   if(player.leaderWide)player.leaderWide=0;
 
   // 패링 성공 후에는 발사자에게 정확히 되돌려 보낸다.
@@ -1320,7 +1325,7 @@ cv.addEventListener('pointerdown',e=>{
     try{cv.setPointerCapture(e.pointerId);}catch(_){}
     return;
   }
-  parryAt(p.x,p.y);
+  parryAt(p.x,p.y,true);
 });
 cv.addEventListener('pointermove',e=>{
   if(!joy.active || e.pointerId!==joy.id) return;
@@ -1333,7 +1338,7 @@ function joyEnd(e){
   if(e.pointerId===joy.id){
     const t=joy.tap; joy.tap=null;
     joy.active=false;joy.id=null;
-    if(e.type==='pointerup' && t && !t.moved && performance.now()-t.t<280 && running) parryAt(t.x,t.y);
+    if(e.type==='pointerup' && t && !t.moved && performance.now()-t.t<280 && running) parryAt(t.x,t.y,true);
   }
 }
 cv.addEventListener('pointerup',joyEnd);
@@ -2331,7 +2336,7 @@ function loop(t){
 running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,inv:0,dir:0,attack:25,attackInterval:.833,parryRange:72,perfectMultiplier:1,parryCd:0}; applyGrowthToPlayer(); window.__duckApplyRunRewards&&window.__duckApplyRunRewards(); enemies=[]; rocks=[]; shots=[]; particles=[]; for(let i=0;i<8;i++) spawnEnemy(i); requestAnimationFrame(loop);
 
   window.__duckParry=function(){
-    try{ if(running && !paused && player) return parryAt(player.x,player.y); }catch(e){ console.error('parry failed:',e); }
+    try{ if(running && !paused && player) return parryAt(player.x,player.y,true); }catch(e){ console.error('parry failed:',e); }
     return false;
   };
   window.__duckBattleInfo=function(){ return {running:running,paused:paused,boss:boss}; };
@@ -5594,7 +5599,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-sfx3' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-parry1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
