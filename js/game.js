@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261011-set7','data-doldol-settings-style']].forEach(function(x){
+  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261015-credit1','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -120,7 +120,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-fresh1';
+  im.src=u+'?v=20261015-credit1';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -161,8 +161,8 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-fresh1';}};
-    im.src=u2+'.webp?v=20261015-fresh1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-credit1';}};
+    im.src=u2+'.webp?v=20261015-credit1';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -176,8 +176,8 @@ function basePoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-fresh1';}};
-    im.src=u2+'.webp?v=20261015-fresh1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-credit1';}};
+    im.src=u2+'.webp?v=20261015-credit1';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -5599,7 +5599,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-fresh1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-credit1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
@@ -5684,6 +5684,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       '<div class="dsGroup"><h4><img src="'+AS+'icon_database.png" alt="">데이터 관리</h4><div class="dsRow" id="dsResetRow"><img class="ri" src="'+AS+'icon_reset.png" alt=""><div class="dsTxt"><b>게임 데이터 초기화</b><small>모든 진행 상황이 삭제돼요</small></div><button type="button" class="dsBtn dsDanger" id="dsReset">초기화</button></div>'+
       '<div class="dsRow dsConfirm" id="dsConfirm" hidden><img class="ri" src="'+AS+'icon_warning.png" alt=""><div class="dsTxt"><b>정말 모두 삭제할까요?</b><small>되돌릴 수 없어요</small></div><div class="dsBtns"><button type="button" class="dsBtn dsGhost" id="dsNo">취소</button><button type="button" class="dsBtn dsDanger" id="dsYes">삭제</button></div></div></div>'+
       '<div class="dsInfo"><img src="'+AS+'icon_info.png" alt="">돌돌 특공대 '+ver+'</div>'+
+      '<div class="dsCredit">기획·제작 YC<br>이미지와 음원 일부는 AI 도구로 제작되었으며,<br>기획·개발·편집은 제작자가 직접 했습니다.</div>'+
       '<button type="button" class="dsOk">닫기</button></div></div>';
     o.addEventListener('click',e=>{if(e.target===o||e.target.closest('.dsX,.dsOk'))close()});
     o.querySelectorAll('.dsToggle').forEach(b=>b.onclick=()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);b.setAttribute('aria-checked',on);window.__duckSettings.set(b.dataset.k,on);if(b.dataset.k==='vib'&&on&&navigator.vibrate){try{navigator.vibrate(20)}catch(e){}}});
