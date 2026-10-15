@@ -119,8 +119,8 @@ const DUCK_POSE = {};
   let retried=false;
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
-  im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-webp1';
+  im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
+  im.src=u+'?v=20261015-sfx2';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -159,8 +159,10 @@ function duckPoses(id){
   const set={};
   ['left','center','right','parry'].forEach(k=>{
     const im=new Image(), o={img:im,ok:false};
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
-    im.src='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k)+'.webp?v=20261015-webp1';
+    const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
+    let r2=false;
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx2';}};
+    im.src=u2+'.webp?v=20261015-sfx2';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -172,8 +174,10 @@ function basePoses(id){
   const set={};
   ['left','center','right','parry'].forEach(k=>{
     const im=new Image(), o={img:im,ok:false};
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
-    im.src='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k)+'.webp?v=20261015-webp1';
+    const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
+    let r2=false;
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-sfx2';}};
+    im.src=u2+'.webp?v=20261015-sfx2';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -1033,8 +1037,10 @@ function burst(x,y,n=12){
 function feedbackV1(kind){
   try{
     const S=window.__doldolSfx;
-    if(kind==='parry'||kind==='perfect'){ if(window.__doldolBgm) window.__doldolBgm.duck(); if(S) S.play(kind); }
+    if(kind==='parry'||kind==='perfect'){ if(window.__doldolBgm) window.__doldolBgm.duck(); if(S){ S.play(kind); setTimeout(function(){S.play('reflect');},90); } }
     else if(kind==='hit'){ if(S) S.hit(); }
+    else if(kind==='block'){ if(S) S.play('block'); }
+    else if(kind==='kill'){ if(S) S.play('defeat'); }
   }catch(e){}
   try{
     if(window.__duckSettings&&window.__duckSettings.get().vib===false) return;
@@ -1079,6 +1085,7 @@ function shootPlayer(){
 }
 
 function enemyShoot(e){
+  try{window.__doldolSfx&&window.__doldolSfx.play('incoming');}catch(_e){}
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
   const speed=190*(1+Math.min(.35,(stage-1)*.012));
@@ -1167,7 +1174,7 @@ function hitEnemy(e,damage=1){
     }
   }
   e.hitFlash=.16;
-  feedbackV1('hit');
+  feedbackV1(blocked?'block':'hit');
   damageTexts.push({x:e.x,y:e.y-e.r-8,text:blocked?'BLOCK':(e.type==='shield'&&e.guardDown>0?'WEAK -'+damage:'-'+damage),life:.55,vy:-34,crit:!blocked&&damage>1});
   burst(e.x,e.y,10);
   combatImpactFx(e,damage,false);
@@ -1634,6 +1641,7 @@ function update(dt){
     if(d<42){
       if(p.type==='coin'){
         const walletCoins=window.__duckWallet.addCoins(1);
+        try{window.__doldolSfx&&window.__doldolSfx.play('core');}catch(_e){}
         message='+1 돌핵  ·  '+walletCoins.toLocaleString();
         if(window.__duckSyncLobby)window.__duckSyncLobby();
       }else if(p.type==='farm'){
@@ -1713,7 +1721,7 @@ function update(dt){
       if(window.__duckMissionEvent) window.__duckMissionEvent('clear',1);
       message='STAGE CLEAR!';
       messageTimer=999;
-      try{window.__doldolSfx&&window.__doldolSfx.play('clear');}catch(e){}
+      try{window.__doldolSfx&&window.__doldolSfx.play('diamond');}catch(e){}
       burst(gx,gy,42);
       window.__duckBattleResultSnapshot={
         stage:Math.max(1,Number(stage)||1),
@@ -5587,7 +5595,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-webp1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-sfx2' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
