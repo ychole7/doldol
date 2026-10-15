@@ -115,12 +115,12 @@ const DUCK_POSE_H = 92;          // 자세 이미지를 그릴 높이(px). 캐�
 const DUCK_POSE = {};
 ['left','center','right','parry'].forEach(k=>{
   const im=new Image(); const o={img:im,ok:false};
-  const u='./assets/characters/duck_'+(k==='parry'?'parry':'idle_'+k)+'.png';
+  const u='./assets/characters/duck_'+(k==='parry'?'parry':'idle_'+k)+'.webp';
   let retried=false;
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u+'?r='+Date.now();}};
-  im.src=u+'?v=20261009-pose2';
+  im.src=u+'?v=20261015-webp1';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -160,7 +160,7 @@ function duckPoses(id){
   ['left','center','right','parry'].forEach(k=>{
     const im=new Image(), o={img:im,ok:false};
     im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
-    im.src='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k)+'.png?v=20261011-skin1';
+    im.src='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k)+'.webp?v=20261015-webp1';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -173,7 +173,7 @@ function basePoses(id){
   ['left','center','right','parry'].forEach(k=>{
     const im=new Image(), o={img:im,ok:false};
     im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false;};
-    im.src='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k)+'.png?v=20261009-pose2';
+    im.src='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k)+'.webp?v=20261015-webp1';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -5587,7 +5587,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261014-lvfix1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-webp1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
