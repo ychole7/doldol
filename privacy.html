@@ -9,9 +9,15 @@ body{margin:0;background:#f6f1e6;color:#2b2118;font:16px/1.7 system-ui,-apple-sy
 main{max-width:720px;margin:0 auto;padding:28px 20px 60px}
 h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 6px;color:#7a4a12}
 p,li{margin:6px 0}small{color:#7a6a58}hr{border:0;border-top:1px solid #d8cdb8;margin:32px 0}
+
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f6f1e6;border-bottom:1px solid #d8cdb8}
+.bar b{font-size:15px}
+.x{border:0;background:#7a4a12;color:#fff;font:800 15px system-ui,sans-serif;padding:8px 14px;border-radius:999px}
+.ok{display:block;width:100%;margin-top:28px;border:0;background:#f2b73c;color:#4a2a05;font:900 18px system-ui,sans-serif;padding:14px;border-radius:14px}
 </style>
 </head>
 <body>
+<div class="bar"><b>개인정보처리방침</b><button class="x" type="button" onclick="closePage()" aria-label="닫기">✕ 닫기</button></div>
 <main>
 <h1>돌돌 특공대 개인정보처리방침</h1>
 <small>시행일: 2026년 10월 15일</small>
@@ -56,6 +62,14 @@ p,li{margin:6px 0}small{color:#7a6a58}hr{border:0;border-top:1px solid #d8cdb8;m
 <li>If features such as ads or purchases are added in the future, this policy will be updated first.</li>
 </ul>
 <p>Contact: yeonchil.kim@gmail.com</p>
+<button class="ok" type="button" onclick="closePage()">확인</button>
 </main>
+<script>
+function closePage(){
+  // 새 창이면 닫고, 닫히지 않으면(앱 모드 등) 이전 화면이나 게임 첫 화면으로 돌아간다
+  try{window.close();}catch(e){}
+  setTimeout(function(){ if(history.length>1) history.back(); else location.href='./'; },150);
+}
+</script>
 </body>
 </html>
