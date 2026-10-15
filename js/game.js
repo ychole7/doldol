@@ -46,7 +46,7 @@ window.__duckStoneImg = window.__duckStoneImg || function(art, icon, name, cls){
 
 // V24: persistent wallet shared by combat and growth screens.
 window.__duckWallet = window.__duckWallet || {
-  get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '12340'); },
+  get coins(){ return Number(localStorage.getItem('doldol_coins_v1') || '0'); },
   addCoins(n){ const v=Math.max(0,this.coins+(Number(n)||0)); localStorage.setItem('doldol_coins_v1',String(v)); return v; },
   spendCoins(n){ const cost=Math.max(0,Number(n)||0); if(this.coins<cost)return false; localStorage.setItem('doldol_coins_v1',String(this.coins-cost)); return true; },
   setCoins(n){ const v=Math.max(0,Number(n)||0); localStorage.setItem('doldol_coins_v1',String(v)); return v; }
@@ -120,7 +120,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-parry1';
+  im.src=u+'?v=20261015-fresh1';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -161,8 +161,8 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-parry1';}};
-    im.src=u2+'.webp?v=20261015-parry1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-fresh1';}};
+    im.src=u2+'.webp?v=20261015-fresh1';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -176,8 +176,8 @@ function basePoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-parry1';}};
-    im.src=u2+'.webp?v=20261015-parry1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-fresh1';}};
+    im.src=u2+'.webp?v=20261015-fresh1';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -3227,7 +3227,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
     ]
   };
   /* 테스트용: true면 모든 캐릭터·스킨 잠금이 풀려요. 확인이 끝나면 false로 바꾸세요 */
-  const TEST_UNLOCK_ALL=true;
+  const TEST_UNLOCK_ALL=false;
   function skinState(){try{const s=JSON.parse(localStorage.getItem(SKIN_KEY)||'{}')||{};return{owned:s.owned||{},equipped:s.equipped||{}}}catch(e){return{owned:{},equipped:{}}}}
   function saveSkin(s){try{localStorage.setItem(SKIN_KEY,JSON.stringify(s))}catch(e){}}
   function skinList(cid){
@@ -3288,7 +3288,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
         <div class="ddProfile"><div class="ddAvatar" id="sqHudFace"></div><div class="ddProfileText"><b id="sqHudName"></b><span id="sqHudLv"></span><div class="ddXp"><i id="sqHudXp"></i></div></div></div>
         <div class="ddResources">
           <div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="sqHudCore">0</b><button class="ddPlus" type="button" aria-label="돌핵 추가">+</button></div>
-          <div class="ddRes"><span class="ddGem">💎</span><b id="sqHudGem">980</b><button class="ddPlus" type="button" aria-label="보석 추가">+</button></div>
+          <div class="ddRes"><span class="ddGem">💎</span><b id="sqHudGem">0</b><button class="ddPlus" type="button" aria-label="보석 추가">+</button></div>
         </div>
         <button class="ddSettings" id="sqHudSettings" type="button" aria-label="설정">⚙</button>
       </header>
@@ -3449,7 +3449,7 @@ function openMap(){closePanels();map.classList.add("show");syncMap();}
       co.title=Number(v||0).toLocaleString();
       co.dataset.long=Number(v||0)>=10000?'1':'0';
     }
-    let gems=980;
+    let gems=0;
     try{
       for(const k of ['doldol_gems_v1','doldol_gem_v1','doldol_diamonds_v1']){
         const v=localStorage.getItem(k);
@@ -5599,7 +5599,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-parry1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-fresh1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);

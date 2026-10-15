@@ -2,7 +2,7 @@
 (function(){
 if(window.__doldolHomeClean)return;window.__doldolHomeClean=true;
 const $=id=>document.getElementById(id);
-window.__doldolResources=window.__doldolResources||{get gems(){return Math.max(0,Number(localStorage.getItem("doldol_gems_v1")||"980")||0)},setGems(v){localStorage.setItem("doldol_gems_v1",String(Math.max(0,Number(v)||0)));sync()}};
+window.__doldolResources=window.__doldolResources||{get gems(){return Math.max(0,Number(localStorage.getItem("doldol_gems_v1")||"0")||0)},setGems(v){localStorage.setItem("doldol_gems_v1",String(Math.max(0,Number(v)||0)));sync()}};
 function info(){
   let id="doldol",name="돌돌이",face="🐥",level=1,xp=0,next=50;
   try{
@@ -87,7 +87,7 @@ function sync(){
 }
 window.__doldolSyncHomeHud=sync;
 function rebuild(){const l=$("gameLobby");if(!l||l.dataset.cleanHome==="1")return!!l;const ids=["lobbyStart","lobbyStages","lobbyGrowth","lobbyGear","lobbyShop","lobbyBook","lobbySettings"],saved=ids.map($).filter(Boolean);if(!$("lobbyStart"))return false;saved.forEach(e=>e.remove());l.replaceChildren();l.className="doldolHomeClean";l.dataset.cleanHome="1";
-const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar"><img src="./assets/characters/character_doldol.png" alt="돌돌이"></div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">980</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
+const h=document.createElement("header");h.className="ddHomeHud";h.innerHTML=`<div class="ddProfile"><div class="ddAvatar" id="homePlayerAvatar"><img src="./assets/characters/character_doldol.png" alt="돌돌이"></div><div class="ddProfileText"><b id="homePlayerName">돌돌이</b><span id="homePlayerLevel">Lv.1</span><div class="ddXp"><i id="homePlayerXp"></i></div></div></div><div class="ddResources"><div class="ddRes ddCore"><img src="./assets/doldol_stone_core.png" alt="돌핵"><b id="lobbyCoins">0</b><button class="ddPlus" id="homeCorePlus" aria-label="돌핵 추가">+</button></div><div class="ddRes"><span class="ddGem">💎</span><b id="homeGems">0</b><button class="ddPlus" id="homeGemPlus" aria-label="보석 추가">+</button></div></div>`;l.appendChild(h);
  const squad=document.createElement("section");
  squad.className="ddSquad";
  squad.setAttribute("aria-label","특공대 편성");
