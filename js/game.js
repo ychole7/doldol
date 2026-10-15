@@ -1,6 +1,6 @@
 /* PRELOAD screen stylesheets (avoid unstyled flash on first open) */
 (function(){
-  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261015-credit1','data-doldol-settings-style']].forEach(function(x){
+  [['css/equip.css?v=20261009-equip9','data-doldol-equip-style'],['css/shop.css?v=20261008-shop3','data-doldol-shop-style'],['css/battle.css?v=20261008-battle10','data-doldol-battle-style'],['css/settings.css?v=20261015-tut1','data-doldol-settings-style']].forEach(function(x){
     if(document.querySelector('link['+x[1]+']'))return;
     var l=document.createElement('link');l.rel='stylesheet';l.href=x[0];l.setAttribute(x[1],'1');document.head.appendChild(l);
   });
@@ -120,7 +120,7 @@ const DUCK_POSE = {};
   im.onload=()=>{o.ok=true;};
   // 예전에 파일이 없을 때의 404가 브라우저에 캐시돼 있어도 다시 받아오도록 버전값을 붙임
   im.onerror=()=>{o.ok=false; if(!retried){retried=true; im.src=u.replace('.webp','.png')+'?r='+Date.now();}};
-  im.src=u+'?v=20261015-credit1';
+  im.src=u+'?v=20261015-tut1';
   DUCK_POSE[k]=o;
 });
 // 캐릭터별 전투 자세: 돌돌이는 duck_idle_*.png, 다른 캐릭터는 duck_<id>_idle_*.png (없으면 돌돌이 자세로 대체)
@@ -161,8 +161,8 @@ function duckPoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+sk+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-credit1';}};
-    im.src=u2+'.webp?v=20261015-credit1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-tut1';}};
+    im.src=u2+'.webp?v=20261015-tut1';
     if(base[k]&&base[k].img) im.__baseImg=base[k].img;
     Object.defineProperty(set,k,{get(){return o.ok?o:base[k]},enumerable:true});
   });
@@ -176,8 +176,8 @@ function basePoses(id){
     const im=new Image(), o={img:im,ok:false};
     const u2='./assets/characters/duck_'+id+'_'+(k==='parry'?'parry':'idle_'+k);
     let r2=false;
-    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-credit1';}};
-    im.src=u2+'.webp?v=20261015-credit1';
+    im.onload=()=>{o.ok=true;}; im.onerror=()=>{o.ok=false; if(!r2){r2=true; im.src=u2+'.png?v=20261015-tut1';}};
+    im.src=u2+'.webp?v=20261015-tut1';
     set[k]=o;
   });
   return (DUCK_POSE_SETS[id]=set);
@@ -869,7 +869,7 @@ function startStage(n){
   if(selectedStone!=='basic' && !(stoneAmmo[selectedStone]>0)) selectedStone='basic';
   battleStone=selectedStone;
   if(battleStone!=='basic'){ message=STONE_DEFS[battleStone].name+' 장착 · 출격!'; messageTimer=.8; }
-  if(window.__duckMissionEvent) window.__duckMissionEvent('play',1);
+  if(window.__duckMissionEvent && !TUT.replay) window.__duckMissionEvent('play',1);
   window.__duckPendingNextStage=0;
   // One reward grant per actual battle run. Reset only when a new stage starts.
   window.__duckBattleRewardGranted=false;
@@ -1085,6 +1085,7 @@ function shootPlayer(){
 }
 
 function enemyShoot(e){
+  if(TUT.active) return;
   const dx=player.x-e.x,dy=player.y-e.y,L=Math.hypot(dx,dy)||1;
   const base=Math.atan2(dy,dx);
   const speed=190*(1+Math.min(.35,(stage-1)*.012));
@@ -1197,6 +1198,10 @@ function hitEnemy(e,damage=1){
 // perfectBand: 돌이 '피격 거리' 바깥으로 이 거리 안에 있을 때 PERFECT (px). 성장 패링 스탯으로 최대 +perfectBandMax
 // whiffLock: 돌이 범위 안에 없는데 눌렀을 때 패링이 막히는 시간(초). 0이면 꺼짐 (켜면 연타가 우연히 PERFECT 구간에 걸릴 수 있어 기본 꺼둠)
 const PARRY_TUNE={perfectBand:16,perfectBandMax:8,whiffLock:0};
+function perfectThresholdFor(r){
+  const hitR=((r&&r.r)||10)+(player.r||24); // 돌이 실제로 나를 맞히는 거리
+  return hitR + (PARRY_TUNE.perfectBand + Math.min(PARRY_TUNE.perfectBandMax,Math.max(0,(player.growth?.parry||20)-20)*0.13))*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1);
+}
 function parryAt(x,y,manual){
   if(!player || player.parryCd>0) return false;
 
@@ -1215,7 +1220,7 @@ function parryAt(x,y,manual){
   const r=best;
   const nearPlayer=bestD;
   const hitR=(r.r||10)+(player.r||24); // 돌이 실제로 나를 맞히는 거리
-  const perfectThreshold=hitR + (PARRY_TUNE.perfectBand + Math.min(PARRY_TUNE.perfectBandMax,Math.max(0,(player.growth?.parry||20)-20)*0.13))*(player.leaderWide?(1+.35*leaderScale(leaderLevel('rabbit'))):1);
+  const perfectThreshold=perfectThresholdFor(r);
   if(r.explosive && nearPlayer>=perfectThreshold){
     r.life=0; burst(r.x,r.y,12); message='불발!'; messageTimer=.35; player.parryCd=.34; combo++; if(combo>runMaxCombo)runMaxCombo=combo; comboTimer=1.6; feedbackV1('parry');
     return true;
@@ -1345,10 +1350,120 @@ cv.addEventListener('pointerup',joyEnd);
 cv.addEventListener('pointercancel',joyEnd);
 cv.addEventListener('lostpointercapture',joyEnd);
 
+/* ===== 첫 전투 튜토리얼 (최초 1회 / 설정 > 게임 방법에서 다시 보기) ===== */
+const TUT_KEY='doldol_tutorial_v1';
+const TUT={active:false,step:0,t:0,rock:null,replay:false,perf0:0,mission:undefined,stage0:1,sel0:1};
+const TUT_TXT={
+  s1:'돌이 날아와요!<br>가까이 오면 <b>화면을 탭</b>해서 받아쳐요!',
+  s2:'돌이 <b>더 가까이</b> 왔을 때 탭하면<br><b>퍼펙트!</b> 데미지 2배!',
+  s3:'돌을 놓치면 <b>HP</b>가 줄어요.<br>HP가 0이 되면 전투 종료!'
+};
+function tutDone(){ try{ return localStorage.getItem(TUT_KEY)==='1'; }catch(e){ return false; } }
+function tutEl(){
+  let b=document.getElementById('tutBubble');
+  if(b) return b;
+  if(!document.getElementById('tutStyle')){
+    const st=document.createElement('style');st.id='tutStyle';
+    st.textContent='#tutBubble{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 92px);transform:translateX(-50%);width:min(88vw,340px);box-sizing:border-box;padding:12px 14px 10px;background:rgba(14,22,30,.8);color:#fff;border:1px solid rgba(255,216,120,.6);border-radius:16px;font:800 15px/1.5 system-ui,sans-serif;text-align:center;z-index:80;pointer-events:none;display:none;text-shadow:0 1px 2px rgba(0,0,0,.5)}#tutBubble b{color:#ffd54a}#tutBubble .tutSkip{pointer-events:auto;margin-top:8px;padding:5px 14px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font:800 12px system-ui,sans-serif}#hudPlayer.tutGlow{animation:tutPulse .7s infinite alternate}@keyframes tutPulse{from{filter:drop-shadow(0 0 3px #ffd54a)}to{filter:drop-shadow(0 0 10px #ffd54a) drop-shadow(0 0 16px #ffb300)}}';
+    document.head.appendChild(st);
+  }
+  b=document.createElement('div');b.id='tutBubble';
+  b.innerHTML='<div class="tutTxt"></div><button type="button" class="tutSkip">건너뛰기</button>';
+  const sk=b.querySelector('.tutSkip');
+  const skip=e=>{e.preventDefault();e.stopPropagation();tutFinish('skip');};
+  sk.addEventListener('pointerdown',e=>e.stopPropagation());
+  sk.addEventListener('click',skip);
+  document.body.appendChild(b);
+  return b;
+}
+function tutSay(html){ const b=tutEl(); b.querySelector('.tutTxt').innerHTML=html; b.style.display='block'; }
+function tutGlow(on){ const h=document.getElementById('hudPlayer'); if(h) h.classList.toggle('tutGlow',!!on); }
+function tutRock(spd){
+  const e=enemies.find(x=>x&&!x.dead)||enemies[0];
+  const ex=e?e.x:vw*.5, ey=e?e.y:vh*.25;
+  const dx=player.x-ex, dy=player.y-ey, L=Math.hypot(dx,dy)||1;
+  const r={x:ex,y:ey,vx:dx/L*spd,vy:dy/L*spd,r:10,life:12,parried:false,pattern:(e&&e.type)||'normal',source:e||null,tut:true};
+  rocks.push(r); return r;
+}
+function tutMaybeStart(s){
+  const replay=TUT.replay;
+  if(TUT.active) tutFinish('abort');
+  if(!replay && (s!==1 || tutDone())) return;
+  TUT.replay=replay;
+  TUT.active=true; TUT.step=0; TUT.t=0; TUT.rock=null; TUT.perf0=perfect;
+  if(replay){
+    // 연습 전투: 보상/미션이 쌓이지 않도록 적 1명(사실상 불사)만 남기고 미션 이벤트를 막는다.
+    window.__duckMissionEvent=null;
+    const e0=enemies[0]; if(e0){ e0.hp=e0.max=99999; enemies=[e0]; }
+  }
+  tutSay(TUT_TXT.s1);
+}
+function tutFinish(mode){
+  if(!TUT.active) return;
+  TUT.active=false;
+  rocks=rocks.filter(r=>!r.tut);
+  const b=document.getElementById('tutBubble'); if(b) b.style.display='none';
+  tutGlow(false);
+  if(mode!=='abort'){ try{ localStorage.setItem(TUT_KEY,'1'); }catch(e){} }
+  if(TUT.replay){
+    TUT.replay=false;
+    window.__duckMissionEvent=TUT.mission;
+    window.__duckStage=TUT.stage0; window.__selectedDuckStage=TUT.sel0;
+    if(mode!=='abort'){
+      if(window.__duckStopCombat) window.__duckStopCombat();
+      const lobby=document.getElementById('gameLobby'); if(lobby) lobby.classList.remove('hidden');
+      if(window.__duckSyncLobby) window.__duckSyncLobby();
+    }
+  }
+}
+function tutUpdate(dt){
+  if(!TUT.active||!player) return;
+  TUT.t+=dt;
+  const gone=()=>!TUT.rock||rocks.indexOf(TUT.rock)<0;
+  switch(TUT.step){
+    case 0: if(TUT.t>=1.9){ TUT.rock=tutRock(105); TUT.step=1; TUT.t=0; } break;
+    case 1:
+      if(TUT.rock&&TUT.rock.parried){ tutSay('좋아요! 잘 받아쳤어요 👍'); TUT.step=2; TUT.t=0; }
+      else if(gone()){ TUT.step=7; TUT.t=0; }
+      break;
+    case 7: if(TUT.t>=.8){ TUT.rock=tutRock(105); TUT.step=1; TUT.t=0; } break;
+    case 2: if(TUT.t>=1.1){ tutSay(TUT_TXT.s2); TUT.step=3; TUT.t=0; } break;
+    case 3: if(TUT.t>=1.4){ TUT.rock=tutRock(100); TUT.step=4; TUT.t=0; } break;
+    case 4:
+      if(TUT.rock&&TUT.rock.parried){
+        tutSay(perfect>TUT.perf0?'퍼펙트! 데미지 2배 🔥':'좋아요! 더 가까이서 노리면 퍼펙트!');
+        TUT.step=5; TUT.t=0;
+      }else if(gone()){ TUT.step=5; TUT.t=0; }
+      break;
+    case 5: if(TUT.t>=1.4){ tutSay(TUT_TXT.s3); tutGlow(true); TUT.step=6; TUT.t=0; } break;
+    case 6: if(TUT.t>=3.2) tutFinish('done'); break;
+  }
+}
+function tutDraw(){
+  if(!TUT.active||!player||paused) return;
+  const st=TUT.step;
+  if(st<1||st>4) return;
+  ctx.save();
+  const range=(player.parryRange||72)*(player.skillParryMul||1);
+  ctx.setLineDash([6,6]); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.6)';
+  ctx.beginPath(); ctx.arc(player.x,player.y,range,0,Math.PI*2); ctx.stroke();
+  if(st>=3){
+    ctx.setLineDash([]); ctx.lineWidth=3; ctx.strokeStyle='rgba(255,213,74,.95)';
+    ctx.beginPath(); ctx.arc(player.x,player.y,perfectThresholdFor({r:10}),0,Math.PI*2); ctx.stroke();
+  }
+  const r=TUT.rock;
+  if(r&&!r.parried&&rocks.indexOf(r)>=0){
+    ctx.setLineDash([]); ctx.lineWidth=3; ctx.strokeStyle='#ffd54a';
+    ctx.beginPath(); ctx.arc(r.x,r.y,r.r+8+Math.sin(TUT.t*9)*3,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function update(dt){
   if(!running || paused) return;
   if(intro>0){ intro-=dt; }
   runTime+=dt;
+  tutUpdate(dt);
 
   if(player.inv>0) player.inv-=dt;
   if(player.parryCd>0) player.parryCd=Math.max(0,player.parryCd-dt);
@@ -1408,6 +1523,7 @@ function update(dt){
   player.x=clamp(player.x,32,vw-32);
   player.y=clamp(player.y,vh*.20,vh-175);
 
+  if(TUT.active) player.fire=Math.max(player.fire,.5); // 튜토리얼 중에는 패링에 집중하도록 자동 발사 보류
   player.fire-=dt;
   if(player.fire<=0){player.fire=Math.max(.18,player.attackInterval/(player.skillAttackMul||1)/(player.leaderFireBoost>0?1+.20*leaderScale(leaderLevel('nyang')):1)-(level-1)*.012);shootPlayer();}
 
@@ -1503,7 +1619,7 @@ function update(dt){
         enemyShoot(e);
       }
     }else{
-      e.fire-=dt;
+      e.fire-=TUT.active?0:dt;
       if(e.fire<=0) e.telegraph=e.type==='boss'?((e.bossPhase||1)===3?.28:(e.bossPhase||1)===2?.24:.32):(e.type==='sniper'?.55:(e.type==='charger'?.32:(e.type==='bomber'?.42:(stage>=10?.24:.28))));
     }
   }
@@ -1596,7 +1712,7 @@ function update(dt){
       if(circleRectHit(r,c)){ r.life=0; burst(r.x,r.y,6); break; }
     }
     if(r.life<=0) continue;
-    if(!r.parried && player.inv<=0 && !player.skillInvincible && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
+    if(!r.parried && player.inv<=0 && !player.skillInvincible && !(TUT.active&&TUT.step<6) && Math.hypot(r.x-player.x,r.y-player.y)<r.r+player.r){
       if(player.skillShield>0){
         player.skillShield=0;
         player.inv=.55;
@@ -2310,6 +2426,7 @@ function draw(){
   }
 
   // V6: legacy canvas result overlay removed; DOM result screen owns navigation.
+  tutDraw();
   drawUpgrade();
   if(paused){
     ctx.fillStyle='rgba(5,8,12,.58)';ctx.fillRect(0,0,vw,vh);
@@ -2488,6 +2605,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
       if(map) map.classList.remove("show");
       startStage(s);
       running=true;
+      tutMaybeStart(s);
       const legacyStart=document.getElementById('start');
       if(legacyStart){
         legacyStart.style.visibility='hidden';
@@ -2501,8 +2619,13 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
       console.error("combat start failed:",e);
     }
   };
+  window.__duckStartTutorial=function(){
+    TUT.replay=true; TUT.stage0=window.__duckStage; TUT.sel0=window.__selectedDuckStage; TUT.mission=window.__duckMissionEvent;
+    window.__duckStartStage(1);
+  };
   window.__duckStopCombat=function(){
     try{
+      if(TUT.active) tutFinish('abort');
       running=false;
       paused=false;
       gate=false;
@@ -5599,7 +5722,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-credit1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-tut1' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
@@ -5683,12 +5806,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       '<div class="dsGroup"><h4><img src="'+AS+'icon_gamepad.png" alt="">게임 설정</h4>'+ROWS.map(r=>'<div class="dsRow"><img class="ri" src="'+AS+r[3]+'" alt=""><div class="dsTxt"><b>'+r[1]+'</b><small>'+r[2]+'</small></div><button type="button" class="dsToggle'+(st[r[0]]!==false?' on':'')+'" data-k="'+r[0]+'" role="switch" aria-checked="'+(st[r[0]]!==false)+'" aria-label="'+r[1]+'"><em class="t-on">ON</em><em class="t-off">OFF</em><i></i></button></div>').join('')+'</div>'+
       '<div class="dsGroup"><h4><img src="'+AS+'icon_database.png" alt="">데이터 관리</h4><div class="dsRow" id="dsResetRow"><img class="ri" src="'+AS+'icon_reset.png" alt=""><div class="dsTxt"><b>게임 데이터 초기화</b><small>모든 진행 상황이 삭제돼요</small></div><button type="button" class="dsBtn dsDanger" id="dsReset">초기화</button></div>'+
       '<div class="dsRow dsConfirm" id="dsConfirm" hidden><img class="ri" src="'+AS+'icon_warning.png" alt=""><div class="dsTxt"><b>정말 모두 삭제할까요?</b><small>되돌릴 수 없어요</small></div><div class="dsBtns"><button type="button" class="dsBtn dsGhost" id="dsNo">취소</button><button type="button" class="dsBtn dsDanger" id="dsYes">삭제</button></div></div></div>'+
+      '<div class="dsGroup"><h4><img src="'+AS+'icon_gamepad.png" alt="">게임 방법</h4><div class="dsRow"><img class="ri" src="'+AS+'icon_info.png" alt=""><div class="dsTxt"><b>전투 튜토리얼</b><small>패링 방법을 다시 연습해요</small></div><button type="button" class="dsBtn dsYellow" id="dsHow">보기</button></div></div>'+
       '<div class="dsInfo"><img src="'+AS+'icon_info.png" alt="">돌돌 특공대 '+ver+'</div>'+
       '<div class="dsCredit">기획·제작 YC<br>이미지와 음원 일부는 AI 도구로 제작되었으며,<br>기획·개발·편집은 제작자가 직접 했습니다.</div>'+
       '<button type="button" class="dsOk">닫기</button></div></div>';
     o.addEventListener('click',e=>{if(e.target===o||e.target.closest('.dsX,.dsOk'))close()});
     o.querySelectorAll('.dsToggle').forEach(b=>b.onclick=()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);b.setAttribute('aria-checked',on);window.__duckSettings.set(b.dataset.k,on);if(b.dataset.k==='vib'&&on&&navigator.vibrate){try{navigator.vibrate(20)}catch(e){}}});
     o.querySelectorAll('.dsRange').forEach(r=>r.oninput=()=>{const w=r.parentNode;w.style.setProperty('--p',r.value+'%');const pc=w.parentNode.querySelector('.dsPct');if(pc)pc.textContent=r.value+'%';window.__duckSettings.set(r.dataset.k,r.value/100)});
+    o.querySelector('#dsHow').onclick=()=>{close();if(window.__duckStartTutorial)window.__duckStartTutorial();};
     o.querySelector('#dsReset').onclick=()=>{o.querySelector('#dsResetRow').hidden=true;o.querySelector('#dsConfirm').hidden=false};
     o.querySelector('#dsNo').onclick=()=>{o.querySelector('#dsConfirm').hidden=true;o.querySelector('#dsResetRow').hidden=false};
     o.querySelector('#dsYes').onclick=()=>{try{Object.keys(localStorage).filter(k=>k.indexOf('doldol')===0&&k!==KEY).forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()};
