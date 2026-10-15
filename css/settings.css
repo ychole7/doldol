@@ -48,3 +48,4 @@
 
 .dsCredit{margin:0 0 8px;text-align:center;font-size:11px;line-height:1.5;font-weight:700;color:#b9a67f;opacity:.9}
 .dsYellow{background-image:url(../assets/settings/button_yellow_blank.png);min-width:62px;color:#4a2a05;text-shadow:none}
+.dsCredit .dsLink,.dsCredit a.dsLink:visited{display:inline-block;margin-top:2px;padding:4px 8px;color:#ffd878!important;text-decoration:underline;font-weight:800}
