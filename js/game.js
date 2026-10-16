@@ -1487,6 +1487,46 @@ function tutUpdate(dt){
     case 8: if(TUT.t>=1.1) tutFinish('done'); break;
   }
 }
+/* ===== 이동 조이스틱 표시 + 이동 안내 (처음 5판) ===== */
+const MH={t0:0,moved:false,show:false,key:'doldol_movehint_v1'};
+function mhStart(){
+  MH.t0=performance.now(); MH.moved=false; MH.show=false;
+  try{
+    const n=parseInt(localStorage.getItem(MH.key)||'0',10)||0;
+    if(n<5){ MH.show=true; localStorage.setItem(MH.key,String(n+1)); }
+  }catch(e){}
+}
+function joyDraw(){
+  if(!player||paused||!running) return;
+  ctx.save();
+  ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; ctx.shadowBlur=0;
+  const dragging=joy.active && (!joy.tap || joy.tap.moved);
+  if(dragging){
+    ctx.beginPath(); ctx.arc(joy.baseX,joy.baseY,62,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.12)'; ctx.fill();
+    ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(joy.x,joy.y,26,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.88)'; ctx.fill();
+  }else if(MH.show && !MH.moved && !joy.active && !TUT.active && !upgradeOpen){
+    const age=(performance.now()-MH.t0)/1000;
+    if(age>.8){
+      const a=Math.min(1,(age-.8)/.5)*(.75+.25*Math.sin(age*4));
+      const cx=vw*.5, cy=Math.min(vh-230,vh*.74), ph=age*2.2;
+      const kx=cx+Math.cos(ph)*34, ky=cy+Math.sin(ph*1.3)*20;
+      ctx.globalAlpha=a;
+      ctx.beginPath(); ctx.arc(cx,cy,62,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fill();
+      ctx.lineWidth=3; ctx.setLineDash([8,8]); ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(kx,ky,26,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fill();
+      const tw=210, th=34, tx=cx-tw/2, ty=cy-62-52;
+      ctx.fillStyle='rgba(14,22,30,.72)'; roundRect(tx,ty,tw,th,17); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='800 15px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('아래쪽을 드래그해서 이동!',cx,ty+th/2+1);
+    }
+  }
+  ctx.restore();
+}
 function tutDraw(){
   if(!TUT.active||!player||paused) return;
   const st=TUT.step, now=TUT.tick;
@@ -1617,7 +1657,7 @@ function update(dt){
   if(joy.active){
     // 아날로그 이동: 살짝 밀면 천천히, 끝까지 밀면 최고 속도 (데드존 7px, 41px에서 최대)
     const jx=joy.x-joy.baseX, jy=joy.y-joy.baseY, jl=Math.hypot(jx,jy);
-    if(jl>7){ mag=Math.min(1,(jl-7)/34); ax=jx/jl; ay=jy/jl; }
+    if(jl>7){ mag=Math.min(1,(jl-7)/34); ax=jx/jl; ay=jy/jl; MH.moved=true; }
   }
   moveAroundCovers(player,ax*mag*player.speed*1.06*dt,ay*mag*player.speed*1.06*dt);
   player.x=clamp(player.x,32,vw-32);
@@ -2533,6 +2573,7 @@ function draw(){
   }
 
   // V6: legacy canvas result overlay removed; DOM result screen owns navigation.
+  joyDraw();
   tutDraw();
   drawUpgrade();
   if(paused){
@@ -2712,6 +2753,7 @@ running=false; player={x:vw*.5,y:vh*.80,r:24,hp:120,maxHp:120,speed:300,fire:0,i
       if(map) map.classList.remove("show");
       startStage(s);
       running=true;
+      mhStart();
       tutMaybeStart(s);
       const legacyStart=document.getElementById('start');
       if(legacyStart){
