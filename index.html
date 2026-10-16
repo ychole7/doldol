@@ -170,8 +170,8 @@ html,body{background:#3d7f71}
 <script id="doldolPhysicalScreenHeight">
 (function(){
   function setAppHeight(){
-    var standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-    standalone = standalone || window.navigator.standalone === true;
+    var isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+    var standalone = isIOS && window.navigator.standalone === true;
     var h = standalone ? window.screen.height : window.innerHeight;
     if(!h || h < 300) h = window.innerHeight;
     document.documentElement.style.setProperty('--doldol-screen-h', h + 'px');
@@ -179,8 +179,7 @@ html,body{background:#3d7f71}
   setAppHeight();
   window.addEventListener('orientationchange', function(){ setTimeout(setAppHeight, 80); });
   window.addEventListener('resize', function(){
-    if(!(window.navigator.standalone === true ||
-         (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches))){
+    if(window.navigator.standalone !== true){
       setAppHeight();
     }
   });
