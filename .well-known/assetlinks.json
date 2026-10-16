@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.doldol.app",
+        "sha256_cert_fingerprints": ["50:A7:15:DB:AF:2C:C1:30:38:19:4F:08:27:CF:F1:F3:1F:41:62:A6:43:A9:4A:95:66:D3:D8:C6:E6:A5:56:0E"]
+      }
+    }]
