@@ -1,16 +1,96 @@
 {
+  "id": "/",
   "name": "돌돌 특공대",
   "short_name": "돌돌특공대",
+  "description": "날아오는 돌을 타이밍에 맞춰 받아치는 원터치 패링 액션 게임",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
+  "lang": "ko",
+  "dir": "ltr",
   "background_color": "#3d7f71",
   "theme_color": "#3d7f71",
-  "description": "DOLDOL SPECIAL FORCE",
+  "categories": [
+    "games"
+  ],
+  "prefer_related_applications": false,
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "store/shot1.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "perfect_parry"
+    },
+    {
+      "src": "store/shot2.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "reflect_kill"
+    },
+    {
+      "src": "store/shot3.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "home"
+    },
+    {
+      "src": "store/shot4.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "growth"
+    },
+    {
+      "src": "store/shot5.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "skin"
+    },
+    {
+      "src": "store/shot6.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "equipment"
+    },
+    {
+      "src": "store/shot7.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "enhance"
+    },
+    {
+      "src": "store/shot8.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "shop_items"
+    }
   ]
 }
