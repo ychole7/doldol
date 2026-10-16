@@ -1337,7 +1337,11 @@ cv.addEventListener('pointermove',e=>{
   if(!joy.active || e.pointerId!==joy.id) return;
   const p=pointerPos(e), dx=p.x-joy.baseX,dy=p.y-joy.baseY,L=Math.hypot(dx,dy),m=62;
   if(joy.tap && L>10) joy.tap.moved=true;
-  if(L>m){joy.x=joy.baseX+dx/L*m;joy.y=joy.baseY+dy/L*m;}
+  if(L>m){
+    // 플로팅 조이스틱: 범위를 넘으면 기준점이 손가락을 따라와서 방향 전환이 즉시 된다
+    joy.baseX+=dx/L*(L-m); joy.baseY+=dy/L*(L-m);
+    joy.x=joy.baseX+dx/L*m; joy.y=joy.baseY+dy/L*m;
+  }
   else {joy.x=p.x;joy.y=p.y;}
 });
 function joyEnd(e){
@@ -1609,13 +1613,13 @@ function update(dt){
   if(comboTimer>0){comboTimer-=dt;}else{combo=0;}
   shake=Math.max(0,shake-dt*24);
 
-  let ax=0,ay=0;
+  let ax=0,ay=0,mag=0;
   if(joy.active){
-    ax=clamp((joy.x-joy.baseX)/62,-1,1);
-    ay=clamp((joy.y-joy.baseY)/62,-1,1);
+    // 아날로그 이동: 살짝 밀면 천천히, 끝까지 밀면 최고 속도 (데드존 7px, 41px에서 최대)
+    const jx=joy.x-joy.baseX, jy=joy.y-joy.baseY, jl=Math.hypot(jx,jy);
+    if(jl>7){ mag=Math.min(1,(jl-7)/34); ax=jx/jl; ay=jy/jl; }
   }
-  const len=Math.hypot(ax,ay)||1;
-  moveAroundCovers(player,ax/len*player.speed*1.06*dt,ay/len*player.speed*1.06*dt);
+  moveAroundCovers(player,ax*mag*player.speed*1.06*dt,ay*mag*player.speed*1.06*dt);
   player.x=clamp(player.x,32,vw-32);
   player.y=clamp(player.y,vh*.20,vh-175);
 
@@ -1706,6 +1710,13 @@ function update(dt){
     }else if(e.type==='fast'){
       moveAroundCovers(e,-dx/L*e.speed*stoneSlow*.35*dt,-dy/L*e.speed*stoneSlow*.35*dt);
     }
+    }
+    // 적이 가만히 서 있지 않도록 좌우/상하로 계속 움직인다 (보스·돌격·저격 제외)
+    if(!e.dead && !TUT.active && e.type!=='boss' && e.type!=='charger' && e.type!=='sniper'){
+      if(e.strafeT==null) e.strafeT=Math.random()*6.28;
+      e.strafeT+=dt*(e.type==='fast'?1.9:1.25);
+      const sm=e.speed*stoneSlow*(e.type==='fast'?2.0:1.9);
+      moveAroundCovers(e,Math.cos(e.strafeT)*sm*dt,Math.sin(e.strafeT*.7)*e.speed*stoneSlow*.8*dt);
     }
     e.x=clamp(e.x,30,vw-30); e.y=clamp(e.y,vh*.12,vh*.48);
     if(e.telegraph>0){
