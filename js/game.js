@@ -680,16 +680,45 @@ function circleRectHit(c,rect){
   const ny=clamp(c.y,rect.y-rect.h/2,rect.y+rect.h/2);
   return Math.hypot(c.x-nx,c.y-ny)<c.r;
 }
-function moveAroundCovers(obj,dx,dy){
-  const ox=obj.x,oy=obj.y;
-  obj.x+=dx; obj.y+=dy;
+function coverHitAt(x,y,r){
   for(const c of covers){
-    if(circleRectHit(obj,c)){
-      obj.x=ox; obj.y=oy;
-      return false;
+    if(c.type && !COVER_READY[c.type]) continue; // 아직 로드 안 된 장애물은 막지 않는다
+    const nx=clamp(x,c.x-c.w/2,c.x+c.w/2), ny=clamp(y,c.y-c.h/2,c.y+c.h/2);
+    if(Math.hypot(x-nx,y-ny)<r) return c;
+  }
+  return null;
+}
+function moveAroundCovers(obj,dx,dy){
+  // 몸 전체가 아니라 발 쪽 작은 원으로 충돌 판정 (장애물에 덜 걸린다)
+  const r=Math.min(obj.r||18,13);
+  // 1) 이미 장애물 안에 끼어 있으면 밖으로 밀어낸다 (갇힘 방지)
+  for(let k=0;k<4;k++){
+    const c=coverHitAt(obj.x,obj.y,r); if(!c) break;
+    const nx=clamp(obj.x,c.x-c.w/2,c.x+c.w/2), ny=clamp(obj.y,c.y-c.h/2,c.y+c.h/2);
+    const ex=obj.x-nx, ey=obj.y-ny, d=Math.hypot(ex,ey);
+    if(d>.001){ const push=(r-d)+.6; obj.x+=ex/d*push; obj.y+=ey/d*push; }
+    else{
+      const px=c.w/2+r-Math.abs(obj.x-c.x), py=c.h/2+r-Math.abs(obj.y-c.y);
+      if(px<py) obj.x+=(obj.x<c.x?-1:1)*(px+.6); else obj.y+=(obj.y<c.y?-1:1)*(py+.6);
     }
   }
-  return true;
+  if(!dx && !dy) return true;
+  // 2) 그대로 이동 가능하면 이동
+  if(!coverHitAt(obj.x+dx,obj.y+dy,r)){ obj.x+=dx; obj.y+=dy; return true; }
+  // 3) 막히면 축별로 미끄러지며 이동
+  let moved=false;
+  if(dx && !coverHitAt(obj.x+dx,obj.y,r)){ obj.x+=dx; moved=true; }
+  if(dy && !coverHitAt(obj.x,obj.y+dy,r)){ obj.y+=dy; moved=true; }
+  // 4) 정면으로 막히면 옆으로 돌아가며 이동
+  if(!moved){
+    const c=coverHitAt(obj.x+dx,obj.y+dy,r);
+    if(c){
+      const side=(obj.x<=c.x?-1:1), step=Math.hypot(dx,dy);
+      if(!coverHitAt(obj.x+side*step,obj.y,r)){ obj.x+=side*step; moved=true; }
+      else if(!coverHitAt(obj.x-side*step,obj.y,r)){ obj.x-=side*step; moved=true; }
+    }
+  }
+  return moved;
 }
 const CHARACTER_DEFS=[
   {id:'doldol',face:'🐥',name:'돌돌이',role:'밸런스형',desc:'기본에 충실한 올라운더',skill:{name:'특공대 정신',desc:'3초간 무적 + 패링 판정 강화',cd:9},mods:{atk:1.00,speed:1.00,hp:1.00,parry:1.00,move:1.00,perfect:1.00}},
@@ -1659,7 +1688,12 @@ function update(dt){
     const jx=joy.x-joy.baseX, jy=joy.y-joy.baseY, jl=Math.hypot(jx,jy);
     if(jl>7){ mag=Math.min(1,(jl-7)/34); ax=jx/jl; ay=jy/jl; MH.moved=true; }
   }
-  moveAroundCovers(player,ax*mag*player.speed*1.06*dt,ay*mag*player.speed*1.06*dt);
+  // 부드러운 가감속: 목표 속도로 빠르게 수렴 (뚝뚝 끊기지 않고 멈출 때도 자연스럽다)
+  const kv=1-Math.exp(-dt*18);
+  player.mvx=(player.mvx||0)+(ax*mag*player.speed*1.06-(player.mvx||0))*kv;
+  player.mvy=(player.mvy||0)+(ay*mag*player.speed*1.06-(player.mvy||0))*kv;
+  if(!joy.active && Math.abs(player.mvx)<4 && Math.abs(player.mvy)<4){ player.mvx=0; player.mvy=0; }
+  moveAroundCovers(player,player.mvx*dt,player.mvy*dt);
   player.x=clamp(player.x,32,vw-32);
   player.y=clamp(player.y,vh*.20,vh-175);
 
