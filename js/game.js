@@ -189,6 +189,7 @@ window.__duckReady = false;
 
 
 const cv = document.getElementById('game');
+cv.style.touchAction='none'; // 드래그 도중 브라우저가 터치를 가로채(pointercancel) 이동이 끊기는 것 방지
 const ctx = cv.getContext('2d');
 const wrap = document.body;
 
@@ -1552,6 +1553,24 @@ function joyDraw(){
       ctx.fillStyle='rgba(14,22,30,.72)'; roundRect(tx,ty,tw,th,17); ctx.fill();
       ctx.fillStyle='#fff'; ctx.font='800 15px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('아래쪽을 드래그해서 이동!',cx,ty+th/2+1);
+    }
+  }
+  // 관문이 열렸는데 멀리 있으면: 출구 방향 화살표 + 안내 문구 (멈춘 것처럼 보이는 혼동 방지)
+  if(gate && running && !TUT.active){
+    const gx=vw*.5, gy=vh*.18, ddx=gx-player.x, ddy=gy-player.y, dd=Math.hypot(ddx,ddy);
+    if(dd>130){
+      const ux=ddx/dd, uy=ddy/dd, t=performance.now()/1000, off=64+Math.sin(t*6)*7;
+      const ax=player.x+ux*off, ay=player.y+uy*off, ang=Math.atan2(uy,ux);
+      ctx.save(); ctx.translate(ax,ay); ctx.rotate(ang);
+      ctx.fillStyle='#ffd54a'; ctx.strokeStyle='rgba(0,0,0,.55)'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(16,0); ctx.lineTo(-8,-13); ctx.lineTo(-3,0); ctx.lineTo(-8,13); ctx.closePath();
+      ctx.stroke(); ctx.fill(); ctx.restore();
+      const tw=230, th=36, tx=vw*.5-tw/2, ty=vh*.36;
+      ctx.globalAlpha=.8+.2*Math.sin(t*5);
+      ctx.fillStyle='rgba(14,22,30,.78)'; roundRect(tx,ty,tw,th,18); ctx.fill();
+      ctx.strokeStyle='rgba(255,213,74,.8)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#ffd54a'; ctx.font='900 16px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('▲ 출구로 이동하세요!',vw*.5,ty+th/2+1);
     }
   }
   ctx.restore();
