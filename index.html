@@ -233,7 +233,7 @@ body{
 </style>
 
 
-<style id="touchFix">#game,canvas#game{touch-action:none!important}</style>
+<style id="touchFix">#game,canvas#game{touch-action:none!important;-webkit-user-select:none;user-select:none}html,body{overscroll-behavior:none}</style>
 <style id="noSelectStyle">html,body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}img{-webkit-user-drag:none}</style>
 <script>["selectstart","contextmenu"].forEach(function(t){document.addEventListener(t,function(e){var n=e.target&&e.target.nodeName;if(n==="INPUT"||n==="TEXTAREA")return;e.preventDefault()},{passive:false})});</script>
 <style id="titleCalmStyle">
