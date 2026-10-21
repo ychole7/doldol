@@ -163,6 +163,13 @@ const st=document.createElement("style");st.id="doldol-home-clean-css";st.textCo
   text-overflow:ellipsis;
   white-space:nowrap;
   font-size:clamp(11px,2.25vw,13px);
+  font-weight:900;
+  color:#fff!important;
+  opacity:1!important;
+  filter:none!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.65);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
 }
 :is(#gameLobby,#characterScreen,#equipScreen,#doldolShopPage) .ddProfileText span{
   font-size:clamp(9px,1.8vw,10px);
