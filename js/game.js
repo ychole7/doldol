@@ -1337,15 +1337,6 @@ document.getElementById('start').addEventListener('click', e=>{
   e.currentTarget.style.display='none';
 });
 
-function rockInParryRange(){
-  if(!player||player.parryCd>0) return false;
-  const range=(player.parryRange||72)*(player.skillParryMul||1);
-  for(const r of rocks){
-    if(r.parried||r.blast) continue;
-    if(Math.hypot(r.x-player.x,r.y-player.y)<=range) return true;
-  }
-  return false;
-}
 cv.addEventListener('pointerdown',e=>{
   e.preventDefault();
   const p=pointerPos(e);
@@ -1363,17 +1354,14 @@ cv.addEventListener('pointerdown',e=>{
     // Never call legacy reset() here: reset() sends the run back to STAGE 1.
     return;
   }
-  if(!joy.active){
-    // 화면 어디를 눌러도 첫 터치 = 이동 조이스틱 (패링은 터치 위치와 무관하게 캐릭터 앞의 돌 기준).
-    // 패링 가능한 돌이 이미 범위 안에 있으면 누르는 즉시 패링(타이밍 정확도 유지),
-    // 그렇지 않으면 짧게 톡 치고 뗄 때만 패링 — 드래그 이동은 패링으로 치지 않는다.
+  if(p.y>vh*.55 && !joy.active){
+    // 아래쪽 첫 터치 = 이동 조이스틱. 짧게 톡 치고 뗄 때만 패링(드래그 이동은 패링 안 함)
     joy.active=true; joy.id=e.pointerId; joy.baseX=p.x; joy.baseY=p.y; joy.x=p.x; joy.y=p.y;
-    joy.tap={x:p.x,y:p.y,t:performance.now(),moved:false,done:false};
+    joy.tap={x:p.x,y:p.y,t:performance.now(),moved:false};
     try{cv.setPointerCapture(e.pointerId);}catch(_){}
-    if(rockInParryRange()){ joy.tap.done=true; parryAt(p.x,p.y,true); }
     return;
   }
-  parryAt(p.x,p.y,true); // 두 번째 손가락 = 즉시 패링
+  parryAt(p.x,p.y,true);
 });
 cv.addEventListener('pointermove',e=>{
   if(!joy.active || e.pointerId!==joy.id) return;
@@ -1390,7 +1378,7 @@ function joyEnd(e){
   if(e.pointerId===joy.id){
     const t=joy.tap; joy.tap=null;
     joy.active=false;joy.id=null;
-    if(e.type==='pointerup' && t && !t.moved && !t.done && performance.now()-t.t<280 && running) parryAt(t.x,t.y,true);
+    if(e.type==='pointerup' && t && !t.moved && performance.now()-t.t<280 && running) parryAt(t.x,t.y,true);
   }
 }
 cv.addEventListener('pointerup',joyEnd);
@@ -1542,7 +1530,7 @@ function joyDraw(){
   if(!player||paused||!running) return;
   ctx.save();
   ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; ctx.shadowBlur=0;
-  const dragging=joy.active && (!joy.tap || joy.tap.moved || performance.now()-joy.tap.t>140);
+  const dragging=joy.active && (!joy.tap || joy.tap.moved);
   if(dragging){
     ctx.beginPath(); ctx.arc(joy.baseX,joy.baseY,62,0,Math.PI*2);
     ctx.fillStyle='rgba(255,255,255,.12)'; ctx.fill();
@@ -1564,7 +1552,7 @@ function joyDraw(){
       const tw=210, th=34, tx=cx-tw/2, ty=cy-62-52;
       ctx.fillStyle='rgba(14,22,30,.72)'; roundRect(tx,ty,tw,th,17); ctx.fill();
       ctx.fillStyle='#fff'; ctx.font='800 15px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('화면을 드래그해서 이동!',cx,ty+th/2+1);
+      ctx.fillText('아래쪽을 드래그해서 이동!',cx,ty+th/2+1);
     }
   }
   // 관문이 열렸는데 멀리 있으면: 출구 방향 화살표 + 안내 문구 (멈춘 것처럼 보이는 혼동 방지)
@@ -5936,7 +5924,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var current = document.currentScript && document.currentScript.src;
   var src = current ? new URL('home.js', current).href : 'JS/home.js';
   var script = document.createElement('script');
-  script.src = src + (src.indexOf('?')<0 ? '?v=20261021-hud1' : '');
+  script.src = src + (src.indexOf('?')<0 ? '?v=20261015-priv3' : '');
   script.defer = true;
   script.dataset.doldolModule = 'home';
   document.head.appendChild(script);
