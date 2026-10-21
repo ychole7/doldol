@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- iOS 26+: black-translucent 제거 (상태바 영역에 시스템 흐림 효과가 덧씌워지는 문제 방지) -->
 <meta name="apple-mobile-web-app-title" content="돌돌 특공대">
 <link rel="preload" as="image" href="assets/title_screen.jpg" fetchpriority="high">
 
@@ -172,7 +172,8 @@ html,body{background:#3d7f71}
   function setAppHeight(){
     var isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
     var standalone = isIOS && window.navigator.standalone === true;
-    var h = standalone ? window.screen.height : window.innerHeight;
+    // black-translucent 제거 후에는 innerHeight가 실제 보이는 영역과 일치한다
+    var h = window.innerHeight;
     if(!h || h < 300) h = window.innerHeight;
     document.documentElement.style.setProperty('--doldol-screen-h', h + 'px');
   }
@@ -233,7 +234,7 @@ body{
 </style>
 
 
-<style id="touchFix">#game,canvas#game{touch-action:none!important;-webkit-user-select:none;user-select:none}html,body{overscroll-behavior:none}</style>
+<style id="touchFix">#game,canvas#game{touch-action:none!important}</style>
 <style id="noSelectStyle">html,body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea{-webkit-user-select:text;user-select:text}img{-webkit-user-drag:none}</style>
 <script>["selectstart","contextmenu"].forEach(function(t){document.addEventListener(t,function(e){var n=e.target&&e.target.nodeName;if(n==="INPUT"||n==="TEXTAREA")return;e.preventDefault()},{passive:false})});</script>
 <style id="titleCalmStyle">
@@ -413,7 +414,7 @@ setTimeout(go,2500);
   </div>
 </div>
 
-<script src="js/game.js?v=20261021-move5"></script>
+<script src="js/game.js?v=20261021-hud1"></script>
 <script src="js/bgm.js?v=20261013-bgm1"></script>
 <script src="js/sfx.js?v=20261015-priv3"></script>
 
