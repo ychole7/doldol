@@ -6000,7 +6000,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const DEF={vib:true,shake:true,hint:true,sfx:.8,bgm:.6};
   function get(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}')||{})}catch(e){return Object.assign({},DEF)}}
   function save(st){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
-  function apply(){document.documentElement.dataset.hint=get().hint===false?'off':'on'}
+  function apply(){document.documentElement.dataset.hint='on'}
   window.__duckSettings={get:get,set:function(k,v){const st=get();st[k]=v;save(st);apply()}};
   apply();
   const ROWS=[['vib','진동','패링·타격 때 폰이 진동해요','icon_vibration.png'],['shake','화면 흔들림','타격 때 화면이 흔들려요','icon_screen.png']];
